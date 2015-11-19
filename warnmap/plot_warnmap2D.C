@@ -1,4 +1,4 @@
-plot_warnmap2D( string warnmapfile="Warnmap_Run13pp510MinBias_erange_0.txt" ))
+plot_warnmap2D( string warnmapfile="warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_mergeerange.txt" )
 {
   /* Read warnmap as tree */
   TTree *twarn = new TTree();
