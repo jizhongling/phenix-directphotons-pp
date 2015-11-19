@@ -1,5 +1,7 @@
-plot_warnmap2D( string warnmapfile="warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_mergeerange.txt" )
+plot_warnmap2D( string warnmapfile="warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_mergeerange.txt" , bool writeplots = true )
 {
+  gStyle->SetOptStat(0);
+
   /* Read warnmap as tree */
   TTree *twarn = new TTree();
   twarn->ReadFile( warnmapfile.c_str(), "sector/I:y:z:status" );
@@ -52,6 +54,8 @@ plot_warnmap2D( string warnmapfile="warnmap-output/Warnmap_Run13pp510MinBias_mer
       cout << title <<endl;
 
       h_warnmap[sector] = new TH2I( name, title, zbins, 0, zbins, ybins, 0, ybins );
+      h_warnmap[sector]->GetXaxis()->SetTitle("z [cm]");
+      h_warnmap[sector]->GetYaxis()->SetTitle("y [cm]");
 
     } //sector
 
@@ -73,6 +77,21 @@ plot_warnmap2D( string warnmapfile="warnmap-output/Warnmap_Run13pp510MinBias_mer
     {
       TCanvas *c1 = new TCanvas();
       (h_warnmap[sector])->Draw("colz");
+
+      if ( writeplots )
+	{
+	  TString filename("plots/warnmap2D_sector_");
+	  filename+=sector;
+	  filename+=".eps";
+
+	  TString filenamep("plots/warnmap2D_sector_");
+	  filenamep+=sector;
+	  filenamep+=".png";
+
+	  c1->Print( filename );
+	  c1->Print( filenamep );
+	}
+
     }
 
   //  h_warnmap_[sect]->Fill(z, y, warnmap_[sect][z][y]);
