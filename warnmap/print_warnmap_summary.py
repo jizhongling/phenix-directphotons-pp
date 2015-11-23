@@ -2,11 +2,12 @@ import csv
 import numpy as np
 
 mapfiles = [
-    'warnmap_output/Warnmap_Run13pp510MinBias_mergeruns_erange0.txt' ,
-    'warnmap_output/Warnmap_Run13pp510MinBias_mergeruns_erange1.txt' ,
-    'warnmap_output/Warnmap_Run13pp510MinBias_mergeruns_erange2.txt' ,
-    'warnmap_output/Warnmap_Run13pp510MinBias_mergeruns_erange3.txt' ,
-    'warnmap_output/Warnmap_Run13pp510MinBias_mergeruns_erange4.txt'
+    'warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_erange0.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_erange1.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_erange2.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_erange3.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_erange4.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_mergeerange.txt'
     ]
 
 # array of total towers per sector
@@ -49,5 +50,17 @@ for sector in np.arange(0,8):
         nhot = ( ( warnmap[:,0] == sector ) & ( warnmap[:,3] == 50 ) ).sum()
         frachot = float(nhot) / float(ntower_total[sector])
         print 'sector: %i map: %s hot fraction: %.2f total: %i' % ( sector, mapfiles[i][-11:-4], frachot, nhot )
+
+    print ' '
+
+print "*** Number of live channels per sector grouped by sector ***"
+for sector in np.arange(0,8):
+
+    for i, warnmap in enumerate( warnmaps ):
+
+        # count live channels
+        nlive = ( ( warnmap[:,0] == sector ) & ( warnmap[:,3] < 20 ) ).sum()
+        fraclive = float(nlive) / float(ntower_total[sector])
+        print 'sector: %i map: %s live fraction: %.3f total: %i' % ( sector, mapfiles[i][-11:-4], fraclive, nlive )
 
     print ' '
