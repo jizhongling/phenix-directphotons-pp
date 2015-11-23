@@ -28,12 +28,7 @@ for DATASET in $DATASETS; do
     echo "Merging files from input directory $INPUT_DIR to $OUTPUT_FILE ... "
 
     ## LIMIT hadd to first 1000 files in folder because of "Too many open files" error
-#    FILELIST=$(ls $INPUT_DIR/WarnmapData*.root | head -1000)
-
     FILELIST=("${(@f)$(ls $INPUT_DIR/WarnmapData*.root | head -1000)}")
-
-#    haddPhenix $OUTPUT_FILE $INPUT_DIR/WarnmapData*.root
-#    hadd $OUTPUT_FILE $INPUT_DIR/WarnmapData*.root
 
     haddPhenix $OUTPUT_FILE $FILELIST
 
