@@ -2,11 +2,11 @@ import csv
 import numpy as np
 
 mapfiles = [
-    'warnmap_output/Warnmap_Run13pp510MinBias_mergeruns_erange0.txt' ,
-    'warnmap_output/Warnmap_Run13pp510MinBias_mergeruns_erange1.txt' ,
-    'warnmap_output/Warnmap_Run13pp510MinBias_mergeruns_erange2.txt' ,
-    'warnmap_output/Warnmap_Run13pp510MinBias_mergeruns_erange3.txt' ,
-    'warnmap_output/Warnmap_Run13pp510MinBias_mergeruns_erange4.txt'
+    'warnmap-output/Warnmap_Run13pp510MinBias_erange_0_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_erange_1_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_erange_2_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_erange_3_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_erange_4_nsigma10_niter10.txt'
     ]
 
 # array of total towers per sector
