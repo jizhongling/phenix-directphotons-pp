@@ -1,13 +1,16 @@
 import csv
 import numpy as np
 
-mapfiles = [
+mapfiles1 = [
     'warnmap-output/Warnmap_Run13pp510MinBias_erange_0_nsigma10_niter10.txt' ,
     'warnmap-output/Warnmap_Run13pp510MinBias_erange_1_nsigma10_niter10.txt' ,
     'warnmap-output/Warnmap_Run13pp510MinBias_erange_2_nsigma10_niter10.txt' ,
     'warnmap-output/Warnmap_Run13pp510MinBias_erange_3_nsigma10_niter10.txt' ,
     'warnmap-output/Warnmap_Run13pp510MinBias_erange_4_nsigma10_niter10.txt'
     ]
+
+# select set of files to merge
+mapfiles=mapfiles1
 
 # array of total towers per sector
 ntower_total = [
