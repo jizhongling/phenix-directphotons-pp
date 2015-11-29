@@ -2,12 +2,17 @@ import csv
 import numpy as np
 
 mapfiles = [
-    'warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_erange0.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_erange1.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_erange2.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_erange3.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_erange4.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_mergeerange.txt'
+    'warnmap-output/Warnmap_Run13pp510MinBias_AND_erange_0_to_4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_erange_0_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_erange_1_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_erange_2_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_erange_3_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_erange_4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange1_MergeEnergyRanges_erange_0_to_4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange2_MergeEnergyRanges_erange_0_to_4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange3_MergeEnergyRanges_erange_0_to_4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange4_MergeEnergyRanges_erange_0_to_4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange5_MergeEnergyRanges_erange_0_to_4_nsigma10_niter10.txt'
     ]
 
 # array of total towers per sector
@@ -25,10 +30,12 @@ ntower_total = [
 # loop over all mapfiles and load maps into arrays
 warnmaps = list()
 
-for mapfile in mapfiles:
+for i, mapfile in enumerate( mapfiles ):
 
     warnmap = np.loadtxt( mapfile, delimiter=' ' ).astype(np.int32)
     warnmaps.append( warnmap )
+
+    print 'map: %i file: %s' % ( i, mapfiles[i] )
 
 print "*** Number of hot channels per sector grouped by warnmap file ***"
 for i, warnmap in enumerate( warnmaps ):
@@ -37,7 +44,7 @@ for i, warnmap in enumerate( warnmaps ):
         # count hot channels
         nhot = ( ( warnmap[:,0] == sector ) & ( warnmap[:,3] == 50 ) ).sum()
         frachot = float(nhot) / float(ntower_total[sector])
-        print 'map: %s sector: %i hot fraction: %.2f  total:  %i' % ( mapfiles[i][-11:-4], sector, frachot, nhot )
+        print 'map: %i sector: %i hot fraction: %.2f  total:  %i' % ( i, sector, frachot, nhot )
 
     print ' '
 
@@ -49,7 +56,7 @@ for sector in np.arange(0,8):
         # count hot channels
         nhot = ( ( warnmap[:,0] == sector ) & ( warnmap[:,3] == 50 ) ).sum()
         frachot = float(nhot) / float(ntower_total[sector])
-        print 'sector: %i map: %s hot fraction: %.2f total: %i' % ( sector, mapfiles[i][-11:-4], frachot, nhot )
+        print 'sector: %i map: %i hot fraction: %.2f total: %i' % ( sector, i, frachot, nhot )
 
     print ' '
 
@@ -61,6 +68,6 @@ for sector in np.arange(0,8):
         # count live channels
         nlive = ( ( warnmap[:,0] == sector ) & ( warnmap[:,3] < 20 ) ).sum()
         fraclive = float(nlive) / float(ntower_total[sector])
-        print 'sector: %i map: %s live fraction: %.3f total: %i' % ( sector, mapfiles[i][-11:-4], fraclive, nlive )
+        print 'sector: %i map: %i live fraction: %.3f total: %i' % ( sector, i, fraclive, nlive )
 
     print ' '
