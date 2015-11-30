@@ -2,17 +2,17 @@ import csv
 import numpy as np
 
 mapfiles = [
-    'warnmap-output/Warnmap_Run13pp510MinBias_AND_erange_0_to_4_nsigma10_niter10.txt' ,
+    'warnmap-final/Warnmap_Run13pp510MinBias_Final.txt' ,
     'warnmap-output/Warnmap_Run13pp510MinBias_erange_0_nsigma10_niter10.txt' ,
     'warnmap-output/Warnmap_Run13pp510MinBias_erange_1_nsigma10_niter10.txt' ,
     'warnmap-output/Warnmap_Run13pp510MinBias_erange_2_nsigma10_niter10.txt' ,
     'warnmap-output/Warnmap_Run13pp510MinBias_erange_3_nsigma10_niter10.txt' ,
     'warnmap-output/Warnmap_Run13pp510MinBias_erange_4_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange1_MergeEnergyRanges_erange_0_to_4_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange2_MergeEnergyRanges_erange_0_to_4_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange3_MergeEnergyRanges_erange_0_to_4_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange4_MergeEnergyRanges_erange_0_to_4_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange5_MergeEnergyRanges_erange_0_to_4_nsigma10_niter10.txt'
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange1_ERange_erange_0_to_4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange2_ERange_erange_0_to_4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange3_ERange_erange_0_to_4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange4_ERange_erange_0_to_4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange5_ERange_erange_0_to_4_nsigma10_niter10.txt'
     ]
 
 # array of total towers per sector
