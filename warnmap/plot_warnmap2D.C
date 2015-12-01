@@ -1,4 +1,4 @@
-plot_warnmap2D( string warnmapfile="warnmap-output/Warnmap_Run13pp510MinBias_mergeruns_mergeerange.txt" , bool writeplots = true )
+plot_warnmap2D( string warnmapfile , bool writeplots = true )
 {
   gStyle->SetOptStat(0);
 
@@ -72,7 +72,13 @@ plot_warnmap2D( string warnmapfile="warnmap-output/Warnmap_Run13pp510MinBias_mer
 
     }
 
+  /* build base filename for plots */
+  std::size_t pos = warnmapfile.find("/");
+  string filename_cut = warnmapfile.substr( pos+1 );
+  (filename_cut.erase( filename_cut.length()-4 ,4 ));//.erase(0,25);
 
+
+  /* plot warnmaps */
   for( int sector = 0; sector < 8; sector++ )
     {
       TCanvas *c1 = new TCanvas();
@@ -80,11 +86,15 @@ plot_warnmap2D( string warnmapfile="warnmap-output/Warnmap_Run13pp510MinBias_mer
 
       if ( writeplots )
 	{
-	  TString filename("plots/warnmap2D_sector_");
+	  TString filename("plots-map2D/warnmap2D_");
+	  filename+=filename_cut;
+	  filename+="_sector_";
 	  filename+=sector;
 	  filename+=".eps";
 
-	  TString filenamep("plots/warnmap2D_sector_");
+	  TString filenamep("plots-map2D/warnmap2D_");
+	  filenamep+=filename_cut;
+	  filenamep+="_sector_";
 	  filenamep+=sector;
 	  filenamep+=".png";
 
@@ -93,6 +103,32 @@ plot_warnmap2D( string warnmapfile="warnmap-output/Warnmap_Run13pp510MinBias_mer
 	}
 
     }
+
+
+  /* Draw combined canvas with all sectors */
+  TCanvas *c2 = new TCanvas();
+  c2->SetCanvasSize( 1000, 500 );
+  c2->SetWindowSize( 1000, 500 );
+  c2->Divide(4,2);
+
+  for( int sector = 0; sector < 8; sector++ )
+    {
+      c2->cd(sector+1);
+      (h_warnmap[sector])->Draw("colz");
+    }
+
+  TString filenameAll("plots-map2D/warnmap2D_");
+  filenameAll+=filename_cut;
+  filenameAll+="_sector_all.eps";
+
+  TString filenameAllp("plots-map2D/warnmap2D_");
+  filenameAllp+=filename_cut;
+  filenameAllp+="_sector_all.eps";
+
+  c2->Print( filenameAll );
+  c2->Print( filenameAllp );
+
+
 
   //  h_warnmap_[sect]->Fill(z, y, warnmap_[sect][z][y]);
 
