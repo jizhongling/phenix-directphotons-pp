@@ -1,10 +1,15 @@
-plot_hitrate_threshold( string checkfile="warnmap-output/Checkplots_GernerateWarnmap_nsigma10_niter10_erange2.root" , bool writeplots = true )
+plot_hitrate_threshold( string checkfile="warnmap-output/Checkplots_Run13pp510MinBias_erange_1_nsigma10_niter10.root" , bool writeplots = true )
 {
   gStyle->SetOptStat(0);
 
   /* Open file */
   TFile *fcheck = new TFile( checkfile.c_str(), "OPEN" );
 
+  /* build base filename for plots */
+  std::size_t pos = checkfile.find("/Checkplots_");
+  string name_cut = checkfile.substr( pos+12 );
+  (name_cut.erase( name_cut.length()-5 ,5 ));
+  cout << name_cut << endl;
   /* Loop over sectors */
   for ( int sector = 0; sector < 8; sector++ )
     {
@@ -47,11 +52,15 @@ plot_hitrate_threshold( string checkfile="warnmap-output/Checkplots_GernerateWar
 
       c1->SetLogy(1);
 
-      TString filename("plots/hitrate_threshold_sector_");
+      TString filename("plots/hitrate_threshold_");
+      filename+=name_cut;
+      filename+="_sector_";
       filename+=sector;
       filename+=".eps";
 
-      TString filenamep("plots/hitrate_threshold_sector_");
+      TString filenamep("plots/hitrate_threshold_");
+      filenamep+=name_cut;
+      filenamep+="_sector_";
       filenamep+=sector;
       filenamep+=".png";
 
