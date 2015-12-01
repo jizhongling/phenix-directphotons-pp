@@ -29,8 +29,7 @@ void towerid2position( int towerid , int &sector , int &y , int &z )
 }
 
 
-//int plot_warnmap2D_paul( string warnmapfile="warnmap-paul/warnmap_Run9pp200MinBias.txt" , string basename_plots="plots/paul_Run9pp200MB_warnmap2D_sector_", bool writeplots = true )
-int plot_warnmap2D_paul( string warnmapfile="warnmap-paul/warnmap_Run9pp500MinBias.txt" , string basename_plots="plots/paul_Run9pp500MB_warnmap2D_sector_", bool writeplots = true )
+int plot_warnmap2D_paul( string warnmapfile="warnmap-paul/iter10_rms10/warn_Run9pp500MinBias.txt" , string basename_plots="plots-map2D/paul_Run9pp500MB_warnmap2D_sector_", bool writeplots = true )
 {
   gStyle->SetOptStat(0);
 
