@@ -9,6 +9,46 @@ mapfiles1 = [
     'warnmap-output/Warnmap_Run13pp510MinBias_erange_4_nsigma10_niter10.txt'
     ]
 
+mapfiles2 = [
+    'warnmap-output/Warnmap_Run13pp510ERT_erange_0_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_erange_1_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_erange_2_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_erange_3_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_erange_4_nsigma10_niter10.txt'
+    ]
+
+mapfiles3 = [
+    'warnmap-output/Warnmap_Run9pp500MinBias_erange_0_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp500MinBias_erange_1_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp500MinBias_erange_2_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp500MinBias_erange_3_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp500MinBias_erange_4_nsigma10_niter10.txt'
+    ]
+
+mapfiles4 = [
+    'warnmap-output/Warnmap_Run9pp500ERT_erange_0_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp500ERT_erange_1_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp500ERT_erange_2_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp500ERT_erange_3_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp500ERT_erange_4_nsigma10_niter10.txt'
+    ]
+
+mapfiles5 = [
+    'warnmap-output/Warnmap_Run9pp200MinBias_erange_0_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp200MinBias_erange_1_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp200MinBias_erange_2_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp200MinBias_erange_3_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp200MinBias_erange_4_nsigma10_niter10.txt'
+    ]
+
+mapfiles6 = [
+    'warnmap-output/Warnmap_Run9pp200ERT_erange_0_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp200ERT_erange_1_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp200ERT_erange_2_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp200ERT_erange_3_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run9pp200ERT_erange_4_nsigma10_niter10.txt'
+    ]
+
 # select set of files to merge
 mapfiles=mapfiles1
 
@@ -45,7 +85,21 @@ for warnmap in warnmaps:
 for sector in np.arange(0,8):
     nhot = ( ( warnmap_merged[:,0] == sector ) & ( warnmap_merged[:,3] == 50 ) ).sum()
     frachot = float(nhot) / float(ntower_total[sector])
+
     print 'sector: %i hot fraction: %.2f  total:  %i' % ( sector, frachot, nhot )
+
+nlive_detector=0
+ntotal_detector=0
+for sector in np.arange(0,8):
+    nlive = ( ( warnmap_merged[:,0] == sector ) & ( warnmap_merged[:,3] < 20 ) ).sum()
+    fraclive = float(nlive) / float(ntower_total[sector])
+
+    nlive_detector+=nlive
+    ntotal_detector+=ntower_total[sector]
+
+    print 'sector: %i live fraction: %.2f  total:  %i' % ( sector, fraclive, nlive )
+
+print 'Calorimeter live fraction: %.3f' % ( float(nlive_detector) / float(ntotal_detector) )
 
 # save warnmap to txt file
 np.savetxt( 'warnmap_merged_python.txt', warnmap_merged, delimiter=' ', fmt='%1.1d' )
