@@ -72,14 +72,20 @@ for i, mapfile in enumerate( mapfiles ):
     print 'map: %i file: %s' % ( i, mapfiles[i] )
 
 # Plot 1: Compare different energy ranges
-widthbar=0.125
 
-plt.bar( np.arange(0,8)+0*widthbar , count_hot[:,0], widthbar, color='crimson', label='full' )
-plt.bar( np.arange(0,8)+1*widthbar , count_hot[:,1], widthbar, color='yellowgreen', label='0.5 GeV - 1.5 GeV' )
-plt.bar( np.arange(0,8)+2*widthbar , count_hot[:,2], widthbar, color='gold', label='1.5 GeV - 3 GeV' )
-plt.bar( np.arange(0,8)+3*widthbar , count_hot[:,3], widthbar, color='lightskyblue', label='3.0 GeV - 6.0 GeV' )
-plt.bar( np.arange(0,8)+4*widthbar , count_hot[:,4], widthbar, color='peachpuff', label='6.0 GeV - 9.0 GeV' )
-plt.bar( np.arange(0,8)+5*widthbar , count_hot[:,5], widthbar, color='mediumturquoise', label='> 9 GeV' )
+# first plot overall number of
+plt.bar( np.arange(0,8) , count_hot[:,0], 0.95, color='crimson', label='full' )
+
+# second plot individual energy ranges
+# number of energy ranges to compare
+neranges=5
+widthbar=0.95/float(neranges)
+
+plt.bar( np.arange(0,8)+0*widthbar , count_hot[:,1], widthbar, color='yellowgreen', label='0.5 GeV - 1.5 GeV' )
+plt.bar( np.arange(0,8)+1*widthbar , count_hot[:,2], widthbar, color='gold', label='1.5 GeV - 3 GeV' )
+plt.bar( np.arange(0,8)+2*widthbar , count_hot[:,3], widthbar, color='lightskyblue', label='3.0 GeV - 6.0 GeV' )
+plt.bar( np.arange(0,8)+3*widthbar , count_hot[:,4], widthbar, color='peachpuff', label='6.0 GeV - 9.0 GeV' )
+plt.bar( np.arange(0,8)+4*widthbar , count_hot[:,5], widthbar, color='mediumturquoise', label='> 9 GeV' )
 
 plt.xlabel('sector')
 plt.ylabel('# hot towers')
@@ -91,14 +97,20 @@ plt.savefig('plots/warnmap_stat_summary1.png')
 plt.show()
 
 # Plot 2: Compare different run ranges
-widthbar=0.125
 
-plt.bar( np.arange(0,8)+0*widthbar , count_hot[:,0], widthbar, color='crimson', label='full' )
-plt.bar( np.arange(0,8)+1*widthbar , count_hot[:,6], widthbar, color='yellowgreen', label='run range 1' )
-plt.bar( np.arange(0,8)+2*widthbar , count_hot[:,7], widthbar, color='gold', label='run range 2' )
-plt.bar( np.arange(0,8)+3*widthbar , count_hot[:,8], widthbar, color='lightskyblue', label='run range 3' )
-plt.bar( np.arange(0,8)+4*widthbar , count_hot[:,9], widthbar, color='peachpuff', label='run range 4' )
-plt.bar( np.arange(0,8)+5*widthbar , count_hot[:,10], widthbar, color='mediumturquoise', label='run range 5' )
+# first plot overall number of
+plt.bar( np.arange(0,8) , count_hot[:,0], 0.95, color='crimson', label='full' )
+
+# second plot individual energy ranges
+# number of energy ranges to compare
+nrunranges=5
+widthbar=0.95/float(nrunranges)
+
+plt.bar( np.arange(0,8)+0*widthbar , count_hot[:,6], widthbar, color='yellowgreen', label='run range 1' )
+plt.bar( np.arange(0,8)+1*widthbar , count_hot[:,7], widthbar, color='gold', label='run range 2' )
+plt.bar( np.arange(0,8)+2*widthbar , count_hot[:,8], widthbar, color='lightskyblue', label='run range 3' )
+plt.bar( np.arange(0,8)+3*widthbar , count_hot[:,9], widthbar, color='peachpuff', label='run range 4' )
+plt.bar( np.arange(0,8)+4*widthbar , count_hot[:,10], widthbar, color='mediumturquoise', label='run range 5' )
 
 plt.xlabel('sector')
 plt.ylabel('# hot towers')
