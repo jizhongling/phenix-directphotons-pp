@@ -3,8 +3,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-plt.rcParams.update({'axes.titlesize' : 16})
+# change font used by matplotlib
+#font = { 'family' : 'normal',
+#         'weight' : 'none',
+#         'size'   : 18}
+#
+#plt.rc('font', **font)
+
+#plt.rcParams.update({'axes.titlesize' : 16})
 plt.rcParams.update({'axes.labelsize' : 18})
+plt.rcParams.update({'xtick.labelsize' : 18})
+plt.rcParams.update({'ytick.labelsize' : 18})
 
 #mapfiles = ['warnmap-final/Warnmap_Run13pp510MinBias_Final.txt' ,
 #            'warnmap-output/Warnmap_Run13pp510MinBias_erange_0_nsigma10_niter10.txt'
@@ -104,12 +113,13 @@ for sector in np.arange(0,8):
     print ' '
 
 
-# Plot 1: Compare overlap in warnmaps
-widthbar=0.25
 
-plt.bar( np.arange(0,8)+0*widthbar , count_hot[:,0], widthbar, color='crimson', label='Hot in map A' )
-plt.bar( np.arange(0,8)+1*widthbar , count_hot_0_AND_1[:], widthbar, color='gold', label='Hot in map A && map B' )
-plt.bar( np.arange(0,8)+2*widthbar , count_hot[:,1], widthbar, color='yellowgreen', label='Hot in map B' )
+# Plot 1: Compare overlap in warnmaps
+widthbar=0.45
+
+plt.bar( np.arange(0,8)+0*widthbar , count_hot[:,0], widthbar, color='crimson', label='Hot in map A')
+plt.bar( np.arange(0,8)+1*widthbar , count_hot[:,1], widthbar, color='yellowgreen', label='Hot in map B' )
+plt.bar( np.arange(0,8) , count_hot_0_AND_1[:], 2*widthbar, color='gold', label='Hot in map A && map B' , edgecolor='black' , hatch='xx' , fill=False )
 
 plt.xlabel('sector')
 plt.ylabel('# hot towers')
