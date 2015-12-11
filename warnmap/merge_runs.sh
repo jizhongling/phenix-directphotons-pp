@@ -1,10 +1,10 @@
 #! /bin/zsh
 
 DATASETS=(
-    Run9pp200MinBias
-    Run9pp200ERT
-    Run9pp500MinBias
-    Run9pp500ERT
+#    Run9pp200MinBias
+#    Run9pp200ERT
+#    Run9pp500MinBias
+#    Run9pp500ERT
     Run13pp510MinBias
     Run13pp510ERT
 )
@@ -31,7 +31,8 @@ for DATASET in $DATASETS; do
     ## LIMIT hadd to first 1000 files in folder because of "Too many open files" error
     FILELIST=("${(@f)$(ls $INPUT_DIR/WarnmapData*.root | head -1000)}")
 
-    haddPhenix $OUTPUT_FILE $FILELIST
+#    haddPhenix $OUTPUT_FILE $FILELIST
+    hadd $OUTPUT_FILE $FILELIST
 
     echo "DONE."
 

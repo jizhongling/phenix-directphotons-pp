@@ -40,11 +40,13 @@ void generate_warnmap()
 
       istringstream iss(line_hist);
 
-      string filename;
-      string histname;
+      string filename = "";
+      string histname = "";
+      unsigned ybin_min = 0;
+      unsigned ybin_max = 0;
 
       /* read string- break if error */
-      if ( !( iss >> filename >> histname ) )
+      if ( !( iss >> filename >> histname >> ybin_min >> ybin_max ) )
 	    {
 	      cerr << "ERROR: Failed to read line in file " << histlist << endl;
 	      exit(1);
@@ -59,21 +61,26 @@ void generate_warnmap()
 
       stringstream basename;
       basename << filename_cut;
-      basename << histname_cut;
+      //      basename << histname_cut;
 
-      cout << "Processing: " << filename << " & " << histname << " & " << basename.str() << endl;
+      cout << "Processing: " << filename << " & " << histname << " & " << basename.str()
+	   << " & " << ybin_min << " & " << ybin_max << endl;
 
       /* Reset ROOT */
       gROOT->Reset();
 
       /* Name for checkplot file */
       stringstream ss_plotfile;
-      ss_plotfile << "warnmap-output/Checkplots_" << basename.str() << "_nsigma" << nsigma << "_niter" << niterations << ".root";
+      ss_plotfile << "warnmap-output/Checkplots_"
+		  << basename.str()
+		  << "_ybins" << ybin_min << "to" << ybin_max
+		  << "_nsigma" << nsigma
+		  << "_niter" << niterations << ".root";
 
       /* Run code to generate warnmap */
       direct_photon_pp::GenerateWarnmap *genwarn = new direct_photon_pp::GenerateWarnmap( nsigma, ss_plotfile.str() );
 
-      int return_code = genwarn->FillHitsFromHistogram( filename , histname.c_str() );
+      int return_code = genwarn->FillHitsFrom2DHistogram( filename , histname.c_str() , ybin_min , ybin_max );
       if( return_code < 0 )
 	return;
 
@@ -86,7 +93,13 @@ void generate_warnmap()
 
       /* Write warnmap to text file */
       stringstream ss_warnfile;
-      ss_warnfile << "warnmap-output/Warnmap_" << basename.str() << "_nsigma" << nsigma << "_niter" << niterations << ".txt";
+      ss_warnfile << "warnmap-output/Warnmap_"
+		  << basename.str()
+		  << "_ybins" << ybin_min << "to" << ybin_max
+		  << "_nsigma" << nsigma
+		  << "_niter" << niterations
+		  << ".txt";
+
       cout << ss_warnfile.str() << endl;
       genwarn->WriteWarnmap( ss_warnfile.str() );
 

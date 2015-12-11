@@ -1,41 +1,8 @@
-warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_erange_0
-warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_erange_1
-warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_erange_2
-warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_erange_3
-warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_erange_4
-##
-warnmap-data/WarnmapData_Run13pp510MinBias_RunRange1_ERange.root	hitmap_erange_0_to_4
-warnmap-data/WarnmapData_Run13pp510MinBias_RunRange2_ERange.root	hitmap_erange_0_to_4
-warnmap-data/WarnmapData_Run13pp510MinBias_RunRange3_ERange.root	hitmap_erange_0_to_4
-warnmap-data/WarnmapData_Run13pp510MinBias_RunRange4_ERange.root	hitmap_erange_0_to_4
-warnmap-data/WarnmapData_Run13pp510MinBias_RunRange5_ERange.root	hitmap_erange_0_to_4
-##
-warnmap-data/WarnmapData_Run13pp510ERT.root				hitmap_erange_0
-warnmap-data/WarnmapData_Run13pp510ERT.root				hitmap_erange_1
-warnmap-data/WarnmapData_Run13pp510ERT.root				hitmap_erange_2
-warnmap-data/WarnmapData_Run13pp510ERT.root				hitmap_erange_3
-warnmap-data/WarnmapData_Run13pp510ERT.root				hitmap_erange_4
-##
-warnmap-data/WarnmapData_Run9pp500MinBias.root				hitmap_erange_0
-warnmap-data/WarnmapData_Run9pp500MinBias.root				hitmap_erange_1
-warnmap-data/WarnmapData_Run9pp500MinBias.root				hitmap_erange_2
-warnmap-data/WarnmapData_Run9pp500MinBias.root				hitmap_erange_3
-warnmap-data/WarnmapData_Run9pp500MinBias.root				hitmap_erange_4
-##
-warnmap-data/WarnmapData_Run9pp500ERT.root				hitmap_erange_0
-warnmap-data/WarnmapData_Run9pp500ERT.root				hitmap_erange_1
-warnmap-data/WarnmapData_Run9pp500ERT.root				hitmap_erange_2
-warnmap-data/WarnmapData_Run9pp500ERT.root				hitmap_erange_3
-warnmap-data/WarnmapData_Run9pp500ERT.root				hitmap_erange_4
-##
-warnmap-data/WarnmapData_Run9pp200MinBias.root				hitmap_erange_0
-warnmap-data/WarnmapData_Run9pp200MinBias.root				hitmap_erange_1
-warnmap-data/WarnmapData_Run9pp200MinBias.root				hitmap_erange_2
-warnmap-data/WarnmapData_Run9pp200MinBias.root				hitmap_erange_3
-warnmap-data/WarnmapData_Run9pp200MinBias.root				hitmap_erange_4
-##
-warnmap-data/WarnmapData_Run9pp200ERT.root				hitmap_erange_0
-warnmap-data/WarnmapData_Run9pp200ERT.root				hitmap_erange_1
-warnmap-data/WarnmapData_Run9pp200ERT.root				hitmap_erange_2
-warnmap-data/WarnmapData_Run9pp200ERT.root				hitmap_erange_3
-warnmap-data/WarnmapData_Run9pp200ERT.root				hitmap_erange_4
+warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_energy	1	3
+warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_energy	3	3
+warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_energy	4	4
+warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_energy	5	5
+warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_energy	6	6
+warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_energy	7	7
+warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_energy	8	21
+warnmap-data/WarnmapData_Run13pp510MinBias.root				hitmap_energy	1	21
