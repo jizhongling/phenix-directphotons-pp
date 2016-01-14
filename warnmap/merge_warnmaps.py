@@ -2,55 +2,60 @@ import csv
 import numpy as np
 
 mapfiles1 = [
-    'warnmap-output/Warnmap_Run13pp510MinBias_erange_0_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_erange_1_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_erange_2_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_erange_3_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_erange_4_nsigma10_niter10.txt'
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins1to3_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins4to4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins5to5_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins6to6_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins7to7_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins8to8_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins9to21_nsigma10_niter10.txt'
     ]
 
 mapfiles2 = [
-    'warnmap-output/Warnmap_Run13pp510ERT_erange_0_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510ERT_erange_1_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510ERT_erange_2_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510ERT_erange_3_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510ERT_erange_4_nsigma10_niter10.txt'
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins1to3_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins4to4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins5to5_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins6to6_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins7to7_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins8to8_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins9to21_nsigma10_niter10.txt'
     ]
 
-mapfiles3 = [
-    'warnmap-output/Warnmap_Run9pp500MinBias_erange_0_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp500MinBias_erange_1_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp500MinBias_erange_2_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp500MinBias_erange_3_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp500MinBias_erange_4_nsigma10_niter10.txt'
-    ]
 
-mapfiles4 = [
-    'warnmap-output/Warnmap_Run9pp500ERT_erange_0_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp500ERT_erange_1_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp500ERT_erange_2_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp500ERT_erange_3_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp500ERT_erange_4_nsigma10_niter10.txt'
-    ]
-
-mapfiles5 = [
-    'warnmap-output/Warnmap_Run9pp200MinBias_erange_0_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp200MinBias_erange_1_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp200MinBias_erange_2_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp200MinBias_erange_3_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp200MinBias_erange_4_nsigma10_niter10.txt'
-    ]
-
-mapfiles6 = [
-    'warnmap-output/Warnmap_Run9pp200ERT_erange_0_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp200ERT_erange_1_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp200ERT_erange_2_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp200ERT_erange_3_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run9pp200ERT_erange_4_nsigma10_niter10.txt'
-    ]
+#mapfiles3 = [
+#    'warnmap-output/Warnmap_Run9pp500MinBias_erange_0_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp500MinBias_erange_1_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp500MinBias_erange_2_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp500MinBias_erange_3_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp500MinBias_erange_4_nsigma10_niter10.txt'
+#    ]
+#
+#mapfiles4 = [
+#    'warnmap-output/Warnmap_Run9pp500ERT_erange_0_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp500ERT_erange_1_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp500ERT_erange_2_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp500ERT_erange_3_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp500ERT_erange_4_nsigma10_niter10.txt'
+#    ]
+#
+#mapfiles5 = [
+#    'warnmap-output/Warnmap_Run9pp200MinBias_erange_0_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp200MinBias_erange_1_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp200MinBias_erange_2_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp200MinBias_erange_3_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp200MinBias_erange_4_nsigma10_niter10.txt'
+#    ]
+#
+#mapfiles6 = [
+#    'warnmap-output/Warnmap_Run9pp200ERT_erange_0_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp200ERT_erange_1_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp200ERT_erange_2_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp200ERT_erange_3_nsigma10_niter10.txt' ,
+#    'warnmap-output/Warnmap_Run9pp200ERT_erange_4_nsigma10_niter10.txt'
+#    ]
 
 # select set of files to merge
-mapfiles=mapfiles1
+mapfiles=mapfiles2
 
 # array of total towers per sector
 ntower_total = [

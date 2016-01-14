@@ -1,11 +1,12 @@
 #! /bin/zsh
 
 DATASETS=(
-#    Run9pp200MinBias
-#    Run9pp200ERT
-#    Run9pp500MinBias
-#    Run9pp500ERT
-    Run13pp510MinBias
+    Run9pp200MinBias
+    Run9pp200ERT
+    Run9pp500MinBias
+    Run9pp500ERT
+#    Run13pp510MinBias
+#    Run13pp510ERT
 )
 
 INPUT_DIR_BASE="/phenix/spin3/nfeege/taxi/"

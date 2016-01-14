@@ -4,16 +4,18 @@ import matplotlib.pyplot as plt
 
 mapfiles = [
     'warnmap-final/Warnmap_Run13pp510MinBias_Final.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_erange_0_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_erange_1_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_erange_2_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_erange_3_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_erange_4_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange1_ERange_erange_0_to_4_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange2_ERange_erange_0_to_4_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange3_ERange_erange_0_to_4_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange4_ERange_erange_0_to_4_nsigma10_niter10.txt' ,
-    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange5_ERange_erange_0_to_4_nsigma10_niter10.txt'
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins1to3_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins4to4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins5to5_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins6to6_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins7to7_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins8to8_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins9to21_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange1_ybins2to21_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange2_ybins2to21_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange3_ybins2to21_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange4_ybins2to21_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_RunRange5_ybins2to21_nsigma10_niter10.txt'
     ]
 
 # array of total towers per sector
@@ -78,19 +80,21 @@ plt.bar( np.arange(0,8) , count_hot[:,0], 0.95, color='crimson', label='full' )
 
 # second plot individual energy ranges
 # number of energy ranges to compare
-neranges=5
+neranges=7
 widthbar=0.95/float(neranges)
 
-plt.bar( np.arange(0,8)+0*widthbar , count_hot[:,1], widthbar, color='yellowgreen', label='0.5 GeV - 1.5 GeV' )
-plt.bar( np.arange(0,8)+1*widthbar , count_hot[:,2], widthbar, color='gold', label='1.5 GeV - 3 GeV' )
-plt.bar( np.arange(0,8)+2*widthbar , count_hot[:,3], widthbar, color='lightskyblue', label='3.0 GeV - 6.0 GeV' )
-plt.bar( np.arange(0,8)+3*widthbar , count_hot[:,4], widthbar, color='peachpuff', label='6.0 GeV - 9.0 GeV' )
-plt.bar( np.arange(0,8)+4*widthbar , count_hot[:,5], widthbar, color='mediumturquoise', label='> 9 GeV' )
+plt.bar( np.arange(0,8)+0*widthbar , count_hot[:,1], widthbar, color='yellowgreen', label='< 3 GeV' )
+plt.bar( np.arange(0,8)+1*widthbar , count_hot[:,2], widthbar, color='gold', label='3 GeV - 4 GeV' )
+plt.bar( np.arange(0,8)+2*widthbar , count_hot[:,3], widthbar, color='lightskyblue', label='4 GeV - 5 GeV' )
+plt.bar( np.arange(0,8)+3*widthbar , count_hot[:,4], widthbar, color='peachpuff', label='5 GeV - 6 GeV' )
+plt.bar( np.arange(0,8)+4*widthbar , count_hot[:,5], widthbar, color='mediumturquoise', label='6 GeV - 7 GeV' )
+plt.bar( np.arange(0,8)+5*widthbar , count_hot[:,6], widthbar, color='chartreuse', label='7 GeV - 8 GeV' )
+plt.bar( np.arange(0,8)+6*widthbar , count_hot[:,7], widthbar, color='coral', label='> 8 GeV' )
 
 plt.xlabel('sector')
 plt.ylabel('# hot towers')
 
-plt.axis([0,7.9,0,180])
+plt.axis([0,7.9,0,200])
 plt.legend( loc='best' )
 
 plt.savefig('plots/warnmap_stat_summary1.png')
@@ -106,16 +110,16 @@ plt.bar( np.arange(0,8) , count_hot[:,0], 0.95, color='crimson', label='full' )
 nrunranges=5
 widthbar=0.95/float(nrunranges)
 
-plt.bar( np.arange(0,8)+0*widthbar , count_hot[:,6], widthbar, color='yellowgreen', label='run range 1' )
-plt.bar( np.arange(0,8)+1*widthbar , count_hot[:,7], widthbar, color='gold', label='run range 2' )
-plt.bar( np.arange(0,8)+2*widthbar , count_hot[:,8], widthbar, color='lightskyblue', label='run range 3' )
-plt.bar( np.arange(0,8)+3*widthbar , count_hot[:,9], widthbar, color='peachpuff', label='run range 4' )
-plt.bar( np.arange(0,8)+4*widthbar , count_hot[:,10], widthbar, color='mediumturquoise', label='run range 5' )
+plt.bar( np.arange(0,8)+0*widthbar , count_hot[:,8], widthbar, color='yellowgreen', label='run range 1' )
+plt.bar( np.arange(0,8)+1*widthbar , count_hot[:,9], widthbar, color='gold', label='run range 2' )
+plt.bar( np.arange(0,8)+2*widthbar , count_hot[:,10], widthbar, color='lightskyblue', label='run range 3' )
+plt.bar( np.arange(0,8)+3*widthbar , count_hot[:,11], widthbar, color='peachpuff', label='run range 4' )
+plt.bar( np.arange(0,8)+4*widthbar , count_hot[:,12], widthbar, color='mediumturquoise', label='run range 5' )
 
 plt.xlabel('sector')
 plt.ylabel('# hot towers')
 
-plt.axis([0,7.9,0,180])
+plt.axis([0,7.9,0,200])
 plt.legend( loc='best' )
 
 plt.savefig('plots/warnmap_stat_summary2.png')

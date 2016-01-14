@@ -1,4 +1,4 @@
-plot_hitrate_threshold( string checkfile="warnmap-output/Checkplots_Run13pp510MinBias_erange_1_nsigma10_niter10.root" , bool writeplots = true )
+plot_hitrate_threshold( string checkfile="warnmap-output/Checkplots_Run13pp510MinBias_ybins1to3_nsigma10_niter10.root" , bool writeplots = true )
 {
   gStyle->SetOptStat(0);
 
@@ -66,6 +66,14 @@ plot_hitrate_threshold( string checkfile="warnmap-output/Checkplots_Run13pp510Mi
 
       c1->Print( filename );
       c1->Print( filenamep );
+
+      /* Draw graphs of threshold vs iteration */
+      TCanvas *c2 = new TCanvas();
+
+      g_threshold->GetXaxis()->SetName("iteration");
+      g_threshold->GetYaxis()->SetName("threshold");
+      g_threshold->Draw("AP");
+
     }
 
   return;

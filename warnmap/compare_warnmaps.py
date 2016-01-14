@@ -15,40 +15,22 @@ plt.rcParams.update({'axes.labelsize' : 18})
 plt.rcParams.update({'xtick.labelsize' : 18})
 plt.rcParams.update({'ytick.labelsize' : 18})
 
-#mapfiles = ['warnmap-final/Warnmap_Run13pp510MinBias_Final.txt' ,
-#            'warnmap-output/Warnmap_Run13pp510MinBias_erange_0_nsigma10_niter10.txt'
-#            ]
-#plotname = 'plots/warnmap_compare_Run13pp510MinBias_final_erange0.png'
 
-#mapfiles = ['warnmap-final/Warnmap_Run13pp510MinBias_Final.txt' ,
-#            'warnmap-final/Warnmap_Run13pp510ERT_Final.txt'
-#            ]
-#plotname = 'plots/warnmap_compare_Run13pp510MinBias_Final_Run13pp510ERT_Final.png'
-
-#mapfiles = [ 'warnmap-output/Warnmap_Run13pp510MinBias_erange_1_nsigma10_niter10.txt' ,
-#             'warnmap-output/Warnmap_Run13pp510MinBias_erange_2_nsigma10_niter10.txt'
-#            ]
-#plotname = 'plots/warnmap_compare_Run13pp510MinBias_erange_1_vs_2.png'
-
-#mapfiles = [ 'warnmap-output/Warnmap_Run13pp510MinBias_erange_0_nsigma10_niter10.txt' ,
-#             'warnmap-output/Warnmap_Run13pp510MinBias_erange_4_nsigma10_niter10.txt'
-#            ]
-#plotname = 'plots/warnmap_compare_Run13pp510MinBias_erange_0_vs_4.png'
-
-#mapfiles = ['warnmap-final/Warnmap_Run13pp510MinBias_Final.txt' ,
-#            'warnmap-final/Warnmap_Run9pp500MinBias_Final.txt'
-#            ]
-#plotname = 'plots/warnmap_compare_Run13pp510MinBias_Run9pp500MinBias.png'
-
-mapfiles = [ 'warnmap-final/Warnmap_Run9pp500MinBias_Final.txt',
-             'warnmap-paul/iter10_rms10/warn_Run9pp500MinBias_newFormat.txt'
+mapfiles = ['warnmap-final/Warnmap_Run13pp510MinBias_Final.txt' ,
+            'warnmap-final/Warnmap_Run13pp510ERT_Final.txt'
             ]
-plotname = 'plots/warnmap_compare_Run9pp500MinBias_me_vs_paul.png'
+plotname = 'plots/warnmap_compare_Run13pp510MinBias_Run13pp510ERT.png'
 
-#mapfiles = ['warnmap-final/Warnmap_Run13pp510MinBias_Final.txt' ,
-#            'warnmap-paul/iter10_rms10/warn_Run9pp500MinBias.txt'
+
+#mapfiles = ['warnmap-output/Warnmap_Run13pp510MinBias_ybins1to3_nsigma10_niter10.txt' ,
+#            'warnmap-output/Warnmap_Run13pp510MinBias_ybins5to5_nsigma10_niter10.txt'
 #            ]
-#plotname = 'plots/warnmap_compare_Run13pp510MinBias_test.png'
+#plotname = 'plots/warnmap_compare_Run13pp510MinBias_ybins1to3_ybins5to5.png'
+
+#mapfiles = ['warnmap-output/Warnmap_Run13pp510MinBias_ybins4to4_nsigma10_niter10.txt' ,
+#            'warnmap-output/Warnmap_Run13pp510MinBias_ybins5to5_nsigma10_niter10.txt'
+#            ]
+#plotname = 'plots/warnmap_compare_Run13pp510MinBias_ybins4to4_ybins5to5.png'
 
 
 # array of total towers per sector
@@ -139,7 +121,7 @@ plt.bar( np.arange(0,8) , count_hot_0_AND_1[:], 2*widthbar, color='gold', label=
 plt.xlabel('sector')
 plt.ylabel('# hot towers')
 
-plt.axis([0,7.9,0,180])
+plt.axis([0,7.9,0,200])
 plt.legend( loc='best' )
 
 plt.savefig(plotname)
