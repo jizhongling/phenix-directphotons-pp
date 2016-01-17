@@ -28,11 +28,47 @@ for DATASET in $DATASETS; do
 
     echo "Merging files from input directory $INPUT_DIR to $OUTPUT_FILE ... "
 
-    ## LIMIT hadd to first 1000 files in folder because of "Too many open files" error
-    FILELIST=("${(@f)$(ls $INPUT_DIR/WarnmapData*.root | head -1000)}")
+    ## LIMIT hadd to 1000 files at a time because of "Too many open files" error
+    NFILES=$( ls $INPUT_DIR/WarnmapData*.root | wc -l )
+    echo "Number of files to merge: $NFILES"
 
-#    haddPhenix $OUTPUT_FILE $FILELIST
-    hadd $OUTPUT_FILE $FILELIST
+    if [[ $NFILES -le 1000 ]]; then
+
+	FILELIST=("${(@f)$(ls $INPUT_DIR/WarnmapData*.root)}")
+
+#        haddPhenix $OUTPUT_FILE $FILELIST
+	hadd $OUTPUT_FILE $FILELIST
+
+    elif [[ $NFILES -le 2000 ]]; then
+
+	echo "File list between 1000 and 2000 entries long, need to split..."
+
+	N_SUB1=1000;
+	let "N_SUB2 = $NFILES - $N_SUB1"
+
+	echo $NFILES
+	echo $N_SUB1
+	echo $N_SUB2
+
+	FILELIST_SUB1=("${(@f)$(ls $INPUT_DIR/WarnmapData*.root | head -${N_SUB1})}")
+	FILELIST_SUB2=("${(@f)$(ls $INPUT_DIR/WarnmapData*.root | tail -${N_SUB2})}")
+
+	OUTPUT_FILE_SUB1="${OUTPUT_DIR}/WarnmapData_${DATASET}_Temporary_Sub1.root"
+	OUTPUT_FILE_SUB2="${OUTPUT_DIR}/WarnmapData_${DATASET}_Temporary_Sub2.root"
+
+	hadd $OUTPUT_FILE_SUB1 $FILELIST_SUB1
+	hadd $OUTPUT_FILE_SUB2 $FILELIST_SUB2
+
+	hadd $OUTPUT_FILE $OUTPUT_FILE_SUB1 $OUTPUT_FILE_SUB2
+
+	rm $OUTPUT_FILE_SUB1 $OUTPUT_FILE_SUB2
+
+    else
+
+	echo "File list longer than 2000 entries, stop processing here."
+	return
+
+    fi
 
     echo "DONE."
 
