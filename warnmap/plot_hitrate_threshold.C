@@ -1,4 +1,4 @@
-plot_hitrate_threshold( string checkfile="warnmap-output/Checkplots_Run13pp510MinBias_ybins1to3_nsigma10_niter10.root" , bool writeplots = true )
+plot_hitrate_threshold( string checkfile, bool writeplots = true )
 {
   gStyle->SetOptStat(0);
 
@@ -72,7 +72,24 @@ plot_hitrate_threshold( string checkfile="warnmap-output/Checkplots_Run13pp510Mi
 
       g_threshold->GetXaxis()->SetName("iteration");
       g_threshold->GetYaxis()->SetName("threshold");
-      g_threshold->Draw("AP");
+      g_threshold->SetLineColor(kRed);
+      g_threshold->SetLineStyle(2);
+      g_threshold->Draw("AlP");
+
+      TString filename2("plots/threshold_iteration_");
+      filename2+=name_cut;
+      filename2+="_sector_";
+      filename2+=sector;
+      filename2+=".eps";
+
+      TString filename2p("plots/threshold_iteration_");
+      filename2p+=name_cut;
+      filename2p+="_sector_";
+      filename2p+=sector;
+      filename2p+=".png";
+
+      c2->Print( filename2 );
+      c2->Print( filename2p );
 
     }
 
