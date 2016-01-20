@@ -33,74 +33,20 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
 {
 
   /* Default names for debugging */
-  histfile="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData_Warnmap_pT.root";
-  histfile_nowarn="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData_Warnmap_pT.root";
+  histfile="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510MinBias.root";
+  histfile_nowarn="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510MinBias.root";
+
+  histfile="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510ERT.root";
+  histfile_nowarn="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510ERT.root";
 
   histname="pT_1cluster";
   histname_nowarn="pT_1cluster_nowarn";
 
-
   gStyle->SetOptStat(0);
 
-  /* array with number of towers per sector */
-  float ntower_per_sector[8] = { 2592,
-				 2592,
-				 2592,
-				 2592,
-				 2592,
-				 2592,
-				 4608,
-				 4608 };
-
-  /* Set initial values for warnmap[sector][ybin][zbin]*/
-  long warnmap[8][48][96];
-
-  for( unsigned sector = 0; sector < 8; sector++ )
-    {
-      for( unsigned tower_y=0; tower_y < 48; tower_y++ )
-	{
-	  for( unsigned tower_z = 0; tower_z < 96; tower_z++ )
-	    {
-	      warnmap[sector][tower_y][tower_z] = 0;
-            }//z
-	}//y
-    }//sector
-
-  /* Read warnmap into array */
-
-  /* Stream to read table from file */
-  ifstream istream_mapping;
-
-  /* Open the datafile, if it won't open return an error */
-  if (!istream_mapping.is_open())
-    {
-      istream_mapping.open( warnmapfile.c_str() );
-      if(!istream_mapping)
-        {
-          cerr << "ERROR Failed to open warnmap file " <<	\
-	    warnmapfile << endl;
-          exit(1);
-        }
-    }
-
-  string line_map;
-
-  while ( getline( istream_mapping, line_map ) )
-    {
-      istringstream iss(line_map);
-
-      unsigned sector, ybin, zbin, status;
-
-      if ( !( iss >> sector >> ybin >> zbin >> status ) )
-	{
-	  cerr << "ERROR Failed to read line in mapping file" << endl;
-	  exit(1);
-	}
-
-      warnmap[sector][ybin][zbin] = status;
-    }
-
-  cout << warnmap[7][10][15] << endl;
+  /* Determine "live scale factor" for each sector */
+  float livescalefactor[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+  calc_livescalefactors( livescalefactor, warnmapfile );
 
   /* Open 2D histogram files */
   TFile *f_in = new TFile( histfile.c_str(), "OPEN" );
@@ -111,11 +57,6 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
   TH2F* h_pT_allSectors_nowarn = (TH2F*) f_in_nowarn->Get( histname_nowarn.c_str() );
   cout << "Entries (all sectors, no warnmap): " << h_pT_allSectors_nowarn->GetEntries() << endl;
 
-  /* create individual histogram for each sector */
-//  float energybins[] = { 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0,
-//		     7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
-//		     13.0, 14.0, 15.0 };
-//  TH1F* h_base = new TH1D("h_base","",15,energybins);
   TH1F* h_base = (TH1F*)h_pT_allSectors_nowarn->ProjectionX( "h_base", 1, 1 );
   h_base->Clear();
   h_base->GetXaxis()->SetTitle("p_{T} [GeV]");
@@ -124,6 +65,7 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
   //  h_base->GetYaxis()->SetRangeUser(1e-4,1.0);
   h_base->GetYaxis()->SetRangeUser(1e1,5e5);
   h_base->SetLineColor(0);
+
 
   TH1F* h_pT_sector_nowarn[8];
   h_pT_sector_nowarn[0] = (TH1F*)h_pT_allSectors_nowarn->ProjectionX( "pT_sector0_nowarn", 1, 1 );
@@ -155,7 +97,6 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
   h_pT_sector[6] = (TH1F*)h_pT_allSectors->ProjectionX( "pT_sector6", 7, 7 );
   h_pT_sector[7] = (TH1F*)h_pT_allSectors->ProjectionX( "pT_sector7", 8, 8 );
 
-
   h_pT_sector[0]->SetLineColor(kOrange+5);
   h_pT_sector[1]->SetLineColor(kGray+2);
   h_pT_sector[2]->SetLineColor(4);
@@ -165,65 +106,6 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
   h_pT_sector[6]->SetLineColor(1);
   h_pT_sector[7]->SetLineColor(2);
 
-//  /* Loop over input histograms and fill energy spectrum histograms */
-//
-//  /* open input file */
-//  TFile *fhin = new TFile("warnmap-data/WarnmapData_Run13pp510MinBias.root","OPEN");
-//
-//  TH2F* h_hits = (TH2F*)fhin->Get("hitmap_energy");
-//
-//  /* counter for excluded towers */
-//  int tower_excluded[8];
-//  for ( int s = 0; s< 8; s++ )
-//    {
-//      tower_excluded[s] = 0;
-//    }
-//
-//  /* loop over all towers */
-//  for ( int itowerid = 0; itowerid < 24768; itowerid++ )
-//    {
-//      int isector = 0;
-//      int izbin = 0;
-//      int iybin = 0;
-//      int istatus = 0;
-//
-//      towerid2position( itowerid, isector, iybin, izbin );
-//
-//      //      cout << itowerid << " " << isector << endl;
-//      //      cout << isector << " += " << icounts << endl;
-//
-//      /* count towers that are excluded based on warnmap */
-//      bool iexclude = false;
-//      if ( warnmap[isector][iybin][izbin] > 10 )
-//	{
-//	  iexclude = true;
-//	  tower_excluded[isector]++;
-//	}
-//
-//      /* loop over all energy ranges */
-//      for ( int ienergybin = 0; ienergybin < 20; ienergybin++ )
-//	{
-//	  float ienergy = h_hits->GetYaxis()->GetBinCenter(ienergybin);
-//
-//	  float icounts = h_hits->GetBinContent( itowerid+1 , ienergybin );
-//
-//	  h_energy_sector_nowarn[isector]->Fill( ienergy, icounts );
-//
-//	  /* only include towers with good status on warnmap */
-//	  if ( ! iexclude )
-//	    {
-//	      h_energy_sector[isector]->Fill( ienergy, icounts );
-//	    }
-//	}
-//    }
-//
-
-//  /* Scale down energy spectrum by 1e6 for more manageable axis range */
-//  for ( int s = 0; s < 8; s++ )
-//    {
-//      h_pT_sector_nowarn[s]->Scale(1./1000000.);
-//      h_pT_sector[s]->Scale(1./1000000.);
-//    }
 
   /* Calculate bin errors */
   for ( int s = 0; s < 8; s++ )
@@ -232,21 +114,31 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
       h_pT_sector[s]->Sumw2();
     }
 
-//  /* Normalize pT spectra */
-//  for ( int s = 0; s < 8; s++ )
-//    {
-//      h_pT_sector_nowarn[s]->Scale(1./ (h_pT_sector_nowarn[s])->Integral(2,19));
-//      h_pT_sector[s]->Scale(1./ (h_pT_sector[s])->Integral(2,19) );
-//    }
 
-//  /* Correct energy spectrum for number of excluded towers in each sector */
-//  for ( int s = 0; s < 8; s++ )
-//    {
-//      float livescalefactor = ( ntower_per_sector[s] / ( ntower_per_sector[s] - (float)tower_excluded[s] ) );
-//      h_energy_sector[s]->Scale(livescalefactor);
-//      cout << "Livescalefactor: " << livescalefactor << endl;
-//    }
-//
+  /* Correct energy spectrum for number of excluded towers in each sector */
+  for ( int s = 0; s < 8; s++ )
+    {
+      cout << "Sector " << s << " scaled by " << livescalefactor[s] << endl;
+      h_pT_sector[s]->Scale(livescalefactor[s]);
+    }
+
+  /* Calculate mean of all sectors for each pT bin */
+  TH1F* h_pT_mean = (TH1F*)h_pT_sector[0]->Clone( "pT_mean" );
+  for ( unsigned sector = 1; sector < 8; sector++ )
+    {
+      cout << h_pT_mean->GetEntries() << endl;
+      h_pT_mean->Add( h_pT_sector[sector] );
+    }
+  h_pT_mean->Scale(1./8.);
+
+  /* Divide distributions by mean for each sector */
+  TH1F* h_pT_ratio_sector[8];
+  for ( unsigned sector = 0; sector < 8; sector++ )
+    {
+      h_pT_ratio_sector[sector] = (TH1F*)h_pT_sector[sector]->Clone( "temp" );
+      h_pT_ratio_sector[sector]->Divide( h_pT_mean );
+    }
+
   /* Plot energy spectrum */
   TCanvas *c1 = new TCanvas();
   c1->SetLogy();
@@ -284,5 +176,51 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
   c3->Print("plots/pTSpectrum_legend.eps");
   c3->Print("plots/pTSpectrum_legend.png");
 
+  /* ratio plots */
+  TCanvas *c4 = new TCanvas();
+  TH1F* h_base_ratio = (TH1F*)h_base->Clone("h_base_ratio");
+  h_base_ratio->GetYaxis()->SetRangeUser(0.2,1.8);
+  h_base_ratio->GetYaxis()->SetTitle("# entries sector / mean(all sectors)");
+  h_base_ratio->Draw();
+
+  for ( int s =0; s < 8; s++ )
+    h_pT_ratio_sector[s]->Draw("same");
+  gPad->RedrawAxis();
+
+  c4->Print("plots/pTSpectrum_ratio_Run13pp510ERT.eps");
+  c4->Print("plots/pTSpectrum_ratio_Run13pp510ERT.png");
+
   return 0;
+}
+
+
+void calc_livescalefactors( float* livescalefactor, string warnmapfile )
+{
+  /* array with number of towers per sector */
+  float ntower_per_sector[8] = { 2592,
+				 2592,
+				 2592,
+				 2592,
+				 2592,
+				 2592,
+				 4608,
+				 4608 };
+
+  /* read in tree to get number of excluded channels from warnmap */
+  TTree *twarnmap = new TTree();
+  twarnmap->ReadFile(warnmapfile.c_str(),"sector:ybin:zbin:status");
+
+  for( unsigned sector = 0; sector < 8; sector++ )
+    {
+      TString cut_sector( "status > 10 && sector ==" );
+      cut_sector += sector;
+
+      float tower_excluded = twarnmap->GetEntries( cut_sector );
+
+      livescalefactor[sector] = ( ntower_per_sector[sector] / ( ntower_per_sector[sector] - tower_excluded ) );
+
+      cout << cut_sector << " -> excluding " << tower_excluded << " out of " << ntower_per_sector[sector] << " -> livescalefactor " << livescalefactor[sector] << endl;
+    }
+
+  return;
 }
