@@ -33,11 +33,14 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
 {
 
   /* Default names for debugging */
-  histfile="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510MinBias.root";
-  histfile_nowarn="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510MinBias.root";
+  histfile="warnmap-data/DirectPhotonPP_Run13pp510MinBias.root";
+  histfile_nowarn="warnmap-data/DirectPhotonPP_Run13pp510MinBias.root";
 
-  histfile="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510ERT.root";
-  histfile_nowarn="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510ERT.root";
+  //  histfile="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510MinBias.root";
+  //  histfile_nowarn="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510MinBias.root";
+
+  //  histfile="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510ERT.root";
+  //  histfile_nowarn="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510ERT.root";
 
   histname="pT_1cluster";
   histname_nowarn="pT_1cluster_nowarn";
@@ -77,14 +80,14 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
   h_pT_sector_nowarn[6] = (TH1F*)h_pT_allSectors_nowarn->ProjectionX( "pT_sector6_nowarn", 7, 7 );
   h_pT_sector_nowarn[7] = (TH1F*)h_pT_allSectors_nowarn->ProjectionX( "pT_sector7_nowarn", 8, 8 );
 
-  h_pT_sector_nowarn[0]->SetLineColor(kOrange+5);
-  h_pT_sector_nowarn[1]->SetLineColor(kGray+2);
-  h_pT_sector_nowarn[2]->SetLineColor(4);
-  h_pT_sector_nowarn[3]->SetLineColor(6);
-  h_pT_sector_nowarn[4]->SetLineColor(8);
-  h_pT_sector_nowarn[5]->SetLineColor(9);
-  h_pT_sector_nowarn[6]->SetLineColor(1);
-  h_pT_sector_nowarn[7]->SetLineColor(2);
+  h_pT_sector_nowarn[0]->SetLineColor(kBlue);
+  h_pT_sector_nowarn[1]->SetLineColor(kBlue);
+  h_pT_sector_nowarn[2]->SetLineColor(kBlue);
+  h_pT_sector_nowarn[3]->SetLineColor(kBlue);
+  h_pT_sector_nowarn[4]->SetLineColor(kRed+1);
+  h_pT_sector_nowarn[5]->SetLineColor(kRed+1);
+  h_pT_sector_nowarn[6]->SetLineColor(kGreen+1);
+  h_pT_sector_nowarn[7]->SetLineColor(kGreen+1);
 
 
   TH1F* h_pT_sector[8];
@@ -97,14 +100,14 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
   h_pT_sector[6] = (TH1F*)h_pT_allSectors->ProjectionX( "pT_sector6", 7, 7 );
   h_pT_sector[7] = (TH1F*)h_pT_allSectors->ProjectionX( "pT_sector7", 8, 8 );
 
-  h_pT_sector[0]->SetLineColor(kOrange+5);
-  h_pT_sector[1]->SetLineColor(kGray+2);
-  h_pT_sector[2]->SetLineColor(4);
-  h_pT_sector[3]->SetLineColor(6);
-  h_pT_sector[4]->SetLineColor(8);
-  h_pT_sector[5]->SetLineColor(9);
-  h_pT_sector[6]->SetLineColor(1);
-  h_pT_sector[7]->SetLineColor(2);
+  h_pT_sector[0]->SetLineColor(kBlue);
+  h_pT_sector[1]->SetLineColor(kBlue);
+  h_pT_sector[2]->SetLineColor(kBlue);
+  h_pT_sector[3]->SetLineColor(kBlue);
+  h_pT_sector[4]->SetLineColor(kRed+1);
+  h_pT_sector[5]->SetLineColor(kRed+1);
+  h_pT_sector[6]->SetLineColor(kGreen+1);
+  h_pT_sector[7]->SetLineColor(kGreen+1);
 
 
   /* Calculate bin errors */
@@ -147,8 +150,8 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
     h_pT_sector_nowarn[s]->Draw("same");
   gPad->RedrawAxis();
 
-  c1->Print("plots/pTSpectrum_Run13pp510ERT_nowarn.eps");
-  c1->Print("plots/pTSpectrum_Run13pp510ERT_nowarn.png");
+  c1->Print("plots/pTSpectrum_Run13pp510MinBias_nowarn.eps");
+  c1->Print("plots/pTSpectrum_Run13pp510MinBias_nowarn.png");
 
   TCanvas *c2 = new TCanvas();
   c2->SetLogy();
@@ -157,8 +160,8 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
     h_pT_sector[s]->Draw("same");
   gPad->RedrawAxis();
 
-  c2->Print("plots/pTSpectrum_Run13pp510ERT.eps");
-  c2->Print("plots/pTSpectrum_Run13pp510ERT.png");
+  c2->Print("plots/pTSpectrum_Run13pp510MinBias.eps");
+  c2->Print("plots/pTSpectrum_Run13pp510MinBias.png");
 
   TCanvas *c3 = new TCanvas();
   h_base->Draw();
@@ -181,14 +184,15 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
   TH1F* h_base_ratio = (TH1F*)h_base->Clone("h_base_ratio");
   h_base_ratio->GetYaxis()->SetRangeUser(0.2,1.8);
   h_base_ratio->GetYaxis()->SetTitle("# entries sector / mean(all sectors)");
+  h_base_ratio->GetYaxis()->SetNdivisions(508);
   h_base_ratio->Draw();
 
   for ( int s =0; s < 8; s++ )
     h_pT_ratio_sector[s]->Draw("same");
   gPad->RedrawAxis();
 
-  c4->Print("plots/pTSpectrum_ratio_Run13pp510ERT.eps");
-  c4->Print("plots/pTSpectrum_ratio_Run13pp510ERT.png");
+  c4->Print("plots/pTSpectrum_ratio_Run13pp510MinBias.eps");
+  c4->Print("plots/pTSpectrum_ratio_Run13pp510MinBias.png");
 
   return 0;
 }
