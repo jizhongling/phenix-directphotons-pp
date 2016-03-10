@@ -1,5 +1,7 @@
 #! /bin/zsh
 
+ALLOW_SKIP_RUNS=false
+
 DATASETS=(
     Run13pp510MinBias
     Run13pp510ERT
@@ -42,9 +44,13 @@ for DATASET in $DATASETS; do
     if [[ $NRUNS -le 1000 ]]; then
 
 	for RUN in $RUNLIST; do
-	    if [[ -e $INPUT_DIR/DirectPhotonPP-${RUN}.root ]]; then
+#	    if [[ $ALLOW_SKIP_RUNS="true" ]]; then
+#		if [[ -e $INPUT_DIR/DirectPhotonPP-${RUN}.root ]]; then
+#		    echo "$INPUT_DIR/DirectPhotonPP-${RUN}.root" >> $TEMPFILE
+#		fi
+#	    else
 		echo "$INPUT_DIR/DirectPhotonPP-${RUN}.root" >> $TEMPFILE
-	    fi
+#	    fi
 	done
 
 	FILELIST=("${(@f)$(cat $TEMPFILE)}")
