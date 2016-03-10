@@ -1,0 +1,16 @@
+281911 Events in run: (class G__CINT_ENDL)149553224
+281913 Events in run: (class G__CINT_ENDL)142909512
+281916 Events in run: (class G__CINT_ENDL)142233672
+281917 Events in run: (class G__CINT_ENDL)159592520
+281918 Events in run: (class G__CINT_ENDL)143753288
+281919 Events in run: (class G__CINT_ENDL)162930760
+281968 Events in run: (class G__CINT_ENDL)142856264
+281969 Events in run: (class G__CINT_ENDL)161656904
+281972 Events in run: (class G__CINT_ENDL)150179912
+281974 Events in run: (class G__CINT_ENDL)143237192
+282111 Events in run: (class G__CINT_ENDL)168333384
+282112 Events in run: (class G__CINT_ENDL)169070664
+282116 Events in run: (class G__CINT_ENDL)162168904
+282123 Events in run: (class G__CINT_ENDL)152981576
+282124 Events in run: (class G__CINT_ENDL)165937224
+282135 Events in run: (class G__CINT_ENDL)160120904

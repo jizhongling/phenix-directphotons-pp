@@ -33,8 +33,8 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
 {
 
   /* Default names for debugging */
-  histfile="warnmap-data/DirectPhotonPP_Run13pp510MinBias.root";
-  histfile_nowarn="warnmap-data/DirectPhotonPP_Run13pp510MinBias.root";
+  histfile="data/DirectPhotonPP_Run13pp510MinBias.root";
+  histfile_nowarn="data/DirectPhotonPP_Run13pp510MinBias.root";
 
   //  histfile="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510MinBias.root";
   //  histfile_nowarn="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510MinBias.root";

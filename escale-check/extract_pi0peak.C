@@ -32,6 +32,7 @@ int extract_pi0peak( unsigned run_index, int run_number, string histfile, string
 
       TF1 *f_fit = new TF1("f_fit","gaus");
 
+      (h_inv_mass_sector[s])->Rebin(7);
       (h_inv_mass_sector[s])->Fit(f_fit, "Q", "", fitrange_min, fitrange_max);
 
       v_sector.push_back( s );
@@ -61,7 +62,7 @@ int extract_pi0peak( unsigned run_index, int run_number, string histfile, string
   /* Visual output */
   if ( visualize )
     {
-      gStyle->SetOptStat(0);
+      //      gStyle->SetOptStat(0);
 
       /* Plot energy spectrum */
       TCanvas *c1 = new TCanvas();
