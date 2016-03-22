@@ -33,8 +33,8 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
 {
 
   /* Default names for debugging */
-  histfile="data/DirectPhotonPP_Run13pp510MinBias.root";
-  histfile_nowarn="data/DirectPhotonPP_Run13pp510MinBias.root";
+  histfile="../data/data/DirectPhotonPP-Run13pp510MinBias.root";
+  histfile_nowarn="../data/data/DirectPhotonPP-Run13pp510MinBias.root";
 
   //  histfile="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510MinBias.root";
   //  histfile_nowarn="/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi_test/keep/TreeData-Run13pp510MinBias.root";
@@ -150,8 +150,8 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
     h_pT_sector_nowarn[s]->Draw("same");
   gPad->RedrawAxis();
 
-  c1->Print("plots/pTSpectrum_Run13pp510MinBias_nowarn.eps");
-  c1->Print("plots/pTSpectrum_Run13pp510MinBias_nowarn.png");
+  c1->Print("plots-warnmap-check/pTSpectrum_Run13pp510MinBias_nowarn.eps");
+  c1->Print("plots-warnmap-check/pTSpectrum_Run13pp510MinBias_nowarn.png");
 
   TCanvas *c2 = new TCanvas();
   c2->SetLogy();
@@ -160,8 +160,8 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
     h_pT_sector[s]->Draw("same");
   gPad->RedrawAxis();
 
-  c2->Print("plots/pTSpectrum_Run13pp510MinBias.eps");
-  c2->Print("plots/pTSpectrum_Run13pp510MinBias.png");
+  c2->Print("plots-warnmap-check/pTSpectrum_Run13pp510MinBias.eps");
+  c2->Print("plots-warnmap-check/pTSpectrum_Run13pp510MinBias.png");
 
   TCanvas *c3 = new TCanvas();
   h_base->Draw();
@@ -176,8 +176,8 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
   leg->AddEntry(h_pT_sector[6],"sector 6","l");
   leg->AddEntry(h_pT_sector[7],"sector 7","l");
   leg->Draw();
-  c3->Print("plots/pTSpectrum_legend.eps");
-  c3->Print("plots/pTSpectrum_legend.png");
+  c3->Print("plots-warnmap-check/pTSpectrum_legend.eps");
+  c3->Print("plots-warnmap-check/pTSpectrum_legend.png");
 
   /* ratio plots */
   TCanvas *c4 = new TCanvas();
@@ -191,8 +191,8 @@ int plot_pTspectrum_warnmap( string histfile="", string histname="none", string 
     h_pT_ratio_sector[s]->Draw("same");
   gPad->RedrawAxis();
 
-  c4->Print("plots/pTSpectrum_ratio_Run13pp510MinBias.eps");
-  c4->Print("plots/pTSpectrum_ratio_Run13pp510MinBias.png");
+  c4->Print("plots-warnmap-check/pTSpectrum_ratio_Run13pp510MinBias.eps");
+  c4->Print("plots-warnmap-check/pTSpectrum_ratio_Run13pp510MinBias.png");
 
   return 0;
 }

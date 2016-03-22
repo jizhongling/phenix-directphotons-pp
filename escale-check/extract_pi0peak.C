@@ -9,8 +9,8 @@ int extract_pi0peak( unsigned run_index, int run_number, string histfile, string
   cout << "Entries (all sectors): " << h_inv_mass_allsector->GetEntries() << endl;
 
   /* parameters for Gaussian fit to pi0 mass peak */
-  float fitrange_min = 0.10;
-  float fitrange_max = 0.17;
+  float fitrange_min = 0.105;
+  float fitrange_max = 0.165;
 
   /* collect sector information in vectors */
   vector< int > v_sector;
@@ -27,13 +27,37 @@ int extract_pi0peak( unsigned run_index, int run_number, string histfile, string
       TString hname_s("h_inv_mass_sector");
       hname_s+=s;
 
-      //cout << "Processing " << hname_s << endl;
+      //cout << "Processing " << hname_s << endl;
       h_inv_mass_sector[s] = (TH1F*)h_inv_mass_allsector->ProjectionX( hname_s, s+1, s+1, "e" ); // sector/iterator count from 0, ROOT bins count from 1
+    }
 
+  /* combine sectors */
+  TH1F* h_inv_mass_combined[3];
+  h_inv_mass_combined[0] = (TH1F*)h_inv_mass_sector[0]->Clone("h_inv_mass_PbScW");
+  h_inv_mass_combined[0]->Add( h_inv_mass_sector[1] );
+  h_inv_mass_combined[0]->Add( h_inv_mass_sector[2] );
+  h_inv_mass_combined[0]->Add( h_inv_mass_sector[3] );
+
+  h_inv_mass_combined[1] = (TH1F*)h_inv_mass_sector[4]->Clone("h_inv_mass_PbScE");
+  h_inv_mass_combined[1]->Add( h_inv_mass_sector[5] );
+
+  h_inv_mass_combined[2] = (TH1F*)h_inv_mass_sector[6]->Clone("h_inv_mass_PbGlE");
+  h_inv_mass_combined[2]->Add( h_inv_mass_sector[7] );
+
+  for ( unsigned int s = 0; s < 3; s++ )
+    {
       TF1 *f_fit = new TF1("f_fit","gaus");
 
-      (h_inv_mass_sector[s])->Rebin(7);
-      (h_inv_mass_sector[s])->Fit(f_fit, "Q", "", fitrange_min, fitrange_max);
+      //TF1 *f_fit = new TF1("f_fit","[0]*exp(-0.5*((x-[1])/[2])**2)+[3]+[4]*x+[5]*x*x");
+      //f_fit->SetParameter(0,0.5);
+      //f_fit->SetParameter(1,0.5);
+      //f_fit->SetParameter(2,0.5);
+      //f_fit->SetParameter(3,0.5);
+      //f_fit->SetParameter(4,0.5);
+      //f_fit->SetParameter(5,0.5);
+
+      (h_inv_mass_combined[s])->Rebin(7);
+      (h_inv_mass_combined[s])->Fit(f_fit, "Q", "", fitrange_min, fitrange_max);
 
       v_sector.push_back( s );
       v_mean.push_back( f_fit->GetParameter(1) );
@@ -44,7 +68,7 @@ int extract_pi0peak( unsigned run_index, int run_number, string histfile, string
     }
 
   /* print results */
-  for ( unsigned int s = 0; s < 8; s++ )
+  for ( unsigned int s = 0; s < 3; s++ )
     {
       cout << "pi0peak "
 	   << run_index << " "
@@ -66,11 +90,17 @@ int extract_pi0peak( unsigned run_index, int run_number, string histfile, string
 
       /* Plot energy spectrum */
       TCanvas *c1 = new TCanvas();
-      //c1->SetLogy();
-      h_inv_mass_sector[0]->Draw();
+      h_inv_mass_combined[0]->Draw();
 
-      //      c1->Print("plots_escale/two_photon_invariant_mass_allsector.eps");
-      //      c1->Print("plots_escale/two_photon_invariant_mass_allsector.png");
+      TCanvas *c2 = new TCanvas();
+      h_inv_mass_combined[1]->Draw();
+
+      TCanvas *c3 = new TCanvas();
+      h_inv_mass_combined[2]->Draw();
+
+      c1->Print("plots-escale-check/pi0_example_1run_PbScW.png");
+      c2->Print("plots-escale-check/pi0_example_1run_PbScE.png");
+      c3->Print("plots-escale-check/pi0_example_1run_PbGlE.png");
     }
 
   return 0;

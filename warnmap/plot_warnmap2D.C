@@ -86,13 +86,13 @@ plot_warnmap2D( string warnmapfile , bool writeplots = true )
 
       if ( writeplots )
 	{
-	  TString filename("plots-map2D/warnmap2D_");
+	  TString filename("plots-warnmap-2D/warnmap2D_");
 	  filename+=filename_cut;
 	  filename+="_sector_";
 	  filename+=sector;
 	  filename+=".eps";
 
-	  TString filenamep("plots-map2D/warnmap2D_");
+	  TString filenamep("plots-warnmap-2D/warnmap2D_");
 	  filenamep+=filename_cut;
 	  filenamep+="_sector_";
 	  filenamep+=sector;
@@ -117,11 +117,11 @@ plot_warnmap2D( string warnmapfile , bool writeplots = true )
       (h_warnmap[sector])->Draw("colz");
     }
 
-  TString filenameAll("plots-map2D/warnmap2D_");
+  TString filenameAll("plots-warnmap-2D/warnmap2D_");
   filenameAll+=filename_cut;
   filenameAll+="_sector_all.eps";
 
-  TString filenameAllp("plots-map2D/warnmap2D_");
+  TString filenameAllp("plots-warnmap-2D/warnmap2D_");
   filenameAllp+=filename_cut;
   filenameAllp+="_sector_all.eps";
 
