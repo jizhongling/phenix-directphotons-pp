@@ -1,6 +1,23 @@
 import csv
 import numpy as np
 
+mapfiles0 = [
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins3to4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins5to6_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins7to9_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins10to12_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins13to25_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510MinBias_ybins3to25_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins3to4_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins5to6_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins7to9_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins10to12_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins13to25_nsigma10_niter10.txt' ,
+    'warnmap-output/Warnmap_Run13pp510ERT_ybins3to25_nsigma10_niter10.txt',
+    'warnmap-output/Deadmap_Run13pp510MinBias_ybins3to25.txt'
+    ]
+
+
 mapfiles1 = [
     'warnmap-output/Warnmap_Run13pp510MinBias_ybins3to4_nsigma10_niter10.txt' ,
     'warnmap-output/Warnmap_Run13pp510MinBias_ybins5to6_nsigma10_niter10.txt' ,
@@ -26,41 +43,8 @@ mapfiles3 = [
     'warnmap-final/Warnmap_Run13pp510ERT_Final.txt'
 ]
 
-
-#mapfiles3 = [
-#    'warnmap-output/Warnmap_Run9pp500MinBias_erange_0_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp500MinBias_erange_1_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp500MinBias_erange_2_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp500MinBias_erange_3_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp500MinBias_erange_4_nsigma10_niter10.txt'
-#    ]
-#
-#mapfiles4 = [
-#    'warnmap-output/Warnmap_Run9pp500ERT_erange_0_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp500ERT_erange_1_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp500ERT_erange_2_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp500ERT_erange_3_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp500ERT_erange_4_nsigma10_niter10.txt'
-#    ]
-#
-#mapfiles5 = [
-#    'warnmap-output/Warnmap_Run9pp200MinBias_erange_0_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp200MinBias_erange_1_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp200MinBias_erange_2_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp200MinBias_erange_3_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp200MinBias_erange_4_nsigma10_niter10.txt'
-#    ]
-#
-#mapfiles6 = [
-#    'warnmap-output/Warnmap_Run9pp200ERT_erange_0_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp200ERT_erange_1_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp200ERT_erange_2_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp200ERT_erange_3_nsigma10_niter10.txt' ,
-#    'warnmap-output/Warnmap_Run9pp200ERT_erange_4_nsigma10_niter10.txt'
-#    ]
-
 # select set of files to merge
-mapfiles=mapfiles3
+mapfiles=mapfiles0
 
 # array of total towers per sector
 ntower_total = [
@@ -96,7 +80,11 @@ for sector in np.arange(0,8):
     nhot = ( ( warnmap_merged[:,0] == sector ) & ( warnmap_merged[:,3] == 50 ) ).sum()
     frachot = float(nhot) / float(ntower_total[sector])
 
-    print 'sector: %i hot fraction: %.2f  total:  %i' % ( sector, frachot, nhot )
+    ndead = ( ( warnmap_merged[:,0] == sector ) & ( warnmap_merged[:,3] == 100 ) ).sum()
+    fracdead = float(ndead) / float(ntower_total[sector])
+
+    print 'sector: %i hot  fraction: %.2f  total:  %i' % ( sector, frachot,  nhot  )
+    print 'sector: %i dead fraction: %.2f  total:  %i' % ( sector, fracdead, ndead )
 
 nlive_detector=0
 ntotal_detector=0

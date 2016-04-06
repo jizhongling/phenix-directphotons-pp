@@ -68,6 +68,10 @@ plot_warnmap2D( string warnmapfile , bool writeplots = true )
 
       //cout << sector << " " << y << " " << z << " " << status << endl;
 
+      // if status > 50 (e.g. 'dead' or 'uncalibrated', set it to 39 for nicer plotting
+      if ( status > 50 )
+	status = 39;
+
       h_warnmap[sector]->Fill( z , y , status );
 
     }
