@@ -1,4 +1,9 @@
+#folders
 attic
+data/taxi
+warnmap/warnmap-output
+warnmap-check/warnmap-final
+escale-check/data-escale-check
 
 #graphic output
 *.png
