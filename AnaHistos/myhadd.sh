@@ -8,10 +8,9 @@ files=""
 count=0
 
 for FILE in DirectPhotonPP-*.root ; do
-  if (( "${count}" < "10" )) ; then
-    files="${files} ${FILE}"
-    count=$(( count + 1 ))
-  else
+  files="${files} ${FILE}"
+  ((count++))
+  if (( "${count}" > "9" )) ; then
     if [[ -f "total.root" ]] ; then
       hadd tmp.root total.root ${files}
     else
