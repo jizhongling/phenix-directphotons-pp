@@ -17,15 +17,18 @@ void draw_DirectPhoton()
   axis2->SetRange(1,4);
 
   Int_t bin047 = axis1->FindBin(0.047);
+  Int_t bin067 = axis1->FindBin(0.067);
+  Int_t bin087 = axis1->FindBin(0.087);
   Int_t bin097 = axis1->FindBin(0.097);
   Int_t bin112 = axis1->FindBin(0.112);
   Int_t bin162 = axis1->FindBin(0.162);
   Int_t bin177 = axis1->FindBin(0.177);
+  Int_t bin187 = axis1->FindBin(0.187);
+  Int_t bin212 = axis1->FindBin(0.212);
   Int_t bin227 = axis1->FindBin(0.227);
 
   const Int_t nData = 256;
-  vector<Double_t> x1(nData), y1(nData), sigma_y1(nData);
-  vector<Double_t> x2(nData), y2(nData), sigma_y2(nData);
+  vector<Double_t> x(nData), y(nData), sigma_y(nData);
 
   TCanvas *c = new TCanvas("c", "Canvas", 2400, 2400);
   gStyle->SetOptStat(0);
@@ -46,30 +49,40 @@ void draw_DirectPhoton()
     TH1 *h_inv_mass = (TH1*)hn_2photon->Projection(1);
     h_inv_mass->SetTitle(buf);
 
-    x1.clear();
-    y1.clear();
-    sigma_y1.clear();
-    x2.clear();
-    y2.clear();
-    sigma_y2.clear();
+    //Double_t nphoton = h_1photon->GetBinContent(ipt+1);
+    Double_t npair = 0.;
+    Double_t nbgfit = 0.;
+    Double_t nbgside = 0.;
+    Double_t nbggpr = 0.;
+    Double_t dnbggpr = 0.;
 
-    for(Int_t ib=bin047; ib<bin227; ib++)
+    x.clear();
+    y.clear();
+    sigma_y.clear();
+
+    for(Int_t ib=bin067; ib<bin087; ib++)
     {
       Double_t xx = axis1->GetBinCenter(ib);
       Double_t yy = h_inv_mass->GetBinContent(ib);
       Double_t sigma_yy = h_inv_mass->GetBinError(ib);
-      if( ib >= bin112 && ib < bin162 )
-      {
-        x1.push_back(xx);
-        y1.push_back(yy);
-        sigma_y1.push_back(sigma_yy);
-      }
-      x2.push_back(xx);
-      y2.push_back(yy);
-      sigma_y2.push_back(sigma_yy);
+      x.push_back(xx);
+      y.push_back(yy);
+      sigma_y.push_back(sigma_yy);
     }
 
-    Double_t rho = BgGPR(x1, y1, sigma_y1, x2, y2, sigma_y2);
+    for(Int_t ib=bin187; ib<bin212; ib++)
+    {
+      Double_t xx = axis1->GetBinCenter(ib);
+      Double_t yy = h_inv_mass->GetBinContent(ib);
+      Double_t sigma_yy = h_inv_mass->GetBinError(ib);
+      x.push_back(xx);
+      y.push_back(yy);
+      sigma_y.push_back(sigma_yy);
+    }
+
+    BgGPR(x, y, sigma_y, nbggpr, dnbggpr);
+    nbggpr /= 0.001;
+    dnbggpr /= 0.001;
 
     TF1 *fn1 = new TF1("fn1", "gaus", 0., 0.5);
     TF1 *fn2 = new TF1("fn2", "gaus(0)+pol2(3)", 0., 0.5);
@@ -78,20 +91,15 @@ void draw_DirectPhoton()
     Double_t par[6];
     h_inv_mass->Fit(fn1, "Q0", "", 0.112, 0.162);
     fn2->SetParameters( fn1->GetParameters() );
-    h_inv_mass->Fit(fn2, "QR");
+    h_inv_mass->Fit(fn2, "Q0", "", 0.047, 0.227);
     fn2->GetParameters(par);
     fn3->SetParameters(par[3], par[4], par[5]);
 
-    //Double_t nphoton = h_1photon->GetBinContent(ipt+1);
-    Double_t npair = 0.;
-    Double_t nbgfit = 0.;
-    Double_t nbgint = 0.;
-
     for(Int_t ib=bin047; ib<bin097; ib++)
-      nbgint += h_inv_mass->GetBinContent(ib);
+      nbgside += h_inv_mass->GetBinContent(ib);
     for(Int_t ib=bin177; ib<bin227; ib++)
-      nbgint += h_inv_mass->GetBinContent(ib);
-    nbgint /= 2.;
+      nbgside += h_inv_mass->GetBinContent(ib);
+    nbgside /= 2.;
 
     for(Int_t ib=bin112; ib<bin162; ib++)
     {
@@ -101,12 +109,12 @@ void draw_DirectPhoton()
     }
 
     Double_t nfit = npair - nbgfit;
-    Double_t nint = npair - nbgint;
-    Double_t nintcorr = nint / (1-rho);
+    Double_t nsub = npair - nbgside;
+    Double_t ngpr = npair - nbggpr;
 
     cout << "pT=" << low << "-" << high << "\tnpair=" << npair
-      << "\tnfit=" << nfit << "\tnint=" << nint
-      << "\tnintcorr=" << nintcorr << "\trho=" << rho << endl;
+      << "\tnfit=" << nfit << "\tnsub=" << nsub
+      << "\tngpr=" << ngpr << "\tdnbggpr=" << dnbggpr << endl;
 
     h_inv_mass->Delete();
   }
