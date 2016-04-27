@@ -64,10 +64,12 @@ void draw_arm(TFile *f, int arm)
     axis0->SetRange(ipt+1,ipt+1);
     TH1 *h_inv_mass = hn_2photon->Projection(1);
     h_inv_mass->SetTitle(buf);
+    h_inv_mass->DrawCopy();
 
     Double_t nphoton = h_1photon->GetBinContent(ipt+1);
     Double_t npair = 0.;
-    Double_t nbgfit = 0.;
+    Double_t nbgfitgaus = 0.;
+    Double_t nbgfitvoigt = 0.;
     Double_t nbgside = 0.;
     Double_t nbggpr = 0.;
     Double_t dnbggpr = 0.;
@@ -104,12 +106,38 @@ void draw_arm(TFile *f, int arm)
     TF1 *fn2 = new TF1("fn2", "gaus(0)+pol3(3)", 0., 0.5);
     TF1 *fn3 = new TF1("fn3", "pol3", 0., 0.5);
 
-    Double_t par[10];
+    TF1 *fn4 = new TF1("fn4", "[0]*TMath::Voigt(x-[1],[2],[3])", 0., 0.5);
+    TF1 *fn5 = new TF1("fn5", "[0]*TMath::Voigt(x-[1],[2],[3])+pol3(4)", 0., 0.5);
+    TF1 *fn6 = new TF1("fn6", "pol3", 0., 0.5);
+
+    Double_t par1[10];
+    Double_t par2[10];
+
     h_inv_mass->Fit(fn1, "Q0", "", 0.112, 0.162);
     fn2->SetParameters( fn1->GetParameters() );
-    h_inv_mass->Fit(fn2, "Q", "", 0.047, 0.227);
-    fn2->GetParameters(par);
-    fn3->SetParameters(par[3], par[4], par[5], par[6]);
+    h_inv_mass->Fit(fn2, "Q0", "", 0.047, 0.227);
+    fn2->SetLineStyle(1);
+    fn2->SetLineColor(kRed);
+    fn2->SetRange(0.047,0.227);
+    fn2->Draw("CSAME");
+    fn2->GetParameters(par1);
+    fn3->SetParameters(par1[3], par1[4], par1[5], par1[6]);
+
+    fn4->SetParameters(1000., 0.137, 0.005, 0.005);
+    h_inv_mass->Fit(fn4, "Q0", "", 0.112, 0.162);
+    fn5->SetParameters( fn4->GetParameters() );
+    h_inv_mass->Fit(fn5, "Q0", "", 0.047, 0.227);
+    fn5->SetLineStyle(3);
+    fn5->SetLineColor(kGreen);
+    fn5->SetRange(0.047,0.227);
+    fn5->Draw("CSAME");
+    fn5->GetParameters(par2);
+    fn6->SetParameters(par2[4], par2[5], par2[6], par2[7]);
+
+    TLegend *leg = new TLegend(0.6, 0.7, 0.9, 0.9);
+    leg->AddEntry(fn2, "gaus+pol3", "L");
+    leg->AddEntry(fn5, "voigt+pol3", "L");
+    leg->Draw();
 
     for(Int_t ib=bin047; ib<bin097; ib++)
       nbgside += h_inv_mass->GetBinContent(ib);
@@ -121,19 +149,20 @@ void draw_arm(TFile *f, int arm)
     {
       npair += h_inv_mass->GetBinContent(ib);
       Double_t bincenter = axis1->GetBinCenter(ib);
-      nbgfit += fn3->Eval(bincenter);
+      nbgfitgaus += fn3->Eval(bincenter);
+      nbgfitvoigt += fn6->Eval(bincenter);
     }
 
-    Double_t nfit = npair - nbgfit;
+    Double_t nfitgaus = npair - nbgfitgaus;
+    Double_t nfitvoigt = npair - nbgfitvoigt;
     Double_t nsub = npair - nbgside;
     Double_t ngpr = npair - nbggpr;
-    Double_t nmissinc = ngpr * ( 1. + MissR[ipt] );
 
     cout << "pT=" << low << "-" << high << "\tnphoton=" << nphoton
-      << "\tnpair=" << npair << "\tnfit=" << nfit << "\tnsub=" << nsub
-      << "\tngpr=" << ngpr << "\tnmissinc=" << nmissinc << endl;
+      << "\tnpair=" << npair << "\tnfitgaus=" << nfitgaus << "\tnfitvoigt=" << nfitvoigt
+      << "\tnsub=" << nsub << "\tngpr=" << ngpr << endl;
 
-    //h_inv_mass->Delete();
+    h_inv_mass->Delete();
   }
 
   if(arm == 0)
