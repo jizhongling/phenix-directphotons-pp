@@ -4,44 +4,44 @@ void draw_arm(TFile *f, int arm)
   {
     const int sector_low = 1;
     const int sector_high = 4;
-    const double MissR[30] = {1.17052, 1.02665, 1.06256, 0.869176, 0.860046, 0.771741, 0.742194, 0.687999, 0.632733, 0.792072, 0.813304, 0.699638, 0.774388, 0.657568, 0.558923, 0.732799, 0.649979, 0.54994, 0.572371, 0.476033, 0.524398, 0.658759, 0.725874, 0.477244, 0.837308, 1.13577, 1.1215, 1.69883, 1.80851, 1.98848};
   }
   else
   {
     const int sector_low = 5;
     const int sector_high = 8;
-    const double MissR[30] = {0.968893, 0.814013, 0.887797, 0.794183, 0.61442, 0.658933, 0.691201, 0.627664, 0.553573, 0.585781, 0.526425, 0.565531, 0.375501, 0.469886, 0.398121, 0.398228, 0.281594, 0.346736, 0.348726, 0.358025, 0.375395, 0.394456, 0.325099, 0.34044, 0.398916, 0.383546, 0.586689, 0.94373, 0.874969, 1.76884};
   }
 
-  TH1 *h_events = (TH1*)f->Get("event_counter");
-  Double_t nevents = h_events->GetBinContent(4);
+  TH1 *h_events = (TH1*)f->Get("h_events");
+  Double_t nevents = h_events->GetBinContent(1);
   cout << "nevents=" << nevents << endl;
 
-  THnSparse *hn_1photon = (THnSparse*)f->Get("pt_1photon");
-  hn_1photon->GetAxis(2)->SetRange(1,1);
-  hn_1photon->GetAxis(1)->SetRange(sector_low, sector_high);
-  TH1 *h_1photon = hn_1photon->Projection(0);
+  TH2 *h2_1photon = (TH2*)f->Get("h2_1photon");
+  TH1 *h_1photon = h2_1photon->ProjectionY("h_1photon", sector_low, sector_high);
 
-  THnSparse *hn_2photon = (THnSparse*)f->Get("inv_mass_2photon");
+  TH2 *h2_sig_extra = (TH2*)f->Get("h2_sig_extra");
+  TH1 *h_sig_extra = h2_sig_extra->ProjectionY("h_sig_extra", sector_low, sector_high);
+
+  TH2 *h2_bg_extra = (TH2*)f->Get("h2_bg_extra");
+  TH1 *h_bg_extra = h2_bg_extra->ProjectionY("h_bg_extra", sector_low, sector_high);
+
+  THnSparse *hn_2photon = (THnSparse*)f->Get("hn_2photon");
 
   TAxis *axis0 = hn_2photon->GetAxis(0);
   TAxis *axis1 = hn_2photon->GetAxis(1);
   TAxis *axis2 = hn_2photon->GetAxis(2);
-  TAxis *axis3 = hn_2photon->GetAxis(3);
 
-  axis3->SetRange(2,2);
-  axis2->SetRange(sector_low, sector_high);
+  axis0->SetRange(sector_low, sector_high);
 
-  Int_t bin047 = axis1->FindBin(0.047);
-  Int_t bin067 = axis1->FindBin(0.067);
-  Int_t bin087 = axis1->FindBin(0.087);
-  Int_t bin097 = axis1->FindBin(0.097);
-  Int_t bin112 = axis1->FindBin(0.112);
-  Int_t bin162 = axis1->FindBin(0.162);
-  Int_t bin177 = axis1->FindBin(0.177);
-  Int_t bin187 = axis1->FindBin(0.187);
-  Int_t bin212 = axis1->FindBin(0.212);
-  Int_t bin227 = axis1->FindBin(0.227);
+  Int_t bin047 = axis2->FindBin(0.047);
+  Int_t bin067 = axis2->FindBin(0.067);
+  Int_t bin087 = axis2->FindBin(0.087);
+  Int_t bin097 = axis2->FindBin(0.097);
+  Int_t bin112 = axis2->FindBin(0.112);
+  Int_t bin162 = axis2->FindBin(0.162);
+  Int_t bin177 = axis2->FindBin(0.177);
+  Int_t bin187 = axis2->FindBin(0.187);
+  Int_t bin212 = axis2->FindBin(0.212);
+  Int_t bin227 = axis2->FindBin(0.227);
 
   const Int_t nData = 256;
   vector<Double_t> x(nData), y(nData), sigma_y(nData);
@@ -57,15 +57,18 @@ void draw_arm(TFile *f, int arm)
     c->cd(ipad++);
 
     char buf[100];
-    Double_t low = axis0->GetBinLowEdge(ipt+1);
-    Double_t high = axis0->GetBinLowEdge(ipt+2);
+    Double_t low = axis1->GetBinLowEdge(ipt+1);
+    Double_t high = axis1->GetBinLowEdge(ipt+2);
     sprintf(buf, "p_{T} %3.1f-%3.1f", low, high);
 
-    axis0->SetRange(ipt+1,ipt+1);
-    TH1 *h_inv_mass = hn_2photon->Projection(1);
+    axis1->SetRange(ipt+1,ipt+1);
+    TH1 *h_inv_mass = hn_2photon->Projection(2);
     h_inv_mass->SetTitle(buf);
 
     Double_t nphoton = h_1photon->GetBinContent(ipt+1);
+    Double_t nsig_extra = h_sig_extra->GetBinContent(ipt+1);
+    Double_t nbg_extra = h_bg_extra->GetBinContent(ipt+1);
+    Double_t nextra = nsig_extra - nbg_extra/2.;
     Double_t npair = 0.;
     Double_t nbgfit = 0.;
     Double_t nbgside = 0.;
@@ -78,7 +81,7 @@ void draw_arm(TFile *f, int arm)
 
     for(Int_t ib=bin067; ib<bin087; ib++)
     {
-      Double_t xx = axis1->GetBinCenter(ib);
+      Double_t xx = axis2->GetBinCenter(ib);
       Double_t yy = h_inv_mass->GetBinContent(ib);
       Double_t sigma_yy = h_inv_mass->GetBinError(ib);
       x.push_back(xx);
@@ -88,7 +91,7 @@ void draw_arm(TFile *f, int arm)
 
     for(Int_t ib=bin187; ib<bin212; ib++)
     {
-      Double_t xx = axis1->GetBinCenter(ib);
+      Double_t xx = axis2->GetBinCenter(ib);
       Double_t yy = h_inv_mass->GetBinContent(ib);
       Double_t sigma_yy = h_inv_mass->GetBinError(ib);
       x.push_back(xx);
@@ -120,40 +123,42 @@ void draw_arm(TFile *f, int arm)
     for(Int_t ib=bin112; ib<bin162; ib++)
     {
       npair += h_inv_mass->GetBinContent(ib);
-      Double_t bincenter = axis1->GetBinCenter(ib);
+      Double_t bincenter = axis2->GetBinCenter(ib);
       nbgfit += fn3->Eval(bincenter);
     }
 
     Double_t nfit = npair - nbgfit;
     Double_t nsub = npair - nbgside;
+    Double_t ndiff = fabs(nbgfit - nbgside - nextra);
     Double_t ngpr = npair - nbggpr;
-    Double_t nmissinc = ngpr * ( 1. + MissR[ipt] );
+    Double_t nerror = fabs(nfit - ngpr);
 
     cout << "pT=" << low << "-" << high << "\tnphoton=" << nphoton
       << "\tnpair=" << npair << "\tnfit=" << nfit << "\tnsub=" << nsub
-      << "\tngpr=" << ngpr << "\tnmissinc=" << nmissinc << endl;
+      << "\tndiff=" << ndiff/nfit*100. << "%\tngpr=" << ngpr
+      << "\tnerror=" << nerror/nfit*100. << "%" << endl;
 
     //h_inv_mass->Delete();
   }
 
   if(arm == 0)
   {
-    c->Print("DirectPhoton-west.pdf");
+    c->Print("CrossPair-west.pdf");
     delete c;
   }
   else
   {
-    c->Print("DirectPhoton-east.pdf");
+    c->Print("CrossPair-east.pdf");
     delete c;
   }
 }
 
-void draw_DirectPhoton()
+void draw_CrossPair()
 {
   gSystem->Load("libGausProc.so");
   gROOT->ProcessLine(".L BgGPR.C");
 
-  TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510ERT/8511/data/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/total.root");
 
   cout << "West arm" << endl;
   draw_arm(f, 0);
