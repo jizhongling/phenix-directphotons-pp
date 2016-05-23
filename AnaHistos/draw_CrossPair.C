@@ -46,13 +46,13 @@ void draw_arm(TFile *f, int arm)
   const Int_t nData = 256;
   vector<Double_t> x(nData), y(nData), sigma_y(nData);
 
-  TCanvas *c = new TCanvas("c", "Canvas", 2400, 2400);
+  TCanvas *c = new TCanvas("c", "Canvas", 2400, 2000);
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(1);
-  c->Divide(4,4);
+  c->Divide(6,5);
 
   Int_t ipad = 1;
-  for(Int_t ipt=5; ipt<21; ipt++)
+  for(Int_t ipt=1; ipt<30; ipt++)
   {
     c->cd(ipad++);
 
@@ -137,8 +137,6 @@ void draw_arm(TFile *f, int arm)
       << "\tnpair=" << npair << "\tnfit=" << nfit << "\tnsub=" << nsub
       << "\tndiff=" << ndiff/nfit*100. << "%\tngpr=" << ngpr
       << "\tnerror=" << nerror/nfit*100. << "%" << endl;
-
-    //h_inv_mass->Delete();
   }
 
   if(arm == 0)
