@@ -1,7 +1,7 @@
 #!/bin/bash
 # Function: Combine root files ten by ten.
 
-cd "$PLHF/taxi/Run13pp510ERT/8511/data"
+cd "$PLHF/taxi/Run13pp510MinBias/8905/data"
 rm -f total.root tmp.root
 
 files=""

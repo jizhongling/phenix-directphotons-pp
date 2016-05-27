@@ -9,12 +9,24 @@ void draw_BR()
   gStyle->SetOptStat(0);
 
   TGraphAsymmErrors *gr = new TGraphAsymmErrors(h_others, h_pion);
+  gr->SetTitle("Branching ratio");
+  gr->GetXaxis()->SetTitle("p_{T} [GeV]");
+  gr->GetYaxis()->SetTitle("#frac{#eta+#omega}{#pi^{0}}");
   gr->GetXaxis()->SetRangeUser(0., 30.);
   gr->GetYaxis()->SetRangeUser(0., 0.5);
   gr->Draw("AP");
 
   c->Print("BR.pdf");
 
-  Double_t RatioAbar = h_others->Integral(11,30) / h_pion->Integral(11,30);
-  cout << "RatioAbar=" << RatioAbar << endl;
+  Int_t n = gr->GetN();
+  Double_t *x = gr->GetX();
+  Double_t *y = gr->GetY();
+  for(Int_t i=0; i<n; i++)
+    cout << x[i] << ",";
+  cout << endl;
+  for(Int_t i=0; i<n; i++)
+    cout << y[i] << ",";
+  cout << endl;
+  Double_t BRbar = h_others->Integral(11,30) / h_pion->Integral(11,30);
+  cout << "BRbar = " << BRbar << endl;
 }

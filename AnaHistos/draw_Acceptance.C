@@ -10,9 +10,16 @@ void draw_Acceptance()
   gStyle->SetOptStat(0);
 
   TGraphAsymmErrors *gr = new TGraphAsymmErrors(h_phsig, h_phtot);
+  gr->SetTitle("Acceptance");
+  gr->GetXaxis()->SetTitle("p_{T} [GeV]");
+  gr->GetYaxis()->SetTitle("Acceptance");
   gr->GetXaxis()->SetRangeUser(0., 30.);
-  gr->GetYaxis()->SetRangeUser(0., 0.1);
+  gr->GetYaxis()->SetRangeUser(0., 0.3);
   gr->Draw("AP");
 
   c->Print("Acceptance.pdf");
+
+  Double_t nsig = h_phsig->Integral(2,30);
+  Double_t ntot = h_phtot->Integral(2,30);
+  cout << "Acceptancebar = " << nsig/ntot << endl;
 }
