@@ -12,19 +12,21 @@
 
 using namespace std;
 
-const Int_t sectors = 8;
-// find "/phenix/plhf/zji/taxi/Run13pp510ERT/8511/data" -iname "DirectPhotonPP-*" -printf "%P " | wc -w
-const Int_t runs = 1008;
-#include "runnumber.h"
-
 
 void draw_ToF_Calib_Sector() {
 
+  const Int_t sectors = 8;
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist.txt");
+  Int_t nrun = 0;
+  Int_t runnumber[1024];
+  while(fin >> runnumber[nrun]) nrun++;
+  fin.close();
+
   TGraphErrors* g_tof_runnumber[sectors];
   for(Int_t is=0; is<sectors; is++)
-    g_tof_runnumber[is] = new TGraphErrors(runs);
+    g_tof_runnumber[is] = new TGraphErrors(nrun);
 
-  for(Int_t ir=0; ir<runs; ir++) {
+  for(Int_t ir=0; ir<nrun; ir++) {
 
     char buf[100];
     sprintf(buf, "/phenix/plhf/zji/taxi/Run13pp510ERT/8511/data/DirectPhotonPP-%d.root", runnumber[ir]);
