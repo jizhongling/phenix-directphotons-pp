@@ -37,12 +37,9 @@ TGraph** CreateGraph(TFile *f, Int_t arm)
     const Double_t TrigE[30] = {0.000175027,0.000228947,0.000544174,0.00116377,0.002314,0.00449421,0.0283686,0.0850631,0.195189,0.340642,0.491794,0.645161,0.753769,0.774536,0.794643,0.833333,0.837607,0.866667,0.897959,0.840909,0.860759,0.916667,1,1,1,1,1,1,1,1};
   }
 
-  TH1 *h_events = (TH1*)f->Get("h_events");
-  Double_t nevents = h_events->GetBinContent(1);
-  cout << "nevents=" << nevents << endl;
-
-  TH2 *h2_1photon = (TH2*)f->Get("h2_1photon");
-  TH1 *h_1photon = h2_1photon->ProjectionY("h_1photon", sector_low, sector_high);
+  THnSparse *hn_1photon = (THnSparse*)f->Get("hn_1photon");
+  hn_1photon->GetAxis(0)->SetRange(sector_low, sector_high);
+  TH1 *h_1photon = hn_1photon->Projection(1);
 
   TH2 *h2_sig_extra = (TH2*)f->Get("h2_sig_extra");
   TH1 *h_sig_extra = h2_sig_extra->ProjectionY("h_sig_extra", sector_low, sector_high);
@@ -155,7 +152,9 @@ TGraph** CreateGraph(TFile *f, Int_t arm)
 
     Double_t nfit = npair - nbgfit;
     Double_t nsub = npair - nbgside;
+    Double_t ndiff = fabs(nbgfit - nbgside - nextra);
     Double_t ngpr = npair - nbggpr;
+    Double_t nerror = fabs(nfit - ngpr);
 
     Double_t npion = nfit * ( 1. + MissR[ipt] );
     Double_t ndecay = npion * ( 1. + BR[ipt] );
@@ -167,7 +166,8 @@ TGraph** CreateGraph(TFile *f, Int_t arm)
 
     cout << "pT=" << low << "-" << high << "\tnphoton=" << nphoton
       << "\tnpair=" << npair << "\tnfit=" << nfit << "\tnsub=" << nsub
-      << "\tngpr=" << ngpr << endl;
+      << "\tndiff=" << ndiff/nfit*100. << "%\tngpr=" << ngpr
+      << "\tnerror=" << nerror/nfit*100. << "%" << endl;
   }
 
   if(arm == 0)
