@@ -9,10 +9,10 @@ void draw_BR()
   gStyle->SetOptStat(0);
 
   TGraphAsymmErrors *gr = new TGraphAsymmErrors(h_others, h_pion);
-  gr->SetTitle("Branching ratio");
+  gr->SetTitle("Two photons acceptance");
   gr->GetXaxis()->SetTitle("p_{T} [GeV]");
   gr->GetYaxis()->SetTitle("#frac{#eta+#omega}{#pi^{0}}");
-  gr->GetXaxis()->SetRangeUser(0., 30.);
+  gr->GetXaxis()->SetRangeUser(0., 12.);
   gr->GetYaxis()->SetRangeUser(0., 0.5);
   gr->Draw("AP");
 
@@ -21,12 +21,18 @@ void draw_BR()
   Int_t n = gr->GetN();
   Double_t *x = gr->GetX();
   Double_t *y = gr->GetY();
+  Double_t *eyhigh = gr->GetEYhigh();
+  Double_t *eylow = gr->GetEYlow();
+
+  cout << "\nX: ";
   for(Int_t i=0; i<n; i++)
     cout << x[i] << ",";
-  cout << endl;
+  cout << "\nY: ";
   for(Int_t i=0; i<n; i++)
     cout << y[i] << ",";
-  cout << endl;
+  cout << "\nEY: ";
+  for(Int_t i=0; i<n; i++)
+    cout << ( eyhigh[i] > eylow[i] ? eyhigh[i] : eylow[i] ) << ",";
   Double_t BRbar = h_others->Integral(11,30) / h_pion->Integral(11,30);
-  cout << "BRbar = " << BRbar << endl;
+  cout << "\nBRbar = " << BRbar << endl;
 }

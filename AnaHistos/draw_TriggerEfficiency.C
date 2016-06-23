@@ -1,59 +1,98 @@
 void draw_TriggerEfficiency()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510MinBias/8905/data/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510MinBias/9059/data/total.root");
   TH3 *h3_trig = (TH3*)f->Get("h3_trig");
 
   TCanvas *c = new TCanvas("c", "Canvas", 600, 600);
   gStyle->SetOptStat(0);
 
-  TH1 *h_ertbw = h3_trig->ProjectionX("h_ertbw", 1, 4, 5, 5);
-  TH1 *h_totalw = h3_trig->ProjectionX("h_totalw", 1, 4, 1, 1);
-  TGraphAsymmErrors *gr_ertbw = new TGraphAsymmErrors(h_ertbw, h_totalw);
-  gr_ertbw->SetTitle("ERT_4x4b efficiency");
-  gr_ertbw->GetXaxis()->SetTitle("p_{T} [GeV]");
-  gr_ertbw->GetYaxis()->SetTitle("efficiency");
-  gr_ertbw->GetYaxis()->SetTitleOffset(1.2);
-  gr_ertbw->GetXaxis()->SetRangeUser(0., 30.);
-  gr_ertbw->GetYaxis()->SetRangeUser(0., 1.1);
-  gr_ertbw->SetMarkerColor(2);
-  gr_ertbw->SetMarkerStyle(20);
-  gr_ertbw->SetMarkerSize(1.);
-  gr_ertbw->Draw("AP");
+  TH1 *h_ertb_PbScW = h3_trig->ProjectionX("h_ertb_PbScW", 1, 4, 9, 9);
+  TH1 *h_total_PbScW = h3_trig->ProjectionX("h_total_PbScW", 1, 4, 1, 1);
+  TGraphAsymmErrors *gr_ertb_PbScW = new TGraphAsymmErrors(h_ertb_PbScW, h_total_PbScW);
+  gr_ertb_PbScW->SetTitle("ERT_4x4b efficiency");
+  gr_ertb_PbScW->GetXaxis()->SetTitle("p_{T} [GeV]");
+  gr_ertb_PbScW->GetYaxis()->SetTitle("efficiency");
+  gr_ertb_PbScW->GetYaxis()->SetTitleOffset(1.2);
+  gr_ertb_PbScW->GetXaxis()->SetRangeUser(0., 30.);
+  gr_ertb_PbScW->GetYaxis()->SetRangeUser(0., 1.1);
+  gr_ertb_PbScW->SetMarkerColor(1);
+  gr_ertb_PbScW->SetMarkerStyle(20);
+  gr_ertb_PbScW->SetMarkerSize(1.);
+  gr_ertb_PbScW->Draw("AP");
 
-  TH1 *h_ertbe = h3_trig->ProjectionX("h_ertbe", 5, 8, 5, 5);
-  TH1 *h_totale = h3_trig->ProjectionX("h_totale", 5, 8, 1, 1);
-  TGraphAsymmErrors *gr_ertbe = new TGraphAsymmErrors(h_ertbe, h_totale);
-  gr_ertbe->SetMarkerColor(4);
-  gr_ertbe->SetMarkerStyle(21);
-  gr_ertbe->SetMarkerSize(1.);
-  gr_ertbe->Draw("P");
+  TH1 *h_ertb_PbScE = h3_trig->ProjectionX("h_ertb_PbScE", 5, 6, 9, 9);
+  TH1 *h_total_PbScE = h3_trig->ProjectionX("h_total_PbScE", 5, 6, 1, 1);
+  TGraphAsymmErrors *gr_ertb_PbScE = new TGraphAsymmErrors(h_ertb_PbScE, h_total_PbScE);
+  gr_ertb_PbScE->SetMarkerColor(2);
+  gr_ertb_PbScE->SetMarkerStyle(21);
+  gr_ertb_PbScE->SetMarkerSize(1.);
+  gr_ertb_PbScE->Draw("P");
+
+  TH1 *h_ertb_PbGlE = h3_trig->ProjectionX("h_ertb_PbGlE", 7, 8, 9, 9);
+  TH1 *h_total_PbGlE = h3_trig->ProjectionX("h_total_PbGlE", 7, 8, 1, 1);
+  TGraphAsymmErrors *gr_ertb_PbGlE = new TGraphAsymmErrors(h_ertb_PbGlE, h_total_PbGlE);
+  gr_ertb_PbGlE->SetMarkerColor(3);
+  gr_ertb_PbGlE->SetMarkerStyle(22);
+  gr_ertb_PbGlE->SetMarkerSize(1.);
+  gr_ertb_PbGlE->Draw("P");
 
   TLegend *leg = new TLegend(0.6, 0.1, 0.9, 0.3);
-  leg->AddEntry(gr_ertbw, "West arm", "LPE");
-  leg->AddEntry(gr_ertbe, "East arm", "LPE");
+  leg->AddEntry(gr_ertb_PbScW, "PbScW", "LPE");
+  leg->AddEntry(gr_ertb_PbScE, "PbScE", "LPE");
+  leg->AddEntry(gr_ertb_PbGlE, "PbGlE", "LPE");
   leg->Draw();
 
   c->Print("TriggerEfficiency.pdf");
 
-  Int_t grnw = gr_ertbw->GetN();
-  Double_t *grxw = gr_ertbw->GetX();
-  Double_t *gryw = gr_ertbw->GetY();
-  cout << "West arm: " << grnw << endl;
-  for(Int_t i=0; i<grnw; i++)
-    cout << grxw[i] << ",";
-  cout << endl;
-  for(Int_t i=0; i<grnw; i++)
-    cout << gryw[i] << ",";
+  Int_t grn_PbScW = gr_ertb_PbScW->GetN();
+  Double_t *grx_PbScW = gr_ertb_PbScW->GetX();
+  Double_t *gry_PbScW = gr_ertb_PbScW->GetY();
+  Double_t *egry_PbScWhigh = gr_ertb_PbScW->GetEYhigh();
+  Double_t *egry_PbScWlow = gr_ertb_PbScW->GetEYlow();
+  cout << "PbScW: " << grn_PbScW;
+  cout << "\nX: ";
+  for(Int_t i=0; i<grn_PbScW; i++)
+    cout << grx_PbScW[i] << ",";
+  cout << "\nY: ";
+  for(Int_t i=0; i<grn_PbScW; i++)
+    cout << gry_PbScW[i] << ",";
+  cout << "\nEY: ";
+  for(Int_t i=0; i<grn_PbScW; i++)
+    cout << ( egry_PbScWhigh[i] > egry_PbScWlow[i] ? egry_PbScWhigh[i] : egry_PbScWlow[i] ) << ",";
   cout << endl;
 
-  Int_t grne = gr_ertbe->GetN();
-  Double_t *grxe = gr_ertbe->GetX();
-  Double_t *grye = gr_ertbe->GetY();
-  cout << "East arm: " << grne << endl;
-  for(Int_t i=0; i<grne; i++)
-    cout << grxe[i] << ",";
+  Int_t grn_PbScE = gr_ertb_PbScE->GetN();
+  Double_t *grx_PbScE = gr_ertb_PbScE->GetX();
+  Double_t *gry_PbScE = gr_ertb_PbScE->GetY();
+  Double_t *egry_PbScEhigh = gr_ertb_PbScE->GetEYhigh();
+  Double_t *egry_PbScElow = gr_ertb_PbScE->GetEYlow();
+
+  cout << "\nPbScE: " << grn_PbScE;
+  cout << "\nX: ";
+  for(Int_t i=0; i<grn_PbScE; i++)
+    cout << grx_PbScE[i] << ",";
+  cout << "\nY: ";
+  for(Int_t i=0; i<grn_PbScE; i++)
+    cout << gry_PbScE[i] << ",";
+  cout << "\nEY: ";
+  for(Int_t i=0; i<grn_PbScE; i++)
+    cout << ( egry_PbScEhigh[i] > egry_PbScElow[i] ? egry_PbScEhigh[i] : egry_PbScElow[i] ) << ",";
   cout << endl;
-  for(Int_t i=0; i<grne; i++)
-    cout << grye[i] << ",";
+  
+  Int_t grn_PbGlE = gr_ertb_PbGlE->GetN();
+  Double_t *grx_PbGlE = gr_ertb_PbGlE->GetX();
+  Double_t *gry_PbGlE = gr_ertb_PbGlE->GetY();
+  Double_t *egry_PbGlEhigh = gr_ertb_PbGlE->GetEYhigh();
+  Double_t *egry_PbGlElow = gr_ertb_PbGlE->GetEYlow();
+  cout << "\nPbGlE: " << grn_PbGlE;
+  cout << "\nX: ";
+  for(Int_t i=0; i<grn_PbGlE; i++)
+    cout << grx_PbGlE[i] << ",";
+  cout << "\nY: ";
+  for(Int_t i=0; i<grn_PbGlE; i++)
+    cout << gry_PbGlE[i] << ",";
+  cout << "\nEY: ";
+  for(Int_t i=0; i<grn_PbGlE; i++)
+    cout << ( egry_PbGlEhigh[i] > egry_PbGlElow[i] ? egry_PbGlEhigh[i] : egry_PbGlElow[i] ) << ",";
   cout << endl;
 }
