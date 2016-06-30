@@ -1,7 +1,10 @@
-void draw_TriggerEfficiency()
+void GenerateTriggerEfficiency(TFile *f, Int_t ispion)
 {
-  TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510MinBias/9059/data/total.root");
-  TH3 *h3_trig = (TH3*)f->Get("h3_trig");
+  TH3 *h3_trig;
+  if(ispion == 0)
+    h3_trig = (TH3*)f->Get("h3_trig");
+  else if(ispion == 1)
+    h3_trig = (TH3*)f->Get("h3_trig_pion");
 
   TCanvas *c = new TCanvas("c", "Canvas", 600, 600);
   gStyle->SetOptStat(0);
@@ -10,6 +13,10 @@ void draw_TriggerEfficiency()
   TH1 *h_total_PbScW = h3_trig->ProjectionX("h_total_PbScW", 1, 4, 1, 1);
   TGraphAsymmErrors *gr_ertb_PbScW = new TGraphAsymmErrors(h_ertb_PbScW, h_total_PbScW);
   gr_ertb_PbScW->SetTitle("ERT_4x4b efficiency");
+  if(ispion == 0)
+    gr_ertb_PbScW->SetTitle("Trigger efficiency for photon");
+  else if(ispion == 1)
+    gr_ertb_PbScW->SetTitle("Trigger efficeincy for #pi^{0}");
   gr_ertb_PbScW->GetXaxis()->SetTitle("p_{T} [GeV]");
   gr_ertb_PbScW->GetYaxis()->SetTitle("efficiency");
   gr_ertb_PbScW->GetYaxis()->SetTitleOffset(1.2);
@@ -42,7 +49,16 @@ void draw_TriggerEfficiency()
   leg->AddEntry(gr_ertb_PbGlE, "PbGlE", "LPE");
   leg->Draw();
 
-  c->Print("TriggerEfficiency.pdf");
+  if(ispion == 0)
+  {
+    c->Print("TriggerEfficiency-photon.pdf");
+    delete c;
+  }
+  else if(ispion == 1)
+  {
+    c->Print("TriggerEfficiency-pion.pdf");
+    delete c;
+  }
 
   Int_t grn_PbScW = gr_ertb_PbScW->GetN();
   Double_t *grx_PbScW = gr_ertb_PbScW->GetX();
@@ -78,7 +94,7 @@ void draw_TriggerEfficiency()
   for(Int_t i=0; i<grn_PbScE; i++)
     cout << ( egry_PbScEhigh[i] > egry_PbScElow[i] ? egry_PbScEhigh[i] : egry_PbScElow[i] ) << ",";
   cout << endl;
-  
+
   Int_t grn_PbGlE = gr_ertb_PbGlE->GetN();
   Double_t *grx_PbGlE = gr_ertb_PbGlE->GetX();
   Double_t *gry_PbGlE = gr_ertb_PbGlE->GetY();
@@ -95,4 +111,16 @@ void draw_TriggerEfficiency()
   for(Int_t i=0; i<grn_PbGlE; i++)
     cout << ( egry_PbGlEhigh[i] > egry_PbGlElow[i] ? egry_PbGlEhigh[i] : egry_PbGlElow[i] ) << ",";
   cout << endl;
+
+  return;
+}
+
+void draw_TriggerEfficiency()
+{
+  TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510MinBias/9161/data/total.root");
+  for(Int_t ispion=0; ispion<2; ispion++)
+  {
+    cout << "\nispion " << ispion << endl;
+    GenerateTriggerEfficiency(f, ispion);
+  }
 }

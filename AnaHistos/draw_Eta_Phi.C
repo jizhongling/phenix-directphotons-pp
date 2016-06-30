@@ -2,12 +2,12 @@ void draw_Eta_Phi()
 {
   TFile *f_sim = new TFile("Acceptance-signal.root");
   THnSparse *hn_photon = (THnSparse*)f_sim->Get("hn_photon");
-  hn_photon->GetAxis(1)->SetRange(5,6);
+  //hn_photon->GetAxis(1)->SetRange(5,6);
   TAxis *axis0_hn_photon = hn_photon->GetAxis(0);
 
   TFile *f_data = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/total.root");
   THnSparse *hn_1photon = (THnSparse*)f_data->Get("hn_1photon");
-  hn_1photon->GetAxis(0)->SetRange(5,6);
+  //hn_1photon->GetAxis(0)->SetRange(5,6);
   TAxis *axis1_hn_1photon = hn_1photon->GetAxis(1);
 
   TCanvas *c1 = new TCanvas("c1", "#eta distribution", 2400, 2400);
@@ -54,6 +54,6 @@ void draw_Eta_Phi()
     h_phi->Draw("SAME");
   }
 
-  c1->Print("Eta-PbScE.pdf");
-  c2->Print("Phi-PbScE.pdf");
+  c1->Print("Eta.pdf");
+  c2->Print("Phi.pdf");
 }
