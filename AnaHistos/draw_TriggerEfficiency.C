@@ -117,7 +117,8 @@ void GenerateTriggerEfficiency(TFile *f, Int_t ispion)
 
 void draw_TriggerEfficiency()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510MinBias/9161/data/total.root");
+  //TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510MinBias/9161/data/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510ERT/9473/data/total.root");
   for(Int_t ispion=0; ispion<2; ispion++)
   {
     cout << "\nispion " << ispion << endl;

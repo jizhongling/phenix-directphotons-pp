@@ -1,75 +1,69 @@
-#include <TFile.h>
-#include <THnSparse.h>
-#include <TH1D.h>
-#include <TCanvas.h>
-#include <TStyle.h>
-#include <TAxis.h>
-#include <TLatex.h>
-#include <TLine.h>
-
-#include <cstdio>
-
-using namespace std;
-
 void draw_Theta_CV()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510ERT/8511/data/total.root");
-  THnSparse *hn_inv_mass_2photon_theta_cv = (THnSparse*)f->Get("inv_mass_2photon_theta_cv");
+  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertc-cv/total.root");
+  THnSparse *hn_2photon = (THnSparse*)f->Get("hn_2photon");
 
-  TAxis *axis0 = (TAxis*)hn_inv_mass_2photon_theta_cv->GetAxis(0);
-  TAxis *axis1 = (TAxis*)hn_inv_mass_2photon_theta_cv->GetAxis(1);
-  //TAxis *axis2 = (TAxis*)hn_inv_mass_2photon_theta_cv->GetAxis(2);
-  TAxis *axis3 = (TAxis*)hn_inv_mass_2photon_theta_cv->GetAxis(3);
+  TAxis *axis_sec = (TAxis*)hn_2photon->GetAxis(0);
+  TAxis *axis_e = (TAxis*)hn_2photon->GetAxis(2);
+  TAxis *axis_th = (TAxis*)hn_2photon->GetAxis(3);
 
   TCanvas *c = new TCanvas("c", "Canvas", 2400, 2400);
   gStyle->SetOptStat(0);
   c->Divide(4,4);
 
-  axis3->SetRange(1,6);
-  //axis3->SetRange(7,8);
+  //axis_sec->SetRange(1,6);
+  axis_sec->SetRange(7,8);
+  
+  Int_t ipad = 1;
+  Int_t icol = 1;
 
-  for(Int_t iE=8; iE<38; iE+=2)
+  for(Int_t iE=0; iE<10; iE++)
   {
-    static Int_t ipad = 1;
-    static Int_t icol = 1;
-    c->cd(ipad);
+    c->cd(ipad++);
     icol = 1;
+    bool first = true;
 
-    axis0->SetRange(iE,iE+1);
-    Double_t clusterE_low = axis0->GetBinLowEdge(iE);
-    Double_t clusterE_high = axis0->GetBinLowEdge(iE+2);
+    axis_e->SetRange(iE+1,iE+1);
+    Double_t clusterE_low = axis_e->GetBinLowEdge(iE+1);
+    Double_t clusterE_high = axis_e->GetBinLowEdge(iE+2);
 
-    for(Int_t ith=2; ith<62; ith+=4)
+    for(Int_t ith=0; ith<10; ith++)
     {
-      axis1->SetRange(ith,ith+3);
-      TH1D *hnp_inv_mass_2photon_theta_cv = (TH1D*)hn_inv_mass_2photon_theta_cv->Projection(2);
-      Int_t nEntries = hnp_inv_mass_2photon_theta_cv->GetEntries();
-      hnp_inv_mass_2photon_theta_cv->Scale(1./nEntries);
-      hnp_inv_mass_2photon_theta_cv->SetLineColor(icol);
-      if(icol==1)
+      axis_th->SetRange(ith+1,ith+1);
+      TH1D *h_2photon = (TH1D*)hn_2photon->Projection(1);
+      Int_t nEntries = h_2photon->GetEntries();
+      if(nEntries <= 0.)
       {
+        h_2photon->Delete();
+        icol++;
+        continue;
+      }
+      h_2photon->Scale(1./nEntries);
+      cout << "iE=" << iE << "\tith=" << ith << "\tn=" << nEntries << endl;
+      h_2photon->SetLineColor(icol);
+      if(first)
+      {
+        first = false;
         char title[100];
         sprintf(title, "PbSc_ClusterE_%4.2f_%4.2f", clusterE_low, clusterE_high);
-        hnp_inv_mass_2photon_theta_cv->SetTitle(title);
-        hnp_inv_mass_2photon_theta_cv->DrawCopy();
+        h_2photon->SetTitle(title);
+        h_2photon->DrawCopy();
       }
       else
       {
-        hnp_inv_mass_2photon_theta_cv->DrawCopy("SAME");
+        h_2photon->DrawCopy("SAME");
       }
-      hnp_inv_mass_2photon_theta_cv->Delete();
+      h_2photon->Delete();
       icol++;
     }
-
-    ipad++;
   }
 
-  c->cd(16);
-  for(Int_t ith=2; ith<62; ith+=4)
+  c->cd(ipad++);
+  icol = 1;
+  Double_t y = 0.9;
+  for(Int_t ith=0; ith<10; ith++)
   {
-    static Int_t icol = 1;
-    static Double_t y = 0.9;
-    Double_t theta_cv = axis1->GetBinLowEdge(ith);
+    Double_t theta_cv = axis_th->GetBinLowEdge(ith+1);
     char buf[100];
     sprintf(buf, "%5.3f", theta_cv);
 
@@ -87,5 +81,6 @@ void draw_Theta_CV()
     icol++;
   }
 
-  c->Print("Theta_CV_PbSc.pdf");
+  //c->Print("Theta_CV_PbSc.pdf");
+  c->Print("Theta_CV_PbGl.pdf");
 }
