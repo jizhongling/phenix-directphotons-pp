@@ -1,5 +1,7 @@
 void draw_BR()
 {
+  gROOT->ProcessLine(".L ReadGraph.C");
+
   TFile *f = new TFile("particles.root");
   TH2 *h2_particles = (TH2*)f->Get("h2_particles");
   TH1* h_others = h2_particles->ProjectionX("h_others", 2, 3);
@@ -18,21 +20,22 @@ void draw_BR()
 
   c->Print("BR.pdf");
 
-  Int_t n = gr->GetN();
-  Double_t *x = gr->GetX();
-  Double_t *y = gr->GetY();
-  Double_t *eyhigh = gr->GetEYhigh();
-  Double_t *eylow = gr->GetEYlow();
+  Double_t gx[30], gy[30], egy[30];
+  ReadGraph(gr, gx, gy, egy);
 
-  cout << "\nX: ";
-  for(Int_t i=0; i<n; i++)
-    cout << x[i] << ",";
-  cout << "\nY: ";
-  for(Int_t i=0; i<n; i++)
-    cout << y[i] << ",";
-  cout << "\nEY: ";
-  for(Int_t i=0; i<n; i++)
-    cout << ( eyhigh[i] > eylow[i] ? eyhigh[i] : eylow[i] ) << ",";
-  Double_t BRbar = h_others->Integral(11,30) / h_pion->Integral(11,30);
-  cout << "\nBRbar = " << BRbar << endl;
+  Double_t nothers = h_others->Integral(11,30);
+  Double_t npion = h_pion->Integral(11,30);
+  Double_t BRbar = nothers / npion;
+  Double_t eBRbar = BRbar * sqrt( 1./nothers + 1./npion ); 
+  for(Int_t ipt=10; ipt<30; ipt++)
+  {
+    gy[ipt] = BRbar;
+    egy[ipt] = eBRbar;
+  }
+
+  TGraphErrors *grout = new TGraphErrors(30, gx, gy, 0, egy);
+  grout->SetName("gr_0");
+  TFile *fout = new TFile("BR.root", "RECREATE");
+  grout->Write();
+  fout->Close();
 }
