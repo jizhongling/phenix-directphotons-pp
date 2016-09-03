@@ -1,5 +1,8 @@
-void GenerateGraph(TFile *f, Int_t ispion, Int_t trig, Int_t part, Int_t gn, Double_t **gx, Double_t **gy, Double_t **egy)
+void GenerateGraph(TFile *f, TObjArray *Glist, Int_t ispion, Int_t trig, Int_t part)
 {
+  Double_t gx[30], gy[3][30], egy[3][30];
+  TGraphErrors *gr;
+
   const Double_t PI = 3.1415927;
   const Double_t BBCCount = 4.193255 * pow(10,12);  // 4193255288313
   const Double_t BBCRatio = 0.67;
@@ -7,15 +10,14 @@ void GenerateGraph(TFile *f, Int_t ispion, Int_t trig, Int_t part, Int_t gn, Dou
   const Double_t BBCCross = 32.5 * pow(10,9);
   const Double_t eBBCCross = 3.25 * pow(10,9);
 
-  Double_t gxx[30];
   Double_t BR[30], MissR[30], Acceptance[30], Smear[30], TrigE[30];
   Double_t eBR[30], eMissR[30], eAcceptance[30], eSmear[30], eTrigE[30];
 
-  ReadGraphErrors("BR.root", 0, gxx, BR, eBR);
-  ReadGraphErrors("MissingRatio.root", 24*ispion+15+4*part, gxx, MissR, eMissR);
-  ReadGraphErrors("Acceptance.root", 3*ispion+part, gxx, Acceptance, eAcceptance);
-  ReadGraphErrors("Smear.root", 24*ispion+15+4*part, gxx, Smear, eSmear);
-  ReadGraphAsymmErrors("TriggerEfficiency.root", 9*ispion+3*trig+part, gxx, TrigE, eTrigE);
+  ReadGraphErrors("BR.root", 0, gx, BR, eBR);
+  ReadGraphErrors("MissingRatio.root", 24*ispion+15+4*part, gx, MissR, eMissR);
+  ReadGraphErrors("Acceptance.root", 3*ispion+part, gx, Acceptance, eAcceptance);
+  ReadGraphErrors("Smear.root", 24*ispion+15+4*part, gx, Smear, eSmear);
+  ReadGraphAsymmErrors("TriggerEfficiency.root", 9*ispion+3*trig+part, gx, TrigE, eTrigE);
 
   Double_t sec_low[3] = {1, 5, 7};
   Double_t sec_high[3] = {4, 6, 8};
@@ -61,7 +63,7 @@ void GenerateGraph(TFile *f, Int_t ispion, Int_t trig, Int_t part, Int_t gn, Dou
   c->Divide(6,5);
 
   Int_t ipad = 1;
-  for(Int_t ipt=0; ipt<gn; ipt++)
+  for(Int_t ipt=0; ipt<30; ipt++)
   {
     c->cd(ipad++);
 
@@ -178,13 +180,11 @@ void GenerateGraph(TFile *f, Int_t ispion, Int_t trig, Int_t part, Int_t gn, Dou
 
     if(ispion == 0)
     {
-      gx[0][ipt] = gxx[ipt];
       gy[0][ipt] = ndirect / nphoton;
       egy[0][ipt] = gy[0][ipt] * sqrt( pow(endirect/ndirect,2.) + 1./nphoton );
 
-      gx[1][ipt] = gxx[ipt];
-      gy[1][ipt] = BBCCross * (ndirect/(BBCCount*BBCRatio)) / (2*PI*gx[1][ipt]) / ((high-low)*0.8) / Acceptance[ipt] / Smear[ipt] / TrigE[ipt];
-      //egy[1][ipt] = gy[1][ipt] * sqrt( pow(eBBCCross/BBCCross,2.) + pow(endirect/ndirect,2.) + 1./BBCCount + pow(eBBCRatio/BBCRatio,2.)
+      gy[1][ipt] = BBCCross * (ndirect/(BBCCount*BBCRatio)) / (2*PI*gx[ipt]) / ((high-low)*0.8) / Acceptance[ipt] / Smear[ipt] / TrigE[ipt];
+      //egy[1][ipt] = gy[ipt] * sqrt( pow(eBBCCross/BBCCross,2.) + pow(endirect/ndirect,2.) + 1./BBCCount + pow(eBBCRatio/BBCRatio,2.)
       //    + pow(eSmear[ipt]/Smear[ipt],2.) + pow(eAcceptance[ipt]/Acceptance[ipt],2.) + pow(eTrigE[ipt]/TrigE[ipt],2.) );
       egy[1][ipt] = gy[1][ipt] * sqrt( pow(endirect/ndirect,2.)
           + pow(eSmear[ipt]/Smear[ipt],2.) + pow(eAcceptance[ipt]/Acceptance[ipt],2.) + pow(eTrigE[ipt]/TrigE[ipt],2.) );
@@ -196,8 +196,7 @@ void GenerateGraph(TFile *f, Int_t ispion, Int_t trig, Int_t part, Int_t gn, Dou
     }
     else if(ispion == 1)
     {
-      gx[2][ipt] = gxx[ipt];
-      gy[2][ipt] = BBCCross * (npion/2./(BBCCount*BBCRatio)) / (2*PI*gx[2][ipt]) / ((high-low)*0.8) / Acceptance[ipt] / Smear[ipt] / TrigE[ipt];
+      gy[2][ipt] = BBCCross * (npion/2./(BBCCount*BBCRatio)) / (2*PI*gx[ipt]) / ((high-low)*0.8) / Acceptance[ipt] / Smear[ipt] / TrigE[ipt];
       //egy[2][ipt] = gy[2][ipt] * sqrt( pow(eBBCCross/BBCCross,2.) + pow(enpion/npion,2.) + 1./BBCCount + pow(eBBCRatio/BBCRatio,2.)
       //    + pow(eSmear[ipt]/Smear[ipt],2.) + pow(eAcceptance[ipt]/Acceptance[ipt],2.) + pow(eTrigE[ipt]/TrigE[ipt],2.) );
       egy[2][ipt] = gy[2][ipt] * sqrt( pow(enpion/npion,2.)
@@ -205,38 +204,30 @@ void GenerateGraph(TFile *f, Int_t ispion, Int_t trig, Int_t part, Int_t gn, Dou
     }
   }
 
+  if(ispion==0)
+  {
+    gr = new TGraphErrors(30, gx, gy[0], 0, egy[0]);
+    Glist->AddAtAndExpand(gr,12*trig+part);
+    gr->SetName(Form("gr_%d",12*trig+part));
+    gr->SetTitle("DirectPhoton fraction");
+
+    gr = new TGraphErrors(30, gx, gy[1], 0, egy[1]);
+    Glist->AddAtAndExpand(gr,12*trig+4+part);
+    gr->SetName(Form("gr_%d",12*trig+4+part));
+    gr->SetTitle("DirectPhoton Cross Section");
+  }
+  else if(ispion==1)
+  {
+    gr = new TGraphErrors(30, gx, gy[2], 0, egy[2]);
+    Glist->AddAtAndExpand(gr,12*trig+8+part);
+    gr->SetName(Form("gr_%d",12*trig+8+part));
+    gr->SetTitle("#pi^{0} Cross Section");
+  }
+
   c->Print(Form("CrossSection-pion%d-ert%c-part%d.pdf",ispion,97+trig,part));
   delete c;
 
   return;
-}
-
-TGraphErrors **CreateGraph(TFile *f, Int_t part)
-{
-  const Int_t gn = 30;
-  Double_t *gx[3];
-  Double_t *gy[3];
-  Double_t *egy[3];
-  for(Int_t i=0; i<3; i++)
-  {
-    gx[i] = new Double_t[gn];
-    gy[i] = new Double_t[gn];
-    egy[i] = new Double_t[gn];
-    for(Int_t j=0; j<gn; j++)
-    {
-      gx[i][j] = 0.;
-      gy[i][j] = 0.;
-      egy[i][j] = 0.;
-    }
-  }
-
-  for(Int_t ispion=0; ispion<2; ispion++)
-    GenerateGraph(f, ispion, 1, part, gn, gx, gy, egy);
-
-  TGraphErrors **graph = new TGraphErrors*[3];
-  for(Int_t i=0; i<3; i++)
-    graph[i] = new TGraphErrors(gn, gx[i], gy[i], 0, egy[i]);
-  return graph;
 }
 
 void draw_CrossSection()
@@ -248,102 +239,80 @@ void draw_CrossSection()
 
   TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertb-cv/total.root");
   TObjArray *Glist = new TObjArray();
+  const Int_t trig = 1;
+
+  for(Int_t part=0; part<3; part++)
+    for(Int_t ispion=0; ispion<2; ispion++)
+      GenerateGraph(f, Glist, ispion, trig, part);
 
   TCanvas *c0 = new TCanvas("c0", "Canvas", 1800, 1200);
   gStyle->SetOptStat(0);
   c0->Divide(3,2);
+  TLegend *leg = new TLegend(0.4, 0.7, 0.7, 0.9);
 
-  TGraphErrors **gr[3];
+  TGraphErrors *gr;
+  const char *legname[3] = {"PbScW", "PbScE", "PbGlE"};
   for(Int_t part=0; part<3; part++)
   {
     cout << "part " << part << endl;
-    gr[part] = CreateGraph(f, part);
     for(Int_t i=0; i<3; i++)
     {
-      Glist->Add(gr[part][i]);
-      gr[part][i]->SetName(Form("gr_%d",3*i+part));
-    }
-    gr[part][0]->SetTitle("DirectPhoton fraction");
-    gr[part][1]->SetTitle("DirectPhoton Cross Section");
-    gr[part][2]->SetTitle("#pi^{0} Cross Section");
-    for(Int_t i=0; i<3; i++)
-    {
+      gr = (TGraphErrors*)Glist->At(12*trig+4*i+part);
       c0->cd(i+1);
       if(i==0)
       {
-        gr[part][i]->GetYaxis()->SetTitle("Ratio");
-        gr[part][i]->GetYaxis()->SetRangeUser(0., 1.2);
+        gr->GetYaxis()->SetTitle("Ratio");
+        gr->GetYaxis()->SetRangeUser(0., 1.2);
       }
       else
       {
         gPad->SetLogy();
-        gr[part][i]->GetYaxis()->SetTitle("Ed^{3}#sigma/dp^{3} [pb*GeV^{-2}*c^{-3}]");
-        gr[part][i]->GetYaxis()->SetRangeUser(0.5, 1e5);
+        gr->GetYaxis()->SetTitle("Ed^{3}#sigma/dp^{3} [pb*GeV^{-2}*c^{-3}]");
+        gr->GetYaxis()->SetRangeUser(0.5, 1e5);
       }
-      gr[part][i]->GetXaxis()->SetTitle("p_{T} [GeV]");
-      gr[part][i]->GetYaxis()->SetTitleOffset(1.2);
-      gr[part][i]->GetXaxis()->SetRangeUser(0., 30.);
-      gr[part][i]->SetMarkerColor(part+1);
-      gr[part][i]->SetMarkerStyle(part+20);
-      gr[part][i]->SetMarkerSize(1.);
+      gr->GetXaxis()->SetTitle("p_{T} [GeV]");
+      gr->GetYaxis()->SetTitleOffset(1.2);
+      gr->GetXaxis()->SetRangeUser(0., 30.);
+      gr->SetMarkerColor(part+1);
+      gr->SetMarkerStyle(part+20);
+      gr->SetMarkerSize(1.);
       if(part == 0)
-      {
-        gr[part][i]->Draw("AP");
-      }
+        gr->Draw("AP");
       else
-      {
-        gr[part][i]->Draw("P");
-      }
+        gr->Draw("P");
+      leg->AddEntry(gr, legname[i], "P");
+      leg->Draw();
     }
   }
 
-  for(Int_t i=0; i<3; i++)
-  {
-    c0->cd(i+1);
-    TLegend *leg = new TLegend(0.4, 0.7, 0.7, 0.9);
-    leg->AddEntry(gr[0][i], "PbScW", "P");
-    leg->AddEntry(gr[1][i], "PbScE", "P");
-    leg->AddEntry(gr[2][i], "PbGlE", "P");
-    leg->Draw();
-  }
+  Double_t gx[30];
+  Double_t gy[3][30];
+  Double_t egy[3][30];
 
-  const Int_t gn = 30;
-  Double_t *gx[3];
-  Double_t *gy[3];
-  Double_t *egy[3];
   for(Int_t i=0; i<3; i++)
   {
-    gx[i] = new Double_t[gn];
-    gy[i] = new Double_t[gn];
-    egy[i] = new Double_t[gn];
-    for(Int_t j=0; j<gn; j++)
+    Double_t gyy[3][30], egyy[3][30];
+    for(Int_t part=0; part<3; part++)
+      ReadGraph((TGraphErrors*)Glist->At(12*trig+4*i+part), gx, gyy[part], egyy[part]);
+    for(Int_t ipt=0; ipt<30; ipt++)
     {
-      gx[i][j] = 0.;
-      gy[i][j] = 0.;
-      egy[i][j] = 0.;
-    }
-  }
-
-  for(Int_t i=0; i<3; i++)
-  {
-    Double_t xx[gn][3];
-    Double_t yy[gn][3];
-    Double_t eyy[gn][3];
-    for(Int_t ipt=0; ipt<gn; ipt++)
+      Double_t yy[3];
+      Double_t eyy[3];
       for(Int_t part=0; part<3; part++)
       {
-        gr[part][i]->GetPoint(ipt, xx[ipt][part], yy[ipt][part]);
-        eyy[ipt][part] = gr[part][i]->GetErrorY(ipt);
-        gx[i][ipt] = xx[ipt][part];
+        yy[part] = gyy[part][ipt];
+        eyy[part] = egyy[part][ipt];
       }
-    for(Int_t ipt=0; ipt<gn; ipt++)
-      Chi2Fit(3, (Double_t*)yy[ipt], (Double_t*)eyy[ipt], gy[i][ipt], egy[i][ipt]);
+      Chi2Fit(3, yy, eyy, gy[i][ipt], egy[i][ipt]);
+    }
   }
 
   for(Int_t i=0; i<3; i++)
   {
     c0->cd(i+4);
-    TGraphErrors *grt = new TGraphErrors(gn, gx[i], gy[i], 0, egy[i]);
+    TGraphErrors *grt = new TGraphErrors(30, gx, gy[i], 0, egy[i]);
+    Glist->AddAtAndExpand(grt, 12*trig+4*i+3);
+    grt->SetName(Form("gr_%d",12*trig+4*i+3));
     if(i==0)
       grt->SetTitle("DirectPhoton fraction");
     else if(i==1)
