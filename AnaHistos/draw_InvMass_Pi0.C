@@ -8,7 +8,7 @@
 
 using namespace std;
 
-void draw_Inv_Mass_Pi0()
+void draw_InvMass_Pi0()
 {
   TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510ERT/8511/data/total.root");
   TH2F *h2_inv_mass_2photon_pi0calib_sector_raw = (TH2F*)f->Get("inv_mass_2photon_pi0calib_sector_raw");
@@ -27,7 +27,7 @@ void draw_Inv_Mass_Pi0()
   h2_inv_mass_2photon_pi0calib_sector->SetTitle("m_{inv} after Calibration");
   h2_inv_mass_2photon_pi0calib_sector->Draw("colz");
 
-  c->Print("Inv_Mass_Pi0-1.pdf");
+  c->Print("InvMass_Pi0-1.pdf");
   c->Clear("D");
 
   c->cd(1);
@@ -40,7 +40,7 @@ void draw_Inv_Mass_Pi0()
   hp_inv_mass_2photon_pi0calib_sector->SetTitle("m_{inv} mass after Calibration for Sector 0");
   hp_inv_mass_2photon_pi0calib_sector->Fit("gaus", "", "", 0.12, 0.15);
   
-  c->Print("Inv_Mass_Pi0-2.pdf");
+  c->Print("InvMass_Pi0-2.pdf");
   c->Clear("D");
 
   TH2F *h2_tof_sector_raw = (TH2F*)f->Get("tof_sector_raw");

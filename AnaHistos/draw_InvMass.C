@@ -11,7 +11,7 @@
 
 using namespace std;
 
-void draw_Inv_Mass()
+void draw_InvMass()
 {
   TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510ERT/8511/data/total.root");
   THnSparse *hn_inv_mass_2photon = (THnSparse*)f->Get("inv_mass_2photon");
@@ -82,7 +82,7 @@ void draw_Inv_Mass()
     }
 
     char buf[100];
-    sprintf(buf, "Inv_Mass-%d.pdf", isec);
+    sprintf(buf, "InvMass-%d.pdf", isec);
     c->Print(buf);
     delete c;
   }
