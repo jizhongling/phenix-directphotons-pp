@@ -5,7 +5,7 @@ plot_tof()
   //TFile *fin = new TFile("taxi_test/keep/WarnmapData-CNT_MB_run13pp_510GeV_pro97-0000393483-9000.root","OPEN");
   //TFile *fin = new TFile("taxi_test/keep/WarnmapData-CNT_ERT_run13pp_510GeV_pro97-0000393483-9000.root","OPEN");
 
-  //TFile *fin = new TFile("/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi/Run13pp510ERT/8058/data/DirectPhotonPP-387565.root","OPEN");
+  TFile *fin = new TFile("/gpfs/mnt/gpfs02/phenix/spin3/nfeege/taxi/Run13pp510ERT/8058/data/DirectPhotonPP-387565.root","OPEN");
 
   TH2D* h_tof = (TH2D*) fin->Get("hitmap_tof");
   TH2D* h_tof_sector = (TH2D*) fin->Get("hitmap_tof_sector");

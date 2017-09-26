@@ -1,0 +1,11 @@
+My plhf data is /phenix/plhf/zji/taxi/Run13pp510ERT/9256/data.  Analysis code is /gpfs/mnt/gpfs02/phenix/plhf/plhf1/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode
+
+And the macro is /gpfs/mnt/gpfs02/phenix/plhf/plhf1/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros, I just updated the CVS
+
+m_gammagamma histograms:
+
+/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertb-cv/total.root
+
+Correction for acceptance, smearing effect, missing ratio:
+
+/gpfs/mnt/gpfs02/phenix/plhf/plhf1/zji/github/phenix-directphotons-pp/AnaHistos/draw_CrossSection.C
