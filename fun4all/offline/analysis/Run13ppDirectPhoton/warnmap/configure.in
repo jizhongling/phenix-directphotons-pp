@@ -1,0 +1,15 @@
+ AC_INIT(configure.in)
+
+ AM_INIT_AUTOMAKE(run13pp_direct_photon, 1.00)
+
+ AC_PROG_CXX(CC g++)
+ AC_ENABLE_STATIC(no)
+ AC_PROG_LIBTOOL
+
+ dnl   no point in suppressing warnings people should
+ dnl   at leas AC_INIT(configure.in)
+ if test $ac_cv_prog_gxx = yes; then
+   CXXFLAGS="$CXXFLAGS -Wall -Werror"
+ fi
+
+ AC_OUTPUT(Makefile)

@@ -1,0 +1,1 @@
+/phenix/plhf/zji/sources/offline/AnalysisTrain/pat/macro/DirectPhotonPP_PhotonNode-num.root

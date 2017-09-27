@@ -1,0 +1,18 @@
+Universe        = vanilla
+Notification    = Complete
+Executable      = phparticlegen.csh
+Arguments       = $(Initialdir) $(Process)
+Requirements    = (CPU_Speed >= 1 && TotalDisk > 0)
+Rank		= CPU_Speed
+Image_Size      = 16M
+Priority        = +20
+GetEnv          = False
+Initialdir      = /phenix/plhf/zji/sources/event_gen/src/PHParticleGen/macros
+Input           = /dev/null
+Output          = /dev/null
+Error           = /dev/null
+Log             = /dev/null
+Notify_user     = zji@rcf.rhic.bnl.gov
++Experiment     = "phenix"
++Job_Type       = "cas"
+Queue 600

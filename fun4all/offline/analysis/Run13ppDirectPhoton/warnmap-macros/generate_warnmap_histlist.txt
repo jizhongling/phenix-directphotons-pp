@@ -1,0 +1,45 @@
+#Processing print_TH2_ybins.C...
+#Bin 1 from 0 to 0.2
+#Bin 2 from 0.2 to 0.5
+#Bin 3 from 0.5 to 1
+#Bin 4 from 1 to 1.5
+#Bin 5 from 1.5 to 2
+#Bin 6 from 2 to 3
+#Bin 7 from 3 to 4
+#Bin 8 from 4 to 5
+#Bin 9 from 5 to 6
+#Bin 10 from 6 to 7
+#Bin 11 from 7 to 8
+#Bin 12 from 8 to 9
+#Bin 13 from 9 to 10
+#Bin 14 from 10 to 11
+#Bin 15 from 11 to 12
+#Bin 16 from 12 to 13
+#Bin 17 from 13 to 14
+#Bin 18 from 14 to 15
+#Bin 19 from 15 to 16
+#Bin 20 from 16 to 17
+#Bin 21 from 17 to 18
+#Bin 22 from 18 to 19
+#Bin 23 from 19 to 20
+#Bin 24 from 20 to 25
+#Bin 25 from 25 to 30
+#
+#
+warnmap-data/WarnmapData_Run13pp510MinBias.root	hitmap_energy	3	4
+warnmap-data/WarnmapData_Run13pp510MinBias.root	hitmap_energy	5	6
+warnmap-data/WarnmapData_Run13pp510MinBias.root	hitmap_energy	7	9
+warnmap-data/WarnmapData_Run13pp510MinBias.root	hitmap_energy	10	12
+warnmap-data/WarnmapData_Run13pp510MinBias.root	hitmap_energy	13	25
+warnmap-data/WarnmapData_Run13pp510MinBias.root	hitmap_energy	3	25
+#
+warnmap-data/WarnmapData_Run13pp510ERT.root	hitmap_energy	3	4
+warnmap-data/WarnmapData_Run13pp510ERT.root	hitmap_energy	5	6
+warnmap-data/WarnmapData_Run13pp510ERT.root	hitmap_energy	7	9
+warnmap-data/WarnmapData_Run13pp510ERT.root	hitmap_energy	10	12
+warnmap-data/WarnmapData_Run13pp510ERT.root	hitmap_energy	13	25
+warnmap-data/WarnmapData_Run13pp510ERT.root	hitmap_energy	3	25
+#
+#
+##
+#warnmap-data/WarnmapData_Run13pp510MinBias_RunRange1.root				hitmap_energy	2	21
