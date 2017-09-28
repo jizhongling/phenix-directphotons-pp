@@ -1,0 +1,10 @@
+/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode-387809.root
+/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode-387963.root
+/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode-387966.root
+/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode-387967.root
+/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode-387968.root
+/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode-387969.root
+/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode-388019.root
+/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode-388020.root
+/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode-388021.root
+/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode-388022.root

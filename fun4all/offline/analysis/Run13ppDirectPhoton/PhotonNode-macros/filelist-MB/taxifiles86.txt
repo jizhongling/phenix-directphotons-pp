@@ -1,0 +1,10 @@
+/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-398030.root
+/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-398031.root
+/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-398119.root
+/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-398120.root
+/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-398122.root
+/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-398123.root
+/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-398124.root
+/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-398125.root
+/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-398129.root
+/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-398130.root

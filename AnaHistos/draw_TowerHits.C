@@ -22,7 +22,7 @@ void TowerLocation(UInt_t towerid, Int_t &sector, Int_t &ytower, Int_t &ztower)
 
 void draw_TowerHits()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/total.root");
   THnSparse *hn_1photon = (THnSparse*)f->Get("hn_1photon");
   TH1 *h_tower = hn_1photon->Projection(5);
 

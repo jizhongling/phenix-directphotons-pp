@@ -1,0 +1,10 @@
+/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST130.root
+/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST131.root
+/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST132.root
+/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST133.root
+/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST134.root
+/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST135.root
+/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST136.root
+/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST137.root
+/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST138.root
+/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST139.root

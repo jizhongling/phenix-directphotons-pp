@@ -74,7 +74,7 @@ FillHistoMB::FillHistoMB(const string &name, const char *filename) :
   nmb = 0;  // number of MinBias data
 
   // initialize the CLOCK Live Counts and BBC narrow Live counts
-  for(int i=0; i<3; i++)
+  for(int i=0; i<4; i++)
     for(int j=0; j<1020; j++)
       n_clock_bbc[i][j] = 0;
 
@@ -499,6 +499,9 @@ int FillHistoMB::FillPileup(const PhotonContainerMB *photoncont)
   /* Get event global parameters */
   double bbc_t0 = photoncont->get_bbc_t0();
 
+  if( !photoncont->get_bbcnarrow_scaled() )
+    return DISCARDEVENT;
+
   unsigned nphotons = photoncont->Size();
 
   vector<unsigned> v_used;
@@ -552,6 +555,7 @@ int FillHistoMB::FillPileup(const PhotonContainerMB *photoncont)
 int FillHistoMB::EndRun(const int runnumber)
 {
   unsigned long long nclock = GetClockCounts(runnumber);
+  unsigned long scaledown = GetBBCScaledown(runnumber) + 1;
   //double nclock = 9.6e6 * runtime;
   if(nclock == 0 || nmb == 0)
     return DISCARDEVENT;
@@ -560,6 +564,11 @@ int FillHistoMB::EndRun(const int runnumber)
   double npions_PbGl = npions_sig[1] - npions_bg[1]/2;
   double enpions_PbSc = sqrt( npions_sig[0] + npions_bg[0]/2 );
   double enpions_PbGl = sqrt( npions_sig[1] + npions_bg[1]/2 );
+
+  npions_PbSc *= scaledown;
+  npions_PbGl *= scaledown;
+  enpions_PbSc *= scaledown;
+  enpions_PbGl *= scaledown;
 
   g_pileup_PbSc->SetPoint(irun, (double)nmb/nclock, npions_PbSc/nmb);
   g_pileup_PbSc->SetPointError(irun, 0., enpions_PbSc/nmb);
@@ -570,6 +579,11 @@ int FillHistoMB::EndRun(const int runnumber)
   double npions_PbGl_notof = npions_sig_notof[1] - npions_bg_notof[1]/2;
   double enpions_PbSc_notof = sqrt( npions_sig_notof[0] + npions_bg_notof[0]/2 );
   double enpions_PbGl_notof = sqrt( npions_sig_notof[1] + npions_bg_notof[1]/2 );
+
+  npions_PbSc_notof *= scaledown;
+  npions_PbGl_notof *= scaledown;
+  enpions_PbSc_notof  *= scaledown;
+  enpions_PbGl_notof  *= scaledown;
 
   g_pileup_PbSc_notof->SetPoint(irun, (double)nmb/nclock, npions_PbSc_notof/nmb);
   g_pileup_PbSc_notof->SetPointError(irun, 0., enpions_PbSc_notof/nmb);
@@ -808,22 +822,25 @@ void FillHistoMB::ReadClockCounts(const string &filename)
 
   //ifstream fin( file_location.c_str() );
   //int i=0;
-  //while( fin >> n_clock_bbc[0][i] >> n_clock_bbc[1][i] >> n_clock_bbc[2][i] ) { i++; }
+  //while( fin >> n_clock_bbc[0][i] >> n_clock_bbc[1][i] >> n_clock_bbc[2][i] >> n_clock_bbc[3][i] ) { i++; }
   //fin.close();
   
   TFile *fin = new TFile( file_location.c_str() );
   TTree *t1 = (TTree*)fin->Get("t1");
-  long long runno, clock, bbc_narrow;
-  t1->SetBranchAddress("runno", &runno);
-  t1->SetBranchAddress("clock", &clock);
-  t1->SetBranchAddress("bbc_narrow", &bbc_narrow);
+  long long runno, clock, bbc_count;
+  int bbc_scaledown;
+  t1->SetBranchAddress("runnumber", &runno);
+  t1->SetBranchAddress("clock_live", &clock);
+  t1->SetBranchAddress("bbcnarrow_live", &bbc_count);
+  t1->SetBranchAddress("bbcnarrow_scaledown", &bbc_scaledown);
   int nentries = t1->GetEntries();
   for(int i=0; i<nentries; i++)
   {
     t1->GetEntry(i);
     n_clock_bbc[0][i] = runno;
     n_clock_bbc[1][i] = clock;
-    n_clock_bbc[2][i] = bbc_narrow;
+    n_clock_bbc[2][i] = bbc_count;
+    n_clock_bbc[3][i] = bbc_scaledown;
   }
   delete fin;
 
@@ -929,6 +946,15 @@ unsigned long long FillHistoMB::GetBBCCounts(unsigned runnumber)
   for(int i=0; i<1020; i++)
     if(runnumber == n_clock_bbc[0][i])
       return n_clock_bbc[2][i];
+
+  return 0;
+}
+
+unsigned long FillHistoMB::GetBBCScaledown(unsigned runnumber)
+{
+  for(int i=0; i<1020; i++)
+    if(runnumber == n_clock_bbc[0][i])
+      return n_clock_bbc[3][i];
 
   return 0;
 }

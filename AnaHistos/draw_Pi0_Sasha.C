@@ -11,7 +11,7 @@ void draw_Pi0_Sasha()
   Double_t Acceptance[30], eAcceptance[30];
   ReadGraphErrors("Acceptance.root", 3, gx, Acceptance, eAcceptance);
 
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/AnalysisTrain/pat/macro/Pi0PP-nt.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/AnalysisTrain/pat/macro/Pi0PP-nt.root");
   TH1 *mchist[3][40];  // mchist[is][ip]
   for(Int_t is=0; is<3; is++)
     for(Int_t ip=0; ip<40; ip++)

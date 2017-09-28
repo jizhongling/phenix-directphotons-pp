@@ -45,7 +45,7 @@ void InvertGraph(TGraphAsymmErrors *gr)
 
 void draw_Merge()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/pi0cross_run13pp510gev/fastMC/histos/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/pi0cross_run13pp510gev/fastMC/histos/total.root");
   TFile *f1 = new TFile("MissingRatio-histo.root");
   //TFile *f1 = new TFile("Pi0Sim-histo.root");
   TObjArray *Glist = new TObjArray();

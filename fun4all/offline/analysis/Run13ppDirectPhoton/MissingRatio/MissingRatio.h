@@ -69,6 +69,7 @@ class MissingRatio: public SubsysReco
     TH2 *h2_measured_pion;
     TH2 *h2_conversion;
     TH2 *h2_photon;
+    TH2 *h2_noconv;
     TH2 *h2_merge_photon;
     TH2 *h2_merge_pion;
     THnSparse *hn_conversion_position;

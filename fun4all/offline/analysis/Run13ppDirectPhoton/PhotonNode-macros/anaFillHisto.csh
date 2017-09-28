@@ -9,4 +9,4 @@ end
 source $HOME/.login
 
 cd $1
-root -l -b -q $0:t:r.C\(\"filelist/taxifiles$2.txt\",\"histo$2.root\"\)
+root -l -b -q $0:t:r.C\(\"filelist-MB/taxifiles$2.txt\",\"histo$2.root\"\)

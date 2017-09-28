@@ -150,8 +150,8 @@ void draw_Yield()
   gROOT->ProcessLine(".L BgGPR.C");
   gROOT->ProcessLine(".L Chi2Fit.C");
 
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/PhotonNode-histo.root");
-  //TFile *f = new TFile("/phenix/plhf/zji/sources/offline/AnalysisTrain/pat/macro/DirectPhotonPP-num.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/PhotonNode-histo.root");
+  //TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/AnalysisTrain/pat/macro/DirectPhotonPP-num.root");
   TObjArray *Glist = new TObjArray();
   const Int_t trig = 2;
   TGraphErrors *gr;

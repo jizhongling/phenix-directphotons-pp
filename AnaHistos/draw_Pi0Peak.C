@@ -86,7 +86,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
 void draw_Pi0Peak()
 {
   TFile *f_sim = new TFile("MissingRatio-histo.root");
-  TFile *f_data = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertb-cv/total.root");
+  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertb-cv/total.root");
 
   TCanvas *c0 = new TCanvas("c0", "Canvas", 1200, 1200);
   gStyle->SetOptStat(0);
