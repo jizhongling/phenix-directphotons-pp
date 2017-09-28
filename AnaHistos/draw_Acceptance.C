@@ -159,7 +159,7 @@ void GenerateAcceptance(TFile *fsig, TFile *ftot, TObjArray *Glist, Int_t ispion
 
 void draw_Acceptance()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-warn-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-warn-histo.root");
   TObjArray *Glist = new TObjArray();
 
   for(Int_t ispion=1; ispion<2; ispion++)

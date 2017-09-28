@@ -38,7 +38,10 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t trig, Int_t part)
   Int_t bin067 = axis_minv->FindBin(0.067);
   Int_t bin087 = axis_minv->FindBin(0.087);
   Int_t bin097 = axis_minv->FindBin(0.097);
+  Int_t bin110 = axis_minv->FindBin(0.110);
   Int_t bin112 = axis_minv->FindBin(0.112);
+  Int_t bin135 = axis_minv->FindBin(0.135);
+  Int_t bin160 = axis_minv->FindBin(0.160);
   Int_t bin162 = axis_minv->FindBin(0.162);
   Int_t bin177 = axis_minv->FindBin(0.177);
   Int_t bin187 = axis_minv->FindBin(0.187);
@@ -51,7 +54,7 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t trig, Int_t part)
   c->Divide(6,5);
 
   Int_t ipad = 1;
-  for(Int_t ipt=2; ipt<25; ipt++)
+  for(Int_t ipt=2; ipt<21; ipt++)
   {
     c->cd(ipad++);
 
@@ -65,7 +68,7 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t trig, Int_t part)
     h_inv_mass->SetTitle(buf);
 
     Double_t npi0 = 0.;
-    for(Int_t ib=bin112; ib<bin162; ib++)
+    for(Int_t ib=bin110; ib<bin160; ib++)
       npi0 += h_inv_mass->GetBinContent(ib);
     gy[ipt] = npi0;
     egy[ipt] = sqrt(npi0);
@@ -78,7 +81,7 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t trig, Int_t part)
     //h_inv_mass->Fit(fn1, "Q0", "", 0.112, 0.162);
     //fn2->SetParameters( fn1->GetParameters() );
     //h_inv_mass->Fit(fn2, "Q0", "", 0.047, 0.227);
-    //TFitResultPtr fit = h_inv_mass->Fit(fn2, "QES", "", 0.047, 0.227);
+    //TFitResultPtr fit = h_inv_mass->Fit(fn2, "QES0", "", 0.047, 0.227);
     //bool fitok = !fit->IsEmpty();
     //Double_t *covmat = 0;
     //if(fitok)
@@ -89,7 +92,10 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t trig, Int_t part)
     //}
     //fn2->GetParameters(par);
     //fn3->SetParameters(par[3], par[4], par[5]);
+    //fn2->SetLineColor(kRed);
     //fn3->SetLineColor(kGreen);
+    //h_inv_mass->DrawCopy();
+    //fn2->Draw("SAME");
     //fn3->Draw("SAME");
 
     //Double_t nbgside = 0.;
@@ -128,8 +134,10 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t trig, Int_t part)
     //  enpion = ensub;
     //}
 
-    //  gy[ipt] = npion;
-    //  egy[ipt] = enpion;
+    //gy[ipt] = npion;
+    //egy[ipt] = enpion;
+
+    delete h_inv_mass;
   }
 
   gr = new TGraphErrors(30, gx, gy, 0, egy);
@@ -137,7 +145,7 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t trig, Int_t part)
   gr->SetName(Form("gr_%d",12*trig+8+part));
   gr->SetTitle("#pi^{0} yield");
 
-  //c->Print(Form("Yield-ert%c-part%d.pdf",97+trig,part));
+  c->Print(Form("Yield-ert%c-part%d.pdf",97+trig,part));
   delete c;
 
   return;
@@ -145,9 +153,7 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t trig, Int_t part)
 
 void draw_Yield()
 {
-  gSystem->Load("libGausProc.so");
   gROOT->ProcessLine(".L ReadGraph.C");
-  gROOT->ProcessLine(".L BgGPR.C");
   gROOT->ProcessLine(".L Chi2Fit.C");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/PhotonNode-histo.root");
@@ -168,7 +174,7 @@ void draw_Yield()
   {
     gr = (TGraphErrors*)Glist->At(12*trig+8+part);
     gr->GetXaxis()->SetTitle("p_{T} [GeV]");
-    gr->GetXaxis()->SetRangeUser(0., 30.);
+    gr->GetXaxis()->SetRangeUser(0., 20.);
     gPad->SetLogy();
     gr->GetYaxis()->SetTitle("Yield");
     gr->GetYaxis()->SetRangeUser(1., 1e5);

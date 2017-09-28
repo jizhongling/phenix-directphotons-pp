@@ -1,6 +1,6 @@
 void draw_InvMass_Check()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/total.root");
   THnSparse *hn_minv = (THnSparse*)f->Get("hn_minv");
 
   TAxis *axis_sec = hn_minv->GetAxis(0);

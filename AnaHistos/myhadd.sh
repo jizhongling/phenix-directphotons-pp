@@ -1,13 +1,15 @@
 #!/bin/bash
 # Function: Combine root files ten by ten.
 
-#cd "$PLHF/taxi/Run13pp510MinBias/9161/data"
-cd "$PLHF/taxi/Run13pp510ERT/9473/data"
+#cd "$SPIN/taxi/Run13pp510MinBias/10701/data"
+cd "$SPIN/taxi/Run13pp510ERT/10853/data"
 rm -f total.root tmp.root
 
 files=""
 count=0
 
+#for FILE in DirectPhotonPP-*.root ; do
+#  files="${files} ${FILE}"
 while read -d " " runnumber ; do
   files="${files} DirectPhotonPP-${runnumber}.root"
   (( count++ ))

@@ -378,7 +378,7 @@ void draw_CrossSection()
   gROOT->ProcessLine(".L BgGPR.C");
   gROOT->ProcessLine(".L Chi2Fit.C");
 
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertb-cv/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertb-cv/total.root");
 
   TCanvas *c0 = new TCanvas("c0", "Canvas", 1800, 1200);
   gStyle->SetOptStat(0);

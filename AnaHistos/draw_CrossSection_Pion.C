@@ -172,7 +172,7 @@ void draw_CrossSection_Pion()
   gROOT->ProcessLine(".L ReadGraph.C");
   gROOT->ProcessLine(".L Chi2Fit.C");
 
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo-ertc.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo-ertc.root");
   TObjArray *Glist = new TObjArray();
   const Int_t trig = 2;
   TGraphErrors *gr;

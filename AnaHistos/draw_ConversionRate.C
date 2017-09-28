@@ -42,7 +42,7 @@ TGraphErrors* CreateGraph(TFile *f, Int_t criteria)
 
 void draw_ConversionRate()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
   TObjArray *Glist = new TObjArray();
 
   mc();
