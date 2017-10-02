@@ -1,6 +1,6 @@
 void generate_Warnmap()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/AnalysisTrain/Run13_EMC_TOF_Calibration_YIS/Run13pp510_WarnMap_05.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/AnalysisTrain/Run13_EMC_TOF_Calibration_YIS/Run13pp510_WarnMap_05.root");
   TTree *T = (TTree*)f->Get("T");
 
   Int_t warnmap[8][48][96];

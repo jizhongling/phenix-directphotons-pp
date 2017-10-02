@@ -7,7 +7,7 @@ void draw_Eta_Phi_Pion()
   THnSparse *hn_photon = (THnSparse*)f_sim->Get("hn_pion");
   TAxis *axis_pt_hn_photon = hn_photon->GetAxis(1);
 
-  //TFile *f_data = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertc-cv/total.root");
+  //TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertc-cv/total.root");
   TFile *f_data = new TFile("/phenix/plhf/zji/taxi/Run13pp510MinBias/10677/data/total.root");
   THnSparse *hn_1photon = (THnSparse*)f_data->Get("hn_pion");
   TAxis *axis_pt_hn_1photon = hn_1photon->GetAxis(1);

@@ -45,9 +45,11 @@ void InvertGraph(TGraphAsymmErrors *gr)
 
 void draw_Merge()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/pi0cross_run13pp510gev/fastMC/histos/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/pi0cross_run13pp510gev/fastMC/histos/total.root");
   TFile *f1 = new TFile("MissingRatio-histo.root");
   //TFile *f1 = new TFile("Pi0Sim-histo.root");
+  //TFile *f1 = new TFile("MergeRate-histo.root");
+  //TFile *f1 = new TFile("AnaPHPythia-histo.root");
   TObjArray *Glist = new TObjArray();
 
   TH1::SetDefaultSumw2();
@@ -59,8 +61,13 @@ void draw_Merge()
 
   TH2 *h2_merge_photon = (TH2*)f1->Get("h2_merge_photon");
   TH2 *h2_merge_pion = (TH2*)f1->Get("h2_merge_pion");
-  //TH2 *h2_total_photon = (TH2*)f1->Get("h2_total_photon");
-  //TH2 *h2_total_pion = (TH2*)f1->Get("h2_total_pion");
+  TH2 *h2_total_photon = (TH2*)f1->Get("h2_total_photon");
+  TH2 *h2_total_pion = (TH2*)f1->Get("h2_total_pion");
+
+  //TH2 *h2_merge_photon = (TH2*)f1->Get("h2_merge");
+  //TH2 *h2_merge_pion = (TH2*)f1->Get("h2_merge");
+  //TH2 *h2_total_photon = (TH2*)f1->Get("h2_total");
+  //TH2 *h2_total_pion = (TH2*)f1->Get("h2_total");
 
   TCanvas *c = new TCanvas("c", "Canvas", 1200, 600);
   gStyle->SetOptStat(0);
@@ -110,8 +117,8 @@ void draw_Merge()
     gr_ph_1->SetMarkerColor(1+part);
     gr_ph_1->Draw("P");
 
-    leg->AddEntry(gr_ph, Form("fastMC, %s", pname[part]), "P");
-    leg->AddEntry(gr_ph_1, Form("PISA, %s", pname[part]), "P");
+    leg->AddEntry(gr_ph, Form("reconstructed p_{T}", "%s", pname[part]), "P");
+    leg->AddEntry(gr_ph_1, Form("truth p_{T}", "%s", pname[part]), "P");
     leg->Draw();
 
     c->cd(2);

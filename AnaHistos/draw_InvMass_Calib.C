@@ -36,9 +36,9 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
     c->cd(ipad++);
 
     if(part == 0)
-      TH1 *h_minv = h3_minv->ProjectionZ("h_minv", 1,6, ipt+1,ipt+1);
+      TH1 *h_minv = (TH1*)h3_minv->ProjectionZ("h_minv", 1,6, ipt+1,ipt+1)->Clone();
     else if(part == 1)
-      TH1 *h_minv = h3_minv->ProjectionZ("h_minv", 7,8, ipt+1,ipt+1);
+      TH1 *h_minv = (TH1*)h3_minv->ProjectionZ("h_minv", 7,8, ipt+1,ipt+1)->Clone();
     Double_t low = axis_pt->GetBinLowEdge(ipt+1);
     Double_t high = axis_pt->GetBinUpEdge(ipt+1);
     h_minv->SetTitle(Form("pT: %4.2f-%4.2f",low, high));
@@ -50,6 +50,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
     fn2->SetParameters( fn1->GetParameters() );
     h_minv->Fit(fn2, "Q0", "", 0.047, 0.227);
     h_minv->Fit(fn2, "QE", "", 0.047, 0.227);
+    h_minv->DrawCopy();
 
     Double_t scale = 1.;
     if( fn2->GetNDF() > 0 )
@@ -62,6 +63,8 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
     gx[1][ipt] = axis_pt->GetBinCenter(ipt+1);
     gy[1][ipt] = fn2->GetParameter(2);
     egy[1][ipt] = fn2->GetParError(2) * scale;
+
+    delete h_minv;
   }
 
   c->Print(Form("InvMass_Calib-part%d-data%d.pdf",part,data));
@@ -75,12 +78,10 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
 
 void draw_InvMass_Calib()
 {
-  TFile *f_sim = new TFile("/phenix/plhf/zji/taxi/Run13pp510ERT/10853/data/total.root");
-  TFile *f_data = new TFile("/phenix/plhf/zji/taxi/Run13pp510ERT/10853/data/total.root");
+  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo.root");
+  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo.root");
 
-  TCanvas *c0 = new TCanvas("c0", "Canvas", 1200, 1200);
-  gStyle->SetOptStat(0);
-  c0->Divide(2,2);
+  mc(0, 2,2);
 
   TGraphErrors **gr_sim[2];
   TGraphErrors **gr_data[2];
@@ -90,7 +91,8 @@ void draw_InvMass_Calib()
     gr_data[part] = CreateGraph(f_data, part, 1);
     for(Int_t i=0; i<2; i++)
     {
-      c0->cd(2*i+part+1);
+      mcd(0, 2*i+part+1);
+      aset(gr_sim[part][i]);
       gr_sim[part][i]->GetXaxis()->SetTitle("p_{T} [GeV]");
       gr_sim[part][i]->GetXaxis()->SetRangeUser(0., 20.);
       if(i == 0)

@@ -1,6 +1,6 @@
 void draw_Theta_CV()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertc-cv/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertc-cv/total.root");
   THnSparse *hn_2photon = (THnSparse*)f->Get("hn_2photon");
 
   TAxis *axis_sec = (TAxis*)hn_2photon->GetAxis(0);

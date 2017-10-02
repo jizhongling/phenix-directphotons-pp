@@ -77,7 +77,7 @@ FillHisto::FillHisto(const string &name, const char *filename) :
   nmb = 0;  // number of MinBias data
 
   // initialize the CLOCK Live and BBC narrow Counts
-  for(int i=0; i<3; i++)
+  for(int i=0; i<4; i++)
     for(int j=0; j<1020; j++)
       n_clock_bbc[i][j] = 0;
 
@@ -834,22 +834,25 @@ void FillHisto::ReadClockCounts(const string &filename)
 
   //ifstream fin( file_location.c_str() );
   //int i=0;
-  //while( fin >> n_clock_bbc[0][i] >> n_clock_bbc[1][i] >> n_clock_bbc[2][i] ) { i++; }
+  //while( fin >> n_clock_bbc[0][i] >> n_clock_bbc[1][i] >> n_clock_bbc[2][i] >> n_clock_bbc[3][i] ) { i++; }
   //fin.close();
   
   TFile *fin = new TFile( file_location.c_str() );
   TTree *t1 = (TTree*)fin->Get("t1");
-  long long runno, clock, bbc_narrow;
-  t1->SetBranchAddress("runno", &runno);
-  t1->SetBranchAddress("clock", &clock);
-  t1->SetBranchAddress("bbc_narrow", &bbc_narrow);
+  long long runno, clock, bbc_count;
+  int bbc_scaledown;
+  t1->SetBranchAddress("runnumber", &runno);
+  t1->SetBranchAddress("clock_live", &clock);
+  t1->SetBranchAddress("bbcnarrow_live", &bbc_count);
+  t1->SetBranchAddress("bbcnarrow_scaledown", &bbc_scaledown);
   int nentries = t1->GetEntries();
   for(int i=0; i<nentries; i++)
   {
     t1->GetEntry(i);
     n_clock_bbc[0][i] = runno;
     n_clock_bbc[1][i] = clock;
-    n_clock_bbc[2][i] = bbc_narrow;
+    n_clock_bbc[2][i] = bbc_count;
+    n_clock_bbc[3][i] = bbc_scaledown;
   }
   delete fin;
 

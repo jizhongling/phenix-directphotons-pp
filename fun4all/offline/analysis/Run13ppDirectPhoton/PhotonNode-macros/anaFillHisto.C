@@ -1,4 +1,4 @@
-void anaFillHisto(const char *filelist="taxifiles.txt", const char *outfile = "histo.root", const int nEvents=0)
+void anaFillHisto(const char *filelist="filelist-MB/taxifiles64.txt", const char *outfile = "histo64.root", const int nEvents=0)
 {
   // Set up input file location
   gSystem->Load("libFROG.so");

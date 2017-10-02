@@ -26,8 +26,7 @@ class FillHistoMB: public SubsysReco
     int Init(PHCompositeNode *topNode);
     int InitRun(PHCompositeNode *topNode);
     int process_event(PHCompositeNode *topNode);
-    int EndRun(const int runnumber);
-    int End(PHCompositeNode *topNode);
+    int EndRun(const int runnumber); int End(PHCompositeNode *topNode);
 
   protected:
     int FillClusterTofSpectrum( const PhotonContainerMB *photoncont, const std::string &quali = "" );
@@ -46,6 +45,7 @@ class FillHistoMB: public SubsysReco
 
     unsigned long long GetClockCounts(unsigned runnumber);
     unsigned long long GetBBCCounts(unsigned runnumber);
+    unsigned long GetBBCScaledown(unsigned runnumber);
     int GetPattern(const PhotonContainerMB *photoncont);
     int GetStatus(const PhotonMB *photon);
 
@@ -81,7 +81,7 @@ class FillHistoMB: public SubsysReco
 
     int irun;
     double runtime;
-    unsigned long long n_clock_bbc[3][1020];  // 0: runnumber; 1: CLOCK Live Trigger Count; 2: BBC narrow Live count
+    unsigned long long n_clock_bbc[4][1020];  // 0: runnumber; 1: CLOCK live trigger count; 2: BBC narrow Live count; 3: BBC narrow scaledown
     unsigned long long nmb;
     unsigned long long npions_sig[2];
     unsigned long long npions_bg[2];

@@ -16,10 +16,10 @@ plt.rcParams.update({'xtick.labelsize' : 18})
 plt.rcParams.update({'ytick.labelsize' : 18})
 
 
-mapfiles = ['warnmap-final/Warnmap_Run13pp510MinBias_Final.txt' ,
-            'warnmap-final/Warnmap_Run13pp510ERT_Final.txt'
+mapfiles = ['warnmap-final/Warnmap_Run13pp510_format.txt' ,
+            'warnmap-final/warn_all_run13pp500gev.txt'
             ]
-plotname = 'plots/warnmap_compare_Run13pp510MinBias_Run13pp510ERT.png'
+plotname = 'plots/warnmap_compare_Run13pp510_Sasha.png'
 
 
 #mapfiles = ['warnmap-output/Warnmap_Run13pp510MinBias_ybins1to3_nsigma10_niter10.txt' ,
@@ -121,7 +121,7 @@ plt.bar( np.arange(0,8) , count_hot_0_AND_1[:], 2*widthbar, color='gold', label=
 plt.xlabel('sector')
 plt.ylabel('# hot towers')
 
-plt.axis([0,7.9,0,200])
+plt.axis([0,7.9,0,1300])
 plt.legend( loc='best' )
 
 plt.savefig(plotname)

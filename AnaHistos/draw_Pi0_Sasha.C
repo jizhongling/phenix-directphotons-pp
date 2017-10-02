@@ -11,12 +11,13 @@ void draw_Pi0_Sasha()
   Double_t Acceptance[30], eAcceptance[30];
   ReadGraphErrors("Acceptance.root", 3, gx, Acceptance, eAcceptance);
 
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/AnalysisTrain/pat/macro/Pi0PP-nt.root");
+
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/AnalysisTrain/pat/macro/Pi0PP-num.root");
   TH1 *mchist[3][40];  // mchist[is][ip]
   for(Int_t is=0; is<3; is++)
     for(Int_t ip=0; ip<40; ip++)
     {
-      sprintf(hname,"mc_s%d_bcc0_pt_%03d_p",is,5*ip);
+      sprintf(hname,"mc_s%d_bcc0_pt_%03d_tp",is,5*ip);
       mchist[is][ip] = (TH1*)f->Get(hname);
     }
   //TH1 *h_photon[3];  // h_photon[is]
@@ -26,8 +27,8 @@ void draw_Pi0_Sasha()
   //  h_photon[is] = (TH1*)f->Get(hname);
   //}
 
-  Int_t bin112 = mchist[0][10]->GetXaxis()->FindBin(0.112);
-  Int_t bin162 = mchist[0][10]->GetXaxis()->FindBin(0.162);
+  Int_t bin110 = mchist[0][10]->GetXaxis()->FindBin(0.110);
+  Int_t bin160 = mchist[0][10]->GetXaxis()->FindBin(0.160);
 
   TH1 *h_minv[3][25];  // h_minv[is][ipt]
   for(Int_t is=0; is<3; is++)
@@ -62,7 +63,7 @@ void draw_Pi0_Sasha()
     for(Int_t ipt=0; ipt<25; ipt++)
     {
       Double_t npi0 = 0.;
-      for(Int_t ib=bin112; ib<bin162; ib++)
+      for(Int_t ib=bin110; ib<bin160; ib++)
         npi0 += h_minv[is][ipt]->GetBinContent(ib);
       gy[is][ipt] = npi0;
       egy[is][ipt] = sqrt(npi0);

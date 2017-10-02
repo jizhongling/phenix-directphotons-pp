@@ -14,5 +14,5 @@ fi
 
 for i in $(seq 0 591) ; do
   fn=$(( i/20 ))
-  echo "$PLHF/sources/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/phparticlegen/phparticlegen${i}.root" >> "filelist/phparticlegen${fn}.txt"
+  echo "$PLHF/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/phparticlegen/phparticlegen${i}.root" >> "filelist/phparticlegen${fn}.txt"
 done

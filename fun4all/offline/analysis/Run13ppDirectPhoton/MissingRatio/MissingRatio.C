@@ -59,6 +59,7 @@ MissingRatio::MissingRatio(const char *filename) :
   h2_measured_pion(NULL),
   h2_conversion(NULL),
   h2_photon(NULL),
+  h2_noconv(NULL),
   h2_merge_photon(NULL),
   h2_merge_pion(NULL),
   hn_conversion_position(NULL),
@@ -184,8 +185,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
     if( lvl0_trk->pid == PIZERO_PID && lvl0_trk->anclvl == 0 )
     {// pion
       pionpt = lvl0_trk->trkpt;
-      //weight = Get_wpT( pionpt );
-      weight = 1.;
+      weight = Get_wpT( pionpt );
       emc_tracklist_t pion_daughter = lvl0_trk->daughter_list;
       BOOST_FOREACH( const emc_trkno_t &lvl1_trkno, pion_daughter )
       {// lvl1 loop
@@ -198,11 +198,13 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
           // count photons for photon conversion
           h2_photon->Fill(lvl1_trk->trkpt, (double)lvl1_trk->arm, weight);
           h2_photon->Fill(lvl1_trk->trkpt, (double)lvl1_trk->arm+2, weight);
-          if( lvl1_trk->decayed == false && lvl1_trk->cid >= 0 )
-          {// not decayed photon on EMCal
-            // store photon info for missing ratio
-            StorePhoton(&photon, &target, lvl1_trk);
-          } // not decayed photon on EMCal
+          if( lvl1_trk->decayed == false )
+          {// not decayed photon
+            h2_noconv->Fill(lvl1_trk->trkpt, (double)lvl1_trk->arm, weight);
+            if( lvl1_trk->cid >= 0 )
+              // store photon info for missing ratio
+              StorePhoton(&photon, &target, lvl1_trk);
+          }// not decayed photon
           else
           {// decayed photon
             emc_tracklist_t photon_daughter = lvl1_trk->daughter_list;
@@ -416,6 +418,11 @@ void MissingRatio::BookHistograms()
   h2_conversion = new TH2D("h2_conversion", "EMCal converstion count; p_{T} [GeV/c]; criteria;", npT-1, vpT, 4, -0.5, 3.5);
   h2_photon = new TH2D("h2_photon", "EMCal photon count; p_{T} [GeV/c]; criteria;", npT-1, vpT, 4, -0.5, 3.5);
 
+  // 2D histograms for photon not converted
+  // 0 - west arm
+  // 1 - east arm
+  h2_noconv = new TH2D("h2_noconv", "No converted photon count; p_{T} [GeV/c]; criteria;", npT-1, vpT, 2, -0.5, 1.5);
+
   // 2D histograms for photon merging
   // category = criteria * (0:merged or 1:total)
   h2_merge_photon = new TH2D("h2_merge_photon", "EMCal photons merging; p_{T} [GeV/c]; category;", npT-1, vpT, 48, -0.5, 47.5);
@@ -456,6 +463,7 @@ void MissingRatio::BookHistograms()
   hm->registerHisto(h2_measured_pion);
   hm->registerHisto(h2_conversion);
   hm->registerHisto(h2_photon);
+  hm->registerHisto(h2_noconv);
   hm->registerHisto(h2_merge_photon);
   hm->registerHisto(h2_merge_pion);
   hm->registerHisto(hn_conversion_position);  hn_conversion_position->Sumw2();

@@ -12,6 +12,8 @@ TGraphErrors* CreateGraph(TFile *f, Int_t criteria)
   for(Int_t i=0; i<n; i++)
     x[i] = y[i] = ey[i] = 0.;
 
+  Double_t tot_conv = 0.;
+  Double_t tot_ph = 0.;
   cout << "\nConvertion rate for criteria " << criteria << ": ";
   for(Int_t i=0; i<n; i++)
   {
@@ -20,6 +22,11 @@ TGraphErrors* CreateGraph(TFile *f, Int_t criteria)
     Double_t econversion = h2_conversion->GetBinError(i+1, criteria+1);
     Double_t photon = h2_photon->GetBinContent(i+1, criteria+1);
     Double_t ephoton = h2_photon->GetBinError(i+1, criteria+1);
+    if(i>25)
+    {
+      tot_conv += conversion;
+      tot_ph += photon;
+    }
     if( conversion > 0. && photon > 0. )
     {
       y[i] = conversion / photon;
@@ -27,7 +34,7 @@ TGraphErrors* CreateGraph(TFile *f, Int_t criteria)
     }
     cout << y[i] << ", ";
   }
-  cout << endl;
+  cout << endl << "Criteria = " << criteria << "\tRate = " << tot_conv/tot_ph << endl;
 
   TGraphErrors *graph = new TGraphErrors(n, x, y, 0, ey);
   return graph;
@@ -35,17 +42,20 @@ TGraphErrors* CreateGraph(TFile *f, Int_t criteria)
 
 void draw_ConversionRate()
 {
-  TFile *f = new TFile("MissingRatio-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
+  TObjArray *Glist = new TObjArray();
 
   mc();
-  legi(0, 0.2, 0.5, 0.8, 0.9);
+  legi(0, 0.2, 0.7, 0.8, 0.9);
 
   TGraphErrors *gr[4];
   for(Int_t icr=0; icr<4; icr++)
   {
     gr[icr] = CreateGraph(f, icr);
+    Glist->Add(gr[icr]);
+    gr[icr]->SetName(Form("gr_%d",icr));
     mcd();
-    aset(gr[icr], "p_{T} [GeV/c]", "rate", 0.,30., 0.,0.1);
+    aset(gr[icr], "p_{T} [GeV/c]", "rate", 0.,30., 0.,0.3);
     gr[icr]->SetTitle("Photon conversion rate");
     style(gr[icr], 20+icr, 1+icr);
     if(icr==0)
@@ -54,11 +64,25 @@ void draw_ConversionRate()
       gr[icr]->Draw("P");
   }
 
-  leg0->AddEntry(gr[0], "#splitline{west arm conversion}{outside magnetic field}", "P");
-  leg0->AddEntry(gr[1], "#splitline{west arm total conversion}{}", "P");
-  leg0->AddEntry(gr[2], "#splitline{east arm conversion}{outside magnetic field}", "P");
-  leg0->AddEntry(gr[3], "#splitline{east arm total conversion}{}", "P");
+  TLine *line = new TLine();
+  line->SetLineColor(kRed);
+  line->SetLineWidth(5);
+  line->DrawLine(0.,0.099,30.,0.099);
+  line->DrawLine(0.,0.147,30.,0.147);
+
+  //leg0->AddEntry(gr[0], "#splitline{west arm conversion}{large opening angle}", "P");
+  //leg0->AddEntry(gr[1], "#splitline{east arm conversion}{large opening angle}", "P");
+  //leg0->AddEntry(gr[2], "#splitline{west arm conversion}{small opening angle}", "P");
+  //leg0->AddEntry(gr[3], "#splitline{east arm conversion}{small opening angle}", "P");
+  leg0->AddEntry(gr[0], "west large opening angle", "P");
+  leg0->AddEntry(gr[1], "east large opening angle", "P");
+  leg0->AddEntry(gr[2], "west small opening angle", "P");
+  leg0->AddEntry(gr[3], "east small opening angle", "P");
   leg0->Draw();
 
   c0->Print("ConversionRate.pdf");
+
+  TFile *fout = new TFile("ConversionRate.root", "RECREATE");
+  Glist->Write();
+  fout->Close();
 }

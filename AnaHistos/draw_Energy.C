@@ -1,6 +1,6 @@
 void draw_Energy()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertb/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertb/total.root");
   THnSparse *hn_1photon = (THnSparse*)f->Get("hn_1photon");
 
   hn_1photon->GetAxis(0)->SetRange(1,4);

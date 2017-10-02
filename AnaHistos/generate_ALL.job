@@ -1,16 +1,16 @@
 Universe        = vanilla
 Notification    = Complete
-Executable      = /afs/rhic.bnl.gov/phenix/PHENIX_LIB/sys/x8664_sl6/new/root/bin/root
-Arguments       = -l -b -q generate_ALL.C($(Process))
+Executable      = generate_ALL.csh
+Arguments       = $(Initialdir) $(Process)
 Requirements    = (CPU_Speed >= 1 && TotalDisk > 0)
 Rank		= CPU_Speed
 Image_Size      = 64M
 Priority        = +20
-GetEnv          = True
+GetEnv          = False
 Initialdir      = /phenix/plhf/zji/gitbub/phenix-directphotons-pp/AnaHistos
 Input           = /dev/null
 Output          = /phenix/scratch/zji/generate_ALL$(Process).out
-Error           = /phenix/scratch/zji/generate_ALL.err
+Error           = /phenix/scratch/zji/generate_ALL$(Process).err
 Log             = /phenix/scratch/zji/generate_ALL$(Process).log
 Notify_user     = zji@rcf.rhic.bnl.gov
 +Experiment     = "phenix"

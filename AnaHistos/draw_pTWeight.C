@@ -24,7 +24,7 @@ void draw_pTWeight()
   Double_t trigE[npT] = {0,0.00231696,0.00524859,0.0123286,0.0305177,0.0810258,0.17948,0.307198,0.436089,0.548318,0.637737,0.699696,0.742986,0.779692,0.801889,0.811844,0.826064,0.833043,0.837983,0.835118,0.848851,0.841841,0.821763,0.811057,0.788889,0.744472,0.675676,0.698795,0.807018,0.621622};
   Double_t acc[npT] = {0,0,0.0609309,0.0865784,0.102778,0.113609,0.11807,0.120517,0.129105,0.13699,0.132367,0.13558,0.131447,0.14864,0.143204,0.144058,0.15351,0.15129,0.15263,0.155227,0.15733,0.168737,0.171907,0.175655,0.179981,0.185073,0.185789,0.187877,0.191139,0.172771};
 
-  TFile *f = new TFile("/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertb/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertb/total.root");
   THnSparse *hn_2photon = (THnSparse*)f->Get("hn_2photon");
   TH1 *h_pt = hn_2photon->Projection(2);
 
