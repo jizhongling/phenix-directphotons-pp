@@ -71,7 +71,7 @@ void anaFastMC(const int process=0)
   se->registerInputManager(real_in);
 
   // Loop over input DST files
-  for(int thread=process*nThread; thread<process*nThread+nThread; thread++)
+  for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
   {
     sprintf(dstFileName, "/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/phparticlegen/phparticlegen%d.root", thread);
 

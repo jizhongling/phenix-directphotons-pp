@@ -48,7 +48,7 @@ void anaMissingRatio(const int process=0)
   se->registerInputManager(in1);
 
   // Loop over input DST files
-  for(int thread=process*nThread; thread<process*nThread+nThread; thread++)
+  for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
   {
     sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST%d.root", thread);
 

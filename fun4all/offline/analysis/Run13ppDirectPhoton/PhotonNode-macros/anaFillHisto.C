@@ -6,7 +6,7 @@ void anaFillHisto(const int process=64)
   gSystem->Load("libPhotonNode.so");
 
   const int nThread = 10;
-  int thread = 0;
+  int thread = -1;
   int runNumber;
   char dstFileName[1000];
 
@@ -32,27 +32,29 @@ void anaFillHisto(const int process=64)
 
   // Loop over input DST files
   while( inFiles >> runNumber )
-    if( thread >= process*nThread && thread++ < process*nThread+nThread )
+  {
+    thread++;
+    if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
+
+    //sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode--%d.root", runNumber);
+    sprintf(dstFileName, "/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-%d.root", runNumber);
+
+    cout << "\nfileopen for " << dstFileName << endl; 
+    int openReturn = se->fileopen("DSTin1", dstFileName);
+    if(openReturn)
     {
-      //sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode--%d.root", runNumber);
-      sprintf(dstFileName, "/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-%d.root", runNumber);
-
-      cout << "\nfileopen for " << dstFileName << endl; 
-      int openReturn = se->fileopen("DSTin1", dstFileName);
-      if(openReturn)
-      {
-        cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl;
-        continue;
-      }
-
-      // Do the analysis for this DST file
-      se->run(0);
-
-      cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;
-      int closeReturn = se->fileclose("DSTin1");
-      if(closeReturn)
-        cout << "\nAbnormal return: closeReturn from Fun4All fileclose = " << closeReturn << endl;
+      cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl;
+      continue;
     }
+
+    // Do the analysis for this DST file
+    se->run(0);
+
+    cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;
+    int closeReturn = se->fileclose("DSTin1");
+    if(closeReturn)
+      cout << "\nAbnormal return: closeReturn from Fun4All fileclose = " << closeReturn << endl;
+  }
 
   // Write out the histogram file
   se->End();
