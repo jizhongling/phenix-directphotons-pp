@@ -9,4 +9,5 @@ end
 source $HOME/.login
 
 cd $1
-root -l -b -q $0:t:r.C\(\"filelist-MB/taxifiles$2.txt\",\"histo$2.root\"\)
+if(! -e histos) mkdir histos
+root -l -b -q $0:t:r.C\($2\)

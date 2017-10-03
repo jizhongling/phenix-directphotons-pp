@@ -44,8 +44,11 @@ class FillHisto: public SubsysReco
     void ReadTowerStatus(const std::string &filename);
     void ReadSashaWarnmap(const std::string &filename);
 
-    unsigned long long GetClockCounts(unsigned runnumber);
-    unsigned long long GetBBCCounts(unsigned runnumber);
+    unsigned long long GetClockLive(unsigned runnumber);
+    unsigned long long GetBBCNovtxLive(unsigned runnumber);
+    unsigned long long GetBBCNarrowLive(unsigned runnumber);
+    unsigned long GetBBCNovtxScaledown(unsigned runnumber);
+    unsigned long GetBBCNarrowScaledown(unsigned runnumber);
     int GetPattern(const PhotonContainer *photoncont);
     int GetStatus(const Photon *photon);
 
@@ -84,7 +87,9 @@ class FillHisto: public SubsysReco
     int irun;
     int runnumber;
     double runtime;
-    unsigned long long n_clock_bbc[4][1020];  // 0: runnumber; 1: CLOCK live trigger count; 2: BBC narrow Live count; 3: BBC narrow scaledown
+    // 0: Runnumber; 1: CLOCK live trigger count; 2: BBC novtx live count; 3: BBC narrow live count;
+    // 4: BBC novtx scaledown; 5: BBC narrow scaledown
+    unsigned long long n_clock_bbc[6][1020];
     unsigned long long nmb;
     unsigned long long npions_sig[2];
     unsigned long long npions_bg[2];

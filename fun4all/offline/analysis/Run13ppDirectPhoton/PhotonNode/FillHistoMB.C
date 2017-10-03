@@ -74,7 +74,7 @@ FillHistoMB::FillHistoMB(const string &name, const char *filename) :
   nmb = 0;  // number of MinBias data
 
   // initialize the CLOCK Live Counts and BBC narrow Live counts
-  for(int i=0; i<4; i++)
+  for(int i=0; i<6; i++)
     for(int j=0; j<1020; j++)
       n_clock_bbc[i][j] = 0;
 
@@ -117,7 +117,6 @@ int FillHistoMB::Init(PHCompositeNode *topNode)
   EMCRecalibSetup();
 
   // read CLOCK counts file
-  //ReadClockCounts("clock_counts.txt");
   ReadClockCounts("clock-counts.root");
 
   // read warnmap
@@ -150,7 +149,7 @@ int FillHistoMB::InitRun(PHCompositeNode *topNode)
 
   // number of MinBias and spin pattern for each run
   //nmb = 0;
-  nmb = GetBBCCounts(runnumber);
+  nmb = GetBBCNarrowLive(runnumber);
   for(int i=0; i<120; i++)
   {
     //nmb += spinpat->get_bbc_wide(i);
@@ -431,7 +430,7 @@ int FillHistoMB::FillPi0Spectrum(const PhotonContainerMB *photoncont)
   double bbc_t0 = photoncont->get_bbc_t0();
 
   /* Check trigger */
-  if( !photoncont->get_bbcnarrow_scaled() )
+  if( !photoncont->get_bbcnovtx_scaled() )
     return DISCARDEVENT;
 
   h_events->Fill(1.);
@@ -554,8 +553,8 @@ int FillHistoMB::FillPileup(const PhotonContainerMB *photoncont)
 
 int FillHistoMB::EndRun(const int runnumber)
 {
-  unsigned long long nclock = GetClockCounts(runnumber);
-  unsigned long scaledown = GetBBCScaledown(runnumber) + 1;
+  unsigned long long nclock = GetClockLive(runnumber);
+  unsigned long scaledown = GetBBCNarrowScaledown(runnumber) + 1;
   //double nclock = 9.6e6 * runtime;
   if(nclock == 0 || nmb == 0)
     return DISCARDEVENT;
@@ -592,12 +591,16 @@ int FillHistoMB::EndRun(const int runnumber)
 
   irun++;
 
+  char name[100];
+  sprintf(name, "histos/PhotonNode-%d.root", runnumber);
+  hm->dumpHistos(name);
+
   return EVENT_OK;
 }
 
 int FillHistoMB::End(PHCompositeNode *topNode)
 {
-  hm->dumpHistos(outFileName);
+  //hm->dumpHistos(outFileName);
   delete hm;
   delete emcrecalib;
 
@@ -820,27 +823,26 @@ void FillHistoMB::ReadClockCounts(const string &filename)
   string file_location = toad_loader->location(filename);
   cout << "TOAD file location: " << file_location << endl;
 
-  //ifstream fin( file_location.c_str() );
-  //int i=0;
-  //while( fin >> n_clock_bbc[0][i] >> n_clock_bbc[1][i] >> n_clock_bbc[2][i] >> n_clock_bbc[3][i] ) { i++; }
-  //fin.close();
-  
   TFile *fin = new TFile( file_location.c_str() );
   TTree *t1 = (TTree*)fin->Get("t1");
-  long long runno, clock, bbc_count;
-  int bbc_scaledown;
+  long long runno, clock, bbcnovtx_live, bbcnarrow_live;
+  int bbcnovtx_scaledown, bbcnarrow_scaledown;
   t1->SetBranchAddress("runnumber", &runno);
   t1->SetBranchAddress("clock_live", &clock);
-  t1->SetBranchAddress("bbcnarrow_live", &bbc_count);
-  t1->SetBranchAddress("bbcnarrow_scaledown", &bbc_scaledown);
+  t1->SetBranchAddress("bbcnovtx_live", &bbcnovtx_live);
+  t1->SetBranchAddress("bbcnarrow_live", &bbcnarrow_live);
+  t1->SetBranchAddress("bbcnovtx_scaledown", &bbcnovtx_scaledown);
+  t1->SetBranchAddress("bbcnarrow_scaledown", &bbcnarrow_scaledown);
   int nentries = t1->GetEntries();
   for(int i=0; i<nentries; i++)
   {
     t1->GetEntry(i);
     n_clock_bbc[0][i] = runno;
     n_clock_bbc[1][i] = clock;
-    n_clock_bbc[2][i] = bbc_count;
-    n_clock_bbc[3][i] = bbc_scaledown;
+    n_clock_bbc[2][i] = bbcnovtx_live;
+    n_clock_bbc[3][i] = bbcnarrow_live;
+    n_clock_bbc[4][i] = bbcnovtx_scaledown;
+    n_clock_bbc[5][i] = bbcnarrow_scaledown;
   }
   delete fin;
 
@@ -932,7 +934,7 @@ void FillHistoMB::ReadSashaWarnmap(const string &filename)
   return;
 }
 
-unsigned long long FillHistoMB::GetClockCounts(unsigned runnumber)
+unsigned long long FillHistoMB::GetClockLive(unsigned runnumber)
 {
   for(int i=0; i<1020; i++)
     if(runnumber == n_clock_bbc[0][i])
@@ -941,7 +943,7 @@ unsigned long long FillHistoMB::GetClockCounts(unsigned runnumber)
   return 0;
 }
 
-unsigned long long FillHistoMB::GetBBCCounts(unsigned runnumber)
+unsigned long long FillHistoMB::GetBBCNovtxLive(unsigned runnumber)
 {
   for(int i=0; i<1020; i++)
     if(runnumber == n_clock_bbc[0][i])
@@ -950,11 +952,29 @@ unsigned long long FillHistoMB::GetBBCCounts(unsigned runnumber)
   return 0;
 }
 
-unsigned long FillHistoMB::GetBBCScaledown(unsigned runnumber)
+unsigned long long FillHistoMB::GetBBCNarrowLive(unsigned runnumber)
 {
   for(int i=0; i<1020; i++)
     if(runnumber == n_clock_bbc[0][i])
       return n_clock_bbc[3][i];
+
+  return 0;
+}
+
+unsigned long FillHistoMB::GetBBCNovtxScaledown(unsigned runnumber)
+{
+  for(int i=0; i<1020; i++)
+    if(runnumber == n_clock_bbc[0][i])
+      return n_clock_bbc[4][i];
+
+  return 0;
+}
+
+unsigned long FillHistoMB::GetBBCNarrowScaledown(unsigned runnumber)
+{
+  for(int i=0; i<1020; i++)
+    if(runnumber == n_clock_bbc[0][i])
+      return n_clock_bbc[5][i];
 
   return 0;
 }
