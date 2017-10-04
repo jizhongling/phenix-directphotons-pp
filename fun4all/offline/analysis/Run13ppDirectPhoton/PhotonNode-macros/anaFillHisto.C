@@ -1,31 +1,29 @@
-void anaFillHisto(const char *filelist="filelist-MB/taxifiles64.txt", const char *outfile = "histo64.root", const int nEvents=0)
+void anaFillHisto(const int process=64)
 {
-  // Set up input file location
-  gSystem->Load("libFROG.so");
-  FROG fr;
-
   // Set up Fun4All libraries
   gSystem->Load("libfun4all.so");
   gSystem->Load("libfun4allfuncs.so");
   gSystem->Load("libPhotonNode.so");
 
-  char dstString[5000];
-  char *dstFileName;
+  const int nThread = 10;
+  int thread = -1;
+  int runNumber;
+  char dstFileName[1000];
 
-  ifstream inFiles(filelist);
+  ifstream inFiles("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist.txt");
   if(!inFiles)
   {
-    cerr << "\nUnable to open input file list " << filelist << endl;
+    cerr << "\nUnable to open input file list!" << endl;
     return;
   }
-  cout << "\nUsing input files list " << filelist << endl << endl;
+  cout << "\nUsing input files list..." << endl << endl;
 
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(0);
 
   // Reconstruction Module
-  //SubsysReco *my1 = new FillHisto("FILLHISTO", outfile);
-  SubsysReco *my1 = new FillHistoMB("FILLHISTOMB", outfile);
+  //SubsysReco *my1 = new FillHisto("FILLHISTO", Form("histo$2.root",process));
+  SubsysReco *my1 = new FillHistoMB("FILLHISTOMB", Form("histo$2.root",process));
   se->registerSubsystem(my1);
 
   // Input Manager
@@ -33,22 +31,24 @@ void anaFillHisto(const char *filelist="filelist-MB/taxifiles64.txt", const char
   se->registerInputManager(in1);
 
   // Loop over input DST files
-  while( inFiles >> dstString )
+  while( inFiles >> runNumber )
   {
-    dstFileName = fr.location(dstString);  // get FROG location
-    if(!dstFileName)
-    {
-      cerr << "\nBad return from FROG, null dstFileName" << endl;
-      return;
-    }
+    thread++;
+    if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
+
+    //sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode--%d.root", runNumber);
+    sprintf(dstFileName, "/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-%d.root", runNumber);
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DSTin1", dstFileName);
     if(openReturn)
-      cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl; 
+    {
+      cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl;
+      continue;
+    }
 
     // Do the analysis for this DST file
-    se->run(nEvents);
+    se->run(0);
 
     cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;
     int closeReturn = se->fileclose("DSTin1");

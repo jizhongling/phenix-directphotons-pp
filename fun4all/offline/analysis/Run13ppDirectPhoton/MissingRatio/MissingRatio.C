@@ -45,6 +45,9 @@ const int POSITRON_PID = 2;
 const int ELECTRON_PID = 3;
 const int PIZERO_PID = 7;
 
+const double merge_angle = 0.03;
+const double merge_radius = 50.;
+
 MissingRatio::MissingRatio(const char *filename) :
   hm(NULL),
   h2_radius(NULL),
@@ -60,6 +63,7 @@ MissingRatio::MissingRatio(const char *filename) :
   h2_conversion(NULL),
   h2_photon(NULL),
   h2_noconv(NULL),
+  h2_vtxconv(NULL),
   h2_merge_photon(NULL),
   h2_merge_pion(NULL),
   hn_conversion_position(NULL),
@@ -208,10 +212,18 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
           else
           {// decayed photon
             emc_tracklist_t photon_daughter = lvl1_trk->daughter_list;
+            bool is_fillconv = false;
             BOOST_FOREACH( const emc_trkno_t &lvl2_trkno, photon_daughter )
             {// lvl2 loop
               AnaTrk *lvl2_trk = track_list.find(lvl2_trkno)->second;
               lvl2_trk->parent_trkpt = lvl1_trk->trkpt;  // fill parent_trkpt
+              // radius of the birth position
+              double radius = lvl2_trk->trkrbirth;
+              if( !is_fillconv && abs(radius) < merge_radius )
+              {// photon conversion inside magnetic field
+                h2_vtxconv->Fill(lvl1_trk->trkpt, (double)lvl1_trk->arm, weight);
+                is_fillconv = true;
+              }
               // store positron and electron from decayed photon
               if( lvl2_trk->pid == POSITRON_PID && lvl2_trk->anclvl == 2 )
                 positron.push_back(lvl2_trk);
@@ -226,8 +238,6 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
   } // end of lvl0 loop
 
   // analyze positron and electron from decayed photon
-  //const double merge_angle = 0.03;
-  const double merge_radius = 50.;
   vector<emc_trkno_t> used;
   BOOST_FOREACH( AnaTrk *pos, positron )
     BOOST_FOREACH( AnaTrk *ele, electron )
@@ -421,7 +431,8 @@ void MissingRatio::BookHistograms()
   // 2D histograms for photon not converted
   // 0 - west arm
   // 1 - east arm
-  h2_noconv = new TH2D("h2_noconv", "No converted photon count; p_{T} [GeV/c]; criteria;", npT-1, vpT, 2, -0.5, 1.5);
+  h2_noconv = new TH2D("h2_noconv", "No converted photon count; p_{T} [GeV/c]; arm;", npT-1, vpT, 2, -0.5, 1.5);
+  h2_vtxconv = new TH2D("h2_vtxconv", "VTX Converted photon count; p_{T} [GeV/c]; arm;", npT-1, vpT, 2, -0.5, 1.5);
 
   // 2D histograms for photon merging
   // category = criteria * (0:merged or 1:total)
@@ -464,6 +475,7 @@ void MissingRatio::BookHistograms()
   hm->registerHisto(h2_conversion);
   hm->registerHisto(h2_photon);
   hm->registerHisto(h2_noconv);
+  hm->registerHisto(h2_vtxconv);
   hm->registerHisto(h2_merge_photon);
   hm->registerHisto(h2_merge_pion);
   hm->registerHisto(hn_conversion_position);  hn_conversion_position->Sumw2();

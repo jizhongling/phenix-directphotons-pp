@@ -1,9 +1,5 @@
-void anaFastMC(const char *filelist="phparticlegen.txt", const char *outfilename = "histo.root")
+void anaFastMC(const int process=0)
 {
-  // Set up input file location
-  gSystem->Load("libFROG.so");
-  FROG fr;
-
   // Set up Fun4All libraries
   gSystem->Load("libfun4allfuncs.so");	// framework + reco modules
   gSystem->Load("libAnaFastMC.so");
@@ -12,12 +8,10 @@ void anaFastMC(const char *filelist="phparticlegen.txt", const char *outfilename
   enum MCMethod {PHParticleGen, FastMC};
   enum WarnMap {None, Nils, Sasha};
 
-  // Used for input DST files
-  char dstString[5000];
-  char *dstFileName;
-
-  // Output filename prefiex
-  string outfile_prefix = "histos/AnaFastMC-";
+  // Used for input DST files and output files
+  const int nThread = 20;
+  char dstFileName[1000];
+  char outFileName[1000];
 
   // Setup recoConsts
   recoConsts *rc = recoConsts::instance();
@@ -28,23 +22,27 @@ void anaFastMC(const char *filelist="phparticlegen.txt", const char *outfilename
   se->Verbosity(0);
 
   // Reconstruction Modules
+  sprintf(outFileName, "histos/AnaFastMC-PH-nowarn-histo%d.root", process);
   AnaFastMC *reco_ph_nowarn = new AnaFastMC();
-  reco_ph_nowarn->set_outfile(outfile_prefix + "PH-nowarn-" + outfilename);
+  reco_ph_nowarn->set_outfile(outFileName);
   reco_ph_nowarn->set_mcmethod(PHParticleGen);
   reco_ph_nowarn->set_warnmap(None);
 
+  sprintf(outFileName, "histos/AnaFastMC-PH-warn-histo%d.root", process);
   AnaFastMC *reco_ph_warn = new AnaFastMC();
-  reco_ph_warn->set_outfile(outfile_prefix + "PH-warn-" + outfilename);
+  reco_ph_warn->set_outfile(outFileName);
   reco_ph_warn->set_mcmethod(PHParticleGen);
   reco_ph_warn->set_warnmap(Sasha);
 
+  sprintf(outFileName, "histos/AnaFastMC-Fast-nowarn-histo%d.root", process);
   AnaFastMC *reco_fast_nowarn = new AnaFastMC();
-  reco_fast_nowarn->set_outfile(outfile_prefix + "Fast-nowarn-" + outfilename);
+  reco_fast_nowarn->set_outfile(outFileName);
   reco_fast_nowarn->set_mcmethod(FastMC);
   reco_fast_nowarn->set_warnmap(None);
 
+  sprintf(outFileName, "histos/AnaFastMC-Fast-warn-histo%d.root", process);
   AnaFastMC *reco_fast_warn = new AnaFastMC();
-  reco_fast_warn->set_outfile(outfile_prefix + "Fast-warn-" + outfilename);
+  reco_fast_warn->set_outfile(outFileName);
   reco_fast_warn->set_mcmethod(FastMC);
   reco_fast_warn->set_warnmap(Sasha);
 
@@ -72,28 +70,18 @@ void anaFastMC(const char *filelist="phparticlegen.txt", const char *outfilename
   Fun4AllInputManager *real_in = new Fun4AllDstInputManager("DST_real_in", "DST");
   se->registerInputManager(real_in);
 
-  ifstream inFiles(filelist);
-  if(!inFiles)
-  {
-    cerr << "\nUnable to open input file list " << filelist << endl;
-    return;
-  }
-  cout << "\nUsing input files list " << filelist << endl << endl;
-
   // Loop over input DST files
-  while( inFiles >> dstString )
+  for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
   {
-    dstFileName = fr.location(dstString);  // get FROG location
-    if(!dstFileName)
-    {
-      cerr << "\nBad return from FROG, null dstFileName" << endl;
-      return;
-    }
+    sprintf(dstFileName, "/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/phparticlegen/phparticlegen%d.root", thread);
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DST_real_in", dstFileName);
     if(openReturn)
-      cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl; 
+    {
+      cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl;
+      continue;
+    }
 
     // Do the analysis for this DST file
     se->run(0);
@@ -109,7 +97,6 @@ void anaFastMC(const char *filelist="phparticlegen.txt", const char *outfilename
   se->unregisterSubsystem(reco_fast_nowarn);
   se->unregisterSubsystem(reco_fast_warn);
 
-  // Close input filelist and delete Fun4All server
-  inFiles.close();
+  // Delete Fun4All server
   delete se;
 }

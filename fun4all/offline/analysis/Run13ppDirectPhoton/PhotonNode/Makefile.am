@@ -7,7 +7,6 @@ lib_LTLIBRARIES = libPhotonNode.la
 
 mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
 dist_mydata_DATA = \
-  clock_counts.txt \
   clock-counts.root
 
 include_HEADERS =

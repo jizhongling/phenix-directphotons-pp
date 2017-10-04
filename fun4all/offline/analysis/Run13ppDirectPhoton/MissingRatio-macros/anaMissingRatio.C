@@ -1,9 +1,5 @@
-void anaMissingRatio(const char *filelist="simDST.txt", const char *outfile = "histo.root", const int nEvents=0)
+void anaMissingRatio(const int process=0)
 {
-  // Set up input file location
-  gSystem->Load("libFROG.so");
-  FROG fr;
-
   // Set up Fun4All libraries
   gSystem->Load("libfun4all.so");
   gSystem->Load("libfun4allfuncs.so");
@@ -14,16 +10,8 @@ void anaMissingRatio(const char *filelist="simDST.txt", const char *outfile = "h
   gSystem->Load("libemcEmbed4all.so");
   gSystem->Load("libMissingRatio.so");
 
-  char dstString[5000];
-  char *dstFileName;
-
-  ifstream inFiles(filelist);
-  if(!inFiles)
-  {
-    cerr << "\nUnable to open input file list " << filelist << endl;
-    return;
-  }
-  cout << "\nUsing input files list " << filelist << endl << endl;
+  const int nThread = 10;
+  char dstFileName[1000];
 
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(0);
@@ -52,7 +40,7 @@ void anaMissingRatio(const char *filelist="simDST.txt", const char *outfile = "h
 
   // Reconstruction Module
   //se->registerSubsystem( new EmcGeaContainerImporter() );
-  SubsysReco *my1 = new MissingRatio(outfile);
+  SubsysReco *my1 = new MissingRatio(Form("histo%d.root",process));
   se->registerSubsystem(my1);
 
   // Input Manager
@@ -60,22 +48,20 @@ void anaMissingRatio(const char *filelist="simDST.txt", const char *outfile = "h
   se->registerInputManager(in1);
 
   // Loop over input DST files
-  while( inFiles >> dstString )
+  for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
   {
-    dstFileName = fr.location(dstString);  // get FROG location
-    if(!dstFileName)
-    {
-      cerr << "\nBad return from FROG, null dstFileName" << endl;
-      return;
-    }
+    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST%d.root", thread);
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DSTin1", dstFileName);
     if(openReturn)
-      cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl; 
+    {
+      cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl;
+      continue;
+    }
 
     // Do the analysis for this DST file
-    se->run(nEvents);
+    se->run(0);
 
     cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;
     int closeReturn = se->fileclose("DSTin1");
@@ -88,5 +74,4 @@ void anaMissingRatio(const char *filelist="simDST.txt", const char *outfile = "h
 
   delete my1;
   delete se;
-  inFiles.close();
 }
