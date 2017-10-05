@@ -429,10 +429,6 @@ int FillHistoMB::FillPi0Spectrum(const PhotonContainerMB *photoncont)
   /* Get event global parameters */
   double bbc_t0 = photoncont->get_bbc_t0();
 
-  /* Check trigger */
-  if( !photoncont->get_bbcnovtx_scaled() )
-    return DISCARDEVENT;
-
   h_events->Fill(1.);
 
   unsigned nphotons = photoncont->Size();
@@ -449,8 +445,6 @@ int FillHistoMB::FillPi0Spectrum(const PhotonContainerMB *photoncont)
         PhotonMB *photon2 = photoncont->GetPhoton(j);
         if( GetStatus(photon1) == 0 &&
             GetStatus(photon2) == 0 &&
-            TestPhoton(photon1, bbc_t0) &&
-            TestPhoton(photon2, bbc_t0) &&
             anatools::GetAsymmetry_E(photon1, photon2) < AsymCut )
         {
           int sector1 = anatools::GetSector(photon1);
@@ -470,22 +464,44 @@ int FillHistoMB::FillPi0Spectrum(const PhotonContainerMB *photoncont)
           TLorentzVector pE1 = anatools::Get_pE(photon1);
           TLorentzVector pE2 = anatools::Get_pE(photon2);
           TLorentzVector tot_pE =  pE1 + pE2;
-          double tot_px = tot_pE.Px();
-          double tot_py = tot_pE.Py();
-          double tot_pz = tot_pE.Pz();
+          //double tot_px = tot_pE.Px();
+          //double tot_py = tot_pE.Py();
+          //double tot_pz = tot_pE.Pz();
           double tot_pT = tot_pE.Pt();
-          double tot_mom = tot_pE.P();
+          //double tot_mom = tot_pE.P();
           double minv = anatools::GetInvMass(photon1, photon2);
 
-          double eta = tot_mom > 0. ? atan(tot_pz/tot_mom) : 9999.;
-          double phi = tot_px > 0. ? atan(tot_py/tot_px) : 3.1416+atan(tot_py/tot_px);
+          //double eta = tot_mom > 0. ? atan(tot_pz/tot_mom) : 9999.;
+          //double phi = tot_px > 0. ? atan(tot_py/tot_px) : 3.1416+atan(tot_py/tot_px);
 
-          double fill_hn_pion[] = {sector, tot_pT, minv, eta, phi};
-          hn_pion->Fill(fill_hn_pion);
+          /* Check trigger */
+          if( photoncont->get_bbcnovtx_scaled() )
+          {
+            double fill_hn_pion_0[] = {sector, tot_pT, minv, 0.};
+            hn_pion->Fill(fill_hn_pion_0);
+            if( TestPhoton(photon1, bbc_t0) &&
+                TestPhoton(photon2, bbc_t0) )
+            {
+              double fill_hn_pion_1[] = {sector, tot_pT, minv, 1.};
+              hn_pion->Fill(fill_hn_pion_1);
+            }
+          }
 
-          double angle = sqrt( 1. - cos( pE1.Angle(pE2.Vect()) ) );
-          double fill_hn_minv[] = {sector, tot_pT, pE1.E(), pE2.E(), angle};
-          hn_minv->Fill(fill_hn_minv);
+          if( photoncont->get_bbcnarrow_scaled() )
+          {
+            double fill_hn_pion_2[] = {sector, tot_pT, minv, 2.};
+            hn_pion->Fill(fill_hn_pion_2);
+            if( TestPhoton(photon1, bbc_t0) &&
+                TestPhoton(photon2, bbc_t0) )
+            {
+              double fill_hn_pion_3[] = {sector, tot_pT, minv, 3.};
+              hn_pion->Fill(fill_hn_pion_3);
+            }
+          }
+
+          //double angle = sqrt( 1. - cos( pE1.Angle(pE2.Vect()) ) );
+          //double fill_hn_minv[] = {sector, tot_pT, pE1.E(), pE2.E(), angle};
+          //hn_minv->Fill(fill_hn_minv);
         }
       }
   }
@@ -591,16 +607,16 @@ int FillHistoMB::EndRun(const int runnumber)
 
   irun++;
 
-  //char name[100];
-  //sprintf(name, "histos/PhotonNode-%d.root", runnumber);
-  //hm->dumpHistos(name);
+  char name[100];
+  sprintf(name, "histos/PhotonNode-%d.root", runnumber);
+  hm->dumpHistos(name);
 
   return EVENT_OK;
 }
 
 int FillHistoMB::End(PHCompositeNode *topNode)
 {
-  hm->dumpHistos(outFileName);
+  //hm->dumpHistos(outFileName);
   delete hm;
   delete emcrecalib;
 
@@ -746,13 +762,16 @@ void FillHistoMB::BookHistograms()
    * - phi
    *
    */
-  const int nbins_hn_pion[] = {8, n_pTbins, 300, 70, n_phibins};
-  const double xmin_hn_pion[] = {-0.5, 0., 0., -0.35, 0.};
-  const double xmax_hn_pion[] = {7.5, 0., 0.3, 0.35, 0.};
-  hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p^{#pi^0}_{T};m_{inv} [GeV];#eta;#phi [rad];",
-      5, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
+  //const int nbins_hn_pion[] = {8, n_pTbins, 300, 70, n_phibins};
+  //const double xmin_hn_pion[] = {-0.5, 0., 0., -0.35, 0.};
+  //const double xmax_hn_pion[] = {7.5, 0., 0.3, 0.35, 0.};
+  const int nbins_hn_pion[] = {8, n_pTbins, 300, 4};
+  const double xmin_hn_pion[] = {-0.5, 0., 0., -0.5};
+  const double xmax_hn_pion[] = {7.5, 0., 0.3, 3.5};
+  hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p^{#pi^0}_{T};m_{inv} [GeV];condition;",
+      4, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
   hn_pion->SetBinEdges(1, pTbins);
-  hn_pion->SetBinEdges(4, phi_twr);
+  //hn_pion->SetBinEdges(4, phi_twr);
   hm->registerHisto(hn_pion, 1);
 
   /* sotore pion invariant mass information
