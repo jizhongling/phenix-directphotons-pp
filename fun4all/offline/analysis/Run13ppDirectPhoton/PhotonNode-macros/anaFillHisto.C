@@ -22,8 +22,8 @@ void anaFillHisto(const int process=64)
   se->Verbosity(0);
 
   // Reconstruction Module
-  //SubsysReco *my1 = new FillHisto("FILLHISTO", Form("histo$2.root",process));
-  SubsysReco *my1 = new FillHistoMB("FILLHISTOMB", Form("histo$2.root",process));
+  //SubsysReco *my1 = new FillHisto("FILLHISTO", Form("histo%d.root",process));
+  SubsysReco *my1 = new FillHistoMB("FILLHISTOMB", Form("histo%d.root",process));
   se->registerSubsystem(my1);
 
   // Input Manager

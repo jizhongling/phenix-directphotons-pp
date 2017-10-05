@@ -6,7 +6,7 @@ void anaRawYieldCmp(const Int_t process = 0)
   TGraph *gr[3];
   for(Int_t part=0; part<3; part++)
   {
-    gr[part] = new TGraph(10);
+    gr[part] = new TGraph(20);
     gr[part]->SetName(Form("gr_%d",part));
   }
 
@@ -58,12 +58,12 @@ void anaRawYieldCmp(const Int_t process = 0)
       for(Int_t ip=0; ip<40; ip++)
         mchist[is][ip] = (TH1*)f_sasha->Get(Form("mc_s%d_bcc0_pt_%03d_tp",is,5*ip));
 
-    bin047 = mchist[0][10]->GetXaxis()->FindBin(0.047);
-    bin097 = mchist[0][10]->GetXaxis()->FindBin(0.097);
-    bin112 = mchist[0][10]->GetXaxis()->FindBin(0.112);
-    bin162 = mchist[0][10]->GetXaxis()->FindBin(0.162);
-    bin187 = mchist[0][10]->GetXaxis()->FindBin(0.187);
-    bin227 = mchist[0][10]->GetXaxis()->FindBin(0.227);
+    bin047 = mchist[0][0]->GetXaxis()->FindBin(0.047);
+    bin097 = mchist[0][0]->GetXaxis()->FindBin(0.097);
+    bin112 = mchist[0][0]->GetXaxis()->FindBin(0.112);
+    bin162 = mchist[0][0]->GetXaxis()->FindBin(0.162);
+    bin187 = mchist[0][0]->GetXaxis()->FindBin(0.187);
+    bin227 = mchist[0][0]->GetXaxis()->FindBin(0.227);
 
     for(Int_t is=0; is<3; is++)
       for(Int_t ip=4; ip<40; ip++)

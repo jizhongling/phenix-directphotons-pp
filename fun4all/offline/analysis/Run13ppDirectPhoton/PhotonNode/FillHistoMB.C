@@ -564,43 +564,43 @@ int FillHistoMB::EndRun(const int runnumber)
   double enpions_PbSc = sqrt( npions_sig[0] + npions_bg[0]/2 );
   double enpions_PbGl = sqrt( npions_sig[1] + npions_bg[1]/2 );
 
-  npions_PbSc *= scaledown;
-  npions_PbGl *= scaledown;
-  enpions_PbSc *= scaledown;
-  enpions_PbGl *= scaledown;
+  npions_PbSc *= (double)scaledown;
+  npions_PbGl *= (double)scaledown;
+  enpions_PbSc *= (double)scaledown;
+  enpions_PbGl *= (double)scaledown;
 
-  g_pileup_PbSc->SetPoint(irun, (double)nmb/nclock, npions_PbSc/nmb);
-  g_pileup_PbSc->SetPointError(irun, 0., enpions_PbSc/nmb);
-  g_pileup_PbGl->SetPoint(irun, (double)nmb/nclock, npions_PbGl/nmb);
-  g_pileup_PbGl->SetPointError(irun, 0., enpions_PbGl/nmb);
+  g_pileup_PbSc->SetPoint(irun, (double)nmb/(double)nclock, npions_PbSc/(double)nmb);
+  g_pileup_PbSc->SetPointError(irun, 0., enpions_PbSc/(double)nmb);
+  g_pileup_PbGl->SetPoint(irun, (double)nmb/(double)nclock, npions_PbGl/(double)nmb);
+  g_pileup_PbGl->SetPointError(irun, 0., enpions_PbGl/(double)nmb);
 
   double npions_PbSc_notof = npions_sig_notof[0] - npions_bg_notof[0]/2;
   double npions_PbGl_notof = npions_sig_notof[1] - npions_bg_notof[1]/2;
   double enpions_PbSc_notof = sqrt( npions_sig_notof[0] + npions_bg_notof[0]/2 );
   double enpions_PbGl_notof = sqrt( npions_sig_notof[1] + npions_bg_notof[1]/2 );
 
-  npions_PbSc_notof *= scaledown;
-  npions_PbGl_notof *= scaledown;
-  enpions_PbSc_notof  *= scaledown;
-  enpions_PbGl_notof  *= scaledown;
+  npions_PbSc_notof *= (double)scaledown;
+  npions_PbGl_notof *= (double)scaledown;
+  enpions_PbSc_notof  *= (double)scaledown;
+  enpions_PbGl_notof  *= (double)scaledown;
 
-  g_pileup_PbSc_notof->SetPoint(irun, (double)nmb/nclock, npions_PbSc_notof/nmb);
-  g_pileup_PbSc_notof->SetPointError(irun, 0., enpions_PbSc_notof/nmb);
-  g_pileup_PbGl_notof->SetPoint(irun, (double)nmb/nclock, npions_PbGl_notof/nmb);
-  g_pileup_PbGl_notof->SetPointError(irun, 0., enpions_PbGl_notof/nmb);
+  g_pileup_PbSc_notof->SetPoint(irun, (double)nmb/(double)nclock, npions_PbSc_notof/(double)nmb);
+  g_pileup_PbSc_notof->SetPointError(irun, 0., enpions_PbSc_notof/(double)nmb);
+  g_pileup_PbGl_notof->SetPoint(irun, (double)nmb/(double)nclock, npions_PbGl_notof/(double)nmb);
+  g_pileup_PbGl_notof->SetPointError(irun, 0., enpions_PbGl_notof/(double)nmb);
 
   irun++;
 
-  char name[100];
-  sprintf(name, "histos/PhotonNode-%d.root", runnumber);
-  hm->dumpHistos(name);
+  //char name[100];
+  //sprintf(name, "histos/PhotonNode-%d.root", runnumber);
+  //hm->dumpHistos(name);
 
   return EVENT_OK;
 }
 
 int FillHistoMB::End(PHCompositeNode *topNode)
 {
-  //hm->dumpHistos(outFileName);
+  hm->dumpHistos(outFileName);
   delete hm;
   delete emcrecalib;
 
