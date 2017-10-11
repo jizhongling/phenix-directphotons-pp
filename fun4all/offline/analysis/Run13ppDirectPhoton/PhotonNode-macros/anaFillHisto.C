@@ -10,7 +10,8 @@ void anaFillHisto(const int process=64)
   int runNumber;
   char dstFileName[1000];
 
-  ifstream inFiles("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist.txt");
+  //ifstream inFiles("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist.txt");
+  ifstream inFiles("/phenix/plhf/zji/taxi/Run13pp510MinBias/runnumber.txt");
   if(!inFiles)
   {
     cerr << "\nUnable to open input file list!" << endl;

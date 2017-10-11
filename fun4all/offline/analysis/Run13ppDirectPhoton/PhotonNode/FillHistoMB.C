@@ -20,6 +20,7 @@
 
 #include <TFile.h>
 #include <TTree.h>
+#include <TH1.h>
 #include <TH3.h>
 #include <THnSparse.h>
 #include <TGraphErrors.h>
@@ -444,7 +445,7 @@ int FillHistoMB::FillPi0Spectrum(const PhotonContainerMB *photoncont)
         PhotonMB *photon1 = photoncont->GetPhoton(i);
         PhotonMB *photon2 = photoncont->GetPhoton(j);
         if( GetStatus(photon1) == 0 &&
-            GetStatus(photon2) == 0 &&
+            GetStatus(photon2) == 0 && 
             anatools::GetAsymmetry_E(photon1, photon2) < AsymCut )
         {
           int sector1 = anatools::GetSector(photon1);
@@ -461,14 +462,15 @@ int FillHistoMB::FillPi0Spectrum(const PhotonContainerMB *photoncont)
           }
           //if(!trig) continue;
 
-          TLorentzVector pE1 = anatools::Get_pE(photon1);
-          TLorentzVector pE2 = anatools::Get_pE(photon2);
-          TLorentzVector tot_pE =  pE1 + pE2;
+          //TLorentzVector pE1 = anatools::Get_pE(photon1);
+          //TLorentzVector pE2 = anatools::Get_pE(photon2);
+          //TLorentzVector tot_pE =  pE1 + pE2;
           //double tot_px = tot_pE.Px();
           //double tot_py = tot_pE.Py();
           //double tot_pz = tot_pE.Pz();
-          double tot_pT = tot_pE.Pt();
+          //double tot_pT = tot_pE.Pt();
           //double tot_mom = tot_pE.P();
+          double tot_pT = anatools::GetTot_pT(photon1, photon2);
           double minv = anatools::GetInvMass(photon1, photon2);
 
           //double eta = tot_mom > 0. ? atan(tot_pz/tot_mom) : 9999.;
@@ -530,7 +532,8 @@ int FillHistoMB::FillPileup(const PhotonContainerMB *photoncont)
         PhotonMB *photon1 = photoncont->GetPhoton(i);
         PhotonMB *photon2 = photoncont->GetPhoton(j);
         if( GetStatus(photon1) == 0 &&
-            GetStatus(photon2) == 0 )
+            GetStatus(photon2) == 0 && 
+            anatools::GetAsymmetry_E(photon1, photon2) < AsymCut )
         {
           int sector1 = anatools::GetSector(photon1);
           int sector2 = anatools::GetSector(photon2);
@@ -610,6 +613,7 @@ int FillHistoMB::EndRun(const int runnumber)
   char name[100];
   sprintf(name, "histos/PhotonNode-%d.root", runnumber);
   hm->dumpHistos(name);
+  hn_pion->Reset();
 
   return EVENT_OK;
 }
@@ -773,7 +777,7 @@ void FillHistoMB::BookHistograms()
   hn_pion->SetBinEdges(1, pTbins);
   //hn_pion->SetBinEdges(4, phi_twr);
   hm->registerHisto(hn_pion, 1);
-
+  
   /* sotore pion invariant mass information
    *
    * - sector

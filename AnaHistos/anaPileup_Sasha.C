@@ -14,7 +14,7 @@ void anaPileup_Sasha(const Int_t process = 0)
   Int_t thread = -1;
   Int_t irun = 0;
   Int_t runnumber;
-  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist.txt");
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runnumber.txt");
 
   ReadClockCounts();
 
@@ -50,9 +50,9 @@ void anaPileup_Sasha(const Int_t process = 0)
     Int_t bin112 = axis->FindBin(0.112);
     Int_t bin162 = axis->FindBin(0.162);
 
-    TF1 *fn_init = new TF1("fn_init", "gaus", 0., 0.3);
-    TF1 *fn_sig = new TF1("fn_sig", "gaus(0)+pol2(3)", 0., 0.3);
-    TF1 *fn_bg = new TF1("fn_bg", "pol2", 0., 0.3);
+    TF1 *fn_peak = new TF1("fn_peak", "gaus", 0., 0.3);
+    TF1 *fn_bg = new TF1("fn_bg", "pol3", 0., 0.3);
+    TF1 *fn_total = new TF1("fn_total", "gaus(0)+pol3(3)", 0., 0.3);
 
     for(Int_t ic=0; ic<2; ic++)
       for(Int_t is=0; is<2; is++)
@@ -61,14 +61,19 @@ void anaPileup_Sasha(const Int_t process = 0)
         aset(h_minv[ic][is], "m_{inv} [GeV]","", 0.,0.3);
 
         Double_t par[10];
-        h_minv[ic][is]->Fit(fn_init, "Q0", "", 0.112, 0.162);
-        fn_sig->SetParameters( fn_init->GetParameters() );
-        h_minv[ic][is]->Fit(fn_sig, "Q0", "", 0.047, 0.227);
-        fn_sig->GetParameters(par);
-        fn_bg->SetParameters(par[3], par[4], par[5]);
+        h_minv[ic][is]->Fit(fn_peak, "Q0", "", 0.112, 0.162);
+        h_minv[ic][is]->Fit(fn_bg, "Q0", "", 0.047, 0.097);
+        fn_peak->GetParameters(par);
+        fn_bg->GetParameters(par+3);
+        fn_total->SetParameters(par);
+        h_minv[ic][is]->Fit(fn_total, "Q0", "", 0.047, 0.227);
+        fn_total->GetParameters(par);
+        fn_bg->SetParameters(par+3);
 
+        fn_total->SetLineColor(kRed);
         fn_bg->SetLineColor(kGreen);
         h_minv[ic][is]->DrawCopy();
+        fn_total->Draw("SAME");
         fn_bg->Draw("SAME");
 
         Double_t nsig = 0.;
@@ -94,8 +99,11 @@ void anaPileup_Sasha(const Int_t process = 0)
         Double_t xx = (Double_t)nmb/(Double_t)nclock;
         Double_t yy = npion[ic][is] * (Double_t)scaledown / (Double_t)nmb;
         Double_t eyy = enpion[ic][is] * (Double_t)scaledown / (Double_t)nmb;
-        gr[ic*2+is]->SetPoint(irun, xx, yy);
-        gr[ic*2+is]->SetPointError(irun, 0., eyy);
+        if( eyy > 0. && eyy < TMath::Infinity() )
+        {
+          gr[ic*2+is]->SetPoint(irun, xx, yy);
+          gr[ic*2+is]->SetPointError(irun, 0., eyy);
+        }
         delete h_minv[ic][is];
       }
     delete f;

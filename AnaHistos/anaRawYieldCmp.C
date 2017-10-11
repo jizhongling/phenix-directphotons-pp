@@ -14,7 +14,8 @@ void anaRawYieldCmp(const Int_t process = 0)
   Int_t thread = -1;
   Int_t irun = 0;
   Int_t runnumber;
-  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist.txt");
+  //ifstream fin("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist.txt");
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runnumber.txt");
 
   while( fin >> runnumber )
   {
