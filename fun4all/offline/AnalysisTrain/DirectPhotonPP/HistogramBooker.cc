@@ -123,6 +123,12 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
   hm->registerHisto( h3_inv_mass_pi0calib_raw , 1 );
 
   /*
+   * Using energies from DST file without TOF cut.
+   */
+  TH3* h3_inv_mass_pi0calib_notof = static_cast<TH3*>(h3_inv_mass_pi0calib->Clone("h3_inv_mass_pi0calib_notof"));
+  hm->registerHisto( h3_inv_mass_pi0calib_notof , 1 );
+
+  /*
    * 3D histogram of sector, pT and TOF to check TOF calibration
    */
   TH3* h3_tof = new TH3F("h3_tof", "TOF;EMCal sector;p_{T} [GeV];TOF [ns];", 8,-0.5,7.5, n_pTbins,0.,0., 1001,-100.05,100.05);
