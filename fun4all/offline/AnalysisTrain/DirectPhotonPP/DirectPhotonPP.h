@@ -7,28 +7,17 @@
 #include <vector>
 #include <fstream>
 
-/* Fun4All Classes */
-//class Fun4AllServer;
-//class Fun4AllHistoManager;
+/* Local analysis Classes */
+class EmcLocalRecalibrator;
 
-/* Analysis Classes */
+/* Fun4All classes */
 class PHCentralTrack;
-//class McEvalSingleList_v1;
-//class PHCompositeNode;
-//class EventHeader;
 class emcClusterContainer;
 class emcClusterContent;
-//class SvxClusterList;
 class PHGlobal;
 class ErtOut;
 class TrigLvl1;
-//class EventHeader;
-//class RunHeader;
-//class SvxCentralTrackList;
-//class SvxCentralTrack;
 class Fun4AllHistoManager;
-
-class EmcLocalRecalibrator;
 
 /* Root classes */
 class TH1;
@@ -140,6 +129,25 @@ protected:
    */
   bool testPhotonTrackVeto( emcClusterContent *emccluster );
 
+  /**
+   * Select only clusters in good towers
+   */
+  int selectClusterGoodTower( emcClusterContainer *emccontainer );
+
+  /**
+   * Select only clusters which have EM like (photon or electron) shape
+   */
+  int selectClusterPhotonShape( emcClusterContainer *emccontainer );
+
+  /**
+   * Select only clusters above photon cutoff energy
+   */
+  int selectClusterPhotonEnergy( emcClusterContainer *emccontainer );
+
+  /**
+   * Select only clusters which have TOF within range for photons
+   */
+  int selectClusterPhotonTof( emcClusterContainer *emccontainer, double bbc_t0 );
 
 private:
 
@@ -173,11 +181,14 @@ private:
    * Fill histograms with invariant mass from two-photon pairs which are pi0 candidates
    * using tight cuts on pi0 identification before and after applying local tower energy correction
    */
-  int FillPi0InvariantMass( emcClusterContainer *d_emcont,
-                            PHGlobal *d_gbl,
-                            TrigLvl1 *d_trig,
-                            ErtOut *data_ert,
-                            std::string quali="" );
+  int FillPi0InvariantMass( std::string histname,
+			    emcClusterContainer *d_emcont );
+
+  int FillPi0InvariantMassMod( std::string histname,
+			       emcClusterContainer *d_emcont,
+			       PHGlobal *d_gbl,
+			       TrigLvl1 *d_trig,
+			       ErtOut *data_ert );
 
   /**
    * Fill histograms with photon pT spectrum and invariant mass histogram
