@@ -238,13 +238,6 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   FillClusterTofSpectrum( data_emc_nowarn , data_global );
   FillClusterTofSpectrum( data_emc_raw_nowarn , data_global , "raw" );
 
-  /* Check BBC-z location of event: If outside of range, end event processing here. */
-  if ( abs ( bbc_z ) > _bbc_zvertex_cut )
-    return EVENT_OK;
-
-  /* Check trigger: If trigger rewuirement not met, end event processing here. */
-  if ( ! ( lvl1_scaled & bit_bbcnarrow ) )
-    return EVENT_OK;
 
   /*
    * *** EVALUATE: Cluster information ***
@@ -264,20 +257,25 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   emcClusterContainer* data_emc_emlike = data_emc_emlike_notof->clone();
   selectClusterPhotonTof( data_emc_emlike, bbc_t0 );
 
-  /* Analyze pi0s events for crosscheck */
-  FillPi0InvariantMass( "h3_inv_mass_pi0calib", data_emc_emlike );
-  FillPi0InvariantMass( "h3_inv_mass_pi0calib_notof", data_emc_emlike_notof );
-  FillPi0InvariantMass( "h3_inv_mass_pi0calib_raw", data_emc_raw_emlike_notof );
-  FillPi0InvariantMassMod( "hn_pi0",
-			   data_emc_emlike,
-			   data_global,
-			   data_triggerlvl1,
-			   data_ert );
-
-  /* Analyze direct photon events */
-  if ( ( lvl1_live & bit_4x4b ) )
+  if ( ( abs ( bbc_z ) <= _bbc_zvertex_cut ) // Check BBC-z location of event
+       && ( lvl1_scaled & bit_bbcnarrow ) // Check trigger
+       )
     {
-      FillPhotonPtSpectrum( data_emc_emlike , data_tracks , data_global );
+      /* Analyze pi0s events for crosscheck */
+      FillPi0InvariantMass( "h3_inv_mass_pi0calib", data_emc_emlike );
+      FillPi0InvariantMass( "h3_inv_mass_pi0calib_notof", data_emc_emlike_notof );
+      FillPi0InvariantMass( "h3_inv_mass_pi0calib_raw", data_emc_raw_emlike_notof );
+      FillPi0InvariantMassMod( "hn_pi0",
+			       data_emc_emlike,
+			       data_global,
+			       data_triggerlvl1,
+			       data_ert );
+
+      /* Analyze direct photon events */
+      if ( ( lvl1_live & bit_4x4b ) )
+	{
+	  FillPhotonPtSpectrum( data_emc_emlike , data_tracks , data_global );
+	}
     }
 
   /* clean up */
