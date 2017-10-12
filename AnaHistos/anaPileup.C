@@ -35,7 +35,7 @@ void anaPileup(const Int_t process = 0)
     Int_t bin097 = axis->FindBin(0.097);
     Int_t bin112 = axis->FindBin(0.112);
     Int_t bin162 = axis->FindBin(0.162);
-    Int_t bin187 = axis->FindBin(0.187);
+    Int_t bin177 = axis->FindBin(0.177);
     Int_t bin227 = axis->FindBin(0.227);
 
     TF1 *fn_peak = new TF1("fn_peak", "gaus", 0., 0.3);
@@ -51,49 +51,49 @@ void anaPileup(const Int_t process = 0)
       {
         mcd(ic*2+is, irun+1);
 
-        hn_pion->GetAxis(3)->SetRange(ic+3,ic+3);
+        hn_pion->GetAxis(3)->SetRange(ic+1,ic+1);
         hn_pion->GetAxis(0)->SetRange(secl[is],sech[is]);
         hn_pion->GetAxis(1)->SetRange(5,31);
         TH1 *h_minv = hn_pion->Projection(2);
         h_minv->SetTitle(Form("#%d",runnumber));
         aset(h_minv, "m_{inv} [GeV]","", 0.,0.3);
 
-        Double_t par[10] = {20.,0.135,0.01, 3.,-30.,350.,-900.};
-        for(Int_t ifit=0; ifit<10; ifit++)
-        {
-          fn_peak->SetParameters(par);
-          fn_bg->SetParameters(par+3);
-          h_minv->Fit(fn_peak, "Q0", "", 0.122, 0.152);
-          h_minv->Fit(fn_bg, "Q0", "", 0.047, 0.227);
-          fn_peak->GetParameters(par);
-          fn_bg->GetParameters(par+3);
-        }
-        for(Int_t ifit=0; ifit<50; ifit++)
-        {
-          fn_total->SetParameters(par);
-          h_minv->Fit(fn_total, "Q0", "", 0.047, 0.227);
-          fn_total->GetParameters(par);
-        }
-        fn_bg->SetParameters(par+3);
+        //Double_t par[10] = {20.,0.135,0.01, 3.,-30.,350.,-900.};
+        //for(Int_t ifit=0; ifit<10; ifit++)
+        //{
+        //  fn_peak->SetParameters(par);
+        //  fn_bg->SetParameters(par+3);
+        //  h_minv->Fit(fn_peak, "Q0", "", 0.122, 0.152);
+        //  h_minv->Fit(fn_bg, "Q0", "", 0.047, 0.227);
+        //  fn_peak->GetParameters(par);
+        //  fn_bg->GetParameters(par+3);
+        //}
+        //for(Int_t ifit=0; ifit<50; ifit++)
+        //{
+        //  fn_total->SetParameters(par);
+        //  h_minv->Fit(fn_total, "Q0", "", 0.047, 0.227);
+        //  fn_total->GetParameters(par);
+        //}
+        //fn_bg->SetParameters(par+3);
 
-        fn_total->SetLineColor(kRed);
-        fn_bg->SetLineColor(kGreen);
+        //fn_total->SetLineColor(kRed);
+        //fn_bg->SetLineColor(kGreen);
         h_minv->DrawCopy("EHIST");
-        fn_total->DrawCopy("SAME");
-        fn_bg->DrawCopy("SAME");
+        //fn_total->DrawCopy("SAME");
+        //fn_bg->DrawCopy("SAME");
 
         Double_t nsig = 0.;
         Double_t nbg = 0.;
         for(Int_t ib=bin112; ib<bin162; ib++)
         {
           nsig += h_minv->GetBinContent(ib);
-          Double_t bincenter = axis->GetBinCenter(ib);
-          nbg += fn_bg->Eval(bincenter);
+          //Double_t bincenter = axis->GetBinCenter(ib);
+          //nbg += fn_bg->Eval(bincenter);
         }
-        //for(Int_t ib=bin047; ib<bin097; ib++)
-        //  nbg += h_minv->GetBinContent(ib) / 2.;
-        //for(Int_t ib=bin187; ib<bin227; ib++)
-        //  nbg += h_minv->GetBinContent(ib) / 2.;
+        for(Int_t ib=bin047; ib<bin097; ib++)
+          nbg += h_minv->GetBinContent(ib) / 2.;
+        for(Int_t ib=bin177; ib<bin227; ib++)
+          nbg += h_minv->GetBinContent(ib) / 2.;
         Double_t npion = nsig - nbg;
         Double_t enpion = sqrt(nsig + nbg);
 
