@@ -262,9 +262,9 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
        )
     {
       /* Analyze pi0s events for crosscheck */
-      FillPi0InvariantMass( "h3_inv_mass_pi0calib", data_emc_emlike );
-      FillPi0InvariantMass( "h3_inv_mass_pi0calib_notof", data_emc_emlike_notof );
-      FillPi0InvariantMass( "h3_inv_mass_pi0calib_raw", data_emc_raw_emlike_notof );
+      FillPi0InvariantMass( "hn_inv_mass_pi0calib", data_emc_emlike );
+      FillPi0InvariantMass( "hn_inv_mass_pi0calib_notof", data_emc_emlike_notof );
+      FillPi0InvariantMass( "hn_inv_mass_pi0calib_raw", data_emc_raw_emlike_notof );
       FillPi0InvariantMassMod( "hn_pi0",
 			       data_emc_emlike,
 			       data_global,
@@ -615,7 +615,7 @@ DirectPhotonPP::FillPi0InvariantMass( string histname,
                                       emcClusterContainer *data_emc )
 {
   /* retrieve all histograms used in this function */
-  TH3* h3_inv_mass_pi0calib = static_cast<TH3*>( _hm->getHisto(histname) );
+  THnSparse* hn_inv_mass_pi0calib = static_cast<THnSparse*>( _hm->getHisto(histname) );
 
   /* NEW method: Make all possible cluster combinations, avoid duplicate combinations */
   vector< unsigned int > v_used;
@@ -664,7 +664,8 @@ DirectPhotonPP::FillPi0InvariantMass( string histname,
                    */
                   if ( ( sector1 == sector2 ) )
                     {
-                      h3_inv_mass_pi0calib->Fill(sector1, tot_pT, invMass);
+		      double fill_hn_inv_mass_pi0calib[] = {sector1, tot_pT, invMass};
+                      hn_inv_mass_pi0calib->Fill( fill_hn_inv_mass_pi0calib );
                     } // check sector
                 } // check asymmetry
             } // loop cluster 2
