@@ -1,6 +1,6 @@
 Universe        = vanilla
 Notification    = Complete
-Executable      = anaRawYieldCmp.csh
+Executable      = anaPileup.csh
 Arguments       = $(Initialdir) $(Process)
 Requirements    = (CPU_Speed >= 1 && TotalDisk > 0)
 Rank		= CPU_Speed
@@ -9,10 +9,10 @@ Priority        = +20
 GetEnv          = False
 Initialdir      = /phenix/plhf/zji/github/phenix-directphotons-pp/AnaHistos
 Input           = /dev/null
-Output          = /phenix/scratch/zji/anaRawYieldCmp$(Process).out
-Error           = /phenix/scratch/zji/anaRawYieldCmp$(Process).err
-Log             = /phenix/scratch/zji/anaRawYieldCmp$(Process).log
+Output          = /dev/null
+Error           = /dev/null
+Log             = /dev/null
 Notify_user     = zji@rcf.rhic.bnl.gov
 +Experiment     = "phenix"
 +Job_Type       = "cas"
-Queue 45
+Queue 51
