@@ -23,8 +23,8 @@ void anaFillHisto(const int process=64)
   se->Verbosity(0);
 
   // Reconstruction Module
-  //SubsysReco *my1 = new FillHisto("FILLHISTO", Form("histo%d.root",process));
-  SubsysReco *my1 = new FillHistoMB("FILLHISTOMB", Form("histo%d.root",process));
+  SubsysReco *my1 = new FillHisto("FILLHISTO", Form("histo%d.root",process));
+  //my->SelectMB();
   se->registerSubsystem(my1);
 
   // Input Manager
@@ -32,13 +32,14 @@ void anaFillHisto(const int process=64)
   se->registerInputManager(in1);
 
   // Loop over input DST files
-  while( inFiles >> runNumber )
+  //while( inFiles >> runNumber )
   {
-    thread++;
-    if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
+    //thread++;
+    //if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    //sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode--%d.root", runNumber);
-    sprintf(dstFileName, "/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-%d.root", runNumber);
+    //sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/PhotonNode-%d.root", runNumber);
+    //sprintf(dstFileName, "/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/PhotonNode-%d.root", runNumber);
+    sprintf(dstFileName, "/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/AnalysisTrain/pat/macro/PhotonNode-ERT.root");
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DSTin1", dstFileName);

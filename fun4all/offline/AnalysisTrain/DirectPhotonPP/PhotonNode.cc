@@ -7,6 +7,7 @@
 #include "EmcLocalRecalibratorSasha.h"
 #include "PhotonContainer.h"
 #include "Photon.h"
+#include "PhotonERT.h"
 #include "SpinPattern.h"
 
 #include <RunHeader.h>
@@ -36,7 +37,7 @@
 
 using namespace std;
 
-const double PI = 3.1415927;
+const double PI = TMath::Pi();
 
 PhotonNode::PhotonNode(const string &name) :
   SubsysReco(name),
@@ -47,6 +48,8 @@ PhotonNode::PhotonNode(const string &name) :
   runnumber(0),
   fillnumber(0)
 {
+  datatype = ERT;
+
   // initialize array for tower status
   for(int isector=0; isector<8; isector++)
     for(int ibiny=0; ibiny<48; ibiny++)
@@ -113,6 +116,10 @@ int PhotonNode::Init(PHCompositeNode *topNode)
 
   // read EMCal recalibration file
   EMCRecalibSetup();
+
+  // read warnmap
+  ReadTowerStatus("Warnmap_Run13pp510.txt");
+  ReadSashaWarnmap("warn_all_run13pp500gev.dat");
 
   return EVENT_OK;
 }
@@ -193,23 +200,22 @@ int PhotonNode::process_event(PHCompositeNode *topNode)
   // get bbc info
   float bbc_z = data_global->getBbcZVertex();
   float bbc_t0 = data_global->getBbcTimeZero();
-  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
+  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
 
   // get crossing number
-  int crossing = data_triggerlvl1->get_lvl1_clock_cross();
+  //int crossing = data_triggerlvl1->get_lvl1_clock_cross();
 
   // get ert triger info
-  //const unsigned bit_4x4or = 0x000001C0;
   const unsigned bit_ppg = 0x70000000;
   unsigned lvl1_live = data_triggerlvl1->get_lvl1_triglive();
   unsigned lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
   if( (lvl1_live & bit_ppg) || (lvl1_scaled & bit_ppg) ) return DISCARDEVENT;
-  //if( !(lvl1_live & bit_4x4or) ) return DISCARDEVENT;
 
   // fill photon node
-  photoncont->set_bbc_z(bbc_z);
+  if( abs(bbc_z) < 10. )
+    photoncont->set_bbc10cm();
   photoncont->set_bbc_t0(bbc_t0);
-  photoncont->set_crossing(crossing);
+  //photoncont->set_crossing(crossing);
   photoncont->set_trigger(lvl1_live, lvl1_scaled);
 
   // Run local recalibration of EMCal cluster data
@@ -222,10 +228,9 @@ int PhotonNode::process_event(PHCompositeNode *topNode)
   {
     emcClusterContent *emccluster_raw = data_emccontainer_raw->getCluster(iclus);
     emcClusterContent *emccluster = data_emccontainer->getCluster(iclus);
-    if(
+    if( TestPhoton(emccluster,bbc_t0) &&
         ( GetStatus(emccluster) <= 10 ||
           GetStatusSasha(emccluster) == 0 )
-        && TestPhoton(emccluster,bbc_t0)
       )
     {
       int arm = emccluster->arm();
@@ -244,8 +249,8 @@ int PhotonNode::process_event(PHCompositeNode *topNode)
       //float theta_cv = anatools::GetTheta_CV(emccluster);
       //float cone_energy = GetTrackConeEnergy(data_tracks, emccluster, 0.5);
 
-      //Photon *photon = new Photon(towerid, x, y, z, ecore_raw, tofcorr_raw, theta_cv, cone_energy);
-      Photon *photon = new Photon(towerid, x, y, z, ecore_raw, tofcorr_raw, ecore);
+      Photon *photon = new Photon(towerid, x, y, z, ecore_raw, ecore, tofcorr_raw);
+      //PhotonERT *photonERT = new PhotonERT(towerid, x, y, z, ecore_raw, theta_cv, cone_energy);
       photon->set_trig(data_ert, emccluster);
       if(photon)
       {
@@ -269,6 +274,18 @@ int PhotonNode::End(PHCompositeNode *topNode)
   return EVENT_OK;
 }
 
+void PhotonNode::SelectMB()
+{
+  datatype = MB;
+  return;
+}
+
+void PhotonNode::SelectERT()
+{
+  datatype = ERT;
+  return;
+}
+
 void PhotonNode::EMCRecalibSetup()
 {
   TOAD *toad_loader = new TOAD("DirectPhotonPP");
@@ -284,9 +301,12 @@ void PhotonNode::EMCRecalibSetup()
   string _file_ecal_run = toad_loader->location("ecorr_run_run13pp500gev.txt");
   string _file_tcal = toad_loader->location("tcorr_run13pp500gev.txt");
 
-  emcrecalib_sasha->anaGetCorrCal( _file_ecal.c_str() );
-  emcrecalib_sasha->anaGetCorrCal_run( _file_ecal_run.c_str() );
-  emcrecalib_sasha->anaGetCorrTof( _file_tcal.c_str() );
+  if( datatype == ERT )
+  {
+    emcrecalib_sasha->anaGetCorrCal( _file_ecal.c_str() );
+    emcrecalib_sasha->anaGetCorrCal_run( _file_ecal_run.c_str() );
+    emcrecalib_sasha->anaGetCorrTof( _file_tcal.c_str() );
+  }
 
   delete toad_loader;
   return;
@@ -372,6 +392,16 @@ void PhotonNode::ReadSashaWarnmap(const string &filename)
   return;
 }
 
+bool PhotonNode::TestPhoton(const emcClusterContent *emccluster, float bbc_t0)
+{
+  if( emccluster->ecore() > 0.3 &&
+      //abs( emccluster->tofcorr() - bbc_t0 ) < 10. &&
+      emccluster->prob_photon() > 0.02 )
+    return true;
+  else
+    return false;
+}
+
 bool PhotonNode::DispCut(const emcClusterContent *emccluster)
 {
   int arm = emccluster->arm();
@@ -423,18 +453,6 @@ int PhotonNode::GetStatusSasha(const emcClusterContent *emccluster)
   int izpos = emccluster->izpos();
 
   return tower_status_sasha[sector][iypos][izpos];
-}
-
-
-bool PhotonNode::TestPhoton(const emcClusterContent *emccluster, float bbc_t0)
-{
-  if( emccluster->ecore() > 0.3 &&
-      //emccluster->tofcorr() - bbc_t0 > -10. &&
-      //emccluster->tofcorr() - bbc_t0 < 10. &&
-      emccluster->prob_photon() > 0.02 )
-    return true;
-  else
-    return false;
 }
 
 float PhotonNode::GetTrackConeEnergy(const PHCentralTrack *tracks, const emcClusterContent *cluster, double cone_angle)

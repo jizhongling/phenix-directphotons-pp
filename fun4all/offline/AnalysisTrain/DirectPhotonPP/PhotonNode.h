@@ -23,16 +23,25 @@ class PhotonNode: public SubsysReco
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
 
+    void SelectMB();
+    void SelectERT();
+
   protected:
     void EMCRecalibSetup();
     void ReadTowerStatus(const std::string &filename);
     void ReadSashaWarnmap(const std::string &filename);
+
+    bool TestPhoton(const emcClusterContent *emccluster, float bbc_t0);
     bool DispCut(const emcClusterContent *emccluster);
+
     int GetStatus(const emcClusterContent *emccluster);
     int GetStatusSasha(const emcClusterContent *emccluster);
-    bool TestPhoton(const emcClusterContent *emccluster, float bbc_t0);
     float GetTrackConeEnergy(const PHCentralTrack *tracks, const emcClusterContent *cluster, double cone_angle);
+
     void UpdateSpinPattern(SpinDBContent &spin_cont);
+
+    enum DataType {MB, ERT};
+    DataType datatype;
 
     EmcLocalRecalibrator *emcrecalib;
     EmcLocalRecalibratorSasha *emcrecalib_sasha;

@@ -12,7 +12,7 @@ void draw_Pi0_Sasha()
   ReadGraphErrors("Acceptance.root", 3, gx, Acceptance, eAcceptance);
 
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/AnalysisTrain/pat/macro/Pi0PP-num.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/AnalysisTrain/pat/macro/Pi0PP-ERT.root");
   TH1 *mchist[3][40];  // mchist[is][ip]
   for(Int_t is=0; is<3; is++)
     for(Int_t ip=0; ip<40; ip++)
@@ -20,15 +20,9 @@ void draw_Pi0_Sasha()
       sprintf(hname,"mc_s%d_bcc0_pt_%03d_tp",is,5*ip);
       mchist[is][ip] = (TH1*)f->Get(hname);
     }
-  //TH1 *h_photon[3];  // h_photon[is]
-  //for(Int_t is=0; is<3; is++)
-  //{
-  //  sprintf(hname,"h_photon_s%d",is);
-  //  h_photon[is] = (TH1*)f->Get(hname);
-  //}
 
-  Int_t bin110 = mchist[0][10]->GetXaxis()->FindBin(0.110);
-  Int_t bin160 = mchist[0][10]->GetXaxis()->FindBin(0.160);
+  Int_t bin110 = mchist[0][0]->GetXaxis()->FindBin(0.110);
+  Int_t bin160 = mchist[0][0]->GetXaxis()->FindBin(0.160);
 
   TH1 *h_minv[3][25];  // h_minv[is][ipt]
   for(Int_t is=0; is<3; is++)
@@ -72,7 +66,6 @@ void draw_Pi0_Sasha()
   for(Int_t part=0; part<3; part++)
   {
     gr = new TGraphErrors(30, gx, gy[part], 0, egy[part]);
-    //gr = new TGraphErrors(h_photon[part]);
     Glist->AddAtAndExpand(gr,12*trig+8+part);
     gr->SetName(Form("gr_%d",12*trig+8+part));
     gr->SetTitle("#pi^{0} yield");

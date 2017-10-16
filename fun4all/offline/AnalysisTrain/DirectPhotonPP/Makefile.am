@@ -20,8 +20,7 @@ AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib
 include_HEADERS = \
   PhotonContainer.h \
   Photon.h \
-  PhotonContainerMB.h \
-  PhotonMB.h \
+  PhotonERT.h \
   SpinPattern.h
 
 noinst_HEADERS = \
@@ -33,7 +32,6 @@ noinst_HEADERS = \
   EmcLocalRecalibratorSasha.h \
   DirectPhotonPP.h \
   PhotonNode.h \
-  PhotonNodeMB.h \
   DirectPhotonPPLinkDef.h
 
 libDirectPhotonPP_la_LIBADD = \
@@ -54,10 +52,8 @@ libDirectPhotonPP_la_SOURCES = \
   DirectPhotonPP.cc \
   PhotonContainer.cc \
   Photon.cc \
-  PhotonContainerMB.cc \
-  PhotonMB.cc \
+  PhotonERT.cc \
   PhotonNode.cc \
-  PhotonNodeMB.cc \
   SpinPattern.cc \
   DirectPhotonPP_Dict.C
 
@@ -70,10 +66,8 @@ DirectPhotonPP_Dict.C: \
   DirectPhotonPP.h \
   PhotonContainer.h \
   Photon.h \
+  PhotonERT.h \
   PhotonNode.h \
-  PhotonContainerMB.h \
-  PhotonMB.h \
-  PhotonNodeMB.h \
   SpinPattern.h \
   DirectPhotonPPLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^

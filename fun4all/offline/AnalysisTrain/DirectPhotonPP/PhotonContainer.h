@@ -3,6 +3,7 @@
 
 #include "Photon.h"
 #include <PHObject.h>
+
 #include <vector>
 
 class PhotonContainer: public PHObject
@@ -16,9 +17,9 @@ class PhotonContainer: public PHObject
     unsigned Size() const { return photon_list.size(); }
     void Reset(); 
 
-    float get_bbc_z() const { return bbc_z; }
+    bool get_bbc10cm() const { return bbc10cm; }
     float get_bbc_t0() const { return bbc_t0; }
-    short get_crossing() const { return crossing; }
+    //short get_crossing() const { return crossing; }
     bool get_ert_a_live() const { return ( trig & 0x0001 ); }
     bool get_ert_b_live() const { return ( trig & 0x0002 ); }
     bool get_ert_c_live() const { return ( trig & 0x0004 ); }
@@ -32,17 +33,17 @@ class PhotonContainer: public PHObject
     bool get_bbcwide_scaled() const { return ( trig & 0x2000 ); }
     bool get_bbcnarrow_scaled() const { return ( trig & 0x4000 ); }
 
-    void set_bbc_z(float a_bbc_z) { bbc_z = a_bbc_z; }
+    void set_bbc10cm() { bbc10cm = true; }
     void set_bbc_t0(float a_bbc_t0) { bbc_t0 = a_bbc_t0; }
-    void set_crossing(short a_crossing) { crossing = a_crossing; }
+    //void set_crossing(short a_crossing) { crossing = a_crossing; }
     void set_trigger(unsigned lvl1_live, unsigned lvl1_scaled);
     
   protected:
     std::vector<Photon> photon_list;
 
-    float bbc_z;
+    bool bbc10cm;
     float bbc_t0;
-    short crossing;
+    //short crossing;
     unsigned short trig;
 
     ClassDef(PhotonContainer, 1)

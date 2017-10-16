@@ -5,6 +5,7 @@
 
 #include <PhotonContainer.h>
 #include <Photon.h>
+#include <PhotonERT.h>
 
 #include <phool.h>
 
@@ -23,6 +24,8 @@ EmcLocalRecalibrator::EmcLocalRecalibrator() :
   _file_tofmap(""),
   _file_energycalibration("")
 {
+  datatype = ERT;
+
   for(int i=0;i<8;i++)
   {
     _energycalibration[i] = 0;
@@ -40,6 +43,18 @@ EmcLocalRecalibrator::EmcLocalRecalibrator() :
   /* Define function for removing pT dependance on PbSc */
   _pbsc_recor_func = new TF1("pbsc_recor_func", "6.528*sqrt(x-0.7062)-4.786-1.014*x+0.007968*x**2", 0.01, 100);
 
+}
+
+void EmcLocalRecalibrator::SelectMB()
+{
+  datatype = MB;
+  return;
+}
+
+void EmcLocalRecalibrator::SelectERT()
+{
+  datatype = ERT;
+  return;
 }
 
 void EmcLocalRecalibrator::ApplyClusterCorrection( PhotonContainer *photoncont )
@@ -84,8 +99,8 @@ double EmcLocalRecalibrator::GetCorrectedTof(const Photon *photon)
 
   double tofcorrection = _tofmap[towerid];
 
-  // remove pT depence for PbSc
-  if ( sector < 6 )
+  // remove pT depence for PbSc in ERT sample
+  if ( datatype == ERT && sector < 6 )
   {
     double pT = anatools::Get_pT(photon);
     tofcorrection += _pbsc_recor_func->Eval(pT);
