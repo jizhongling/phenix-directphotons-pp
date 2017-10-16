@@ -10,7 +10,7 @@ void draw_RawYieldCmp()
   for(Int_t part=0; part<3; part++)
   {
     gr[part]->SetTitle("Raw yield ratio");
-    aset(gr[part], "Runnumber","#frac{Mine}{Sasha}", 387000,398200, 0.,5.);
+    aset(gr[part], "Runnumber","#frac{Mine}{Sasha}", 387000,398200, 0.,2.);
     style(gr[part], 20+part, 1+part);
     if(part==0)
       gr[part]->Draw("AP");

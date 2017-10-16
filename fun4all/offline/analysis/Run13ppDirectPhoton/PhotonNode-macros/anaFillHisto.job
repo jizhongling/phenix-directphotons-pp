@@ -9,10 +9,10 @@ Priority        = +20
 GetEnv          = False
 Initialdir      = /phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros
 Input           = /dev/null
-Output          = /phenix/scratch/zji/anaFillHisto$(Process).out
-Error           = /phenix/scratch/zji/anaFillHisto$(Process).err
-Log             = /phenix/scratch/zji/anaFillHisto$(Process).log
+Output          = /dev/null
+Error           = /dev/null
+Log             = /dev/null
 Notify_user     = zji@rcf.rhic.bnl.gov
 +Experiment     = "phenix"
 +Job_Type       = "cas"
-Queue 88
+Queue 102
