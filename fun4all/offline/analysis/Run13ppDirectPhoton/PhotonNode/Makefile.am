@@ -16,9 +16,6 @@ noinst_HEADERS = \
   EmcLocalRecalibrator.h \
   EmcLocalRecalibratorSasha.h \
   PhotonContainerClone.h \
-  FillHistoMB.h \
-  EmcLocalRecalibratorMB.h \
-  PhotonContainerCloneMB.h \
   AnaToolsTowerID.h \
   AnaToolsPhoton.h \
   PhotonNodeLinkDef.h
@@ -27,10 +24,7 @@ libPhotonNode_la_SOURCES = \
   FillHisto.C \
   EmcLocalRecalibrator.C \
   EmcLocalRecalibratorSasha.C \
-  PhotonContainerClone.C \
-  FillHistoMB.C \
-  EmcLocalRecalibratorMB.C \
-  PhotonContainerCloneMB.C
+  PhotonContainerClone.C
 
 nodist_libPhotonNode_la_SOURCES = \
   PhotonNode_Dict.C
@@ -58,9 +52,6 @@ PhotonNode_Dict.C: \
   EmcLocalRecalibrator.h \
   EmcLocalRecalibratorSasha.h \
   PhotonContainerClone.h \
-  FillHistoMB.h \
-  EmcLocalRecalibratorMB.h \
-  PhotonContainerCloneMB.h \
   PhotonNodeLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 

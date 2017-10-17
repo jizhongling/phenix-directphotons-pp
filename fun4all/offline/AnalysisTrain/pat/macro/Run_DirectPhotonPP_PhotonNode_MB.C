@@ -1,18 +1,21 @@
-void Run_DirectPhotonPP_PhotonNodeMB(const char *filename = "TREE.root")
+// .x RunMyMacro.C("Run_DirectPhotonPP_PhotonNode_MB.C","num.root",1000,"Run13pp510MB_Fast")
+
+void Run_DirectPhotonPP_PhotonNode_MB(const char *filename = "num.root")
 {
   gSystem->Load("libDirectPhotonPP.so");
 
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(0);
 
-  PhotonNodeMB *my1 = new PhotonNodeMB("PHOTONNODEMB");
+  PhotonNode *my1 = new PhotonNode("PHOTONNODE");
+  my1->SelectMB();
   se->registerSubsystem(my1);
 
-  string outFile = "DirectPhotonPP_PhotonNode-";
+  string outFile = "PhotonNode-";
   outFile.append(filename);
   Fun4AllOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outFile.c_str());
-  out->AddEventSelector("PHOTONNODEMB");
-  out->AddNode("PhotonContainerMB");
+  out->AddEventSelector("PHOTONNODE");
+  out->AddNode("PhotonContainer");
   se->registerOutputManager(out);
 }
 

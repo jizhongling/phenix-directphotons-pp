@@ -2,6 +2,7 @@
 
 #include <PhotonContainer.h>
 #include <Photon.h>
+#include <PhotonERT.h>
 
 #include <cmath>
 
@@ -9,9 +10,11 @@ using namespace std;
 
 EmcLocalRecalibratorSasha::EmcLocalRecalibratorSasha()
 {
-  for( int i=0; i<NMAXTWR; i++ ) {
+  for( int i=0; i<NMAXTWR; i++ )
+  {
     fCorrTof[i]=0.;
-  } }
+  }
+}
 
 void EmcLocalRecalibratorSasha::ApplyClusterCorrection( const int runno, PhotonContainer *photoncont )
 {

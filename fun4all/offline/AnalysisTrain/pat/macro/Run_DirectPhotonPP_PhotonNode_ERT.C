@@ -1,4 +1,6 @@
-void Run_DirectPhotonPP_PhotonNode(const char *filename = "TREE.root")
+// .x RunMyMacro.C("Run_DirectPhotonPP_PhotonNode_ERT.C","num.root",1000,"Run13pp510ERT_Fast")
+
+void Run_DirectPhotonPP_PhotonNode_ERT(const char *filename = "num.root")
 {
   gSystem->Load("libDirectPhotonPP.so");
 
@@ -6,9 +8,10 @@ void Run_DirectPhotonPP_PhotonNode(const char *filename = "TREE.root")
   se->Verbosity(0);
 
   PhotonNode *my1 = new PhotonNode("PHOTONNODE");
+  my1->SelectERT();
   se->registerSubsystem(my1);
 
-  string outFile = "DirectPhotonPP_PhotonNode-";
+  string outFile = "PhotonNode-";
   outFile.append(filename);
   Fun4AllOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", outFile.c_str());
   out->AddEventSelector("PHOTONNODE");

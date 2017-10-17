@@ -56,6 +56,9 @@ class EmcLocalRecalibrator
       _file_tofmap = a_tofmapfile;
     }
 
+    void SelectMB();
+    void SelectERT();
+
   protected:
     /**
      * Get energy corrected for non-linearity and run-by-run calibration for each sector
@@ -66,6 +69,9 @@ class EmcLocalRecalibrator
      * Get TOF corrected for tower-by-tower calibration
      */
     double GetCorrectedTof( const Photon *photon );
+
+    enum DataType {MB, ERT};
+    DataType datatype;
 
     std::string _file_tofmap;
     std::string _file_energycalibration;
