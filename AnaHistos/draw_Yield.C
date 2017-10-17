@@ -1,11 +1,10 @@
-void GenerateGraph(TFile *f, TObjArray *Glist, Int_t trig, Int_t part)
+void GenerateGraph(TFile *f, TObjArray *Glist, Int_t part)
 {
-  cout << "\npart " << part << endl;
-  Double_t gx[30], gy[30], egy[30];
+  enum DataType {MB, ERT};
+  const DataType datatype = ERT;
 
-  Double_t BR[30], MissR[30], Acceptance[30], Smear[30], TrigE[30], Merge[30];
-  Double_t eBR[30], eMissR[30], eAcceptance[30], eSmear[30], eTrigE[30], eMerge[30];
-
+  Double_t gx[30], gy[30] = {}, egy[30] = {};
+  Double_t Acceptance[30], eAcceptance[30];
   ReadGraphErrors("Acceptance.root", 3+part, gx, Acceptance, eAcceptance);
 
   const Double_t PI = TMath::Pi();
@@ -13,13 +12,19 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t trig, Int_t part)
   const Int_t sec_high[3] = {4, 6, 8};
 
   THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
+  if( datatype == MB )
+    hn_pion->GetAxis(3)->SetRange(2,2);
 
   TAxis *axis_sec = hn_pion->GetAxis(0);
   TAxis *axis_pt = hn_pion->GetAxis(1);
   TAxis *axis_minv = hn_pion->GetAxis(2);
 
-  Int_t bin110 = axis_minv->FindBin(0.110);
-  Int_t bin160 = axis_minv->FindBin(0.160);
+  Int_t bin047 = axis_minv->FindBin(0.047);
+  Int_t bin097 = axis_minv->FindBin(0.097);
+  Int_t bin112 = axis_minv->FindBin(0.112);
+  Int_t bin162 = axis_minv->FindBin(0.162);
+  Int_t bin177 = axis_minv->FindBin(0.177);
+  Int_t bin227 = axis_minv->FindBin(0.227);
 
   for(Int_t ipt=2; ipt<21; ipt++)
   {
@@ -33,9 +38,7 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t trig, Int_t part)
     TH1 *h_minv = hn_pion->Projection(2);
     h_minv->SetTitle(title);
 
-    Double_t npi0 = 0.;
-    for(Int_t ib=bin110; ib<bin160; ib++)
-      npi0 += h_minv->GetBinContent(ib);
+    Double_t npi0 = h_minv->Integral(bin112,bin162) - ( h_minv->Integral(bin047,bin097) + h_minv->Integral(bin177,bin227) ) / 2.;
     gy[ipt] = npi0;
     egy[ipt] = sqrt(npi0);
 
@@ -43,8 +46,8 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t trig, Int_t part)
   }
 
   TGraphErrors *gr = new TGraphErrors(30, gx, gy, 0, egy);
-  Glist->AddAtAndExpand(gr,12*trig+8+part);
-  gr->SetName(Form("gr_%d",12*trig+8+part));
+  Glist->AddAtAndExpand(gr,part);
+  gr->SetName(Form("gr_%d",part));
   gr->SetTitle("#pi^{0} yield");
 
   return;
@@ -55,34 +58,31 @@ void draw_Yield()
   gROOT->ProcessLine(".L ReadGraph.C");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/PhotonNode-histo0.root");
-  //TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/AnalysisTrain/pat/macro/DirectPhotonPP-num.root");
   TObjArray *Glist = new TObjArray();
-  const Int_t trig = 2;
 
   for(Int_t part=0; part<3; part++)
-    GenerateGraph(f, Glist, trig, part);
+    GenerateGraph(f, Glist, part);
 
   mc();
   mcd();
   legi(0, 0.4,0.7,0.7,0.9);
   const char *legname[3] = {"PbScW", "PbScE", "PbGlE"};
-  TGraphErrors *gr[3];
   for(Int_t part=0; part<3; part++)
   {
-    gr[part] = (TGraphErrors*)Glist->At(12*trig+8+part);
-    aset(gr[part], "p_{T} [GeV]","Yield", 0.,20., 1.,1e5);
+    TGraphErrors *gr = (TGraphErrors*)Glist->At(part);
+    aset(gr, "p_{T} [GeV]","Yield", 0.,20., 1.,1e5);
     gPad->SetLogy();
-    style(gr[part], part+20, part+1);
-    leg0->AddEntry(gr[part], legname[part], "P");
+    style(gr, part+20, part+1);
+    leg0->AddEntry(gr, legname[part], "P");
     if(part == 0)
-      gr[part]->Draw("AP");
+      gr->Draw("AP");
     else
-      gr[part]->Draw("P");
+      gr->Draw("P");
   }
   leg0->Draw();
-  c0->Print(Form("Yield-ert%c.pdf",97+trig));
+  c0->Print("Yield.pdf");
 
-  TFile *fout = new TFile(Form("Yield-ert%c.root",97+trig), "RECREATE");
+  TFile *fout = new TFile("Yield.root", "RECREATE");
   Glist->Write();
   fout->Close();
 }
