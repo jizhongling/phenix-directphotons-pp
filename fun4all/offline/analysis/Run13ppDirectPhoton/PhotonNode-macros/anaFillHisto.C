@@ -32,10 +32,11 @@ void anaFillHisto(const int process=64)
   se->registerInputManager(in1);
 
   // Loop over input DST files
-  while( inFiles >> runNumber )
+  //while( inFiles >> runNumber )
+  runNumber = 386881;
   {
-    thread++;
-    if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
+    //thread++;
+    //if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
     //sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/12084/data/PhotonNode-%d.root", runNumber);
     sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510MinBias/12085/data/PhotonNode-%d.root", runNumber);

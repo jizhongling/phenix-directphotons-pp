@@ -474,10 +474,9 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
   h_events->Fill(1.);
 
   /* Check trigger */
-  if( datatype == ERT &&
-      ( !photoncont->get_ert_c_scaled() || !photoncont->get_bbcnarrow_live() )
-    )
-    return DISCARDEVENT;
+  if( datatype == ERT )
+    if( !photoncont->get_ert_c_scaled() || !photoncont->get_bbcnarrow_live() )
+      return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
 
@@ -612,28 +611,25 @@ int FillHisto::FillPileup(const PhotonContainer *photoncont)
           double tot_pT = anatools::GetTot_pT(photon1, photon2);
           double minv = anatools::GetInvMass(photon1, photon2);
 
-          if( TestPhoton(photon1, bbc_t0) &&
-              TestPhoton(photon2, bbc_t0) )
-          {
-            if(tot_pT>2.)
-            {
-              if(minv>0.112 && minv<0.162)
-                npions_sig[sector/6]++;
-              else if( (minv>0.047 && minv<0.097) || (minv>0.177 && minv<0.227) )
-                npions_bg[sector/6]++;
-            }
-          }
-
           if(tot_pT>2.)
           {
             if(minv>0.112 && minv<0.162)
               npions_sig_notof[sector/6]++;
             else if( (minv>0.047 && minv<0.097) || (minv>0.177 && minv<0.227) )
               npions_bg_notof[sector/6]++;
-          }
-        }
-      }
-  }
+
+            if( TestPhoton(photon1, bbc_t0) &&
+                TestPhoton(photon2, bbc_t0) )
+            {
+              if(minv>0.112 && minv<0.162)
+                npions_sig[sector/6]++;
+              else if( (minv>0.047 && minv<0.097) || (minv>0.177 && minv<0.227) )
+                npions_bg[sector/6]++;
+            } // TestPhoton
+          } // tot_pt > 2.
+        } // GetStatus
+      } // loop of second photon
+  } // loop of first photon
 
   return EVENT_OK;
 }
@@ -681,17 +677,17 @@ int FillHisto::EndRun(const int runnumber)
 
   irun++;
 
-  //char name[100];
-  //sprintf(name, "histos/PhotonNode-%d.root", runnumber);
-  //hm->dumpHistos(name);
-  //hn_pion->Reset();
+  char name[100];
+  sprintf(name, "histos/PhotonNode-%d.root", runnumber);
+  hm->dumpHistos(name);
+  hn_pion->Reset();
 
   return EVENT_OK;
 }
 
 int FillHisto::End(PHCompositeNode *topNode)
 {
-  hm->dumpHistos(outFileName);
+  //hm->dumpHistos(outFileName);
   delete hm;
   delete emcrecalib;
   delete emcrecalib_sasha;

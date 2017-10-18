@@ -1,7 +1,7 @@
 void GenerateGraph(TFile *f, TObjArray *Glist, Int_t part)
 {
   enum DataType {MB, ERT};
-  const DataType datatype = ERT;
+  const DataType datatype = MB;
 
   Double_t gx[30], gy[30] = {}, egy[30] = {};
   Double_t Acceptance[30], eAcceptance[30];

@@ -8,7 +8,7 @@ void draw_Pileup()
 
   for(Int_t i=0; i<45; i++)
   {
-    TFile *f = new TFile(Form("pileup/Sasha-%d.root",i));
+    TFile *f = new TFile(Form("pileup/Mine-%d.root",i));
     if(f->IsZombie()) continue;
 
     for(Int_t img=0; img<4; img++)
@@ -30,7 +30,7 @@ void draw_Pileup()
   }
   //mg[0]->GetYaxis()->SetRangeUser(0., 4.5e-3);  // Do not use SetLimits()
   //mg[1]->GetYaxis()->SetRangeUser(0., 0.5e-3);  // Do not use SetLimits()
-  mg[2]->GetYaxis()->SetRangeUser(0., 0.8e-3);  // Do not use SetLimits()
-  mg[3]->GetYaxis()->SetRangeUser(0., 0.8e-3);  // Do not use SetLimits()
-  c0->Print("Pileup-Sasha.pdf");
+  //mg[2]->GetYaxis()->SetRangeUser(0., 0.8e-3);  // Do not use SetLimits()
+  //mg[3]->GetYaxis()->SetRangeUser(0., 0.8e-3);  // Do not use SetLimits()
+  c0->Print("Pileup.pdf");
 }

@@ -44,7 +44,7 @@ void anaPileup(const Int_t process = 0)
 
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
-    ULong64_t scaledown = GetBBCNarrowScaledown(runnumber) + 1; 
+    ULong64_t scaledown = GetBBCNovtxScaledown(runnumber) + 1; 
 
     for(Int_t ic=0; ic<2; ic++)
       for(Int_t is=0; is<2; is++)
@@ -94,8 +94,8 @@ void anaPileup(const Int_t process = 0)
           nbg += h_minv->GetBinContent(ib) / 2.;
         for(Int_t ib=bin177; ib<bin227; ib++)
           nbg += h_minv->GetBinContent(ib) / 2.;
-        Double_t npion = nsig - nbg;
-        Double_t enpion = sqrt(nsig + nbg);
+        Double_t npion = nsig*2. - nbg*2.;
+        Double_t enpion = sqrt(nsig*2. + nbg*2.);
 
         Double_t xx = (Double_t)nmb/(Double_t)nclock;
         Double_t yy = npion * (Double_t)scaledown / (Double_t)nmb;
