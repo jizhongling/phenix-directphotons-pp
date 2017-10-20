@@ -677,17 +677,17 @@ int FillHisto::EndRun(const int runnumber)
 
   irun++;
 
-  char name[100];
-  sprintf(name, "histos/PhotonNode-%d.root", runnumber);
-  hm->dumpHistos(name);
-  hn_pion->Reset();
+  //char name[100];
+  //sprintf(name, "histos/PhotonNode-%d.root", runnumber);
+  //hm->dumpHistos(name);
+  //hn_pion->Reset();
 
   return EVENT_OK;
 }
 
 int FillHisto::End(PHCompositeNode *topNode)
 {
-  //hm->dumpHistos(outFileName);
+  hm->dumpHistos(outFileName);
   delete hm;
   delete emcrecalib;
   delete emcrecalib_sasha;
@@ -949,8 +949,7 @@ void FillHisto::EMCRecalibSetup()
 
   string _file_tcal = toad_loader->location("tcorr_run13pp500gev.txt");
 
-  if( datatype == ERT )
-    emcrecalib_sasha->anaGetCorrTof( _file_tcal.c_str() );
+  emcrecalib_sasha->anaGetCorrTof( _file_tcal.c_str() );
 
   delete toad_loader;
   return;
