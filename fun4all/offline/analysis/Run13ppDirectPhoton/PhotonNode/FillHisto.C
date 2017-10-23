@@ -57,16 +57,8 @@ FillHisto::FillHisto(const string &name, const char *filename) :
   hn_2photon(NULL),
   hn_pion(NULL),
   hn_asym(NULL),
-  hn_minv(NULL),
-  g_pileup_PbSc(NULL),
-  g_pileup_PbGl(NULL),
-  g_pileup_PbSc_notof(NULL),
-  g_pileup_PbGl_notof(NULL)
+  hn_minv(NULL)
 {
-  // set output file name
-  outFileName = "histos/PhotonNode-";
-  outFileName.append(filename);
-
   datatype = ERT;
 
   // initialize array for tower status
@@ -74,24 +66,6 @@ FillHisto::FillHisto(const string &name, const char *filename) :
     for(int ibiny=0; ibiny<48; ibiny++)
       for(int ibinz=0; ibinz<96; ibinz++)
         tower_status[isector][ibiny][ibinz] = 9999;
-
-  irun = 0;  // label the point for TGraph
-  runtime = -9999.;
-  nmb = 0;  // number of MinBias data
-
-  // initialize the CLOCK live and BBC narrow live counts
-  for(int i=0; i<6; i++)
-    for(int j=0; j<1020; j++)
-      n_clock_bbc[i][j] = 0;
-
-  // initialize number of pion signal and background
-  for(int i=0; i<2; i++)
-  {
-    npions_sig[i] = 0;
-    npions_bg[i] = 0;
-    npions_sig_notof[i] = 0;
-    npions_bg_notof[i] = 0;
-  }
 
   // initialize crossing shift and spin pattern
   crossing_shift = 0;
@@ -129,9 +103,6 @@ int FillHisto::Init(PHCompositeNode *topNode)
   // read EMCal recalibration file
   EMCRecalibSetup();
 
-  // read CLOCK counts file
-  ReadClockCounts("clock-counts.root");
-
   // read warnmap
   //ReadTowerStatus("Warnmap_Run13pp510.txt");
   ReadSashaWarnmap("warn_all_run13pp500gev.dat");
@@ -161,22 +132,10 @@ int FillHisto::InitRun(PHCompositeNode *topNode)
   crossing_shift = spinpat->get_crossing_shift();
 
   // number of MinBias and spin pattern for each run
-  nmb = GetBBCNarrowLive(runnumber);
-  //nmb = 0;
   for(int i=0; i<120; i++)
   {
-    //nmb += spinpat->get_bbc_wide(i);
     spinpattern_blue[i] = spinpat->get_spinpattern_blue(i);
     spinpattern_yellow[i] = spinpat->get_spinpattern_yellow(i);
-  }
-
-  // number of pion signal and background in each run
-  for(int i=0; i<2; i++)
-  {
-    npions_sig[i] = 0;
-    npions_bg[i] = 0;
-    npions_sig_notof[i] = 0;
-    npions_bg_notof[i] = 0;
   }
 
   // load EMCal recalibrations for run and fill
@@ -219,10 +178,6 @@ int FillHisto::process_event(PHCompositeNode *topNode)
 
   // Analyze photon pair for pi0 event
   FillPi0Spectrum( photoncont );
-
-  // Count events to calculate pile up for MB sample
-  if( datatype == MB )
-    FillPileup( photoncont );
 
   delete photoncont_raw;
 
@@ -412,7 +367,7 @@ int FillHisto::FillSinglePhotonSpectrum( const PhotonContainer *photoncont )
       double mom = pE.P(); 
 
       double eta = mom > 0. ? atan(pz/mom) : 9999.;
-      double phi = px > 0. ? atan(py/px) : 3.1416+atan(py/px);
+      double phi = px > 0. ? atan(py/px) : PI+atan(py/px);
 
       double fill_hn_1photon[] = {sector, pT, pattern, eta, phi};
       hn_1photon->Fill(fill_hn_1photon);
@@ -471,12 +426,21 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
     return DISCARDEVENT;
   double bbc_t0 = photoncont->get_bbc_t0();
 
-  h_events->Fill(1.);
-
   /* Check trigger */
   if( datatype == ERT )
-    if( !photoncont->get_ert_c_scaled() || !photoncont->get_bbcnarrow_live() )
+  {
+    if( photoncont->get_ert_c_scaled() && photoncont->get_bbcnarrow_live() )
+      h_events->Fill(1.);
+    else
       return DISCARDEVENT;
+  }
+  else if( datatype == MB )
+  {
+    if( photoncont->get_bbcnovtx_scaled() )
+      h_events->Fill(1.);
+    else
+      return DISCARDEVENT;
+  }
 
   unsigned nphotons = photoncont->Size();
 
@@ -512,63 +476,28 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
           TLorentzVector pE1 = anatools::Get_pE(photon1);
           TLorentzVector pE2 = anatools::Get_pE(photon2);
           TLorentzVector tot_pE =  pE1 + pE2;
-          double tot_px = tot_pE.Px();
-          double tot_py = tot_pE.Py();
-          double tot_pz = tot_pE.Pz();
           double tot_pT = tot_pE.Pt();
-          double tot_mom = tot_pE.P();
           double minv = tot_pE.M();
 
-          if( datatype == ERT )
+          double fill_hn_pion_0[] = {sector, tot_pT, minv, 0.};
+          hn_pion->Fill(fill_hn_pion_0);
+          if( TestPhoton(photon1, bbc_t0) &&
+              TestPhoton(photon2, bbc_t0) )
           {
-            if( TestPhoton(photon1, bbc_t0) &&
-                TestPhoton(photon2, bbc_t0) )
-            {
-              double eta = tot_mom > 0. ? atan(tot_pz/tot_mom) : 9999.;
-              double phi = tot_px > 0. ? atan(tot_py/tot_px) : PI+atan(tot_py/tot_px);
-              double fill_hn_pion[] = {sector, tot_pT, minv, eta, phi};
-              hn_pion->Fill(fill_hn_pion);
+            double fill_hn_pion_1[] = {sector, tot_pT, minv, 1.};
+            hn_pion->Fill(fill_hn_pion_1);
 
-              double dx = photon1->get_x() - photon2->get_x();
-              double dy = photon1->get_y() - photon2->get_y();
-              double dz = photon1->get_z() - photon2->get_z();
-              double dR = sqrt(dx*dx + dy*dy + dz*dz);
-              double fill_hn_asym[] = {sector, tot_pT, asym, dR, minv};
-              hn_asym->Fill(fill_hn_asym);
+            double dx = photon1->get_x() - photon2->get_x();
+            double dy = photon1->get_y() - photon2->get_y();
+            double dz = photon1->get_z() - photon2->get_z();
+            double dR = sqrt(dx*dx + dy*dy + dz*dz);
+            double fill_hn_asym[] = {sector, tot_pT, asym, dR, minv};
+            hn_asym->Fill(fill_hn_asym);
 
-              double angle = sqrt( 1. - cos( pE1.Angle(pE2.Vect()) ) );
-              double fill_hn_minv[] = {sector, tot_pT, pE1.E(), pE2.E(), angle};
-              hn_minv->Fill(fill_hn_minv);
-            }
-          }
-
-          else if( datatype == MB )
-          {
-            /* Check trigger */
-            if( photoncont->get_bbcnovtx_scaled() )
-            {
-              double fill_hn_pion_0[] = {sector, tot_pT, minv, 0.};
-              hn_pion->Fill(fill_hn_pion_0);
-              if( TestPhoton(photon1, bbc_t0) &&
-                  TestPhoton(photon2, bbc_t0) )
-              {
-                double fill_hn_pion_1[] = {sector, tot_pT, minv, 1.};
-                hn_pion->Fill(fill_hn_pion_1);
-              }
-            }
-
-            if( photoncont->get_bbcnarrow_scaled() )
-            {
-              double fill_hn_pion_2[] = {sector, tot_pT, minv, 2.};
-              hn_pion->Fill(fill_hn_pion_2);
-              if( TestPhoton(photon1, bbc_t0) &&
-                  TestPhoton(photon2, bbc_t0) )
-              {
-                double fill_hn_pion_3[] = {sector, tot_pT, minv, 3.};
-                hn_pion->Fill(fill_hn_pion_3);
-              }
-            }
-          } // datatype == MB
+            double angle = sqrt( 1. - cos( pE1.Angle(pE2.Vect()) ) );
+            double fill_hn_minv[] = {sector, tot_pT, pE1.E(), pE2.E(), angle};
+            hn_minv->Fill(fill_hn_minv);
+          } // TestPhoton
         } // GetStatus and asymmetry cut
       } // second cluster loop
   } // first cluster loop
@@ -576,118 +505,20 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
   return EVENT_OK;
 }
 
-int FillHisto::FillPileup(const PhotonContainer *photoncont)
-{
-  /* Get event global parameters */
-  if( !photoncont->get_bbc10cm() )
-    return DISCARDEVENT;
-  double bbc_t0 = photoncont->get_bbc_t0();
-
-  if( !photoncont->get_bbcnarrow_scaled() )
-    return DISCARDEVENT;
-
-  unsigned nphotons = photoncont->Size();
-
-  vector<unsigned> v_used;
-
-  for(unsigned i=0; i<nphotons; i++)
-  {
-    v_used.push_back(i);
-    for(unsigned j=0; j<nphotons; j++)
-      if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
-      {
-        Photon *photon1 = photoncont->GetPhoton(i);
-        Photon *photon2 = photoncont->GetPhoton(j);
-        if( GetStatus(photon1) == 0 &&
-            GetStatus(photon2) == 0 && 
-            anatools::GetAsymmetry_E(photon1, photon2) < AsymCut )
-        {
-          int sector1 = anatools::GetSector(photon1);
-          int sector2 = anatools::GetSector(photon2);
-          //if( sector1 != sector2 ) continue;
-          if( !anatools::SectorCheck(sector1,sector2) ) continue;
-
-          int sector = sector1;
-          double tot_pT = anatools::GetTot_pT(photon1, photon2);
-          double minv = anatools::GetInvMass(photon1, photon2);
-
-          if(tot_pT>2.)
-          {
-            if(minv>0.112 && minv<0.162)
-              npions_sig_notof[sector/6]++;
-            else if( (minv>0.047 && minv<0.097) || (minv>0.177 && minv<0.227) )
-              npions_bg_notof[sector/6]++;
-
-            if( TestPhoton(photon1, bbc_t0) &&
-                TestPhoton(photon2, bbc_t0) )
-            {
-              if(minv>0.112 && minv<0.162)
-                npions_sig[sector/6]++;
-              else if( (minv>0.047 && minv<0.097) || (minv>0.177 && minv<0.227) )
-                npions_bg[sector/6]++;
-            } // TestPhoton
-          } // tot_pt > 2.
-        } // GetStatus
-      } // loop of second photon
-  } // loop of first photon
-
-  return EVENT_OK;
-}
-
 int FillHisto::EndRun(const int runnumber)
 {
-  if( datatype != MB )
-    return EVENT_OK;
-
-  unsigned long long nclock = GetClockLive(runnumber);
-  unsigned long scaledown = GetBBCNarrowScaledown(runnumber) + 1;
-  //double nclock = 9.6e6 * runtime;
-  if(nclock == 0 || nmb == 0)
-    return DISCARDEVENT;
-
-  double npions_PbSc = npions_sig[0] - npions_bg[0]/2;
-  double npions_PbGl = npions_sig[1] - npions_bg[1]/2;
-  double enpions_PbSc = sqrt( npions_sig[0] + npions_bg[0]/2 );
-  double enpions_PbGl = sqrt( npions_sig[1] + npions_bg[1]/2 );
-
-  npions_PbSc *= (double)scaledown;
-  npions_PbGl *= (double)scaledown;
-  enpions_PbSc *= (double)scaledown;
-  enpions_PbGl *= (double)scaledown;
-
-  g_pileup_PbSc->SetPoint(irun, (double)nmb/(double)nclock, npions_PbSc/(double)nmb);
-  g_pileup_PbSc->SetPointError(irun, 0., enpions_PbSc/(double)nmb);
-  g_pileup_PbGl->SetPoint(irun, (double)nmb/(double)nclock, npions_PbGl/(double)nmb);
-  g_pileup_PbGl->SetPointError(irun, 0., enpions_PbGl/(double)nmb);
-
-  double npions_PbSc_notof = npions_sig_notof[0] - npions_bg_notof[0]/2;
-  double npions_PbGl_notof = npions_sig_notof[1] - npions_bg_notof[1]/2;
-  double enpions_PbSc_notof = sqrt( npions_sig_notof[0] + npions_bg_notof[0]/2 );
-  double enpions_PbGl_notof = sqrt( npions_sig_notof[1] + npions_bg_notof[1]/2 );
-
-  npions_PbSc_notof *= (double)scaledown;
-  npions_PbGl_notof *= (double)scaledown;
-  enpions_PbSc_notof  *= (double)scaledown;
-  enpions_PbGl_notof  *= (double)scaledown;
-
-  g_pileup_PbSc_notof->SetPoint(irun, (double)nmb/(double)nclock, npions_PbSc_notof/(double)nmb);
-  g_pileup_PbSc_notof->SetPointError(irun, 0., enpions_PbSc_notof/(double)nmb);
-  g_pileup_PbGl_notof->SetPoint(irun, (double)nmb/(double)nclock, npions_PbGl_notof/(double)nmb);
-  g_pileup_PbGl_notof->SetPointError(irun, 0., enpions_PbGl_notof/(double)nmb);
-
-  irun++;
-
-  //char name[100];
-  //sprintf(name, "histos/PhotonNode-%d.root", runnumber);
-  //hm->dumpHistos(name);
-  //hn_pion->Reset();
+  // Write histograms to file for this run
+  // and reset histograms for the next run
+  char filename[200];
+  sprintf(filename, "histos/PhotonNode-%d.root", runnumber);
+  hm->dumpHistos(filename);
+  hm->Reset();
 
   return EVENT_OK;
 }
 
 int FillHisto::End(PHCompositeNode *topNode)
 {
-  hm->dumpHistos(outFileName);
   delete hm;
   delete emcrecalib;
   delete emcrecalib_sasha;
@@ -842,29 +673,15 @@ void FillHisto::BookHistograms()
    * - sector
    * - pion pT
    * - invariant mass
-   * - eta
-   * - phi
+   * - w/o ToF 
    *
    */
-  if( datatype == ERT )
-  {
-    const int nbins_hn_pion[] = {8, n_pTbins, 300, 70, n_phibins};
-    const double xmin_hn_pion[] = {-0.5, 0., 0., -0.35, 0.};
-    const double xmax_hn_pion[] = {7.5, 0., 0.3, 0.35, 0.};
-    hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p^{#pi^0}_{T};m_{inv} [GeV];#eta;#phi [rad];",
-        5, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
-    hn_pion->SetBinEdges(1, pTbins);
-    hn_pion->SetBinEdges(4, phi_twr);
-  }
-  else if( datatype == MB )
-  {
-    const int nbins_hn_pion[] = {8, n_pTbins, 300, 4};
-    const double xmin_hn_pion[] = {-0.5, 0., 0., -0.5};
-    const double xmax_hn_pion[] = {7.5, 0., 0.3, 3.5};
-    hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p^{#pi^0}_{T};m_{inv} [GeV];condition;",
-        4, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
-    hn_pion->SetBinEdges(1, pTbins);
-  }
+  const int nbins_hn_pion[] = {8, n_pTbins, 300, 2};
+  const double xmin_hn_pion[] = {-0.5, 0., 0., -0.5};
+  const double xmax_hn_pion[] = {7.5, 0., 0.3, 1.5};
+  hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p^{#pi^0}_{T};m_{inv} [GeV];condition;",
+      4, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
+  hn_pion->SetBinEdges(1, pTbins);
   hm->registerHisto(hn_pion, 1);
 
   /*
@@ -900,34 +717,6 @@ void FillHisto::BookHistograms()
   hn_minv->SetBinEdges(1, pTbins);
   //hm->registerHisto(hn_minv, 1);
 
-  /*
-   * graph to study pile up in PbSc with ToF cut
-   */
-  g_pileup_PbSc = new TGraphErrors(10);
-  g_pileup_PbSc->SetNameTitle("g_pileup_PbSc", "PbSc;Nmb/Nclock;Npi0/Nmb;");
-  hm->registerHisto(g_pileup_PbSc, 1);
-
-  /*
-   * graph to study pile up in PbGl with ToF cut
-   */
-  g_pileup_PbGl = (TGraphErrors*)g_pileup_PbSc->Clone("g_pileup_PbGl");
-  g_pileup_PbGl->SetTitle("PbGl;Nmb/Nclock;Npi0/Nmb;");
-  hm->registerHisto(g_pileup_PbGl, 1);
-
-  /*
-   * graph to study pile up in PbSc without ToF cut
-   */
-  g_pileup_PbSc_notof = (TGraphErrors*)g_pileup_PbSc->Clone("g_pileup_PbSc_notof");
-  g_pileup_PbSc_notof->SetTitle("PbGl;Nmb/Nclock;Npi0/Nmb;");
-  hm->registerHisto(g_pileup_PbSc_notof, 1);
-
-  /*
-   * graph to study pile up in PbGl without ToF cut
-   */
-  g_pileup_PbGl_notof = (TGraphErrors*)g_pileup_PbSc->Clone("g_pileup_PbGl_notof");
-  g_pileup_PbGl_notof->SetTitle("PbGl;Nmb/Nclock;Npi0/Nmb;");
-  hm->registerHisto(g_pileup_PbGl_notof, 1);
-
   return;
 }
 
@@ -950,39 +739,6 @@ void FillHisto::EMCRecalibSetup()
   string _file_tcal = toad_loader->location("tcorr_run13pp500gev.txt");
 
   emcrecalib_sasha->anaGetCorrTof( _file_tcal.c_str() );
-
-  delete toad_loader;
-  return;
-}
-
-void FillHisto::ReadClockCounts(const string &filename)
-{
-  TOAD *toad_loader = new TOAD("PhotonNode");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-
-  TFile *fin = new TFile( file_location.c_str() );
-  TTree *t1 = (TTree*)fin->Get("t1");
-  long long runno, clock, bbcnovtx_live, bbcnarrow_live;
-  int bbcnovtx_scaledown, bbcnarrow_scaledown;
-  t1->SetBranchAddress("runnumber", &runno);
-  t1->SetBranchAddress("clock_live", &clock);
-  t1->SetBranchAddress("bbcnovtx_live", &bbcnovtx_live);
-  t1->SetBranchAddress("bbcnarrow_live", &bbcnarrow_live);
-  t1->SetBranchAddress("bbcnovtx_scaledown", &bbcnovtx_scaledown);
-  t1->SetBranchAddress("bbcnarrow_scaledown", &bbcnarrow_scaledown);
-  int nentries = t1->GetEntries();
-  for(int i=0; i<nentries; i++)
-  {
-    t1->GetEntry(i);
-    n_clock_bbc[0][i] = runno;
-    n_clock_bbc[1][i] = clock;
-    n_clock_bbc[2][i] = bbcnovtx_live;
-    n_clock_bbc[3][i] = bbcnarrow_live;
-    n_clock_bbc[4][i] = bbcnovtx_scaledown;
-    n_clock_bbc[5][i] = bbcnarrow_scaledown;
-  }
-  delete fin;
 
   delete toad_loader;
   return;
@@ -1079,51 +835,6 @@ bool FillHisto::TestPhoton( const Photon *photon, double bbc_t0 )
     return true;
   else
     return false;
-}
-
-unsigned long long FillHisto::GetClockLive(unsigned runnumber)
-{
-  for(int i=0; i<1020; i++)
-    if(runnumber == n_clock_bbc[0][i])
-      return n_clock_bbc[1][i];
-
-  return 0;
-}
-
-unsigned long long FillHisto::GetBBCNovtxLive(unsigned runnumber)
-{
-  for(int i=0; i<1020; i++)
-    if(runnumber == n_clock_bbc[0][i])
-      return n_clock_bbc[2][i];
-
-  return 0;
-}
-
-unsigned long long FillHisto::GetBBCNarrowLive(unsigned runnumber)
-{
-  for(int i=0; i<1020; i++)
-    if(runnumber == n_clock_bbc[0][i])
-      return n_clock_bbc[3][i];
-
-  return 0;
-}
-
-unsigned long FillHisto::GetBBCNovtxScaledown(unsigned runnumber)
-{
-  for(int i=0; i<1020; i++)
-    if(runnumber == n_clock_bbc[0][i])
-      return n_clock_bbc[4][i];
-
-  return 0;
-}
-
-unsigned long FillHisto::GetBBCNarrowScaledown(unsigned runnumber)
-{
-  for(int i=0; i<1020; i++)
-    if(runnumber == n_clock_bbc[0][i])
-      return n_clock_bbc[5][i];
-
-  return 0;
 }
 
 int FillHisto::GetStatus(const Photon *photon)

@@ -1,15 +1,16 @@
-// 0: Runnumber; 1: CLOCK live trigger count; 2: BBC novtx live count; 3: BBC narrow live count;
-// 4: BBC novtx scaledown; 5: BBC narrow scaledown
+// 0: Runnumber; 1: CLOCK live trigger count;
+// 2: BBCLL1 novertex live trigger count; 3: BBCLL1 narrowvtx live trigger count;
+// 4: BBCLL1 novertex scaledown; 5: BBC narrowvtx scaledown
 unsigned long long n_clock_bbc[6][1020];
 
 void ReadClockCounts()
 {
-  // initialize the CLOCK Live Counts and BBC narrow Live counts
+  // initialization
   for(int i=0; i<6; i++)
     for(int j=0; j<1020; j++)
       n_clock_bbc[i][j] = 0;
 
-  TFile *fin = new TFile("/phenix/plhf/zji/install/share/PhotonNode/clock-counts.root");
+  TFile *fin = new TFile("clock-counts.root");
   TTree *t1 = (TTree*)fin->Get("t1");
   long long runno, clock, bbcnovtx_live, bbcnarrow_live;
   int bbcnovtx_scaledown, bbcnarrow_scaledown;
