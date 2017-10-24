@@ -3,11 +3,14 @@
 void anaPileup(const Int_t process = 0)
 {
   TGraphErrors *gr[4];
+  TGraphErrors *gr_run[4];
   for(Int_t ig=0; ig<4; ig++)
   {
     mc(ig, 5,4);
     gr[ig] = new TGraphErrors(20);
     gr[ig]->SetName(Form("gr_%d",ig));
+    gr_run[ig] = new TGraphErrors(20);
+    gr_run[ig]->SetName(Form("gr_run_%d",ig));
   }
 
   const Int_t nThread = 20;
@@ -82,6 +85,8 @@ void anaPileup(const Int_t process = 0)
         {
           gr[ic*2+is]->SetPoint(irun, xx, yy);
           gr[ic*2+is]->SetPointError(irun, 0., eyy);
+          gr_run[ic*2+is]->SetPoint(irun, runnumber, yy);
+          gr_run[ic*2+is]->SetPointError(irun, 0., eyy);
         }
         delete h_minv;
       }
@@ -91,10 +96,12 @@ void anaPileup(const Int_t process = 0)
   }
 
   TFile *f_out = new TFile(Form("pileup/Mine-%d.root",process), "RECREATE");
+  TFile *f_out = new TFile("Pileup.root", "RECREATE");
   for(Int_t ig=0; ig<4; ig++)
   {
     gROOT->ProcessLine( Form("c%d->Print(\"pileup/Mine-proc%d-cond%d.pdf\");", ig, process, ig) );
     gr[ig]->Write();
+    //gr_run[ig]->Write();
   }
   f_out->Close();
 }

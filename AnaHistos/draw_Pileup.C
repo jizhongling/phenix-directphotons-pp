@@ -6,7 +6,7 @@ void draw_Pileup()
   for(Int_t img=0; img<4; img++)
     mg[img] = new TMultiGraph();
 
-  for(Int_t i=0; i<45; i++)
+  for(Int_t i=0; i<44; i++)
   {
     TFile *f = new TFile(Form("pileup/Mine-%d.root",i));
     if(f->IsZombie()) continue;

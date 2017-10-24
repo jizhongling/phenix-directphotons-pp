@@ -92,7 +92,7 @@ void anaPileup_Sasha(const Int_t process = 0)
         Double_t xx = (Double_t)nmb/(Double_t)nclock;
         Double_t yy = npion[ic][is] / nev;
         Double_t eyy = enpion[ic][is] / nev;
-        if( eyy > 0. && eyy < TMath::Infinity() )
+        if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
         {
           gr[ic*2+is]->SetPoint(irun, xx, yy);
           gr[ic*2+is]->SetPointError(irun, 0., eyy);
