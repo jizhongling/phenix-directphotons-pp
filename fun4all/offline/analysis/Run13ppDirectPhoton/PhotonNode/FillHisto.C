@@ -569,20 +569,20 @@ int FillHisto::EndRun(const int runnumber)
   double enpions_PbSc = sqrt( npions_sig[0] + npions_bg[0] );
   double enpions_PbGl = sqrt( npions_sig[1] + npions_bg[1] );
 
-  g_pileup_PbSc->SetPoint(irun, (double)nmb/nclock, npions_PbSc/nmb);
-  g_pileup_PbSc->SetPointError(irun, 0., enpions_PbSc/nmb);
-  g_pileup_PbGl->SetPoint(irun, (double)nmb/nclock, npions_PbGl/nmb);
-  g_pileup_PbGl->SetPointError(irun, 0., enpions_PbGl/nmb);
+  g_pileup_PbSc->SetPoint(irun, (double)nmb/(double)nclock, npions_PbSc/(double)nmb);
+  g_pileup_PbSc->SetPointError(irun, 0., enpions_PbSc/(double)nmb);
+  g_pileup_PbGl->SetPoint(irun, (double)nmb/(double)nclock, npions_PbGl/(double)nmb);
+  g_pileup_PbGl->SetPointError(irun, 0., enpions_PbGl/(double)nmb);
 
   double npions_PbSc_notof = npions_sig_notof[0] - npions_bg_notof[0];
   double npions_PbGl_notof = npions_sig_notof[1] - npions_bg_notof[1];
   double enpions_PbSc_notof = sqrt( npions_sig_notof[0] + npions_bg_notof[0] );
   double enpions_PbGl_notof = sqrt( npions_sig_notof[1] + npions_bg_notof[1] );
 
-  g_pileup_PbSc_notof->SetPoint(irun, (double)nmb/nclock, npions_PbSc_notof/nmb);
-  g_pileup_PbSc_notof->SetPointError(irun, 0., enpions_PbSc_notof/nmb);
-  g_pileup_PbGl_notof->SetPoint(irun, (double)nmb/nclock, npions_PbGl_notof/nmb);
-  g_pileup_PbGl_notof->SetPointError(irun, 0., enpions_PbGl_notof/nmb);
+  g_pileup_PbSc_notof->SetPoint(irun, (double)nmb/(double)nclock, npions_PbSc_notof/(double)nmb);
+  g_pileup_PbSc_notof->SetPointError(irun, 0., enpions_PbSc_notof/(double)nmb);
+  g_pileup_PbGl_notof->SetPoint(irun, (double)nmb/(double)nclock, npions_PbGl_notof/(double)nmb);
+  g_pileup_PbGl_notof->SetPointError(irun, 0., enpions_PbGl_notof/(double)nmb);
 
   irun++;
 
