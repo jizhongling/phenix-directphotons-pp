@@ -76,19 +76,19 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
     /*
      * 3D histogram to count for trigger efficiency
      */
-    TH3 *h3_trig = new TH3F("h3_trig", "number of clusters;p_{T} [GeV];sector;trigger;", n_pTbins,0.,0., 8,-0.5,7.5, 4,0.5,4.5);
-    h3_trig->GetXaxis()->Set(n_pTbins, pTbins);
-    h3_trig->GetZaxis()->SetBinLabel(1, "all");
-    h3_trig->GetZaxis()->SetBinLabel(2, "ERT4x4a");
-    h3_trig->GetZaxis()->SetBinLabel(3, "ERT4x4b");
-    h3_trig->GetZaxis()->SetBinLabel(4, "ERT4x4c");
-    hm->registerHisto(h3_trig, 1);
+//    TH3 *h3_trig = new TH3F("h3_trig", "number of clusters;p_{T} [GeV];sector;trigger;", n_pTbins,0.,0., 8,-0.5,7.5, 4,0.5,4.5);
+//    h3_trig->GetXaxis()->Set(n_pTbins, pTbins);
+//    h3_trig->GetZaxis()->SetBinLabel(1, "all");
+//    h3_trig->GetZaxis()->SetBinLabel(2, "ERT4x4a");
+//    h3_trig->GetZaxis()->SetBinLabel(3, "ERT4x4b");
+//    h3_trig->GetZaxis()->SetBinLabel(4, "ERT4x4c");
+//    hm->registerHisto(h3_trig, 1);
 
     /*
      * Trigger efficiency for pion
      */
-    TH3 *h3_trig_pion = static_cast<TH3*>( h3_trig->Clone("h3_trig_pion") );
-    hm->registerHisto(h3_trig_pion, 1);
+//    TH3 *h3_trig_pion = static_cast<TH3*>( h3_trig->Clone("h3_trig_pion") );
+//    hm->registerHisto(h3_trig_pion, 1);
   }
   /* ---------------------------------------------------
    * <==== END: Event count and trigger checks
@@ -125,14 +125,29 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
     /*
      * 3D histogram of sector, pT and TOF to check TOF calibration
      */
-    TH3* h3_tof = new TH3F("h3_tof", "TOF;EMCal sector;p_{T} [GeV];TOF [ns];", 8,-0.5,7.5, n_pTbins,0.,0., 1001,-100.05,100.05);
-    h3_tof->GetYaxis()->Set(n_pTbins, pTbins);
-    hm->registerHisto( h3_tof , 1 );
+    int ndim_tof = 3;
+    int nbins_tof[] = { 8, n_pTbins, 1001 };
+    double xmin_tof[] = { -0.5, 0, -100.5 };
+    double xmax_tof[] = {  7.5, 0, 100.5 };
+    THnSparse* hn_tof = new THnSparseF("hn_tof",
+                                       "TOF;EMCal sector;p_{T} [GeV];TOF [ns];",
+                                       ndim_tof,
+                                       nbins_tof,
+                                       xmin_tof,
+                                       xmax_tof );
+
+    hn_tof->SetBinEdges(1,pTbins);
+    hn_tof->GetAxis(0)->SetName("EMCalSector");
+    hn_tof->GetAxis(1)->SetName("pT");
+    hn_tof->GetAxis(2)->SetName("tof");
+    hm->registerHisto( hn_tof , 1 );
+
     /*
      * Using TOF from DST file without local recalibration.
      */
-    TH3* h3_tof_raw = static_cast<TH3*>(h3_tof->Clone("h3_tof_raw"));
-    hm->registerHisto( h3_tof_raw , 1 );
+    THnSparse* hn_tof_raw = static_cast<THnSparse*>(hn_tof->Clone("hn_tof_raw"));
+    hn_tof_raw->SetTitle("TOF (uncalibrated)");
+    hm->registerHisto( hn_tof_raw , 1 );
   }
   /* ---------------------------------------------------
    * <==== END: TOF crosschecks
@@ -149,11 +164,11 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
      * Used to check sector-by-sector EMCal energy calibration.
      */
     int ndim_hn_inv_mass_pi0calib = 3;
-    int nbins_hn_inv_mass_pi0calib[] = { 8, n_pTbins, 300 };
+    int nbins_hn_inv_mass_pi0calib[] = { 8, n_pTbins, 600 };
     double xmin_hn_inv_mass_pi0calib[] = { -0.5, 0,   0 };
-    double xmax_hn_inv_mass_pi0calib[] = {  7.5, 0, 300 };
-    THnSparse* hn_inv_mass_pi0calib = new THnSparseF("hn_inv_mass_pi0calib",
-                                                     "Photon pair invariant mass;EMCal sector;p_{T} [GeV];m_{inv} [GeV]",
+    double xmax_hn_inv_mass_pi0calib[] = {  7.5, 0, 1.2 };
+    THnSparse* hn_inv_mass_pi0calib = new THnSparseF("hn_pi0",
+                                                     "Photon pair invariant mass;EMCal sector;p_{T} [GeV];m_{inv} [GeV];",
                                                      ndim_hn_inv_mass_pi0calib,
                                                      nbins_hn_inv_mass_pi0calib,
                                                      xmin_hn_inv_mass_pi0calib,
@@ -167,14 +182,17 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
     /*
      * Using energies from DST file without local recalibration.
      */
-    THnSparse* hn_inv_mass_pi0calib_raw = static_cast<THnSparse*>(hn_inv_mass_pi0calib->Clone("hn_inv_mass_pi0calib_raw"));
+    THnSparse* hn_inv_mass_pi0calib_raw = static_cast<THnSparse*>(hn_inv_mass_pi0calib->Clone("hn_pi0_raw"));
+    hn_inv_mass_pi0calib_raw->SetTitle("Photon pair invariant mass (uncalibrated)");
     hm->registerHisto( hn_inv_mass_pi0calib_raw , 1 );
 
     /*
      * Using energies from DST file without TOF cut.
      */
-    THnSparse* hn_inv_mass_pi0calib_notof = static_cast<THnSparse*>(hn_inv_mass_pi0calib->Clone("hn_inv_mass_pi0calib_notof"));
+    THnSparse* hn_inv_mass_pi0calib_notof = static_cast<THnSparse*>(hn_inv_mass_pi0calib->Clone("hn_pi0_notof"));
+    hn_inv_mass_pi0calib_notof->SetTitle("Photon pair invariant mass (calibrated, no TOF cut)");
     hm->registerHisto( hn_inv_mass_pi0calib_notof , 1 );
+
 
     /*
      * storing number of identified direct photon candidates paired with other photon in event in bins of
@@ -187,14 +205,14 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
      * - trigger
      *
      */
-    const int nbins_hn_pion[] = {8, n_pTbins, 300, 70, n_phibins, 3};
-    const double xmin_hn_pion[] = {-0.5, 0., 0., -0.35, 0., -0.5};
-    const double xmax_hn_pion[] = {7.5, 0., 0.3, 0.35, 0., 2.5};
-    THnSparse* hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p^{#pi^0}_{T};m_{inv} [GeV];#eta;#phi [rad];trigger;",
-                                        6, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
-    hn_pion->SetBinEdges(1, pTbins);
-    hn_pion->SetBinEdges(4, phi_twr);
-    hm->registerHisto(hn_pion, 1);
+//    const int nbins_hn_pion[] = {8, n_pTbins, 300, 70, n_phibins, 3};
+//    const double xmin_hn_pion[] = {-0.5, 0., 0., -0.35, 0., -0.5};
+//    const double xmax_hn_pion[] = {7.5, 0., 0.3, 0.35, 0., 2.5};
+//    THnSparse* hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p^{#pi^0}_{T};m_{inv} [GeV];#eta;#phi [rad];trigger;",
+//                                        6, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
+//    hn_pion->SetBinEdges(1, pTbins);
+//    hn_pion->SetBinEdges(4, phi_twr);
+//    hm->registerHisto(hn_pion, 1);
   }
   /* ---------------------------------------------------
    * <==== END: Pi0 crosschecks (calibration etc) ====>

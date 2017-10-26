@@ -26,7 +26,6 @@
 /* ROOT header */
 #include <TH1.h>
 #include <TH2.h>
-#include <TH3.h>
 #include <THnSparse.h>
 #include <TFile.h>
 #include <TLorentzVector.h>
@@ -135,7 +134,7 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   /*
    *  Get pointer to data nodes
    */
-  emcClusterContainer* data_emc_raw_nowarn = findNode::getClass<emcClusterContainer> (topNode, "emcClusterContainer");
+  emcClusterContainer* data_emc = findNode::getClass<emcClusterContainer> (topNode, "emcClusterContainer");
   PHCentralTrack* data_tracks = findNode::getClass<PHCentralTrack> (topNode, "PHCentralTrack");
   PHGlobal* data_global = findNode::getClass<PHGlobal> (topNode, "PHGlobal");
   ErtOut* data_ert = findNode::getClass<ErtOut> (topNode, "ErtOut");
@@ -150,7 +149,7 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
       return DISCARDEVENT;
     }
 
-  if(!data_emc_raw_nowarn)
+  if(!data_emc)
     {
       cout<<"\nABORT RUN\nNo emcont"<<endl;
       return DISCARDEVENT;
@@ -174,10 +173,6 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
       return DISCARDEVENT;
     }
 
-  /* Run local recalibration of EMCal cluster data */
-  emcClusterContainer* data_emc_nowarn = data_emc_raw_nowarn->clone();
-  _emcrecalib->ApplyClusterCorrection( data_emc_nowarn );
-
   /*
    * *** EVALUATE: Trigger information ***
    */
@@ -186,22 +181,132 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   float bbc_z  = data_global->getBbcZVertex();
   float bbc_t0  = data_global->getBbcTimeZero();
 
+  /* Count events */
+  FillTriggerStats( "h1_events" , data_triggerlvl1 , bbc_z );
+
+  /* Count events to calculate trigger efficiency */
+  //  FillTriggerEfficiency( data_emc, data_global, data_ert );
+
+
+  /*
+   * *** EVALUATE: Cluster information ***
+   */
+  /* Run local recalibration of EMCal cluster data */
+  emcClusterContainer* data_emc_corr = data_emc->clone();
+  _emcrecalib->ApplyClusterCorrection( data_emc_corr );
+
+  /* Apply cuts to calorimeter cluster collections and create subsets for next analysis steps */
+  emcClusterContainer* data_emc_cwarn = data_emc->clone();
+  selectClusterGoodTower( data_emc_cwarn );
+
+  emcClusterContainer* data_emc_cwarn_cshape_cenergy = data_emc_cwarn->clone();
+  selectClusterPhotonShape( data_emc_cwarn_cshape_cenergy );
+  selectClusterPhotonEnergy( data_emc_cwarn_cshape_cenergy );
+
+  emcClusterContainer* data_emc_corr_cwarn_cshape_cenergy = data_emc_corr->clone();
+  selectClusterGoodTower( data_emc_corr_cwarn_cshape_cenergy );
+  selectClusterPhotonShape( data_emc_corr_cwarn_cshape_cenergy );
+  selectClusterPhotonEnergy( data_emc_corr_cwarn_cshape_cenergy );
+
+  emcClusterContainer* data_emc_corr_cwarn_cshape_cenergy_ctof = data_emc_corr_cwarn_cshape_cenergy->clone();
+  selectClusterPhotonTof( data_emc_corr_cwarn_cshape_cenergy_ctof, bbc_t0 );
+
+  /* Print detailes cluster collection infomration for debugging purpose */
+  bool debug_cluster = true;
+  if ( debug_cluster )
+    {
+      cout << "***** data_emc" << endl;
+      PrintClusterContainer( data_emc, bbc_t0 );
+      cout << endl;
+      cout << endl;
+      cout << "***** data_emc_corr" << endl;
+      PrintClusterContainer( data_emc_corr, bbc_t0 );
+      cout << endl;
+      cout << endl;
+      cout << "***** data_emc_cwarn" << endl;
+      PrintClusterContainer( data_emc_cwarn, bbc_t0 );
+      cout << endl;
+      cout << endl;
+      cout << "***** data_emc_cwarn_cshape_cenergy" << endl;
+      PrintClusterContainer( data_emc_cwarn_cshape_cenergy, bbc_t0 );
+      cout << endl;
+      cout << endl;
+      cout << "***** data_emc_corr_cwarn_cshape_cenergy" << endl;
+      PrintClusterContainer( data_emc_corr_cwarn_cshape_cenergy, bbc_t0 );
+      cout << endl;
+      cout << endl;
+      cout << "***** data_emc_corr_cwarn_cshape_cenergy_ctof" << endl;
+      PrintClusterContainer( data_emc_corr_cwarn_cshape_cenergy_ctof, bbc_t0 );
+      cout << endl;
+      cout << endl;
+    }
+
+  /*
+   * *** EVALUATE: Calibration and warnmap crosscheck ***
+   */
+  /* Look at all clusters as crosscheck of warnmap */
+  FillClusterPtSpectrum( "h2_pT_1cluster" , data_emc_cwarn );
+  FillClusterPtSpectrum( "h2_pT_1cluster_nowarn" , data_emc );
+
+  /* Store TOF information for cluster as calibration check */
+  FillClusterTofSpectrum( "hn_tof" , data_emc_corr_cwarn_cshape_cenergy , data_global , bbc_t0 );
+  FillClusterTofSpectrum( "hn_tof_raw" , data_emc_cwarn_cshape_cenergy , data_global , bbc_t0 );
+
+
+  if ( ( abs ( bbc_z ) <= _bbc_zvertex_cut ) // Check BBC-z location of event
+       //&& ( lvl1_scaled & bit_bbcnarrow ) // Check trigger
+       )
+    {
+      /* Analyze cluster pairs to find pi0's in events for calibration crosscheck */
+      FillPi0InvariantMass( "hn_pi0", data_emc_corr_cwarn_cshape_cenergy_ctof );
+      FillPi0InvariantMass( "hn_pi0_notof", data_emc_corr_cwarn_cshape_cenergy );
+      FillPi0InvariantMass( "hn_pi0_raw", data_emc_cwarn_cshape_cenergy );
+      //      FillPi0InvariantMassMod( "hn_pi0",
+      //                               data_emc_corr_cwarn_cshape_cenergy_ctof,
+      //                               data_global,
+      //                               data_triggerlvl1,
+      //                               data_ert );
+
+      /* Analyze direct photon events */
+      //      if ( ( lvl1_live & bit_4x4b ) )
+      {
+        FillPhotonPtSpectrum( data_emc_corr_cwarn_cshape_cenergy_ctof , data_tracks , data_global );
+      }
+    }
+  //  cout << bbc_t0 << endl;
+  /* clean up */
+  delete data_emc_cwarn_cshape_cenergy;
+  delete data_emc_cwarn;
+  delete data_emc_corr;
+  delete data_emc_corr_cwarn_cshape_cenergy;
+  delete data_emc_corr_cwarn_cshape_cenergy_ctof;
+
+  return EVENT_OK;
+}
+
+/* ----------------------------------------------- */
+int
+DirectPhotonPP::FillTriggerStats( string histname,
+                                  TrigLvl1* data_triggerlvl1,
+                                  double bbc_z )
+{
+
+  /* retrieve histograms used in this function */
+  TH1* h1_events = static_cast<TH1*>( _hm->getHisto(histname) );
+
   /* Get trigger information */
-  //const unsigned bit_bbcwide = 0x00000001;
-  //const unsigned bit_bbcnovtx = 0x00000002;
-  const unsigned bit_bbcnarrow = 0x00000010;
+  //  const unsigned bit_bbcwide = 0x00000001;
+  //  const unsigned bit_bbcnovtx = 0x00000002;
+  //  const unsigned bit_bbcnarrow = 0x00000010;
 
   const unsigned int bit_4x4b  = 0x00000040;
   const unsigned int bit_4x4a  = 0x00000080;
   const unsigned int bit_4x4c  = 0x00000100;
   const unsigned int bit_4x4or = 0x000001C0;
 
-  //unsigned int lvl1_raw = data_triggerlvl1->get_lvl1_trigraw();
+  //  unsigned int lvl1_raw = data_triggerlvl1->get_lvl1_trigraw();
   unsigned int lvl1_live = data_triggerlvl1->get_lvl1_triglive();
-  unsigned int lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
-
-  /* retrieve histograms used in this function */
-  TH1* h1_events = static_cast<TH1*>( _hm->getHisto("h1_events") );
+  //  unsigned int lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
 
   /* Fill event counter */
   h1_events->Fill("all",1);
@@ -224,67 +329,7 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
         h1_events->Fill("bbcz10_ert4x4or",1);
     }
 
-  /* Count events to calculate trigger efficiency */
-  FillTriggerEfficiency( data_emc_nowarn, data_global, data_ert );
-
-  /*
-   * *** EVALUATE: Calibration and warnmap crosscheck ***
-   */
-
-  /* Look at all clusters as crosscheck of warnmap */
-  FillClusterPtSpectrum( data_emc_nowarn , data_global );
-
-  /* Store TOF information for cluster as calibration check */
-  FillClusterTofSpectrum( data_emc_nowarn , data_global );
-  FillClusterTofSpectrum( data_emc_raw_nowarn , data_global , "raw" );
-
-
-  /*
-   * *** EVALUATE: Cluster information ***
-   */
-
-  /* Apply cuts to calorimeter cluster collections and create subsets for next analysis steps */
-  emcClusterContainer* data_emc_raw_emlike_notof = data_emc_raw_nowarn->clone();
-  selectClusterGoodTower( data_emc_raw_emlike_notof );
-  selectClusterPhotonShape( data_emc_raw_emlike_notof );
-  selectClusterPhotonEnergy( data_emc_raw_emlike_notof );
-
-  emcClusterContainer* data_emc_emlike_notof = data_emc_nowarn->clone();
-  selectClusterGoodTower( data_emc_emlike_notof );
-  selectClusterPhotonShape( data_emc_emlike_notof );
-  selectClusterPhotonEnergy( data_emc_emlike_notof );
-
-  emcClusterContainer* data_emc_emlike = data_emc_emlike_notof->clone();
-  selectClusterPhotonTof( data_emc_emlike, bbc_t0 );
-
-  if ( ( abs ( bbc_z ) <= _bbc_zvertex_cut ) // Check BBC-z location of event
-       && ( lvl1_scaled & bit_bbcnarrow ) // Check trigger
-       )
-    {
-      /* Analyze pi0s events for crosscheck */
-      FillPi0InvariantMass( "hn_inv_mass_pi0calib", data_emc_emlike );
-      FillPi0InvariantMass( "hn_inv_mass_pi0calib_notof", data_emc_emlike_notof );
-      FillPi0InvariantMass( "hn_inv_mass_pi0calib_raw", data_emc_raw_emlike_notof );
-      FillPi0InvariantMassMod( "hn_pi0",
-			       data_emc_emlike,
-			       data_global,
-			       data_triggerlvl1,
-			       data_ert );
-
-      /* Analyze direct photon events */
-      if ( ( lvl1_live & bit_4x4b ) )
-	{
-	  FillPhotonPtSpectrum( data_emc_emlike , data_tracks , data_global );
-	}
-    }
-
-  /* clean up */
-  delete data_emc_nowarn;
-  delete data_emc_emlike;
-  delete data_emc_emlike_notof;
-  delete data_emc_raw_emlike_notof;
-
-  return EVENT_OK;
+  return 0;
 }
 
 /* ----------------------------------------------- */
@@ -293,91 +338,91 @@ DirectPhotonPP::FillTriggerEfficiency( emcClusterContainer *data_emc,
                                        PHGlobal *data_global,
                                        ErtOut *data_ert )
 {
-  /* retrieve all histograms used in this function */
-  TH3 *h3_trig = static_cast<TH3*>( _hm->getHisto("h3_trig") );
-  TH3 *h3_trig_pion = static_cast<TH3*>( _hm->getHisto("h3_trig_pion") );
-
-  /* Get event global parameters */
-  double bbc_z = data_global->getBbcZVertex();
-  double bbc_t0 = data_global->getBbcTimeZero();
-  if( fabs(bbc_z) > 30. ) return 1;
-
-  int nemccluster = data_emc->size();
-
-  /* Fire ERT on arm 0 (west) or 1 (east)*/
-  bool FireERT[2] = {};
-
-  for(int i=0; i<nemccluster; i++)
-    {
-      emcClusterContent *emccluster = data_emc->getCluster(i);
-      int arm = emccluster->arm();
-      if( anatools::PassERT(data_ert, emccluster, anatools::ERT_4x4a) ||
-          anatools::PassERT(data_ert, emccluster, anatools::ERT_4x4b) ||
-          anatools::PassERT(data_ert, emccluster, anatools::ERT_4x4c) )
-        FireERT[arm] = true;
-    }
-
-  vector<int> v_used;
-  v_used.clear();
-
-  for(int i=0; i<nemccluster; i++)
-    {
-      emcClusterContent *emccluster1 = data_emc->getCluster(i);
-      int sector = anatools::CorrectClusterSector( emccluster1->arm(), emccluster1->sector() );
-      double cluster_pT = anatools::Get_pT( emccluster1 );
-
-      /* Require the other arm to be fired */
-      int oarm = emccluster1->arm()==0 ? 1 : 0;
-      if( !FireERT[oarm] ) continue;
-
-      if( testGoodTower(emccluster1) &&
-          testPhoton(emccluster1, bbc_t0) &&
-          emccluster1->ecore() > _photon_energy_min )
-        {
-          v_used.push_back(i);
-
-          h3_trig->Fill(cluster_pT, sector, "all", 1.);
-
-          if( anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4a) )
-            h3_trig->Fill(cluster_pT, sector, "ERT4x4a", 1.);
-
-          if( anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4b) )
-            h3_trig->Fill(cluster_pT, sector, "ERT4x4b", 1.);
-
-          if( anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4c) )
-            h3_trig->Fill(cluster_pT, sector, "ERT4x4c", 1.);
-
-          for(int j=0; j<nemccluster; j++)
-            if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
-              {
-                emcClusterContent *emccluster2 = data_emc->getCluster(j);
-                double tot_pT = anatools::GetTot_pT(emccluster1, emccluster2);
-
-                if( testGoodTower(emccluster2) &&
-                    testPhoton(emccluster2, bbc_t0) &&
-                    emccluster2->ecore() > _photon_energy_min )
-                  {
-                    double minv = anatools::GetInvMass(emccluster1, emccluster2);
-                    if( minv < 0.112 || minv > 0.162 )
-                      continue;
-
-                    h3_trig_pion->Fill(tot_pT, sector, "all", 1.);
-
-                    if( anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4a) ||
-                        anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4a) )
-                      h3_trig_pion->Fill(tot_pT, sector, "ERT4x4a", 1.);
-
-                    if( anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4b) ||
-                        anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4b) )
-                      h3_trig_pion->Fill(tot_pT, sector, "ERT4x4b", 1.);
-
-                    if( anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4c) ||
-                        anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4c) )
-                      h3_trig_pion->Fill(tot_pT, sector, "ERT4x4c", 1.);
-                  }
-              }
-        }
-    }
+  //  /* retrieve all histograms used in this function */
+  //  THnSparse *hn_trig = static_cast<THnSparse*>( _hm->getHisto("hn_trig") );
+  //  THnSparse *hn_trig_pion = static_cast<THnSparse*>( _hm->getHisto("hn_trig_pion") );
+  //
+  //  /* Get event global parameters */
+  //  double bbc_z = data_global->getBbcZVertex();
+  //  double bbc_t0 = data_global->getBbcTimeZero();
+  //  if( fabs(bbc_z) > 30. ) return 1;
+  //
+  //  int nemccluster = data_emc->size();
+  //
+  //  /* Fire ERT on arm 0 (west) or 1 (east)*/
+  //  bool FireERT[2] = {};
+  //
+  //  for(int i=0; i<nemccluster; i++)
+  //    {
+  //      emcClusterContent *emccluster = data_emc->getCluster(i);
+  //      int arm = emccluster->arm();
+  //      if( anatools::PassERT(data_ert, emccluster, anatools::ERT_4x4a) ||
+  //          anatools::PassERT(data_ert, emccluster, anatools::ERT_4x4b) ||
+  //          anatools::PassERT(data_ert, emccluster, anatools::ERT_4x4c) )
+  //        FireERT[arm] = true;
+  //    }
+  //
+  //  vector<int> v_used;
+  //  v_used.clear();
+  //
+  //  for(int i=0; i<nemccluster; i++)
+  //    {
+  //      emcClusterContent *emccluster1 = data_emc->getCluster(i);
+  //      int sector = anatools::CorrectClusterSector( emccluster1->arm(), emccluster1->sector() );
+  //      double cluster_pT = anatools::Get_pT( emccluster1 );
+  //
+  //      /* Require the other arm to be fired */
+  //      int oarm = emccluster1->arm()==0 ? 1 : 0;
+  //      if( !FireERT[oarm] ) continue;
+  //
+  //      if( testGoodTower(emccluster1) &&
+  //          testPhoton(emccluster1, bbc_t0) &&
+  //          emccluster1->ecore() > _photon_energy_min )
+  //        {
+  //          v_used.push_back(i);
+  //
+  //          h3_trig->Fill(cluster_pT, sector, "all", 1.);
+  //
+  //          if( anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4a) )
+  //            h3_trig->Fill(cluster_pT, sector, "ERT4x4a", 1.);
+  //
+  //          if( anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4b) )
+  //            h3_trig->Fill(cluster_pT, sector, "ERT4x4b", 1.);
+  //
+  //          if( anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4c) )
+  //            h3_trig->Fill(cluster_pT, sector, "ERT4x4c", 1.);
+  //
+  //          for(int j=0; j<nemccluster; j++)
+  //            if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
+  //              {
+  //                emcClusterContent *emccluster2 = data_emc->getCluster(j);
+  //                double tot_pT = anatools::GetTot_pT(emccluster1, emccluster2);
+  //
+  //                if( testGoodTower(emccluster2) &&
+  //                    testPhoton(emccluster2, bbc_t0) &&
+  //                    emccluster2->ecore() > _photon_energy_min )
+  //                  {
+  //                    double minv = anatools::GetInvMass(emccluster1, emccluster2);
+  //                    if( minv < 0.112 || minv > 0.162 )
+  //                      continue;
+  //
+  //                    h3_trig_pion->Fill(tot_pT, sector, "all", 1.);
+  //
+  //                    if( anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4a) ||
+  //                        anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4a) )
+  //                      h3_trig_pion->Fill(tot_pT, sector, "ERT4x4a", 1.);
+  //
+  //                    if( anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4b) ||
+  //                        anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4b) )
+  //                      h3_trig_pion->Fill(tot_pT, sector, "ERT4x4b", 1.);
+  //
+  //                    if( anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4c) ||
+  //                        anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4c) )
+  //                      h3_trig_pion->Fill(tot_pT, sector, "ERT4x4c", 1.);
+  //                  }
+  //              }
+  //        }
+  //    }
 
   return 0;
 }
@@ -385,13 +430,12 @@ DirectPhotonPP::FillTriggerEfficiency( emcClusterContainer *data_emc,
 /* ----------------------------------------------- */
 
 int
-DirectPhotonPP::FillClusterPtSpectrum( emcClusterContainer *data_emc,
-                                       PHGlobal *data_global )
+DirectPhotonPP::FillClusterPtSpectrum( string histname,
+                                       emcClusterContainer *data_emc )
 {
 
   /* retrieve all histograms used in this function */
-  TH2* h2_pT_1cluster_nowarn = static_cast<TH2*>( _hm->getHisto("h2_pT_1cluster_nowarn") );
-  TH2* h2_pT_1cluster        = static_cast<TH2*>( _hm->getHisto("h2_pT_1cluster") );
+  TH2* h2_pT_1cluster        = static_cast<TH2*>( _hm->getHisto(histname) );
 
   /* Analyze all cluster in this event and fill pT spectrum */
   int nemccluster;
@@ -405,11 +449,7 @@ DirectPhotonPP::FillClusterPtSpectrum( emcClusterContainer *data_emc,
 
       float cluster_pT = anatools::Get_pT( emccluster );
 
-      h2_pT_1cluster_nowarn->Fill( cluster_pT, sector );
-
-      /* Store cluster pT only for 'good' tower */
-      if ( testGoodTower( emccluster ) )
-        h2_pT_1cluster->Fill( cluster_pT, sector );
+      h2_pT_1cluster->Fill( cluster_pT, sector );
     }
 
   return 0;
@@ -418,14 +458,14 @@ DirectPhotonPP::FillClusterPtSpectrum( emcClusterContainer *data_emc,
 /* ----------------------------------------------- */
 
 int
-DirectPhotonPP::FillClusterTofSpectrum( emcClusterContainer *data_emc,
+DirectPhotonPP::FillClusterTofSpectrum( string histname,
+                                        emcClusterContainer *data_emc,
                                         PHGlobal *data_global,
-                                        string quali )
+                                        double bbc_t0 )
 {
 
   /* retrieve all histograms used in this function */
-  TH3* h3_tof_raw = static_cast<TH3*>( _hm->getHisto("h3_tof_raw") );
-  TH3* h3_tof     = static_cast<TH3*>( _hm->getHisto("h3_tof") );
+  THnSparse* hn_tof     = static_cast<THnSparse*>( _hm->getHisto(histname) );
 
   /* Analyze all cluster in this event and fill TOF spectrum */
   int nemccluster;
@@ -435,23 +475,14 @@ DirectPhotonPP::FillClusterTofSpectrum( emcClusterContainer *data_emc,
     {
       emcClusterContent *emccluster = data_emc->getCluster(i);
 
-      if( testGoodTower( emccluster ) &&
-          abs( data_global->getBbcZVertex() ) < 30 &&
-          testPhotonEnergy( emccluster ) &&
-          testPhotonShape( emccluster ) )
-        {
-          int sector = anatools::CorrectClusterSector( emccluster->arm() , emccluster->sector() );
+      int sector = anatools::CorrectClusterSector( emccluster->arm() , emccluster->sector() );
 
-          double bbc_t0 = data_global->getBbcTimeZero();
-          double tof = emccluster->tofcorr() - bbc_t0;
+      double tof = emccluster->tofcorr() - bbc_t0;
 
-          double pT = anatools::Get_pT(emccluster);
+      double pT = anatools::Get_pT(emccluster);
 
-          if ( quali == "raw" )
-            h3_tof_raw->Fill( sector, pT, tof );
-          else
-            h3_tof->Fill( sector, pT, tof );
-        }
+      double fill_hn_tof[] = {sector, pT, tof};
+      hn_tof->Fill( fill_hn_tof );
     }
 
   return 0;
@@ -467,8 +498,7 @@ DirectPhotonPP::FillPi0InvariantMassMod( string histname,
                                          ErtOut *data_ert )
 {
   /* retrieve all histograms used in this function */
-  //TH3* h3_inv_mass_pi0calib     = static_cast<TH3*>( _hm->getHisto(histname) );
-  THnSparse* hn_pion            = static_cast<THnSparse*>( _hm->getHisto("hn_pion") );
+  THnSparse* hn_pion            = static_cast<THnSparse*>( _hm->getHisto(histname) );
 
   /* Get event global parameters */
   double bbc_z = data_global->getBbcZVertex();
@@ -644,7 +674,7 @@ DirectPhotonPP::FillPi0InvariantMass( string histname,
               emcClusterContent* emccluster2 = data_emc->getCluster( cidx2 );
 
               //if ( anatools::GetAsymmetry_E( emccluster1, emccluster2 ) < 0.8 )
-	      if ( true )
+              if ( true )
                 {
                   /* get sectors */
                   int sector1 = anatools::CorrectClusterSector( emccluster1->arm() , emccluster1->sector() );
@@ -664,7 +694,7 @@ DirectPhotonPP::FillPi0InvariantMass( string histname,
                    */
                   if ( ( sector1 == sector2 ) )
                     {
-		      double fill_hn_inv_mass_pi0calib[] = {sector1, tot_pT, invMass};
+                      double fill_hn_inv_mass_pi0calib[] = {sector1, tot_pT, invMass};
                       hn_inv_mass_pi0calib->Fill( fill_hn_inv_mass_pi0calib );
                     } // check sector
                 } // check asymmetry
@@ -678,9 +708,9 @@ DirectPhotonPP::FillPi0InvariantMass( string histname,
 /* ----------------------------------------------- */
 
 int
-DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *d_emc,
-                                      PHCentralTrack* d_tracks,
-                                      PHGlobal *d_global )
+DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
+                                      PHCentralTrack* data_tracks,
+                                      PHGlobal *data_global )
 {
   TH1* h1_nphotons               = static_cast<TH1*>( _hm->getHisto("h1_nphotons") );
   THnSparse* hn_1photon          = static_cast<THnSparse*>( _hm->getHisto("hn_1photon") );
@@ -688,10 +718,10 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *d_emc,
   THnSparse* hn_2photon_theta_cv = static_cast<THnSparse*>( _hm->getHisto("hn_2photon_theta_cv") );
 
   /* Analyze all photon candidates in this event and fill pT spectrum */
-  unsigned int nemccluster = d_emc->size();
+  unsigned int nemccluster = data_emc->size();
 
   /* Get event global parameters */
-  double bbc_t0 = d_global->getBbcTimeZero();
+  double bbc_t0 = data_global->getBbcTimeZero();
 
   /* counter for number of 'direct photon candidates' found in this event */
   long nphotons = 0;
@@ -705,7 +735,7 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *d_emc,
                        CUT_ENERGY = 5 };
 
   /* loop over all EMCal cluster */
-  for( unsigned int cidx1 = 0; cidx1 < nemccluster; cidx1++ ) { emcClusterContent *emccluster1 = d_emc->getCluster( cidx1 );
+  for( unsigned int cidx1 = 0; cidx1 < nemccluster; cidx1++ ) { emcClusterContent *emccluster1 = data_emc->getCluster( cidx1 );
 
     if ( testTightFiducial( emccluster1 ) )
       {
@@ -727,7 +757,7 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *d_emc,
         /* Record information for 1-photon: */
 
         /* fill isolated direct photons pT histogram */
-        if ( testIsolatedPhoton( emccluster1 , d_emc, d_tracks , 0.4 , bbc_t0 ) )
+        if ( testIsolatedPhoton( emccluster1 , data_emc, data_tracks , 0.4 , bbc_t0 ) )
           {
             double fill_histo_1photon[] = { sector1,
                                             CUT_ISOPHOTON,
@@ -820,7 +850,7 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *d_emc,
             if ( cidx1 == cidx2 )
               continue;
 
-            emcClusterContent* emccluster2 = d_emc->getCluster( cidx2 );
+            emcClusterContent* emccluster2 = data_emc->getCluster( cidx2 );
 
             if ( testGoodTower( emccluster2 ) )
               {
@@ -831,7 +861,7 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *d_emc,
                 /* Fill theta_cv */
                 float theta_cv = anatools::GetTheta_CV( emccluster1 );
 
-                if ( testIsolatedPhoton( emccluster1 , d_emc, d_tracks , 0.4 , bbc_t0 )
+                if ( testIsolatedPhoton( emccluster1 , data_emc, data_tracks , 0.4 , bbc_t0 )
                      && testPhoton( emccluster2 , bbc_t0 ) )
                   {
                     double fill_histo_inv_mass[] = { sector1,
@@ -1324,4 +1354,31 @@ DirectPhotonPP::selectClusterPhotonTof( emcClusterContainer *emc, double bbc_t0 
     }
 
   return 0;
+}
+
+
+void
+DirectPhotonPP::PrintClusterContainer( emcClusterContainer *emc , double bbc_t0 = 0 )
+{
+  unsigned nemccluster = emc->size();
+
+  cout << " *** Number of clusters: " << nemccluster << endl;
+  cout << " *** id ecore photon_prob tof-bbc_t0 sector tower_y tower_z" << endl;
+
+  for( unsigned i = 0; i < nemccluster; i++ )
+    {
+      emcClusterContent *emccluster = emc->getCluster(i);
+
+      cout << " *** "
+           << i << "\t"
+           << emccluster->ecore() << "\t"
+           << emccluster->prob_photon() << "\t"
+           << emccluster->tofcorr() - bbc_t0 << "\t"
+           << anatools::CorrectClusterSector( emccluster->arm(), emccluster->sector() ) << "\t"
+           << emccluster->iypos() << "\t"
+           << emccluster->izpos() << "\t"
+           << endl;
+    }
+
+  return;
 }

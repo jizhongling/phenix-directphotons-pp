@@ -22,7 +22,6 @@ class Fun4AllHistoManager;
 /* Root classes */
 class TH1;
 class TH2;
-class TH3;
 class THnSparse;
 class TFile;
 
@@ -158,6 +157,12 @@ private:
   void ReadSashaWarnmap(const std::string &filename);
 
   /**
+   * Fill histogram with trigger based event counts
+   */
+  int FillTriggerStats( std::string, TrigLvl1*, double );
+
+
+  /**
    * Fill histograms with cluster pT spectrum for trigger efficiency
    */
   int FillTriggerEfficiency( emcClusterContainer *data_emccontainer,
@@ -167,15 +172,16 @@ private:
   /**
    * Fill histograms with cluster pT spectrum before and after applying bad tower map
    */
-  int FillClusterPtSpectrum( emcClusterContainer *d_emcont,
-                             PHGlobal *d_gbl );
+  int FillClusterPtSpectrum( std::string,
+			     emcClusterContainer* );
 
   /**
    * Fill histograms with cluster TOF spectrum before and after applying local TOF correction
    */
-  int FillClusterTofSpectrum( emcClusterContainer *d_emcont,
-                              PHGlobal *d_gbl,
-                              std::string quali="" );
+  int FillClusterTofSpectrum( std::string histname,
+			      emcClusterContainer *data_emc,
+			      PHGlobal *data_global,
+			      double bbc_t0 );
 
   /**
    * Fill histograms with invariant mass from two-photon pairs which are pi0 candidates
@@ -197,6 +203,11 @@ private:
   int FillPhotonPtSpectrum( emcClusterContainer *d_emccontainer,
                             PHCentralTrack* d_tracks,
                             PHGlobal *d_global );
+
+  /**
+   * Print infomration of cluster container
+   */
+  void PrintClusterContainer( emcClusterContainer* , double );
 
   /**
    * Array providing status for each EMCal tower. Array indices are [sector][ytower][ztower]
