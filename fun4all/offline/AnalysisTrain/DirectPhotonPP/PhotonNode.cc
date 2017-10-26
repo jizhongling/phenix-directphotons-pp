@@ -301,12 +301,9 @@ void PhotonNode::EMCRecalibSetup()
   string _file_ecal_run = toad_loader->location("ecorr_run_run13pp500gev.txt");
   string _file_tcal = toad_loader->location("tcorr_run13pp500gev.txt");
 
-  if( datatype == ERT )
-  {
-    emcrecalib_sasha->anaGetCorrCal( _file_ecal.c_str() );
-    emcrecalib_sasha->anaGetCorrCal_run( _file_ecal_run.c_str() );
-    emcrecalib_sasha->anaGetCorrTof( _file_tcal.c_str() );
-  }
+  emcrecalib_sasha->anaGetCorrCal( _file_ecal.c_str() );
+  emcrecalib_sasha->anaGetCorrCal_run( _file_ecal_run.c_str() );
+  emcrecalib_sasha->anaGetCorrTof( _file_tcal.c_str() );
 
   delete toad_loader;
   return;
