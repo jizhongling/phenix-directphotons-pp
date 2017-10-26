@@ -9,6 +9,7 @@
 
 #include <PhotonContainer.h>
 #include <Photon.h>
+#include <PhotonERT.h>
 #include <SpinPattern.h>
 #include <RunHeader.h>
 
@@ -66,6 +67,8 @@ FillHisto::FillHisto(const string &name, const char *filename) :
   outFileName = "histos/PhotonNode-";
   outFileName.append(filename);
 
+  datatype = ERT;
+
   // initialize array for tower status
   for(int isector=0; isector<8; isector++)
     for(int ibiny=0; ibiny<48; ibiny++)
@@ -76,7 +79,7 @@ FillHisto::FillHisto(const string &name, const char *filename) :
   runtime = -9999.;
   nmb = 0;  // number of MinBias data
 
-  // initialize the CLOCK Live and BBC narrow Counts
+  // initialize the CLOCK live and BBC narrow live counts
   for(int i=0; i<6; i++)
     for(int j=0; j<1020; j++)
       n_clock_bbc[i][j] = 0;
@@ -172,6 +175,8 @@ int FillHisto::InitRun(PHCompositeNode *topNode)
   {
     npions_sig[i] = 0;
     npions_bg[i] = 0;
+    npions_sig_notof[i] = 0;
+    npions_bg_notof[i] = 0;
   }
 
   // load EMCal recalibrations for run and fill
@@ -191,31 +196,35 @@ int FillHisto::process_event(PHCompositeNode *topNode)
   }
 
   // Run local recalibration of EMCal cluster data
-  //PhotonContainerClone *photoncont_raw = new PhotonContainerClone(photoncont);
+  PhotonContainerClone *photoncont_raw = new PhotonContainerClone(photoncont);
   //emcrecalib->ApplyClusterCorrection( photoncont );
   emcrecalib_sasha->ApplyClusterCorrection( runnumber, photoncont );
 
   // Store TOF information for cluster as calibration check
-  //FillClusterTofSpectrum( photoncont_raw, "raw" );
-  //FillClusterTofSpectrum( photoncont );
+  FillClusterTofSpectrum( photoncont_raw, "raw" );
+  FillClusterTofSpectrum( photoncont );
 
   // Analyze pi0s events for crosscheck
-  //FillPi0InvariantMass( photoncont_raw, "raw" );
-  //FillPi0InvariantMass( photoncont );
+  FillPi0InvariantMass( photoncont_raw, "raw" );
+  FillPi0InvariantMass( photoncont );
 
   // Count events to calculate trigger efficiency
-  //FillTriggerEfficiency( photoncont );
+  FillTriggerEfficiency( photoncont );
 
   // Analyze single photon event
-  //FillSinglePhotonSpectrum( photoncont );
+  FillSinglePhotonSpectrum( photoncont );
 
   // Analyze photon pair for direct photon event
-  //FillTwoPhotonSpectrum( photoncont );
+  FillTwoPhotonSpectrum( photoncont );
 
   // Analyze photon pair for pi0 event
   FillPi0Spectrum( photoncont );
 
-  //delete photoncont_raw;
+  // Count events to calculate pile up for MB sample
+  if( datatype == MB )
+    FillPileup( photoncont );
+
+  delete photoncont_raw;
 
   return EVENT_OK;
 }
@@ -223,9 +232,7 @@ int FillHisto::process_event(PHCompositeNode *topNode)
 int FillHisto::FillClusterTofSpectrum( const PhotonContainer *photoncont, const string &quali )
 {
   /* Get event global parameters */
-  double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
-  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
 
@@ -252,9 +259,7 @@ int FillHisto::FillClusterTofSpectrum( const PhotonContainer *photoncont, const 
 int FillHisto::FillPi0InvariantMass( const PhotonContainer *photoncont, const string &quali )
 {
   /* Get event global parameters */
-  double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
-  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
 
@@ -296,9 +301,7 @@ int FillHisto::FillPi0InvariantMass( const PhotonContainer *photoncont, const st
 int FillHisto::FillTriggerEfficiency( const PhotonContainer *photoncont )
 {
   /* Get event global parameters */
-  double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
-  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
 
@@ -326,7 +329,7 @@ int FillHisto::FillTriggerEfficiency( const PhotonContainer *photoncont )
 
     /* Require the other arm to be fired */
     int oarm = ( arm==0 ? 1 : 0 );
-    if( !FireERT[oarm] ) continue;
+    if( datatype == ERT && !FireERT[oarm] ) continue;
 
     if( GetStatus(photon1) == 0 &&
         TestPhoton(photon1, bbc_t0) )
@@ -379,12 +382,14 @@ int FillHisto::FillTriggerEfficiency( const PhotonContainer *photoncont )
 int FillHisto::FillSinglePhotonSpectrum( const PhotonContainer *photoncont )
 {
   /* Get event global parameters */
-  double bbc_z = photoncont->get_bbc_z();
+  if( !photoncont->get_bbc10cm() )
+    return DISCARDEVENT;
   double bbc_t0 = photoncont->get_bbc_t0();
-  if( fabs(bbc_z) > 10. ) return DISCARDEVENT;
 
   /* Check trigger */
-  if( !photoncont->get_ert_c_scaled() )
+  if( datatype == ERT && !photoncont->get_ert_c_scaled() )
+    return DISCARDEVENT;
+  if( datatype == MB && !photoncont->get_bbcnarrow_scaled() )
     return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
@@ -420,12 +425,12 @@ int FillHisto::FillSinglePhotonSpectrum( const PhotonContainer *photoncont )
 int FillHisto::FillTwoPhotonSpectrum(const PhotonContainer *photoncont)
 {
   /* Get event global parameters */
-  double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
-  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
 
   /* Check trigger */
-  if( !photoncont->get_ert_c_scaled() )
+  if( datatype == ERT && !photoncont->get_ert_c_scaled() )
+    return DISCARDEVENT;
+  if( datatype == MB && !photoncont->get_bbcnarrow_scaled() )
     return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
@@ -462,12 +467,124 @@ int FillHisto::FillTwoPhotonSpectrum(const PhotonContainer *photoncont)
 int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
 {
   /* Get event global parameters */
-  double bbc_z = photoncont->get_bbc_z();
+  if( !photoncont->get_bbc10cm() )
+    return DISCARDEVENT;
   double bbc_t0 = photoncont->get_bbc_t0();
-  if( fabs(bbc_z) > 10. ) return DISCARDEVENT;
+
+  h_events->Fill(1.);
 
   /* Check trigger */
-  if( !photoncont->get_ert_c_scaled() || !photoncont->get_bbcnarrow_live() )
+  if( datatype == ERT &&
+      ( !photoncont->get_ert_c_scaled() || !photoncont->get_bbcnarrow_live() )
+    )
+    return DISCARDEVENT;
+
+  unsigned nphotons = photoncont->Size();
+
+  vector<unsigned> v_used;
+
+  for(unsigned i=0; i<nphotons; i++)
+  {
+    v_used.push_back(i);
+    for(unsigned j=0; j<nphotons; j++)
+      if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
+      {
+        Photon *photon1 = photoncont->GetPhoton(i);
+        Photon *photon2 = photoncont->GetPhoton(j);
+        double asym = anatools::GetAsymmetry_E(photon1, photon2);
+        if( GetStatus(photon1) == 0 &&
+            GetStatus(photon2) == 0 &&
+            asym < AsymCut )
+        {
+          int sector1 = anatools::GetSector(photon1);
+          int sector2 = anatools::GetSector(photon2);
+          //if( sector1 != sector2 ) continue;
+          if( !anatools::SectorCheck(sector1,sector2) ) continue;
+
+          int sector = sector1;
+          bool trig = photon1->get_trg3();
+          if( photon2->get_E() > photon1->get_E() )
+          {
+            sector = sector2;
+            trig = photon2->get_trg3();
+          }
+          if( datatype == ERT && !trig) continue;
+
+          TLorentzVector pE1 = anatools::Get_pE(photon1);
+          TLorentzVector pE2 = anatools::Get_pE(photon2);
+          TLorentzVector tot_pE =  pE1 + pE2;
+          double tot_px = tot_pE.Px();
+          double tot_py = tot_pE.Py();
+          double tot_pz = tot_pE.Pz();
+          double tot_pT = tot_pE.Pt();
+          double tot_mom = tot_pE.P();
+          double minv = tot_pE.M();
+
+          if( datatype == ERT )
+          {
+            if( TestPhoton(photon1, bbc_t0) &&
+                TestPhoton(photon2, bbc_t0) )
+            {
+              double eta = tot_mom > 0. ? atan(tot_pz/tot_mom) : 9999.;
+              double phi = tot_px > 0. ? atan(tot_py/tot_px) : PI+atan(tot_py/tot_px);
+              double fill_hn_pion[] = {sector, tot_pT, minv, eta, phi};
+              hn_pion->Fill(fill_hn_pion);
+
+              double dx = photon1->get_x() - photon2->get_x();
+              double dy = photon1->get_y() - photon2->get_y();
+              double dz = photon1->get_z() - photon2->get_z();
+              double dR = sqrt(dx*dx + dy*dy + dz*dz);
+              double fill_hn_asym[] = {sector, tot_pT, asym, dR, minv};
+              hn_asym->Fill(fill_hn_asym);
+
+              double angle = sqrt( 1. - cos( pE1.Angle(pE2.Vect()) ) );
+              double fill_hn_minv[] = {sector, tot_pT, pE1.E(), pE2.E(), angle};
+              hn_minv->Fill(fill_hn_minv);
+            }
+          }
+
+          else if( datatype == MB )
+          {
+            /* Check trigger */
+            if( photoncont->get_bbcnovtx_scaled() )
+            {
+              double fill_hn_pion_0[] = {sector, tot_pT, minv, 0.};
+              hn_pion->Fill(fill_hn_pion_0);
+              if( TestPhoton(photon1, bbc_t0) &&
+                  TestPhoton(photon2, bbc_t0) )
+              {
+                double fill_hn_pion_1[] = {sector, tot_pT, minv, 1.};
+                hn_pion->Fill(fill_hn_pion_1);
+              }
+            }
+
+            if( photoncont->get_bbcnarrow_scaled() )
+            {
+              double fill_hn_pion_2[] = {sector, tot_pT, minv, 2.};
+              hn_pion->Fill(fill_hn_pion_2);
+              if( TestPhoton(photon1, bbc_t0) &&
+                  TestPhoton(photon2, bbc_t0) )
+              {
+                double fill_hn_pion_3[] = {sector, tot_pT, minv, 3.};
+                hn_pion->Fill(fill_hn_pion_3);
+              }
+            }
+          } // datatype == MB
+        } // GetStatus and asymmetry cut
+      } // second cluster loop
+  } // first cluster loop
+
+  return EVENT_OK;
+}
+
+int FillHisto::FillPileup(const PhotonContainer *photoncont)
+{
+  /* Get event global parameters */
+  if( !photoncont->get_bbc10cm() )
+    return DISCARDEVENT;
+  double bbc_t0 = photoncont->get_bbc_t0();
+
+  if( !photoncont->get_bbcnarrow_scaled() )
     return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
@@ -483,7 +600,8 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
         Photon *photon1 = photoncont->GetPhoton(i);
         Photon *photon2 = photoncont->GetPhoton(j);
         if( GetStatus(photon1) == 0 &&
-            GetStatus(photon2) == 0 )
+            GetStatus(photon2) == 0 && 
+            anatools::GetAsymmetry_E(photon1, photon2) < AsymCut )
         {
           int sector1 = anatools::GetSector(photon1);
           int sector2 = anatools::GetSector(photon2);
@@ -491,49 +609,12 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
           if( !anatools::SectorCheck(sector1,sector2) ) continue;
 
           int sector = sector1;
-          bool trig = photon1->get_trg3();
-          if( photon2->get_E() > photon1->get_E() )
-          {
-            sector = sector2;
-            trig = photon2->get_trg3();
-          }
-          if(!trig) continue;
-
-          TLorentzVector pE1 = anatools::Get_pE(photon1);
-          TLorentzVector pE2 = anatools::Get_pE(photon2);
-          TLorentzVector tot_pE =  pE1 + pE2;
-          double tot_px = tot_pE.Px();
-          double tot_py = tot_pE.Py();
-          double tot_pz = tot_pE.Pz();
-          double tot_pT = tot_pE.Pt();
-          double tot_mom = tot_pE.P();
+          double tot_pT = anatools::GetTot_pT(photon1, photon2);
           double minv = anatools::GetInvMass(photon1, photon2);
-          double asym = anatools::GetAsymmetry_E(photon1, photon2);
-
-          double dx = photon1->get_x() - photon2->get_x();
-          double dy = photon1->get_y() - photon2->get_y();
-          double dz = photon1->get_z() - photon2->get_z();
-          double dR = sqrt(dx*dx + dy*dy + dz*dz);
-
-          double eta = tot_mom > 0. ? atan(tot_pz/tot_mom) : 9999.;
-          double phi = tot_px > 0. ? atan(tot_py/tot_px) : 3.1416+atan(tot_py/tot_px);
 
           if( TestPhoton(photon1, bbc_t0) &&
               TestPhoton(photon2, bbc_t0) )
           {
-            if(asym < AsymCut)
-            {
-              double fill_hn_pion[] = {sector, tot_pT, minv, eta, phi};
-              hn_pion->Fill(fill_hn_pion);
-            }
-
-            double fill_hn_asym[] = {sector, tot_pT, asym, dR, minv};
-            hn_asym->Fill(fill_hn_asym);
-
-            double angle = sqrt( 1. - cos( pE1.Angle(pE2.Vect()) ) );
-            double fill_hn_minv[] = {sector, tot_pT, pE1.E(), pE2.E(), angle};
-            hn_minv->Fill(fill_hn_minv);
-
             if(tot_pT>2.)
             {
               if(minv>0.112 && minv<0.162)
@@ -559,25 +640,39 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
 
 int FillHisto::EndRun(const int runnumber)
 {
+  if( datatype != MB )
+    return EVENT_OK;
+
   unsigned long long nclock = GetClockLive(runnumber);
+  unsigned long scaledown = GetBBCNarrowScaledown(runnumber) + 1;
   //double nclock = 9.6e6 * runtime;
   if(nclock == 0 || nmb == 0)
     return DISCARDEVENT;
 
-  double npions_PbSc = npions_sig[0] - npions_bg[0];
-  double npions_PbGl = npions_sig[1] - npions_bg[1];
-  double enpions_PbSc = sqrt( npions_sig[0] + npions_bg[0] );
-  double enpions_PbGl = sqrt( npions_sig[1] + npions_bg[1] );
+  double npions_PbSc = npions_sig[0] - npions_bg[0]/2;
+  double npions_PbGl = npions_sig[1] - npions_bg[1]/2;
+  double enpions_PbSc = sqrt( npions_sig[0] + npions_bg[0]/2 );
+  double enpions_PbGl = sqrt( npions_sig[1] + npions_bg[1]/2 );
+
+  npions_PbSc *= (double)scaledown;
+  npions_PbGl *= (double)scaledown;
+  enpions_PbSc *= (double)scaledown;
+  enpions_PbGl *= (double)scaledown;
 
   g_pileup_PbSc->SetPoint(irun, (double)nmb/(double)nclock, npions_PbSc/(double)nmb);
   g_pileup_PbSc->SetPointError(irun, 0., enpions_PbSc/(double)nmb);
   g_pileup_PbGl->SetPoint(irun, (double)nmb/(double)nclock, npions_PbGl/(double)nmb);
   g_pileup_PbGl->SetPointError(irun, 0., enpions_PbGl/(double)nmb);
 
-  double npions_PbSc_notof = npions_sig_notof[0] - npions_bg_notof[0];
-  double npions_PbGl_notof = npions_sig_notof[1] - npions_bg_notof[1];
-  double enpions_PbSc_notof = sqrt( npions_sig_notof[0] + npions_bg_notof[0] );
-  double enpions_PbGl_notof = sqrt( npions_sig_notof[1] + npions_bg_notof[1] );
+  double npions_PbSc_notof = npions_sig_notof[0] - npions_bg_notof[0]/2;
+  double npions_PbGl_notof = npions_sig_notof[1] - npions_bg_notof[1]/2;
+  double enpions_PbSc_notof = sqrt( npions_sig_notof[0] + npions_bg_notof[0]/2 );
+  double enpions_PbGl_notof = sqrt( npions_sig_notof[1] + npions_bg_notof[1]/2 );
+
+  npions_PbSc_notof *= (double)scaledown;
+  npions_PbGl_notof *= (double)scaledown;
+  enpions_PbSc_notof  *= (double)scaledown;
+  enpions_PbGl_notof  *= (double)scaledown;
 
   g_pileup_PbSc_notof->SetPoint(irun, (double)nmb/(double)nclock, npions_PbSc_notof/(double)nmb);
   g_pileup_PbSc_notof->SetPointError(irun, 0., enpions_PbSc_notof/(double)nmb);
@@ -585,6 +680,11 @@ int FillHisto::EndRun(const int runnumber)
   g_pileup_PbGl_notof->SetPointError(irun, 0., enpions_PbGl_notof/(double)nmb);
 
   irun++;
+
+  //char name[100];
+  //sprintf(name, "histos/PhotonNode-%d.root", runnumber);
+  //hm->dumpHistos(name);
+  //hn_pion->Reset();
 
   return EVENT_OK;
 }
@@ -597,6 +697,18 @@ int FillHisto::End(PHCompositeNode *topNode)
   delete emcrecalib_sasha;
 
   return EVENT_OK;
+}
+
+void FillHisto::SelectMB()
+{
+  datatype = MB;
+  return;
+}
+
+void FillHisto::SelectERT()
+{
+  datatype = ERT;
+  return;
 }
 
 void FillHisto::BookHistograms()
@@ -633,6 +745,12 @@ void FillHisto::BookHistograms()
   for(int is=6; is<8; is++)
     for(int it=0; it<25; it++)
       phi_twr[114+25*(is-6)+it] = phi_sec[is] + 0.016 * ( it - 12 );
+
+  /*
+   * Events counter
+   */
+  h_events = new TH1F("h_events", "Events counter", 1,0.5,1.5);
+  hm->registerHisto( h_events, 1 );
 
   /*
    * 3D histogram of sector, pT and TOF to check TOF calibration
@@ -732,13 +850,25 @@ void FillHisto::BookHistograms()
    * - phi
    *
    */
-  const int nbins_hn_pion[] = {8, n_pTbins, 300, 70, n_phibins};
-  const double xmin_hn_pion[] = {-0.5, 0., 0., -0.35, 0.};
-  const double xmax_hn_pion[] = {7.5, 0., 0.3, 0.35, 0.};
-  hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p^{#pi^0}_{T};m_{inv} [GeV];#eta;#phi [rad];",
-      5, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
-  hn_pion->SetBinEdges(1, pTbins);
-  hn_pion->SetBinEdges(4, phi_twr);
+  if( datatype == ERT )
+  {
+    const int nbins_hn_pion[] = {8, n_pTbins, 300, 70, n_phibins};
+    const double xmin_hn_pion[] = {-0.5, 0., 0., -0.35, 0.};
+    const double xmax_hn_pion[] = {7.5, 0., 0.3, 0.35, 0.};
+    hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p^{#pi^0}_{T};m_{inv} [GeV];#eta;#phi [rad];",
+        5, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
+    hn_pion->SetBinEdges(1, pTbins);
+    hn_pion->SetBinEdges(4, phi_twr);
+  }
+  else if( datatype == MB )
+  {
+    const int nbins_hn_pion[] = {8, n_pTbins, 300, 4};
+    const double xmin_hn_pion[] = {-0.5, 0., 0., -0.5};
+    const double xmax_hn_pion[] = {7.5, 0., 0.3, 3.5};
+    hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p^{#pi^0}_{T};m_{inv} [GeV];condition;",
+        4, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
+    hn_pion->SetBinEdges(1, pTbins);
+  }
   hm->registerHisto(hn_pion, 1);
 
   /*
@@ -813,13 +943,18 @@ void FillHisto::EMCRecalibSetup()
   string file_ecal_run = toad_loader->location("Run13pp_RunbyRun_Calib.dat");
   string file_tofmap = toad_loader->location("Run13pp510_EMC_TOF_Correction.root");
 
+  if( datatype == ERT )
+    emcrecalib->SelectERT();
+  else if( datatype == MB )
+    emcrecalib->SelectMB();
+
   emcrecalib->SetEnergyCorrectionFile( file_ecal_run );
   emcrecalib->SetTofCorrectionFile( file_tofmap );
 
   string _file_tcal = toad_loader->location("tcorr_run13pp500gev.txt");
 
-  emcrecalib_sasha->anaGetCorrTof( _file_tcal.c_str() );
-
+  if( datatype == ERT )
+    emcrecalib_sasha->anaGetCorrTof( _file_tcal.c_str() );
 
   delete toad_loader;
   return;
@@ -942,6 +1077,15 @@ void FillHisto::ReadSashaWarnmap(const string &filename)
   return;
 }
 
+bool FillHisto::TestPhoton( const Photon *photon, double bbc_t0 )
+{
+  if( photon->get_E() > eMin &&
+      abs( photon->get_tof() - bbc_t0 ) < 10. )
+    return true;
+  else
+    return false;
+}
+
 unsigned long long FillHisto::GetClockLive(unsigned runnumber)
 {
   for(int i=0; i<1020; i++)
@@ -987,16 +1131,6 @@ unsigned long FillHisto::GetBBCNarrowScaledown(unsigned runnumber)
   return 0;
 }
 
-int FillHisto::GetPattern(const PhotonContainer *photoncont)
-{
-  int crossing = photoncont->get_crossing();
-  crossing = (crossing + crossing_shift) % 120;
-  int pattern = spinpattern_blue[crossing] * spinpattern_yellow[crossing];  
-  if( abs(pattern) != 1 ) pattern = 0;
-
-  return pattern;
-}
-
 int FillHisto::GetStatus(const Photon *photon)
 {
   int sector, iypos, izpos;
@@ -1005,36 +1139,37 @@ int FillHisto::GetStatus(const Photon *photon)
   return tower_status[sector][iypos][izpos];
 }
 
-bool FillHisto::TestPhoton( const Photon *photon, double bbc_t0 )
+int FillHisto::GetPattern(const PhotonContainer *photoncont)
 {
-  if( photon->get_E() > eMin &&
-      photon->get_tof() - bbc_t0 > -10. &&
-      photon->get_tof() - bbc_t0 < 10. )
-    return true;
-  else
-    return false;
+  //int crossing = photoncont->get_crossing();
+  int crossing = 0;
+  crossing = (crossing + crossing_shift) % 120;
+  int pattern = spinpattern_blue[crossing] * spinpattern_yellow[crossing];  
+  if( abs(pattern) != 1 ) pattern = 0;
+
+  return pattern;
 }
 
-//bool FillHisto::TestTrackVeto(const Photon *photon)
-//{
-//  // angle between EMC cluster and PC3 track
-//  double theta_cv = photon->get_theta_cv();
-//
-//  // charge veto in medium dtheta
-//  double emc_e = photon->get_E();
-//  int sector = anatools::GetSector(photon);
-//  if(sector<6)
-//  {
-//    if( theta_cv > 4.22*pow(10,-4) - 1.16*pow(10,-2)*emc_e - 4.53*pow(10,-3)*pow(emc_e,2) &&
-//        theta_cv < 1.01*pow(10,-1) - 2.02*pow(10,-1)*emc_e + 1.51*pow(10,-1)*pow(emc_e,2) - 3.66*pow(10,-2)*pow(emc_e,3) )
-//      return false;
-//  }
-//  else
-//  {
-//    if( theta_cv > 1.27*pow(10,-2) - 2.41*pow(10,-2)*emc_e + 2.26*pow(10,-2)*pow(emc_e,2) &&
-//        theta_cv < 1.64*pow(10,-2) - 7.38*pow(10,-3)*emc_e + 1.45*pow(10,-1)*exp(-4*emc_e) )
-//      return false;
-//  }
-//
-//  return true;
-//}
+bool FillHisto::TestTrackVeto(const PhotonERT *photon)
+{
+  // angle between EMC cluster and PC3 track
+  double theta_cv = photon->get_theta_cv();
+
+  // charge veto in medium dtheta
+  double emc_e = photon->get_E();
+  int sector = anatools::GetSector(photon);
+  if(sector<6)
+  {
+    if( theta_cv > 4.22*pow(10,-4) - 1.16*pow(10,-2)*emc_e - 4.53*pow(10,-3)*pow(emc_e,2) &&
+        theta_cv < 1.01*pow(10,-1) - 2.02*pow(10,-1)*emc_e + 1.51*pow(10,-1)*pow(emc_e,2) - 3.66*pow(10,-2)*pow(emc_e,3) )
+      return false;
+  }
+  else
+  {
+    if( theta_cv > 1.27*pow(10,-2) - 2.41*pow(10,-2)*emc_e + 2.26*pow(10,-2)*pow(emc_e,2) &&
+        theta_cv < 1.64*pow(10,-2) - 7.38*pow(10,-3)*emc_e + 1.45*pow(10,-1)*exp(-4*emc_e) )
+      return false;
+  }
+
+  return true;
+}

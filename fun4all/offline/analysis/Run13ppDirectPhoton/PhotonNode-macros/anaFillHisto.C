@@ -10,7 +10,7 @@ void anaFillHisto(const int process=64)
   int runNumber;
   char dstFileName[1000];
 
-  //ifstream inFiles("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist.txt");
+  //ifstream inFiles("/phenix/plhf/zji/taxi/Run13pp510ERT/runnumber.txt");
   ifstream inFiles("/phenix/plhf/zji/taxi/Run13pp510MinBias/runnumber.txt");
   if(!inFiles)
   {
@@ -23,8 +23,8 @@ void anaFillHisto(const int process=64)
   se->Verbosity(0);
 
   // Reconstruction Module
-  //SubsysReco *my1 = new FillHisto("FILLHISTO", Form("histo%d.root",process));
-  SubsysReco *my1 = new FillHistoMB("FILLHISTOMB", Form("histo%d.root",process));
+  FillHisto *my1 = new FillHisto("FILLHISTO", Form("histo%d.root",process));
+  my1->SelectMB();
   se->registerSubsystem(my1);
 
   // Input Manager
@@ -37,8 +37,8 @@ void anaFillHisto(const int process=64)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    //sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/11465/data/DirectPhotonPP_PhotonNode--%d.root", runNumber);
-    sprintf(dstFileName, "/phenix/plhf/zji/taxi/Run13pp510MinBias/11343/data/DirectPhotonPP_PhotonNode-%d.root", runNumber);
+    //sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/12084/data/PhotonNode-%d.root", runNumber);
+    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510MinBias/12085/data/PhotonNode-%d.root", runNumber);
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DSTin1", dstFileName);

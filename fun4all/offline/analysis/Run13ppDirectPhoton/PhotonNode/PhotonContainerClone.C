@@ -10,9 +10,9 @@ PhotonContainerClone::PhotonContainerClone(PhotonContainer *photoncont)
     photon_list.push_back(*photon);
   }
 
-  bbc_z = photoncont->get_bbc_z();
+  bbc10cm = photoncont->get_bbc10cm();
   bbc_t0 = photoncont->get_bbc_t0();
-  crossing = photoncont->get_crossing();
+  //crossing = photoncont->get_crossing();
 
   if( photoncont->get_ert_a_live() )
     trig += 0x01;
@@ -41,5 +41,4 @@ PhotonContainerClone::PhotonContainerClone(PhotonContainer *photoncont)
     trig += 0x2000;
   if( photoncont->get_bbcnarrow_scaled() )
     trig += 0x4000;
-
 }

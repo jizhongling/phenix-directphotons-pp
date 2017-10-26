@@ -5,8 +5,9 @@
 
 #include <string>
 
-class Photon;
 class PhotonContainer;
+class Photon;
+class PhotonERT;
 class EmcLocalRecalibrator;
 class EmcLocalRecalibratorSasha;
 
@@ -30,6 +31,9 @@ class FillHisto: public SubsysReco
     int EndRun(const int runnumber);
     int End(PHCompositeNode *topNode);
 
+    void SelectMB();
+    void SelectERT();
+
   protected:
     int FillClusterTofSpectrum( const PhotonContainer *photoncont, const std::string &quali = "" );
     int FillPi0InvariantMass( const PhotonContainer *photoncont, const std::string &quali = "" );
@@ -37,6 +41,7 @@ class FillHisto: public SubsysReco
     int FillSinglePhotonSpectrum(const PhotonContainer *photoncont);
     int FillTwoPhotonSpectrum(const PhotonContainer *photoncont);
     int FillPi0Spectrum(const PhotonContainer *photoncont);
+    int FillPileup(const PhotonContainer *photoncont);
 
     void BookHistograms();
     void EMCRecalibSetup();
@@ -44,16 +49,19 @@ class FillHisto: public SubsysReco
     void ReadTowerStatus(const std::string &filename);
     void ReadSashaWarnmap(const std::string &filename);
 
+    bool TestPhoton(const Photon *photon, double bbc_t0);
+
     unsigned long long GetClockLive(unsigned runnumber);
     unsigned long long GetBBCNovtxLive(unsigned runnumber);
     unsigned long long GetBBCNarrowLive(unsigned runnumber);
     unsigned long GetBBCNovtxScaledown(unsigned runnumber);
     unsigned long GetBBCNarrowScaledown(unsigned runnumber);
-    int GetPattern(const PhotonContainer *photoncont);
     int GetStatus(const Photon *photon);
+    bool TestTrackVeto(const PhotonERT *photon);
+    int GetPattern(const PhotonContainer *photoncont);
 
-    bool TestPhoton(const Photon *photon, double bbc_t0);
-    //bool TestTrackVeto(const Photon *photon);
+    enum DataType {MB, ERT};
+    DataType datatype;
 
     std::string outFileName;
     Fun4AllHistoManager *hm;
