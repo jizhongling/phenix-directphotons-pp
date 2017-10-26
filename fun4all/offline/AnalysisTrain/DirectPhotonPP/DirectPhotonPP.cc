@@ -46,7 +46,8 @@ DirectPhotonPP::DirectPhotonPP(const char* outfile) :
   _photon_tof_min( -10 ),
   _photon_tof_max( 10 ),
   _direct_photon_energy_min( 1.0 ),
-  _emcrecalib( NULL )
+  _emcrecalib( NULL ),
+  _debug_cluster( false )
 {
   /* Initialize array for tower status */
   for(int isector = 0; isector < 8; isector++)
@@ -212,8 +213,7 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   selectClusterPhotonTof( data_emc_corr_cwarn_cshape_cenergy_ctof, bbc_t0 );
 
   /* Print detailes cluster collection infomration for debugging purpose */
-  bool debug_cluster = true;
-  if ( debug_cluster )
+  if ( _debug_cluster )
     {
       cout << "***** data_emc" << endl;
       PrintClusterContainer( data_emc, bbc_t0 );

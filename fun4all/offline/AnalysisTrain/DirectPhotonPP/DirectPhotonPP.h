@@ -67,6 +67,14 @@ public:
     _emcrecalib = emcrecalib;
   }
 
+  /**
+   * Set debug mode for detailed cluster information output
+   */
+  void SetClusterDebugMode( bool mode )
+  {
+    _debug_cluster = mode;
+  }
+
 protected:
 
   /**
@@ -260,8 +268,15 @@ private:
    */
   std::string _outfile_histos;
 
-  /* histogram manager */
+  /**
+   * histogram manager
+   */
   Fun4AllHistoManager *_hm;
+
+  /**
+   * switch- set to TRUE to print detailed cluster information to log file
+   */
+  bool _debug_cluster;
 
 };
 #endif
