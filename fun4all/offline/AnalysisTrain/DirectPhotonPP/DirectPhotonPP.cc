@@ -179,8 +179,8 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
    */
 
   /* Get global event parameters */
-  float bbc_z  = data_global->getBbcZVertex();
-  float bbc_t0  = data_global->getBbcTimeZero();
+  double bbc_z  = data_global->getBbcZVertex();
+  double bbc_t0  = data_global->getBbcTimeZero();
 
   /* Count events */
   FillTriggerStats( "h1_events" , data_triggerlvl1 , bbc_z );
@@ -447,7 +447,7 @@ DirectPhotonPP::FillClusterPtSpectrum( string histname,
 
       int sector = anatools::CorrectClusterSector( emccluster->arm() , emccluster->sector() );
 
-      float cluster_pT = anatools::Get_pT( emccluster );
+      double cluster_pT = anatools::Get_pT( emccluster );
 
       h2_pT_1cluster->Fill( cluster_pT, sector );
     }
@@ -481,7 +481,7 @@ DirectPhotonPP::FillClusterTofSpectrum( string histname,
 
       double pT = anatools::Get_pT(emccluster);
 
-      double fill_hn_tof[] = {sector, pT, tof};
+      double fill_hn_tof[] = {(double)sector, pT, tof};
       hn_tof->Fill( fill_hn_tof );
     }
 
@@ -608,17 +608,17 @@ DirectPhotonPP::FillPi0InvariantMassMod( string histname,
                     {
                       if( ( lvl1_scaled & bit_4x4a ) && trig1 )
                         {
-                          double fill_hn_pion[] = {sector, tot_pT, invMass, tot_eta, tot_phi, ERT_4x4a};
+                          double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)ERT_4x4a};
                           hn_pion->Fill(fill_hn_pion);
                         }
                       if( ( lvl1_scaled & bit_4x4b ) && trig2 )
                         {
-                          double fill_hn_pion[] = {sector, tot_pT, invMass, tot_eta, tot_phi, ERT_4x4b};
+                          double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)ERT_4x4b};
                           hn_pion->Fill(fill_hn_pion);
                         }
                       if( ( lvl1_scaled & bit_4x4c ) && trig3 )
                         {
-                          double fill_hn_pion[] = {sector, tot_pT, invMass, tot_eta, tot_phi, ERT_4x4c};
+                          double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)ERT_4x4c};
                           hn_pion->Fill(fill_hn_pion);
                         }
                     }
@@ -628,7 +628,7 @@ DirectPhotonPP::FillPi0InvariantMassMod( string histname,
                   // */
                   //if ( ( sector1 == sector2 ) && ( lvl1_live & bit_4x4or ) )
                   //  {
-                  //    h3_inv_mass_pi0calib->Fill(sector1, tot_pT, invMass);
+                  //    h3_inv_mass_pi0calib->Fill((double)sector1, tot_pT, invMass);
                   //  } // check sector
                 } // check warnmap cluster 2
             } // loop cluster 2
@@ -694,7 +694,7 @@ DirectPhotonPP::FillPi0InvariantMass( string histname,
                    */
                   if ( ( sector1 == sector2 ) )
                     {
-                      double fill_hn_inv_mass_pi0calib[] = {sector1, tot_pT, invMass};
+                      double fill_hn_inv_mass_pi0calib[] = {(double)sector1, tot_pT, invMass};
                       hn_inv_mass_pi0calib->Fill( fill_hn_inv_mass_pi0calib );
                     } // check sector
                 } // check asymmetry
@@ -759,8 +759,8 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
         /* fill isolated direct photons pT histogram */
         if ( testIsolatedPhoton( emccluster1 , data_emc, data_tracks , 0.4 , bbc_t0 ) )
           {
-            double fill_histo_1photon[] = { sector1,
-                                            CUT_ISOPHOTON,
+            double fill_histo_1photon[] = { (double)sector1,
+                                            (double)CUT_ISOPHOTON,
                                             photon1_pT,
                                             photon1_E,
                                             photon1_eta,
@@ -772,8 +772,8 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
         /* fill direct photons pT histogram */
         if ( testDirectPhoton( emccluster1 , bbc_t0 ) )
           {
-            double fill_histo_1photon[] = { sector1,
-                                            CUT_DIRECTPHOTON,
+            double fill_histo_1photon[] = { (double)sector1,
+                                            (double)CUT_DIRECTPHOTON,
                                             photon1_pT,
                                             photon1_E,
                                             photon1_eta,
@@ -791,8 +791,8 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
              && testPhotonTrackVeto( emccluster1 )
              && testPhotonTof( emccluster1, bbc_t0 ) )
           {
-            double fill_histo_1photon[] = { sector1,
-                                            CUT_ENERGY_SHAPE_TRACK_TOF,
+            double fill_histo_1photon[] = { (double)sector1,
+                                            (double)CUT_ENERGY_SHAPE_TRACK_TOF,
                                             photon1_pT,
                                             photon1_E,
                                             photon1_eta,
@@ -805,8 +805,8 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
              && testPhotonShape( emccluster1 )
              && testPhotonTrackVeto( emccluster1 ) )
           {
-            double fill_histo_1photon[] = { sector1,
-                                            CUT_ENERGY_SHAPE_TRACK,
+            double fill_histo_1photon[] = { (double)sector1,
+                                            (double)CUT_ENERGY_SHAPE_TRACK,
                                             photon1_pT,
                                             photon1_E,
                                             photon1_eta,
@@ -818,8 +818,8 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
         if ( testPhotonEnergy( emccluster1 )
              && testPhotonShape( emccluster1 ) )
           {
-            double fill_histo_1photon[] = { sector1,
-                                            CUT_ENERGY_SHAPE,
+            double fill_histo_1photon[] = { (double)sector1,
+                                            (double)CUT_ENERGY_SHAPE,
                                             photon1_pT,
                                             photon1_E,
                                             photon1_eta,
@@ -830,8 +830,8 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
 
         if ( testPhotonEnergy( emccluster1 ) )
           {
-            double fill_histo_1photon[] = { sector1,
-                                            CUT_ENERGY,
+            double fill_histo_1photon[] = { (double)sector1,
+                                            (double)CUT_ENERGY,
                                             photon1_pT,
                                             photon1_E,
                                             photon1_eta,
@@ -855,17 +855,17 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
             if ( testGoodTower( emccluster2 ) )
               {
                 /* Fill invariant mass for two-photon pair in histogram */
-                float photon12_invMass = anatools::GetInvMass( emccluster1, emccluster2 );
-                float photon12_pT = 0;
+                double photon12_invMass = anatools::GetInvMass( emccluster1, emccluster2 );
+                double photon12_pT = 0;
 
                 /* Fill theta_cv */
-                float theta_cv = anatools::GetTheta_CV( emccluster1 );
+                double theta_cv = anatools::GetTheta_CV( emccluster1 );
 
                 if ( testIsolatedPhoton( emccluster1 , data_emc, data_tracks , 0.4 , bbc_t0 )
                      && testPhoton( emccluster2 , bbc_t0 ) )
                   {
-                    double fill_histo_inv_mass[] = { sector1,
-                                                     CUT_ISOPHOTON,
+                    double fill_histo_inv_mass[] = { (double)sector1,
+                                                     (double)CUT_ISOPHOTON,
                                                      photon1_pT,
                                                      photon12_pT,
                                                      photon12_invMass };
@@ -875,8 +875,8 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
                 if ( testDirectPhoton( emccluster1 , bbc_t0 )
                      && testPhoton( emccluster2 , bbc_t0 ) )
                   {
-                    double fill_histo_inv_mass[] = { sector1,
-                                                     CUT_DIRECTPHOTON,
+                    double fill_histo_inv_mass[] = { (double)sector1,
+                                                     (double)CUT_DIRECTPHOTON,
                                                      photon1_pT,
                                                      photon12_pT,
                                                      photon12_invMass };
@@ -892,8 +892,8 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
                      && testPhotonTof( emccluster1, bbc_t0 )
                      && testPhotonTof( emccluster2, bbc_t0 ) )
                   {
-                    double fill_histo_inv_mass[] = { sector1,
-                                                     CUT_ENERGY_SHAPE_TRACK_TOF,
+                    double fill_histo_inv_mass[] = { (double)sector1,
+                                                     (double)CUT_ENERGY_SHAPE_TRACK_TOF,
                                                      photon1_pT,
                                                      photon12_pT,
                                                      photon12_invMass };
@@ -907,8 +907,8 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
                      && testPhotonTrackVeto( emccluster1 )
                      && testPhotonTrackVeto( emccluster2  ) )
                   {
-                    double fill_histo_inv_mass[] = { sector1,
-                                                     CUT_ENERGY_SHAPE_TRACK,
+                    double fill_histo_inv_mass[] = { (double)sector1,
+                                                     (double)CUT_ENERGY_SHAPE_TRACK,
                                                      photon1_pT,
                                                      photon12_pT,
                                                      photon12_invMass };
@@ -920,8 +920,8 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
                      && testPhotonShape( emccluster1 )
                      && testPhotonShape( emccluster2  ) )
                   {
-                    double fill_histo_inv_mass[] = { sector1,
-                                                     CUT_ENERGY_SHAPE,
+                    double fill_histo_inv_mass[] = { (double)sector1,
+                                                     (double)CUT_ENERGY_SHAPE,
                                                      photon1_pT,
                                                      photon12_pT,
                                                      photon12_invMass };
@@ -931,8 +931,8 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
                 if ( testPhotonEnergy( emccluster1 )
                      && testPhotonEnergy( emccluster2  ) )
                   {
-                    double fill_histo_inv_mass[] = { sector1,
-                                                     CUT_ENERGY,
+                    double fill_histo_inv_mass[] = { (double)sector1,
+                                                     (double)CUT_ENERGY,
                                                      photon1_pT,
                                                      photon12_pT,
                                                      photon12_invMass };
@@ -947,7 +947,7 @@ DirectPhotonPP::FillPhotonPtSpectrum( emcClusterContainer *data_emc,
                      && testPhotonShape( emccluster1 )
                      && testPhotonShape( emccluster2 ) )
                   {
-                    double fill_histo_inv_mass_theta_cv[] = { sector1, photon1_E , photon12_invMass , theta_cv };
+                    double fill_histo_inv_mass_theta_cv[] = { (double)sector1, photon1_E , photon12_invMass , theta_cv };
                     hn_2photon_theta_cv->Fill( fill_histo_inv_mass_theta_cv );
                   }
 
@@ -1166,12 +1166,12 @@ DirectPhotonPP::testIsolatedPhoton( emcClusterContent *emccluster0 ,
     return false;
 
   // check isolation
-  float isocone_energy = 0;
+  double isocone_energy = 0;
 
   // get cluster angles in radians
-  float phi0 = emccluster0->phi();
-  float theta0 = emccluster0->theta();
-  //float eta0 = -log(tan(theta0/2.0));
+  double phi0 = emccluster0->phi();
+  double theta0 = emccluster0->theta();
+  //double eta0 = -log(tan(theta0/2.0));
 
   // what does PHAngle( angle ) do?
 
@@ -1190,13 +1190,13 @@ DirectPhotonPP::testIsolatedPhoton( emcClusterContent *emccluster0 ,
       // continue;
 
       // get cluster angles in radians
-      float phi1 = emccluster1->phi();
-      float theta1 = emccluster1->theta();
-      //float eta1 = -log(tan(theta1/2.0));
+      double phi1 = emccluster1->phi();
+      double theta1 = emccluster1->theta();
+      //double eta1 = -log(tan(theta1/2.0));
 
       // add energy from clusters within cone range
-      float dphi = ( phi0 - phi1 );
-      float dtheta = ( theta0 - theta1 );
+      double dphi = ( phi0 - phi1 );
+      double dtheta = ( theta0 - theta1 );
 
       if ( sqrt( dphi*dphi + dtheta*dtheta ) < coneangle
            && sqrt( dphi*dphi + dtheta*dtheta ) != 0 )
