@@ -231,32 +231,32 @@ private:
   /**
    * BBC z vertex range cut (in cm)
    */
-  float _bbc_zvertex_cut;
+  double _bbc_zvertex_cut;
 
   /**
    * minimum energy for cluster to be considered photon (in GeV)
    */
-  float _photon_energy_min;
+  double _photon_energy_min;
 
   /**
    * minimum EM shower shape probability for cluster to be considered as photon
    */
-  float _photon_prob_min;
+  double _photon_prob_min;
 
   /**
    * minimum TOF for cluster to be considered as photon (in ns)
    */
-  float _photon_tof_min;
+  double _photon_tof_min;
 
   /**
    * maximum TOF for cluster to be considered as photon (in ns)
    */
-  float _photon_tof_max;
+  double _photon_tof_max;
 
   /**
    * minimum energy for cluster to be considered direct photon (in GeV)
    */
-  float _direct_photon_energy_min;
+  double _direct_photon_energy_min;
 
   /**
    * On-the-fly recalibration of EMCal towers
