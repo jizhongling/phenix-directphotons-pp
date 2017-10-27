@@ -154,6 +154,46 @@ int FillHisto::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
+  float bbc_z = photoncont->get_bbc_z();
+
+  /* Check trigger */
+  if( datatype == ERT )
+  {
+    if( photoncont->get_bbcnarrow_live() && abs(bbc_z) < 10. )
+    {
+      if( photoncont->get_ert_a_scaled() )
+        h_events->Fill("ert_a", 1.);
+      if( photoncont->get_ert_b_scaled() )
+        h_events->Fill("ert_b", 1.);
+      if( photoncont->get_ert_c_scaled() )
+        h_events->Fill("ert_c", 1.);
+    }
+  }
+
+  else if( datatype == MB )
+  {
+    if( photoncont->get_bbcnovtx_scaled() )
+    {
+      h_events->Fill("bbc_novtx", 1.);
+      if( abs(bbc_z) < 40. )
+        h_events->Fill("bbc_40cm", 1.);
+      if( abs(bbc_z) < 30. )
+        h_events->Fill("bbc_30cm", 1.);
+      if( abs(bbc_z) < 15. )
+        h_events->Fill("bbc_15cm", 1.);
+      if( abs(bbc_z) < 10. )
+        h_events->Fill("bbc_10cm", 1.);
+    }
+
+    h_events->Fill("bbc", 1.);
+    if( photoncont->get_ert_a_live() )
+      h_events->Fill("bbc_ert_a", 1.);
+    if( photoncont->get_ert_b_live() )
+      h_events->Fill("bbc_ert_b", 1.);
+    if( photoncont->get_ert_c_live() )
+      h_events->Fill("bbc_ert_c", 1.);
+  }
+
   // Run local recalibration of EMCal cluster data
   PhotonContainerClone *photoncont_raw = new PhotonContainerClone(photoncont);
   //emcrecalib->ApplyClusterCorrection( photoncont );
@@ -187,7 +227,9 @@ int FillHisto::process_event(PHCompositeNode *topNode)
 int FillHisto::FillClusterTofSpectrum( const PhotonContainer *photoncont, const string &quali )
 {
   /* Get event global parameters */
+  double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
+  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
 
@@ -214,7 +256,9 @@ int FillHisto::FillClusterTofSpectrum( const PhotonContainer *photoncont, const 
 int FillHisto::FillPi0InvariantMass( const PhotonContainer *photoncont, const string &quali )
 {
   /* Get event global parameters */
+  double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
+  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
 
@@ -256,7 +300,9 @@ int FillHisto::FillPi0InvariantMass( const PhotonContainer *photoncont, const st
 int FillHisto::FillTriggerEfficiency( const PhotonContainer *photoncont )
 {
   /* Get event global parameters */
+  double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
+  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
 
@@ -337,14 +383,14 @@ int FillHisto::FillTriggerEfficiency( const PhotonContainer *photoncont )
 int FillHisto::FillSinglePhotonSpectrum( const PhotonContainer *photoncont )
 {
   /* Get event global parameters */
-  if( !photoncont->get_bbc10cm() )
-    return DISCARDEVENT;
+  double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
+  if( abs(bbc_z) > 10. ) return DISCARDEVENT;
 
   /* Check trigger */
   if( datatype == ERT && !photoncont->get_ert_c_scaled() )
     return DISCARDEVENT;
-  if( datatype == MB && !photoncont->get_bbcnarrow_scaled() )
+  else if( datatype == MB && !photoncont->get_bbcnarrow_scaled() )
     return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
@@ -380,12 +426,14 @@ int FillHisto::FillSinglePhotonSpectrum( const PhotonContainer *photoncont )
 int FillHisto::FillTwoPhotonSpectrum(const PhotonContainer *photoncont)
 {
   /* Get event global parameters */
+  double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
+  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
 
   /* Check trigger */
   if( datatype == ERT && !photoncont->get_ert_c_scaled() )
     return DISCARDEVENT;
-  if( datatype == MB && !photoncont->get_bbcnarrow_scaled() )
+  else if( datatype == MB && !photoncont->get_bbcnarrow_scaled() )
     return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
@@ -422,23 +470,19 @@ int FillHisto::FillTwoPhotonSpectrum(const PhotonContainer *photoncont)
 int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
 {
   /* Get event global parameters */
-  if( !photoncont->get_bbc10cm() )
-    return DISCARDEVENT;
+  double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
+  if( abs(bbc_z) > 10. ) return DISCARDEVENT;
 
   /* Check trigger */
   if( datatype == ERT )
   {
-    if( photoncont->get_ert_c_scaled() && photoncont->get_bbcnarrow_live() )
-      h_events->Fill(1.);
-    else
+    if( !photoncont->get_ert_c_scaled() || !photoncont->get_bbcnarrow_live() )
       return DISCARDEVENT;
   }
   else if( datatype == MB )
   {
-    if( photoncont->get_bbcnovtx_scaled() )
-      h_events->Fill(1.);
-    else
+    if( !photoncont->get_bbcnovtx_scaled() )
       return DISCARDEVENT;
   }
 
@@ -510,7 +554,10 @@ int FillHisto::EndRun(const int runnumber)
   // Write histograms to file for this run
   // and reset histograms for the next run
   char filename[200];
-  sprintf(filename, "histos/PhotonNode-%d.root", runnumber);
+  if( datatype == ERT )
+    sprintf(filename, "histos-ERT/PhotonNode-%d.root", runnumber);
+  else if( datatype == MB )
+    sprintf(filename, "histos-MB/PhotonNode-%d.root", runnumber);
   hm->dumpHistos(filename);
   hm->Reset();
 
@@ -576,7 +623,26 @@ void FillHisto::BookHistograms()
   /*
    * Events counter
    */
-  h_events = new TH1F("h_events", "Events counter", 1,0.5,1.5);
+  if( datatype == ERT )
+  {
+    h_events = new TH1F("h_events", "Events counter", 3,0.5,3.5);
+    h_events->GetXaxis()->SetBinLabel(1, "ert_a");
+    h_events->GetXaxis()->SetBinLabel(2, "ert_b");
+    h_events->GetXaxis()->SetBinLabel(3, "ert_c");
+  }
+  else if( datatype == MB )
+  {
+    h_events = new TH1F("h_events", "Events counter", 9,0.5,9.5);
+    h_events->GetXaxis()->SetBinLabel(1, "bbc_novtx");
+    h_events->GetXaxis()->SetBinLabel(2, "bbc_40cm");
+    h_events->GetXaxis()->SetBinLabel(3, "bbc_30cm");
+    h_events->GetXaxis()->SetBinLabel(4, "bbc_15cm");
+    h_events->GetXaxis()->SetBinLabel(5, "bbc_10cm");
+    h_events->GetXaxis()->SetBinLabel(6, "bbc");
+    h_events->GetXaxis()->SetBinLabel(7, "bbc_ert_a");
+    h_events->GetXaxis()->SetBinLabel(8, "bbc_ert_b");
+    h_events->GetXaxis()->SetBinLabel(9, "bbc_ert_c");
+  }
   hm->registerHisto( h_events, 1 );
 
   /*

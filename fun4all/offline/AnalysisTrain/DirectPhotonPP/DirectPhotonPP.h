@@ -22,7 +22,6 @@ class Fun4AllHistoManager;
 /* Root classes */
 class TH1;
 class TH2;
-class TH3;
 class THnSparse;
 class TFile;
 
@@ -66,6 +65,14 @@ public:
   void SetEmcLocalRecalibrator( EmcLocalRecalibrator* emcrecalib )
   {
     _emcrecalib = emcrecalib;
+  }
+
+  /**
+   * Set debug mode for detailed cluster information output
+   */
+  void SetClusterDebugMode( bool mode )
+  {
+    _debug_cluster = mode;
   }
 
 protected:
@@ -158,6 +165,12 @@ private:
   void ReadSashaWarnmap(const std::string &filename);
 
   /**
+   * Fill histogram with trigger based event counts
+   */
+  int FillTriggerStats( std::string, TrigLvl1*, double );
+
+
+  /**
    * Fill histograms with cluster pT spectrum for trigger efficiency
    */
   int FillTriggerEfficiency( emcClusterContainer *data_emccontainer,
@@ -167,15 +180,16 @@ private:
   /**
    * Fill histograms with cluster pT spectrum before and after applying bad tower map
    */
-  int FillClusterPtSpectrum( emcClusterContainer *d_emcont,
-                             PHGlobal *d_gbl );
+  int FillClusterPtSpectrum( std::string,
+			     emcClusterContainer* );
 
   /**
    * Fill histograms with cluster TOF spectrum before and after applying local TOF correction
    */
-  int FillClusterTofSpectrum( emcClusterContainer *d_emcont,
-                              PHGlobal *d_gbl,
-                              std::string quali="" );
+  int FillClusterTofSpectrum( std::string histname,
+			      emcClusterContainer *data_emc,
+			      PHGlobal *data_global,
+			      double bbc_t0 );
 
   /**
    * Fill histograms with invariant mass from two-photon pairs which are pi0 candidates
@@ -199,6 +213,11 @@ private:
                             PHGlobal *d_global );
 
   /**
+   * Print infomration of cluster container
+   */
+  void PrintClusterContainer( emcClusterContainer* , double );
+
+  /**
    * Array providing status for each EMCal tower. Array indices are [sector][ytower][ztower]
    * 0=dead 1=good 10=iso fiducial 50=fiducial 100=hot
    */
@@ -212,32 +231,32 @@ private:
   /**
    * BBC z vertex range cut (in cm)
    */
-  float _bbc_zvertex_cut;
+  double _bbc_zvertex_cut;
 
   /**
    * minimum energy for cluster to be considered photon (in GeV)
    */
-  float _photon_energy_min;
+  double _photon_energy_min;
 
   /**
    * minimum EM shower shape probability for cluster to be considered as photon
    */
-  float _photon_prob_min;
+  double _photon_prob_min;
 
   /**
    * minimum TOF for cluster to be considered as photon (in ns)
    */
-  float _photon_tof_min;
+  double _photon_tof_min;
 
   /**
    * maximum TOF for cluster to be considered as photon (in ns)
    */
-  float _photon_tof_max;
+  double _photon_tof_max;
 
   /**
    * minimum energy for cluster to be considered direct photon (in GeV)
    */
-  float _direct_photon_energy_min;
+  double _direct_photon_energy_min;
 
   /**
    * On-the-fly recalibration of EMCal towers
@@ -249,8 +268,15 @@ private:
    */
   std::string _outfile_histos;
 
-  /* histogram manager */
+  /**
+   * histogram manager
+   */
   Fun4AllHistoManager *_hm;
+
+  /**
+   * switch- set to TRUE to print detailed cluster information to log file
+   */
+  bool _debug_cluster;
 
 };
 #endif

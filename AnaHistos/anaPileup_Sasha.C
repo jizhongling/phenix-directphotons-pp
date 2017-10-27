@@ -52,7 +52,7 @@ void anaPileup_Sasha(const Int_t process = 0)
 
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
-    Double_t nev = h_events->GetBinContent(1);
+    Double_t nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_10cm") );
 
     for(Int_t ic=0; ic<2; ic++)
       for(Int_t is=0; is<2; is++)
