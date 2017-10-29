@@ -37,7 +37,8 @@ class FillHisto: public SubsysReco
   protected:
     int FillClusterTofSpectrum( const PhotonContainer *photoncont, const std::string &quali = "" );
     int FillPi0InvariantMass( const PhotonContainer *photoncont, const std::string &quali = "" );
-    int FillTriggerEfficiency(const PhotonContainer *photoncont);
+    int FillBBCEfficiency(const PhotonContainer *photoncont);
+    int FillERTEfficiency(const PhotonContainer *photoncont);
     int FillSinglePhotonSpectrum(const PhotonContainer *photoncont);
     int FillTwoPhotonSpectrum(const PhotonContainer *photoncont);
     int FillPi0Spectrum(const PhotonContainer *photoncont);
@@ -66,8 +67,10 @@ class FillHisto: public SubsysReco
     TH3 *h3_tof_raw;
     TH3 *h3_inv_mass_pi0calib;
     TH3 *h3_inv_mass_pi0calib_raw;
-    TH3 *h3_trig;
-    TH3 *h3_trig_pion;
+    TH3 *h3_bbc;
+    TH3 *h3_bbc_pion;
+    TH3 *h3_ert;
+    TH3 *h3_ert_pion;
     THnSparse *hn_1photon;
     THnSparse *hn_2photon;
     THnSparse *hn_pion;

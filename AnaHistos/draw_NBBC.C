@@ -2,7 +2,12 @@
 
 void draw_Ratio()
 {
-  TH1 *h_ratio = new TH1F("h_ratio", "BBC10cm/BBCNoVTX", 40,0.54,0.62);
+  Double_t Nnovtx = 0.;
+  Double_t N10cm = 0.;
+  Double_t Nlive = 0.;
+  Double_t Nert_c = 0.;
+  TH1 *h_r10cm = new TH1F("h_r10cm", "BBC10cm/BBCNoVTX", 100, 0.07, 0.27);
+  TH1 *h_rej = new TH1F("h_rej", "Rejection power", 1600, 0.5, 1600.5);
 
   Int_t thread = -1;
   Int_t runnumber;
@@ -18,39 +23,51 @@ void draw_Ratio()
 
     TH1 *h_events= (TH1*)f->Get("h_events");
 
-    Double Nbbc_novtx = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx") );
-    Double Nbbc_10cm = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_10cm") );
-    Double_t ratio = Nbbc_10cm / Nbbc_novtx;
-    h_ratio->Fill(ratio);
+    Double_t Nbbc_novtx = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx") );
+    Double_t Nbbc_10cm = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_10cm_novtx") );
+    Nnovtx += Nbbc_novtx;
+    N10cm += Nbbc_10cm;
+    Double_t r10cm = Nbbc_10cm / Nbbc_novtx;
+    h_r10cm->Fill(r10cm);
+
+    Double_t Nbbc_live = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_live") );
+    Double_t Nbbc_ert_c = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_ert_c") );
+    Nlive += Nbbc_live;
+    Nert_c += Nbbc_ert_c;
+    Double_t rej = Nbbc_live / Nbbc_ert_c;
+    h_rej->Fill(rej);
 
     delete f;
   }
 
-  mc();
-  mcd();
+  cout << "N10cm/Nnovtx = " << N10cm/Nnovtx << endl
+    << "r10cm mean = " << h_r10cm->GetMean() << endl
+    << "r10cm error = " << h_r10cm->GetMeanError() << endl
+    << "Nlive/Nert_c = " << Nlive/Nert_c << endl
+    << "rej mean = " << h_rej->GetMean() << endl
+    << "rej error = " << h_rej->GetMeanError() << endl;
 
-  TF1 *fn_gaus = new TF1("fn_gaus", "gaus", 0.54, 0.62);
-  fn_gaus->SetParameters(h_ratio->GetMaximum(), 0.58, 0.01);
-  h_ratio->Fit(fn_gaus, "RQ");
+  mc(0, 2,1);
 
-  cout << "Mean = " << h_ratio->GetMean() << endl
-    << "Error = " << h_ratio->GetMeanError() << endl;
+  TF1 *fn_gaus = new TF1("fn_gaus", "gaus");
 
-  c0->Print("NBBC-r10cm.pdf");
+  mcd(0, 1);
+  fn_gaus->SetParameters(h_r10cm->GetMaximum(), 0.16, 0.015);
+  h_r10cm->Fit(fn_gaus, "Q", "", 0.07, 0.27);
+
+  mcd(0, 2);
+  h_rej->Rebin(10);
+  fn_gaus->SetParameters(h_rej->GetMaximum(), 800., 100.);
+  h_rej->Fit(fn_gaus, "Q", "", 0.5, 1600.5);
+
+  c0->Print("NBBC-r10cm-rej.pdf");
 }
 
 void draw_NBBC()
 {
-  Double_t Ndb[3];
-  Double_t Nrej[3];
-  TGraph *gr_ert[3];
-  for(Int_t igr=0; igr<3; igr++)
-  {
-    Ndb[igr] = 0.;
-    Nrej[igr] = 0.;
-    gr_ert[igr] = new TGraph(1000);
-  }
-
+  Double_t Ndb = 0.;
+  Double_t Nrej = 0.;
+  TGraph *gr_ert = new TGraph(1000);
 
   Int_t thread = -1;
   Int_t runnumber;
@@ -63,59 +80,40 @@ void draw_NBBC()
     thread++;
     if( thread%10 == 0 ) cout << "Nfile = " << thread << endl;
 
-    TFile *f_ert = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
-    TFile *f_mb = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-MB/PhotonNode-%d.root",runnumber));
-    if( f_ert->IsZombie() || f_mb->IsZombie() ) continue;
+    TFile *f = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
+    if( f->IsZombie() ) continue;
 
-    TH1 *h_events_ert = (TH1*)f_ert->Get("h_events");
-    TH1 *h_events_mb = (TH1*)f_mb->Get("h_events");
+    TH1 *h_events = (TH1*)f->Get("h_events");
 
-    const Double_t ratio = 0.577109;
-    const Int_t bin_ert = h_events_ert->GetXaxis()->FindBin("ert_a");
-    const Int_t bin_mb = h_events_mb->GetXaxis()->FindBin("bbc");
-    Double_t NBBC_ert_db[3];
-    Double_t NBBC_ert_rej[3];
-    NBBC_ert_db[0] = ratio * (Double_t)( GetBBCNarrowLive(runnumber) / (GetERT4x4aScaledown(runnumber)+1) );
-    NBBC_ert_db[1] = ratio * (Double_t)( GetBBCNarrowLive(runnumber) / (GetERT4x4bScaledown(runnumber)+1) );
-    NBBC_ert_db[2] = ratio * (Double_t)( GetBBCNarrowLive(runnumber) / (GetERT4x4cScaledown(runnumber)+1) );
-    NBBC_ert_rej[0] = h_events_ert->GetBinContent(bin_ert)   * h_events_mb->GetBinContent(bin_mb) / h_events_mb->GetBinContent(bin_mb+1);
-    NBBC_ert_rej[1] = h_events_ert->GetBinContent(bin_ert+1) * h_events_mb->GetBinContent(bin_mb) / h_events_mb->GetBinContent(bin_mb+2);
-    NBBC_ert_rej[2] = h_events_ert->GetBinContent(bin_ert+2) * h_events_mb->GetBinContent(bin_mb) / h_events_mb->GetBinContent(bin_mb+3);
+    const Double_t r10cm = 0.164395;
+    const Double_t rej = 824.2;
+    Double_t NBBC_ert_db = r10cm * (Double_t)( GetBBCNovtxLive(runnumber) / (GetERT4x4cScaledown(runnumber)+1) );
+    Double_t NBBC_ert_rej = rej * h_events->GetBinContent( h_events->GetXaxis()->FindBin("ert_c") );
 
-    for(Int_t igr=0; igr<3; igr++)
+    if( NBBC_ert_db > 0. && NBBC_ert_rej > 0. )
     {
-      if( NBBC_ert_db[igr] < TMath::Infinity() && NBBC_ert_rej[igr] < TMath::Infinity() )
-      {
-        Ndb[igr] += NBBC_ert_db[igr];
-        Nrej[igr] += NBBC_ert_rej[igr];
-        gr_ert[igr]->SetPoint(thread, runnumber, NBBC_ert_db[igr]/NBBC_ert_rej[igr]);
-      }
-      else
-      {
-        cout << "Problem in Run " << runnumber << Form(" for ERT_4x4%c",97+igr) << endl;
-      }
+      Ndb += NBBC_ert_db;
+      Nrej += NBBC_ert_rej;
+      gr_ert->SetPoint(thread, runnumber, NBBC_ert_db/NBBC_ert_rej);
+    }
+    else
+    {
+      cout << "Problem in Run " << runnumber << endl;
     }
 
-    delete f_ert;
-    delete f_mb;
+    delete f;
   }
+
+  cout << "Ndb = " <<  Ndb << endl
+    << "Nrej = " <<  Nrej << endl
+    << "Ndb/Nrej = " <<  Ndb/Nrej << endl;
 
   mc();
   mcd();
-  legi();
 
-  for(Int_t igr=0; igr<3; igr++)
-  {
-    cout << Form("Ndb/Nrej for ERT_4x4%c: ",97+igr) <<  Ndb[igr]/Nrej[igr] << endl;
-    aset(gr_ert[igr], "Runnumber","#frac{DB}{Rej}", 387000,399000, 0.5,1.5);
-    style(gr_ert[igr], 20+igr, 1+igr);
-    if(igr==0)
-      gr_ert[igr]->Draw("AP");
-    else
-      gr_ert[igr]->Draw("P");
-    leg0->AddEntry(gr_ert[igr], Form("ERT_4x4%c",97+igr), "P");
-  }
-  leg0->Draw();
+  aset(gr_ert, "Runnumber","#frac{DB}{Rej}", 386700.,398200., 0.,3.);
+  style(gr_ert, 20, 1);
+  gr_ert->Draw("AP");
 
   c0->Print("NBBC-DBRej.pdf");
 }

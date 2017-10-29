@@ -36,7 +36,7 @@ void anaFillHisto_MB(const int process=64)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510MinBias/12147/data/PhotonNode-%d.root", runNumber);
+    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510MinBias/12187/data/PhotonNode-%d.root", runNumber);
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DSTin1", dstFileName);

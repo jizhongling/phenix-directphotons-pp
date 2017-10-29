@@ -51,8 +51,10 @@ FillHisto::FillHisto(const string &name, const char *filename) :
   h3_tof_raw(NULL),
   h3_inv_mass_pi0calib(NULL),
   h3_inv_mass_pi0calib_raw(NULL),
-  h3_trig(NULL),
-  h3_trig_pion(NULL),
+  h3_bbc(NULL),
+  h3_bbc_pion(NULL),
+  h3_ert(NULL),
+  h3_ert_pion(NULL),
   hn_1photon(NULL),
   hn_2photon(NULL),
   hn_pion(NULL),
@@ -156,7 +158,7 @@ int FillHisto::process_event(PHCompositeNode *topNode)
 
   float bbc_z = photoncont->get_bbc_z();
 
-  /* Check trigger */
+  /* Get BBC and ERT trigger counts */
   if( datatype == ERT )
   {
     if( photoncont->get_bbcnarrow_live() && abs(bbc_z) < 10. )
@@ -183,15 +185,27 @@ int FillHisto::process_event(PHCompositeNode *topNode)
         h_events->Fill("bbc_15cm", 1.);
       if( abs(bbc_z) < 10. )
         h_events->Fill("bbc_10cm", 1.);
+      if( photoncont->get_bbcnarrow_live() && abs(bbc_z) < 10. )
+        h_events->Fill("bbc_10cm_novtx", 1.);
     }
 
-    h_events->Fill("bbc", 1.);
-    if( photoncont->get_ert_a_live() )
-      h_events->Fill("bbc_ert_a", 1.);
-    if( photoncont->get_ert_b_live() )
-      h_events->Fill("bbc_ert_b", 1.);
-    if( photoncont->get_ert_c_live() )
-      h_events->Fill("bbc_ert_c", 1.);
+    if( photoncont->get_bbcnarrow_scaled() )
+    {
+      h_events->Fill("bbc_narrow", 1.);
+      if( abs(bbc_z) < 10. )
+        h_events->Fill("bbc_10cm_narrow", 1.);
+    }
+
+    if( photoncont->get_bbcnarrow_live() && abs(bbc_z) < 10. )
+    {
+      h_events->Fill("bbc_live", 1.);
+      if( photoncont->get_ert_a_live() )
+        h_events->Fill("bbc_ert_a", 1.);
+      if( photoncont->get_ert_b_live() )
+        h_events->Fill("bbc_ert_b", 1.);
+      if( photoncont->get_ert_c_live() )
+        h_events->Fill("bbc_ert_c", 1.);
+    }
   }
 
   // Run local recalibration of EMCal cluster data
@@ -208,7 +222,8 @@ int FillHisto::process_event(PHCompositeNode *topNode)
   FillPi0InvariantMass( photoncont );
 
   // Count events to calculate trigger efficiency
-  FillTriggerEfficiency( photoncont );
+  FillBBCEfficiency( photoncont );
+  FillERTEfficiency( photoncont );
 
   // Analyze single photon event
   FillSinglePhotonSpectrum( photoncont );
@@ -281,7 +296,6 @@ int FillHisto::FillPi0InvariantMass( const PhotonContainer *photoncont, const st
           int sector1 = anatools::GetSector(photon1);
           int sector2 = anatools::GetSector(photon2);
           if( sector1 != sector2 ) continue;
-          //if( !anatools::SectorCheck(sector1,sector2) ) continue;
 
           double tot_pT = anatools::GetTot_pT(photon1, photon2);
           double minv = anatools::GetInvMass(photon1, photon2);
@@ -297,7 +311,69 @@ int FillHisto::FillPi0InvariantMass( const PhotonContainer *photoncont, const st
   return EVENT_OK;
 }
 
-int FillHisto::FillTriggerEfficiency( const PhotonContainer *photoncont )
+int FillHisto::FillBBCEfficiency( const PhotonContainer *photoncont )
+{
+  /* Check trigger */
+  if( !photoncont->get_ert_b_scaled() )
+    return DISCARDEVENT;
+
+  unsigned nphotons = photoncont->Size();
+
+  vector<unsigned> v_used;
+
+  for(unsigned i=0; i<nphotons; i++)
+  {
+    Photon *photon1 = photoncont->GetPhoton(i);
+    if( GetStatus(photon1) == 0 )
+    {
+      int sector = anatools::GetSector( photon1 );
+      double photon_pT = anatools::Get_pT( photon1 );
+
+      if( photon1->get_trg2() ) 
+      {
+        h3_bbc->Fill(photon_pT, sector, "all", 1.);
+        if( photoncont->get_bbcnovtx_live() )
+          h3_bbc->Fill(photon_pT, sector, "bbc", 1.);
+      }
+
+      for(unsigned j=0; j<nphotons; j++)
+        if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
+        {
+          Photon *photon2 = photoncont->GetPhoton(j);
+          if( GetStatus(photon2) == 0 )
+          {
+            int sector2 = anatools::GetSector( photon2 );
+            if( !anatools::SectorCheck(sector,sector2) )
+              continue;
+
+            double minv = anatools::GetInvMass(photon1, photon2);
+            if( minv < 0.112 || minv > 0.162 )
+              continue;
+
+            bool trig = photon1->get_trg2();
+            if( photon2->get_E() > photon1->get_E() )
+            {
+              sector = sector2;
+              trig = photon2->get_trg2();
+            }
+
+            double tot_pT = anatools::GetTot_pT(photon1, photon2);
+
+            if( trig )
+            {
+              h3_bbc_pion->Fill(tot_pT, sector, "all", 1.);
+              if( photoncont->get_bbcnovtx_live() )
+                h3_bbc_pion->Fill(tot_pT, sector, "bbc", 1.);
+            }
+          }
+        }
+    }
+  }
+
+  return EVENT_OK;
+}
+
+int FillHisto::FillERTEfficiency( const PhotonContainer *photoncont )
 {
   /* Get event global parameters */
   double bbc_z = photoncont->get_bbc_z();
@@ -328,7 +404,7 @@ int FillHisto::FillTriggerEfficiency( const PhotonContainer *photoncont )
     int sector = anatools::GetSector( photon1 );
     double photon_pT = anatools::Get_pT( photon1 );
 
-    /* Require the other arm to be fired */
+    /* Require the other arm to be fired for ERT sample */
     int oarm = ( arm==0 ? 1 : 0 );
     if( datatype == ERT && !FireERT[oarm] ) continue;
 
@@ -337,13 +413,13 @@ int FillHisto::FillTriggerEfficiency( const PhotonContainer *photoncont )
     {
       v_used.push_back(i);
 
-      h3_trig->Fill(photon_pT, sector, "all", 1.);
+      h3_ert->Fill(photon_pT, sector, "all", 1.);
       if( photon1->get_trg1() )
-        h3_trig->Fill(photon_pT, sector, "ERT4x4a", 1.);
+        h3_ert->Fill(photon_pT, sector, "ERT4x4a", 1.);
       if( photon1->get_trg2() )
-        h3_trig->Fill(photon_pT, sector, "ERT4x4b", 1.);
+        h3_ert->Fill(photon_pT, sector, "ERT4x4b", 1.);
       if( photon1->get_trg3() )
-        h3_trig->Fill(photon_pT, sector, "ERT4x4c", 1.);
+        h3_ert->Fill(photon_pT, sector, "ERT4x4c", 1.);
 
       for(unsigned j=0; j<nphotons; j++)
         if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
@@ -362,16 +438,16 @@ int FillHisto::FillTriggerEfficiency( const PhotonContainer *photoncont )
 
             double tot_pT = anatools::GetTot_pT(photon1, photon2);
 
-            h3_trig_pion->Fill(tot_pT, sector, "all", 1.);
+            h3_ert_pion->Fill(tot_pT, sector, "all", 1.);
             if( photon1->get_trg1() ||
                 photon2->get_trg1() )
-              h3_trig_pion->Fill(tot_pT, sector, "ERT4x4a", 1.);
+              h3_ert_pion->Fill(tot_pT, sector, "ERT4x4a", 1.);
             if( photon1->get_trg2() ||
                 photon2->get_trg2() )
-              h3_trig_pion->Fill(tot_pT, sector, "ERT4x4b", 1.);
+              h3_ert_pion->Fill(tot_pT, sector, "ERT4x4b", 1.);
             if( photon1->get_trg3() ||
                 photon2->get_trg3() )
-              h3_trig_pion->Fill(tot_pT, sector, "ERT4x4c", 1.);
+              h3_ert_pion->Fill(tot_pT, sector, "ERT4x4c", 1.);
           }
         }
     }
@@ -457,7 +533,6 @@ int FillHisto::FillTwoPhotonSpectrum(const PhotonContainer *photoncont)
           double pT = anatools::Get_pT(photon1);
           double tot_pT = anatools::GetTot_pT(photon1, photon2);
           double minv = anatools::GetInvMass(photon1, photon2);
-          //double theta_cv = photon1->get_theta_cv();
 
           double fill_hn_2photon[] = {sector, pT, tot_pT, minv, pattern};
           hn_2photon->Fill(fill_hn_2photon);
@@ -505,7 +580,6 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
         {
           int sector1 = anatools::GetSector(photon1);
           int sector2 = anatools::GetSector(photon2);
-          //if( sector1 != sector2 ) continue;
           if( !anatools::SectorCheck(sector1,sector2) ) continue;
 
           int sector = sector1;
@@ -632,16 +706,19 @@ void FillHisto::BookHistograms()
   }
   else if( datatype == MB )
   {
-    h_events = new TH1F("h_events", "Events counter", 9,0.5,9.5);
-    h_events->GetXaxis()->SetBinLabel(1, "bbc_novtx");
-    h_events->GetXaxis()->SetBinLabel(2, "bbc_40cm");
-    h_events->GetXaxis()->SetBinLabel(3, "bbc_30cm");
-    h_events->GetXaxis()->SetBinLabel(4, "bbc_15cm");
-    h_events->GetXaxis()->SetBinLabel(5, "bbc_10cm");
-    h_events->GetXaxis()->SetBinLabel(6, "bbc");
-    h_events->GetXaxis()->SetBinLabel(7, "bbc_ert_a");
-    h_events->GetXaxis()->SetBinLabel(8, "bbc_ert_b");
-    h_events->GetXaxis()->SetBinLabel(9, "bbc_ert_c");
+    h_events = new TH1F("h_events", "Events counter", 12,0.5,12.5);
+    h_events->GetXaxis()->SetBinLabel(1,  "bbc_novtx");
+    h_events->GetXaxis()->SetBinLabel(2,  "bbc_40cm");
+    h_events->GetXaxis()->SetBinLabel(3,  "bbc_30cm");
+    h_events->GetXaxis()->SetBinLabel(4,  "bbc_15cm");
+    h_events->GetXaxis()->SetBinLabel(5,  "bbc_10cm");
+    h_events->GetXaxis()->SetBinLabel(6,  "bbc_10cm_novtx");
+    h_events->GetXaxis()->SetBinLabel(7,  "bbc_narrow");
+    h_events->GetXaxis()->SetBinLabel(8,  "bbc_10cm_narrow");
+    h_events->GetXaxis()->SetBinLabel(9,  "bbc_live");
+    h_events->GetXaxis()->SetBinLabel(10, "bbc_ert_a");
+    h_events->GetXaxis()->SetBinLabel(11, "bbc_ert_b");
+    h_events->GetXaxis()->SetBinLabel(12, "bbc_ert_c");
   }
   hm->registerHisto( h_events, 1 );
 
@@ -676,21 +753,36 @@ void FillHisto::BookHistograms()
   hm->registerHisto( h3_inv_mass_pi0calib_raw , 1 );
 
   /*
-   * 3D histogram to count for trigger efficiency
+   * 3D histogram to count for BBC trigger efficiency
    */
-  h3_trig = new TH3F("h3_trig", "number of clusters;p_{T} [GeV];sector;trigger;", n_pTbins,0.,0., 8,-0.5,7.5, 4,0.5,4.5);
-  h3_trig->GetXaxis()->Set(n_pTbins, pTbins);
-  h3_trig->GetZaxis()->SetBinLabel(1, "all");
-  h3_trig->GetZaxis()->SetBinLabel(2, "ERT4x4a");
-  h3_trig->GetZaxis()->SetBinLabel(3, "ERT4x4b");
-  h3_trig->GetZaxis()->SetBinLabel(4, "ERT4x4c");
-  hm->registerHisto(h3_trig, 1);
+  h3_bbc = new TH3F("h3_bbc", "Number of clusters;p_{T} [GeV];sector;trigger;", n_pTbins,0.,0., 8,-0.5,7.5, 2,0.5,2.5);
+  h3_bbc->GetXaxis()->Set(n_pTbins, pTbins);
+  h3_bbc->GetZaxis()->SetBinLabel(1, "all");
+  h3_bbc->GetZaxis()->SetBinLabel(2, "bbc");
+  hm->registerHisto(h3_bbc, 1);
 
   /*
    * Trigger efficiency for pion
    */
-  h3_trig_pion = static_cast<TH3*>( h3_trig->Clone("h3_trig_pion") );
-  hm->registerHisto(h3_trig_pion, 1);
+  h3_bbc_pion = static_cast<TH3*>( h3_bbc->Clone("h3_bbc_pion") );
+  hm->registerHisto(h3_bbc_pion, 1);
+
+  /*
+   * 3D histogram to count for ERT trigger efficiency
+   */
+  h3_ert = new TH3F("h3_ert", "Number of clusters;p_{T} [GeV];sector;trigger;", n_pTbins,0.,0., 8,-0.5,7.5, 4,0.5,4.5);
+  h3_ert->GetXaxis()->Set(n_pTbins, pTbins);
+  h3_ert->GetZaxis()->SetBinLabel(1, "all");
+  h3_ert->GetZaxis()->SetBinLabel(2, "ERT4x4a");
+  h3_ert->GetZaxis()->SetBinLabel(3, "ERT4x4b");
+  h3_ert->GetZaxis()->SetBinLabel(4, "ERT4x4c");
+  hm->registerHisto(h3_ert, 1);
+
+  /*
+   * Trigger efficiency for pion
+   */
+  h3_ert_pion = static_cast<TH3*>( h3_ert->Clone("h3_ert_pion") );
+  hm->registerHisto(h3_ert_pion, 1);
 
   /* store single photon information
    *
