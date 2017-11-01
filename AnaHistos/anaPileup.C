@@ -131,7 +131,7 @@ void anaPileup(const Int_t process = 0)
         {
           Int_t ig = ipt*8+id*4+ic*2+is;
           gr[ig]->Set(igp[ig]);
-          //gROOT->ProcessLine( Form("c%d->Print(\"pileup/Minv-proc%d-data%d-cond%d-pt%d-%d.pdf\");", ig, process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
+          gROOT->ProcessLine( Form("c%d->Print(\"pileup/Minv-proc%d-data%d-cond%d-pt%d-%d.pdf\");", ig, process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
           gr[ig]->Write();
         }
   f_out->Close();
