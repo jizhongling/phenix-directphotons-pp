@@ -177,34 +177,32 @@ int FillHisto::process_event(PHCompositeNode *topNode)
     if( photoncont->get_bbcnovtx_scaled() )
     {
       h_events->Fill("bbc_novtx", 1.);
-      if( abs(bbc_z) < 40. )
-        h_events->Fill("bbc_40cm", 1.);
-      if( abs(bbc_z) < 30. )
-        h_events->Fill("bbc_30cm", 1.);
-      if( abs(bbc_z) < 15. )
-        h_events->Fill("bbc_15cm", 1.);
       if( abs(bbc_z) < 10. )
-        h_events->Fill("bbc_10cm", 1.);
+        h_events->Fill("bbc_novtx_10cm", 1.);
       if( photoncont->get_bbcnarrow_live() && abs(bbc_z) < 10. )
-        h_events->Fill("bbc_10cm_novtx", 1.);
+      {
+        h_events->Fill("bbc_novtx_narrow_10cm", 1.);
+        if( photoncont->get_ert_c_live() )
+          h_events->Fill("bbc_novtx_narrow_10cm_ert_c", 1.);
+      }
     }
 
     if( photoncont->get_bbcnarrow_scaled() )
     {
       h_events->Fill("bbc_narrow", 1.);
       if( abs(bbc_z) < 10. )
-        h_events->Fill("bbc_10cm_narrow", 1.);
+      {
+        h_events->Fill("bbc_narrow_10cm", 1.);
+        if( photoncont->get_ert_c_live() )
+          h_events->Fill("bbc_narrow_10cm_ert_c", 1.);
+      }
     }
 
     if( photoncont->get_bbcnarrow_live() && abs(bbc_z) < 10. )
     {
-      h_events->Fill("bbc_live", 1.);
-      if( photoncont->get_ert_a_live() )
-        h_events->Fill("bbc_ert_a", 1.);
-      if( photoncont->get_ert_b_live() )
-        h_events->Fill("bbc_ert_b", 1.);
+      h_events->Fill("bbc_mb_narrow_10cm", 1.);
       if( photoncont->get_ert_c_live() )
-        h_events->Fill("bbc_ert_c", 1.);
+        h_events->Fill("bbc_mb_narrow_10cm_ert_c", 1.);
     }
   }
 
@@ -589,7 +587,7 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
             sector = sector2;
             trig = photon2->get_trg3();
           }
-          if( datatype == ERT && !trig) continue;
+          if( datatype == ERT && !trig ) continue;
 
           TLorentzVector pE1 = anatools::Get_pE(photon1);
           TLorentzVector pE2 = anatools::Get_pE(photon2);
@@ -706,19 +704,16 @@ void FillHisto::BookHistograms()
   }
   else if( datatype == MB )
   {
-    h_events = new TH1F("h_events", "Events counter", 12,0.5,12.5);
-    h_events->GetXaxis()->SetBinLabel(1,  "bbc_novtx");
-    h_events->GetXaxis()->SetBinLabel(2,  "bbc_40cm");
-    h_events->GetXaxis()->SetBinLabel(3,  "bbc_30cm");
-    h_events->GetXaxis()->SetBinLabel(4,  "bbc_15cm");
-    h_events->GetXaxis()->SetBinLabel(5,  "bbc_10cm");
-    h_events->GetXaxis()->SetBinLabel(6,  "bbc_10cm_novtx");
-    h_events->GetXaxis()->SetBinLabel(7,  "bbc_narrow");
-    h_events->GetXaxis()->SetBinLabel(8,  "bbc_10cm_narrow");
-    h_events->GetXaxis()->SetBinLabel(9,  "bbc_live");
-    h_events->GetXaxis()->SetBinLabel(10, "bbc_ert_a");
-    h_events->GetXaxis()->SetBinLabel(11, "bbc_ert_b");
-    h_events->GetXaxis()->SetBinLabel(12, "bbc_ert_c");
+    h_events = new TH1F("h_events", "Events counter", 9,0.5,9.5);
+    h_events->GetXaxis()->SetBinLabel(1, "bbc_novtx");
+    h_events->GetXaxis()->SetBinLabel(2, "bbc_novtx_10cm");
+    h_events->GetXaxis()->SetBinLabel(3, "bbc_novtx_narrow_10cm");
+    h_events->GetXaxis()->SetBinLabel(4, "bbc_novtx_narrow_10cm_ert_c");
+    h_events->GetXaxis()->SetBinLabel(5, "bbc_narrow");
+    h_events->GetXaxis()->SetBinLabel(6, "bbc_narrow_10cm");
+    h_events->GetXaxis()->SetBinLabel(7, "bbc_narrow_10cm_ert_c");
+    h_events->GetXaxis()->SetBinLabel(8, "bbc_mb_narrow_10cm");
+    h_events->GetXaxis()->SetBinLabel(9, "bbc_mb_narrow_10cm_ert_c");
   }
   hm->registerHisto( h_events, 1 );
 

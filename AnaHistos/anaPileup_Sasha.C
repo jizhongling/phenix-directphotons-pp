@@ -3,6 +3,7 @@
 void anaPileup_Sasha(const Int_t process = 0)
 {
   TGraphErrors *gr[4];
+  Int_t igp[4] = {};
   for(Int_t ig=0; ig<4; ig++)
   {
     mc(ig, 5,4);
@@ -52,12 +53,13 @@ void anaPileup_Sasha(const Int_t process = 0)
 
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
-    Double_t nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_10cm") );
+    Double_t nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx_10cm") );
 
     for(Int_t ic=0; ic<2; ic++)
       for(Int_t is=0; is<2; is++)
       {
-        mcd(ic*2+is, irun+1);
+        Int_t ig = ic*2+is;
+        mcd(ig, irun+1);
         h_minv[ic][is]->Rebin(10);
         h_minv[ic][is]->Scale(0.5);
         aset(h_minv[ic][is], "m_{inv} [GeV]","", 0.,0.3);
@@ -82,8 +84,11 @@ void anaPileup_Sasha(const Int_t process = 0)
           Double_t bincenter = h_minv[ic][is]->GetXaxis()->GetBinCenter(ib);
           nbg += fn_bg->Eval(bincenter);
         }
-        npion[ic][is] = nsig - nbg;
-        enpion[ic][is] = sqrt(nsig + nbg);
+        Double_t ensig = sqrt(nsig);
+        Double_t rbg = nbg / nsig;
+        Double_t erbg = sqrt(nbg) / nsig;
+        npion[ic][is] = nsig * (1-rbg);
+        enpion[ic][is] = sqrt( pow(ensig*(1-rbg),2.) + pow(nsig*erbg,2.) );
       }
 
     for(Int_t ic=0; ic<2; ic++)
@@ -94,8 +99,9 @@ void anaPileup_Sasha(const Int_t process = 0)
         Double_t eyy = enpion[ic][is] / nev;
         if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
         {
-          gr[ic*2+is]->SetPoint(irun, xx, yy);
-          gr[ic*2+is]->SetPointError(irun, 0., eyy);
+          gr[ig]->SetPoint(igp[ig], xx, yy);
+          gr[ig]->SetPointError(igp[ig], 0., eyy);
+          igp[ig]++;
         }
         delete h_minv[ic][is];
       }
@@ -106,6 +112,7 @@ void anaPileup_Sasha(const Int_t process = 0)
   TFile *f_out = new TFile(Form("pileup/Sasha-%d.root",process), "RECREATE");
   for(Int_t ig=0; ig<4; ig++)
   {
+    gr[ig]->Set(igp[ig]);
     gROOT->ProcessLine( Form("c%d->Print(\"pileup/Sasha-proc%d-cond%d.pdf\");", ig, process, ig) );
     gr[ig]->Write();
   }
