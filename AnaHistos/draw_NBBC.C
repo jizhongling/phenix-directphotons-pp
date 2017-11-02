@@ -26,6 +26,12 @@ void draw_Ratio()
   Int_t runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
+  TTree *t1 = new TTree("t1", "Run group information");
+  Double_t r10cm[2], rej[3];
+  t1->Branch("runnumber", &runnumber, "runnumber/I");
+  t1->Branch("r10cm", r10cm, "r10cm[2]/D");
+  t1->Branch("rej", rej, "rej[3]/D");
+
   while( fin >> runnumber )
   {
     thread++;
@@ -46,8 +52,8 @@ void draw_Ratio()
     {
       sum_r_bbc[id] += N_r_bbc[id];
       sum_r_10cm[id] += N_r_10cm[id];
-      Double_t r10cm = N_r_10cm[id] / N_r_bbc[id];
-      h_r10cm[id]->Fill(r10cm, N_r_bbc[id]/mean_r_bbc[id]);
+      r10cm[id] = N_r_10cm[id] / N_r_bbc[id];
+      h_r10cm[id]->Fill(r10cm[id], N_r_bbc[id]/mean_r_bbc[id]);
     }
 
     Double_t N_rej_bbc[3], N_rej_ert_c[3];
@@ -62,9 +68,11 @@ void draw_Ratio()
     {
       sum_rej_bbc[id] += N_rej_bbc[id];
       sum_rej_ert_c[id] += N_rej_ert_c[id];
-      Double_t rej = N_rej_bbc[id] / N_rej_ert_c[id];
-      h_rej[id]->Fill(rej, N_rej_bbc[id]/mean_rej_bbc[id]);
+      rej[id] = N_rej_bbc[id] / N_rej_ert_c[id];
+      h_rej[id]->Fill(rej[id], N_rej_bbc[id]/mean_rej_bbc[id]);
     }
+
+    t1->Fill();
 
     delete f;
     irun++;
@@ -104,23 +112,19 @@ void draw_Ratio()
   }
 
   c0->Print("NBBC-r10cm-rej.pdf");
+
+  TFile *f_out = new TFile("NBBC.root", "RECREATE");
+  t1->Write();
+  f_out->Close();
 }
 
 void draw_NBBC()
 {
-  // NoVTX, NarrowVTX
-  const Double_t r10cm[2] = {0.1644, 0.5389};
-  const Double_t er10cm[2] = {0.00065, 0.00097};
-  const Double_t rej = 826.7;
-  const Double_t erej = 4.1;
+  Double_t sum_db = 0.;
+  Double_t sum_rej = 0.;
 
-  Double_t sum_db[2] = {};
-  Double_t sum_rej[2] = {};
-
-  TGraphErrors *gr_rlum[2];
-  Int_t igp[2] = {};
-  for(Int_t id=0; id<2; id++)
-    gr_rlum[id] = new TGraphErrors(1000);
+  TGraphErrors *gr_rlum = new TGraphErrors(1000);
+  Int_t igp = 0;
 
   Int_t thread = -1;
   Int_t runnumber;
@@ -133,64 +137,58 @@ void draw_NBBC()
     thread++;
     if( thread%10 == 0 ) cout << "Nfile = " << thread << endl;
 
-    TFile *f = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
-    if( f->IsZombie() ) continue;
+    TFile *f_ert = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
+    TFile *f_mb = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-MB/PhotonNode-%d.root",runnumber));
+    if( f_ert->IsZombie() || f_mb->IsZombie() ) continue;
 
-    TH1 *h_events = (TH1*)f->Get("h_events");
+    TH1 *h_events_ert = (TH1*)f_ert->Get("h_events");
+    TH1 *h_events_mb = (TH1*)f_mb->Get("h_events");
 
-    Double_t N_scaled = h_events->GetBinContent( h_events->GetXaxis()->FindBin("ert_c") );
-    Double_t N_rej = rej * N_scaled;
-    Double_t re2N_rej = pow(erej/rej,2.) + 1./N_scaled;
+    ULong_t N_bbc_live = GetBBCNarrowLive(runnumber) / ( GetERT4x4cScaledown(runnumber) + 1 );
+    Double_t N_r_bbc = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow") );
+    Double_t N_r_10cm = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm") );
+    Double_t r10cm = N_r_10cm / N_r_bbc;
+    Double_t N_db = (Double_t)N_bbc_live * r10cm;
+    Double_t re2N_db = 1./N_bbc_live + 1./N_r_bbc + 1./N_r_10cm;
+    sum_db += N_db;
 
-    const ULong64_t N_live[2] = {GetBBCNovtxLive(runnumber), GetBBCNarrowLive(runnumber)};
-    const ULong_t scaledown = GetERT4x4cScaledown(runnumber) + 1;
-    Double_t N_db[2], re2N_db[2];
+    Double_t N_ert_scaled = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );
+    Double_t N_rej_bbc = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm") );
+    Double_t N_rej_ert_c = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm_ert_c") );
+    Double_t rej = N_rej_bbc / N_rej_ert_c;
+    Double_t N_rej = N_ert_scaled * rej;
+    Double_t re2N_rej = 1./N_ert_scaled + 1./N_rej_bbc + 1./N_rej_ert_c;
+    sum_rej += N_rej;
 
-    for(Int_t id=0; id<2; id++)
+    Double_t yy = N_rej / N_db;
+    Double_t eyy = yy * sqrt( re2N_db + re2N_rej );
+    if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
     {
-      N_db[id] = r10cm[id] * (Double_t)(N_live[id]/scaledown);
-      re2N_db[id] = pow(er10cm[id]/r10cm[id],2.) + 1./N_live[id];
-
-      sum_db[id] += N_db[id];
-      sum_rej[id] += N_rej[id];
-
-      Double_t yy = N_db[id] / N_rej;
-      Double_t eyy = yy * sqrt( re2N_db[id] + re2N_rej );
-      if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
-      {
-        gr_rlum[id]->SetPoint(igp[id], runnumber, yy);
-        gr_rlum[id]->SetPointError(igp[id], 0., eyy);
-        igp[id]++;
-      }
-      else
-      {
-        cout << "Problem in Run " << runnumber << endl;
-      }
+      gr_rlum->SetPoint(igp, runnumber, yy);
+      gr_rlum->SetPointError(igp, 0., eyy);
+      igp++;
     }
+    else
+      cout << "Problem in Run " << runnumber << endl;
 
-    delete f;
+    delete f_ert;
+    delete f_mb;
   }
 
-  mc(0, 2,1);
+  gr_rlum->Set(igp);
 
-  for(Int_t id=0; id<2; id++)
-  {
-    gr_rlum[id]->Set(igp[id]);
+  cout << "number of runs = " << gr_rlum->GetN() << endl
+    << "sum_db = " <<  sum_db << endl
+    << "sum_rej = " <<  sum_rej << endl
+    << "sum_rej/sum_db = " << sum_rej/sum_db << endl;
 
-    cout << dname[id] << endl
-      << "number of runs = " << gr_rlum[id]->GetN() << endl
-      << "mean_rlum = " << gr_rlum[id]->GetMean(2) << endl
-      << "emean_rlum = " << gr_rlum[id]->GetRMS(2) << endl
-      << "sum_db = " <<  sum_db[id] << endl
-      << "sum_rej = " <<  sum_rej[id] << endl
-      << "sum_db/sum_rej = " <<  sum_db[id]/sum_rej[id] << endl << endl;
+  mc();
+  mcd();
 
-    mcd(0, id+1);
-    gr_rlum[id]->SetTitle( Form("r_{10cm} from %s scaled events",dname[id]) );
-    aset(gr_rlum[id], "Runnumber","#frac{L_{db}}{L_{rej}}", 386700.,398200., 0.,3.);
-    style(gr_rlum[id], 20, 1);
-    gr_rlum[id]->Draw("AP");
-  }
+  gr_rlum->SetTitle("Luminosity ratio");
+  aset(gr_rlum, "Runnumber","#frac{L_{Rej}}{L_{DB}}", 386700.,398200., 0.6,1.8);
+  style(gr_rlum, 20, 1);
+  gr_rlum->Draw("AP");
 
   c0->Print("NBBC-DBRej.pdf");
 }

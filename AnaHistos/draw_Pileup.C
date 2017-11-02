@@ -32,6 +32,7 @@ void draw_Pileup()
   }
 
   TGraphErrors *gr_ratio[8];
+  Int_t igp[8] = {};
   for(Int_t id=0; id<2; id++)
     for(Int_t ic=0; ic<2; ic++)
       for(Int_t is=0; is<2; is++)
@@ -52,7 +53,8 @@ void draw_Pileup()
         for(Int_t is=0; is<2; is++)
         {
           Int_t cond = ic*2+is;
-          Int_t ig = ipt*8+id*4+cond;
+          Int_t igr = id*4+cond;
+          Int_t ig = ipt*8+igr;
           mcd(0, cond+1);
           mg[ig]->Draw("AP");  // must before GetXaxis()
           mg[ig]->SetTitle(cname[cond]);
@@ -87,8 +89,9 @@ void draw_Pileup()
             //Double_t eyy = yy * sqrt( pow(ep0/p0,2.) + pow(rms/mean,2.) );
             if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
             {
-              gr_ratio[id*4+cond]->SetPoint(ipt-1, xx, yy);
-              gr_ratio[id*4+cond]->SetPointError(ipt-1, 0., eyy);
+              gr_ratio[igr]->SetPoint(igp[igr], xx, yy);
+              gr_ratio[igr]->SetPointError(igp[igr], 0., eyy);
+              igp[igr]++;
             }
           }
         }
@@ -101,13 +104,14 @@ void draw_Pileup()
   for(Int_t id=0; id<2; id++)
     for(Int_t is=0; is<2; is++)
     {
-      Int_t ig = id*4+2+is;
+      Int_t igr = id*4+2+is;
+      gr_ratio[igr]->Set(igp[igr]);
       mcd(1, id*2+is+1);
-      gr_ratio[ig]->SetTitle( Form("%s %s", dname[id], cname[2+is]) );
-      aset(gr_ratio[ig], "pT [GeV]", "#frac{p0}{mean}");
-      style(gr_ratio[ig], 20, kRed);
-      gr_ratio[ig]->Draw("AP");
-      gr_ratio[ig]->Fit("pol0", "Q", "");
+      gr_ratio[igr]->SetTitle( Form("%s %s", dname[id], cname[2+is]) );
+      aset(gr_ratio[igr], "pT [GeV]", "#frac{p0}{mean}");
+      style(gr_ratio[igr], 20, kRed);
+      gr_ratio[igr]->Draw("AP");
+      gr_ratio[igr]->Fit("pol0", "Q", "");
     }
   c1->Print("pileup/Pileup-ratio-pol1.pdf");
 }
