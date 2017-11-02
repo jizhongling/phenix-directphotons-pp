@@ -76,8 +76,8 @@ DirectPhotonPP::~DirectPhotonPP()
 int
 DirectPhotonPP::Init(PHCompositeNode *topNode)
 {
-  //ReadTowerStatus( "Warnmap_Run13pp510.txt" );
-  ReadSashaWarnmap( "warn_all_run13pp500gev.dat" );
+  ReadTowerStatus( "Warnmap_Run13pp510.txt" );
+  //ReadSashaWarnmap( "warn_all_run13pp500gev.dat" );
 
   return EVENT_OK;
 }
@@ -244,11 +244,11 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   /*
    * *** EVALUATE: Calibration and warnmap crosscheck ***
    */
-  /* Look at all clusters as crosscheck of warnmap */
+  /* Look at all cluster as crosscheck of warnmap */
   FillClusterPtSpectrum( "h2_pT_1cluster" , data_emc_cwarn );
   FillClusterPtSpectrum( "h2_pT_1cluster_nowarn" , data_emc );
 
-  /* Store TOF information for cluster as calibration check */
+  /* Store TOF information for all cluster as calibration check */
   FillClusterTofSpectrum( "hn_tof" , data_emc_corr_cwarn_cshape_cenergy , data_global , bbc_t0 );
   FillClusterTofSpectrum( "hn_tof_raw" , data_emc_cwarn_cshape_cenergy , data_global , bbc_t0 );
 
