@@ -67,6 +67,16 @@ public:
     _emcrecalib = emcrecalib;
   }
 
+
+  /**
+   * Choose type of DST input file- MinBias or ERT?
+   */
+  void SetDstDataType( std::string newtype )
+  {
+    _dsttype = newtype;
+  }
+
+
   /**
    * Set debug mode for detailed cluster information output
    */
@@ -196,13 +206,9 @@ private:
    * using tight cuts on pi0 identification before and after applying local tower energy correction
    */
   int FillPi0InvariantMass( std::string histname,
-			    emcClusterContainer *d_emcont );
-
-  int FillPi0InvariantMassMod( std::string histname,
-			       emcClusterContainer *d_emcont,
-			       PHGlobal *d_gbl,
-			       TrigLvl1 *d_trig,
-			       ErtOut *data_ert );
+			    emcClusterContainer *d_emcont,
+			    TrigLvl1 *d_trig,
+			    ErtOut *data_ert );
 
   /**
    * Fill histograms with photon pT spectrum and invariant mass histogram
@@ -222,6 +228,11 @@ private:
    * 0=dead 1=good 10=iso fiducial 50=fiducial 100=hot
    */
   int _tower_status[8][48][96];
+
+  /**
+   * Type of DST file- MinBias or ERT?
+   */
+  std::string _dsttype;
 
   /**
    * Event counter
