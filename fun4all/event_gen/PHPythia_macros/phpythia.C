@@ -1,18 +1,19 @@
 //#include <libgen.h>
 
 void phpythia(
-  const int nevents = 10000, 
-  const char *outputname = "phpythia.root",
-  const char *oscar_outputname = "oscar.txt"
-  )
+              const int nevents = 10000,
+              const char *configfile = "dirphoton.cfg",
+              const char *outputname = "phpythia_dirphoton.root",
+              const char *oscar_outputname = "oscar_dirphoton.txt"
+              )
 {
-  //gSystem->Load("libfun4allfuncs.so");	// framework only
-  gSystem->Load("libfun4all.so");	// framework + reco modules
+  //gSystem->Load("libfun4allfuncs.so");        // framework only
+  gSystem->Load("libfun4all.so");       // framework + reco modules
   gSystem->Load("libPHPythiaEventGen.so");
   gSystem->Load("libPHPythia.so");
-  gSystem->Load("libPHPyTrigger.so");		// For PHPyTrigger derived classes
-  gSystem->Load("libPHPyParticleSelect.so");	// For PHPyParticleSelect derived classes
-  gSystem->Load("libsimreco.so");	// framework + reco modules
+  gSystem->Load("libPHPyTrigger.so");           // For PHPyTrigger derived classes
+  gSystem->Load("libPHPyParticleSelect.so");    // For PHPyParticleSelect derived classes
+  gSystem->Load("libsimreco.so");       // framework + reco modules
 
   gSystem->Load("libMyAnaPHPythia.so");
 
@@ -25,23 +26,25 @@ void phpythia(
 
   /////////////////////////////////////////////////////////////////
   //  Reconstruction Modules...
-  
+
   SubsysReco *sync = new SyncSimreco();
   se->registerSubsystem(sync);
 
   PHPythia *phpythia = new PHPythia();
-  
+  // Set my own configuration file
+  phpythia->SetConfigFile(configfile);
+
   // Set your own seed, otherwise, seeds from /dev/random
-  //phpythia->SetSeed(1999);			
-  
+  //  phpythia->SetSeed(1999);
+
   se->registerSubsystem(phpythia);
 
   //** You can force the generated particles to use a vertex read from a file,
   //** in place of the default (z=0) value
-  //** this is needed for instance when you want to have matching vertices between 
+  //** this is needed for instance when you want to have matching vertices between
   //** different types of simulated files, prior to sending that to PISA
   // se->registerSubsystem( new PHPyVertexShift( "PHPyVertexShift", "./events.txt") );
-  
+
   //** You can use dedicated triggers, derived from the PHPyTrigger base class
   // se->registerSubsystem( new PHPyJPsiMuonTrigger() );
 
@@ -65,13 +68,13 @@ void phpythia(
   SubsysReco *anaphpythia = new ConvertRootTree("anaphpythia.root");
   se->registerSubsystem(anaphpythia);
 
-  // OSCAR output manager
-  // with following output manager, one can write the PHPythia output in an oscar formated output text file
-  //   PHPyOscarOutputManager *oscar_manager  = new PHPyOscarOutputManager( "OSCAR", oscar_outputname );
-  //   se->registerOutputManager(oscar_manager);
-  
+  //  // OSCAR output manager
+  //  // with following output manager, one can write the PHPythia output in an oscar formated output text file
+  //  PHPyOscarOutputManager *oscar_manager  = new PHPyOscarOutputManager( "OSCAR", oscar_outputname );
+  //  se->registerOutputManager(oscar_manager);
+
   // run over all events
-  se->run(nevents);  
+  se->run(nevents);
   se->End();
 }
 
