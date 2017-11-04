@@ -159,43 +159,11 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
    * --------------------------------------------------- */
   {
     /*
-     * 3D histogram storing invariant mass of photon
+     * Histogram storing invariant mass of photon
      * candidate pairs in different sectors and pT bins.
      * Used to check sector-by-sector EMCal energy calibration.
-     */
-    int ndim_hn_inv_mass_pi0calib = 3;
-    int nbins_hn_inv_mass_pi0calib[] = { 8, n_pTbins, 600 };
-    double xmin_hn_inv_mass_pi0calib[] = { -0.5, 0,   0 };
-    double xmax_hn_inv_mass_pi0calib[] = {  7.5, 0, 1.2 };
-    THnSparse* hn_inv_mass_pi0calib = new THnSparseF("hn_pi0",
-                                                     "Photon pair invariant mass;EMCal sector;p_{T} [GeV];m_{inv} [GeV];",
-                                                     ndim_hn_inv_mass_pi0calib,
-                                                     nbins_hn_inv_mass_pi0calib,
-                                                     xmin_hn_inv_mass_pi0calib,
-                                                     xmax_hn_inv_mass_pi0calib );
-    hn_inv_mass_pi0calib->SetBinEdges(1,pTbins);
-    hn_inv_mass_pi0calib->GetAxis(0)->SetName("EMCalSector");
-    hn_inv_mass_pi0calib->GetAxis(1)->SetName("pT");
-    hn_inv_mass_pi0calib->GetAxis(2)->SetName("minv");
-    hm->registerHisto( hn_inv_mass_pi0calib , 1 );
-
-    /*
-     * Using energies from DST file without local recalibration.
-     */
-    THnSparse* hn_inv_mass_pi0calib_raw = static_cast<THnSparse*>(hn_inv_mass_pi0calib->Clone("hn_pi0_raw"));
-    hn_inv_mass_pi0calib_raw->SetTitle("Photon pair invariant mass (uncalibrated)");
-    hm->registerHisto( hn_inv_mass_pi0calib_raw , 1 );
-
-    /*
-     * Using energies from DST file without TOF cut.
-     */
-    THnSparse* hn_inv_mass_pi0calib_notof = static_cast<THnSparse*>(hn_inv_mass_pi0calib->Clone("hn_pi0_notof"));
-    hn_inv_mass_pi0calib_notof->SetTitle("Photon pair invariant mass (calibrated, no TOF cut)");
-    hm->registerHisto( hn_inv_mass_pi0calib_notof , 1 );
-
-
-    /*
-     * storing number of identified direct photon candidates paired with other photon in event in bins of
+     *
+     * Storing number of identified direct photon candidates paired with other photon in event in bins of
      *
      * - sector
      * - transverse momentum of photon pair
@@ -205,14 +173,38 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
      * - trigger
      *
      */
-//    const int nbins_hn_pion[] = {8, n_pTbins, 300, 70, n_phibins, 3};
-//    const double xmin_hn_pion[] = {-0.5, 0., 0., -0.35, 0., -0.5};
-//    const double xmax_hn_pion[] = {7.5, 0., 0.3, 0.35, 0., 2.5};
-//    THnSparse* hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p^{#pi^0}_{T};m_{inv} [GeV];#eta;#phi [rad];trigger;",
-//                                        6, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
-//    hn_pion->SetBinEdges(1, pTbins);
-//    hn_pion->SetBinEdges(4, phi_twr);
-//    hm->registerHisto(hn_pion, 1);
+    int ndim_hn_pi0calib = 6;
+    int nbins_hn_pi0calib[] = {8, n_pTbins, 300, 70, n_phibins, 4};
+    double xmin_hn_pi0calib[] = {-0.5, 0., 0., -0.35, 0., -0.5};
+    double xmax_hn_pi0calib[] = {7.5, 0., 0.3, 0.35, 0., 3.5};
+
+    THnSparse* hn_pi0calib = new THnSparseF("hn_pi0",
+					    "Photon pair invariant mass;EMCal sector;p_{T} [GeV];m_{inv} [GeV];#eta;#phi [rad];ERT trigger;",
+					    ndim_hn_pi0calib,
+					    nbins_hn_pi0calib,
+					    xmin_hn_pi0calib,
+					    xmax_hn_pi0calib );
+    hn_pi0calib->SetBinEdges(1,pTbins);
+    hn_pi0calib->GetAxis(0)->SetName("EMCalSector");
+    hn_pi0calib->GetAxis(1)->SetName("pT");
+    hn_pi0calib->GetAxis(2)->SetName("minv");
+    hn_pi0calib->SetBinEdges(4, phi_twr);
+    hm->registerHisto( hn_pi0calib , 1 );
+
+    /*
+     * Using energies from DST file without local recalibration.
+     */
+    THnSparse* hn_pi0calib_raw = static_cast<THnSparse*>(hn_pi0calib->Clone("hn_pi0_raw"));
+    hn_pi0calib_raw->SetTitle("Photon pair invariant mass (uncalibrated)");
+    hm->registerHisto( hn_pi0calib_raw , 1 );
+
+    /*
+     * Using energies from DST file without TOF cut.
+     */
+    THnSparse* hn_pi0calib_notof = static_cast<THnSparse*>(hn_pi0calib->Clone("hn_pi0_notof"));
+    hn_pi0calib_notof->SetTitle("Photon pair invariant mass (calibrated, no TOF cut)");
+    hm->registerHisto( hn_pi0calib_notof , 1 );
+
   }
   /* ---------------------------------------------------
    * <==== END: Pi0 crosschecks (calibration etc) ====>

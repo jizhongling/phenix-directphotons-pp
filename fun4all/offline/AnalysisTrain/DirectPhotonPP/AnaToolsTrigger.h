@@ -33,13 +33,18 @@ namespace anatools
   /*!
    * Trigger mask bits
    *
-   * (copied from /offline/AnalysisTrain/Run13_Pi0Ana_YIS)
+   * (copied from /offline/AnalysisTrain/Run13_Pi0Ana_YIS and extended)
    */
   enum TriggerMaskBits {
-    Mask_4x4a=0x00000080,
-    Mask_4x4b=0x00000040,
-    Mask_4x4c=0x00000100,
+    Mask_ERT_4x4a=0x00000080,
+    Mask_ERT_4x4b=0x00000040,
+    Mask_ERT_4x4c=0x00000100,
+    Mask_ERT_4x4or=0x000001C0,
+    Mask_BBC_novtx=0x00000002,
+    Mask_BBC_widevtx=0x00000001,
+    Mask_BBC_narrowvtx=0x00000010,
     Mask_Clock=0x00000800};
+
 
   /*!
    * Check if cluster triggered ERT.
@@ -49,20 +54,20 @@ namespace anatools
   inline Int_t PassERT( ErtOut* ertout, emcClusterContent* cluster, TriggerMode triggermode )
   {
     /*
-       int ERThit_N Number of ERT hits in a event
-       int ERTtrigmode[ERThit_N], Trigger mode 0:4x4a, 1:4x4b, 2:4x4c, 3:2x2, 4:RICH
-       int ERTsm[ERThit_N], super module(sm) id, SM counts from left to right, from bottom to top with outside of the detector.
+      int ERThit_N Number of ERT hits in a event
+      int ERTtrigmode[ERThit_N], Trigger mode 0:4x4a, 1:4x4b, 2:4x4c, 3:2x2, 4:RICH
+      int ERTsm[ERThit_N], super module(sm) id, SM counts from left to right, from bottom to top with outside of the detector.
 
-       0~17 for PbSc 0~31 for PbGl, 0~31 for RICH
-       */
+      0~17 for PbSc 0~31 for PbGl, 0~31 for RICH
+    */
 
     /* Tis does not belong here... */
     Int_t nsm[NARMSECT];
     for(Int_t i=0;i<NARMSECT;++i)
-    {
-      if(i==4||i==5) nsm[i]=4;
-      else nsm[i]=3;
-    }
+      {
+        if(i==4||i==5) nsm[i]=4;
+        else nsm[i]=3;
+      }
 
     /* Here's where the actual function starts */
     Int_t arm = cluster->arm();
@@ -75,6 +80,8 @@ namespace anatools
 
     return trigger;
   }
+
+
 } /* namespace anatools */
 
 #endif /* OFFLINE_ANALYSISTRAIN_DIRECTPHOTONPP_ANATOOLSTRIGGER_H_ */
