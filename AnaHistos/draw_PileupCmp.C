@@ -1,3 +1,5 @@
+#include "Pileup.h"
+
 void draw_PileupCmp()
 {
   Int_t gn_mine[2] = {}, gn_sasha[2] = {};
@@ -11,7 +13,7 @@ void draw_PileupCmp()
 
     for(Int_t igr=0; igr<2; igr++)
     {
-      TGraphErrors *gr = (TGraphErrors*)f_mine->Get(Form("gr_run_%d",4+igr));
+      TGraphErrors *gr = (TGraphErrors*)f_mine->Get(Form("gr_run_%d",2*8*npT+4+igr));
       for(Int_t ip=0; ip<gr->GetN(); ip++)
       {
         gr->GetPoint(ip, runno_mine[igr][gn_mine[igr]], npi0_mine[igr][gn_mine[igr]]);

@@ -102,15 +102,8 @@ void anaPileup(const Int_t process = 0)
               nbg += fn_bg->Eval(bincenter);
             }
             if( fn_fit->GetProb() < 0.1 )
-            {
-              delete h_minv;
-              continue;
               nbg = ( h_minv->Integral(6,10) + h_minv->Integral(19,23) ) / 2.;
-            }
-            if( nsig <= 0. ) nsig = 1.;
-            if( nbg <= 0. ) nbg = 1.;
 
-            //nbg = 0.;  // No bg subtraction!!!
             Double_t ensig = sqrt(nsig);
             Double_t rbg = nbg / nsig;
             Double_t erbg = sqrt(nbg) / nsig;
@@ -145,7 +138,7 @@ void anaPileup(const Int_t process = 0)
         for(Int_t is=0; is<2; is++)
         {
           Int_t ig = ipt*8+id*4+ic*2+is;
-          //gROOT->ProcessLine( Form("c%d->Print(\"pileup/Minv-proc%d-data%d-cond%d-pt%d-%d.pdf\");", ig, process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
+          gROOT->ProcessLine( Form("c%d->Print(\"pileup/Minv-proc%d-data%d-cond%d-pt%d-%d.pdf\");", ig, process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
           gr[ig]->Set(igp[ig]);
           gr_run[ig]->Set(igp[ig]);
           gr[ig]->Write();

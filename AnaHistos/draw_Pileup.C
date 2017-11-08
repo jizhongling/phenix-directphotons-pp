@@ -107,10 +107,10 @@ void draw_Pileup()
 
       mcd(1, id*2+is+1);
       gr_ratio[igr]->SetTitle( Form("%s %s", dname[id], cname[2+is]) );
-      aset(gr_ratio[igr], "pT [GeV]", "#frac{p0}{mean}", 1.,4.25);
+      aset(gr_ratio[igr], "pT [GeV]", "#frac{p0}{mean}");
       style(gr_ratio[igr], 20, kRed);
       gr_ratio[igr]->Draw("AP");
-      gr_ratio[igr]->Fit("pol0", "Q","", 1.5,30.);
+      gr_ratio[igr]->Fit("pol0", "Q","");
     }
 
   c1->Print("pileup/Pileup-ratio-pol1.pdf");
