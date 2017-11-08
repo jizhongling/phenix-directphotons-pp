@@ -8,13 +8,22 @@ void Run_DirectPhotonPP(const char *outFile = "HISTOS.root")
 
   TOAD *toad_loader = new TOAD("DirectPhotonPP");
   toad_loader->SetVerbosity(1);
-  string file_tofmap = toad_loader->location("Run13pp510_EMC_TOF_Correction.root");
-  string file_ecal_run = toad_loader->location("Run13pp_RunbyRun_Calib.dat");
 
   // EMCal (re-)calibration class
   EmcLocalRecalibrator *emclocal = new EmcLocalRecalibrator();
+  string file_tofmap = toad_loader->location("Run13pp510_EMC_TOF_Correction.root");
+  string file_ecal_run = toad_loader->location("Run13pp_RunbyRun_Calib.dat");
   emclocal->SetEnergyCorrectionFile( file_ecal_run );
   emclocal->SetTofCorrectionFile( file_tofmap );
+
+  // EMCal (re-)calibration class (Sasha calibration)
+  EmcLocalRecalibratorSasha *emcrecalib_sasha = new EmcLocalRecalibratorSasha();
+  string file_ecal = toad_loader->location("ecorr_run13pp500gev.txt");
+  string file_ecal_run = toad_loader->location("ecorr_run_run13pp500gev.txt");
+  string file_tcal = toad_loader->location("tcorr_run13pp500gev.txt");
+  emcrecalib_sasha->anaGetCorrCal( file_ecal.c_str() );
+  emcrecalib_sasha->anaGetCorrCal_run( file_ecal_run.c_str() );
+  emcrecalib_sasha->anaGetCorrTof( file_tcal.c_str() );
 
   // Analysis module
   // Put your SubSysReco derived analysis class here
@@ -23,6 +32,8 @@ void Run_DirectPhotonPP(const char *outFile = "HISTOS.root")
   // passed in
   DirectPhotonPP *dp = new DirectPhotonPP(outFile);
   dp->SetEmcLocalRecalibrator( emclocal );
+  dp->SetEmcLocalRecalibratorSasha( emcrecalib_sasha );
+  //dp->SetClusterDebugMode(true);
   //dp->anaSetRunList(file_runlist.c_str());
   //dp->anaSelectGAMMA(); // Select GAMMA or MB data
   //dp->anaSetPtmin(10.);
