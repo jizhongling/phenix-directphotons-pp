@@ -5,9 +5,8 @@ INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include -I$(ROOTSYS)/include
 
 lib_LTLIBRARIES = libPhotonNode.la
 
-mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
-dist_mydata_DATA = \
-  clock-counts.root
+#mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
+#dist_mydata_DATA =
 
 include_HEADERS =
 

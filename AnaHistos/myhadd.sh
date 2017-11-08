@@ -19,7 +19,7 @@ while read -d " " runnumber ; do
     else
       hadd tmp.root ${files}
     fi
-    mv -f tmp.root total.root
+    mv tmp.root total.root
     files=""
     count=0
   fi
@@ -31,5 +31,5 @@ if [[ -n "${files}" ]] ; then
   else
     hadd tmp.root ${files}
   fi
-  mv -f tmp.root total.root
+  mv tmp.root total.root
 fi

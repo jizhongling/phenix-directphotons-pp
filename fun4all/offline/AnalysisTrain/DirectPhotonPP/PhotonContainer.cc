@@ -8,7 +8,7 @@ void PhotonContainer::Reset()
   Class()->IgnoreTObjectStreamer();
   photon_list.clear();
 
-  bbc10cm = false;
+  bbc_z = -9999.;
   bbc_t0 = -9999.;
   //crossing = -9999;
   trig = 0;
