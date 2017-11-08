@@ -183,6 +183,16 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   double bbc_z  = data_global->getBbcZVertex();
   double bbc_t0  = data_global->getBbcTimeZero();
 
+  /* Get Lvl1 trigger bits */
+  unsigned lvl1_live = data_triggerlvl1->get_lvl1_triglive();
+  unsigned lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
+
+  /* skip noise trigger + pulsed */
+  const unsigned bit_ppg = 0x70000000;
+  if( (lvl1_live & bit_ppg) ||
+      (lvl1_scaled & bit_ppg) )
+    return DISCARDEVENT;
+
   /* Count events */
   FillTriggerStats( "h1_events" , data_triggerlvl1 , bbc_z );
 
@@ -262,8 +272,6 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   if ( _dsttype == "MinBias" )
     {
       /* Check trigger */
-      unsigned int lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
-
       if (
           abs ( bbc_z ) > _bbc_zvertex_cut &&         /* if BBC-z location within range */
           lvl1_scaled & anatools::Mask_BBC_narrowvtx  /* if trigger criteria met */
@@ -282,9 +290,6 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   else if ( _dsttype == "ERT" )
     {
       /* Check trigger */
-      unsigned int lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
-      unsigned int lvl1_live = data_triggerlvl1->get_lvl1_triglive();
-
       if (
           abs ( bbc_z ) > _bbc_zvertex_cut &&         /* if BBC-z location within range */
           lvl1_live & anatools::Mask_BBC_narrowvtx && /* if trigger criteria met */
@@ -1301,7 +1306,7 @@ DirectPhotonPP::PrintClusterContainer( emcClusterContainer *emc , double bbc_t0 
   unsigned nemccluster = emc->size();
 
   cout << " *** Number of clusters: " << nemccluster << endl;
-  cout << " *** id ecore photon_prob tof-bbc_t0 sector tower_y tower_z" << endl;
+  cout << " *** id ecore photon_prob tof-bbc_t0 sector tower_y tower_z tower_id tower_status" << endl;
 
   for( unsigned i = 0; i < nemccluster; i++ )
     {
@@ -1315,6 +1320,14 @@ DirectPhotonPP::PrintClusterContainer( emcClusterContainer *emc , double bbc_t0 
            << anatools::CorrectClusterSector( emccluster->arm(), emccluster->sector() ) << "\t"
            << emccluster->iypos() << "\t"
            << emccluster->izpos() << "\t"
+           << anatools::TowerID(
+				anatools::CorrectClusterSector( emccluster->arm() , emccluster->sector() ),
+				emccluster->iypos(),
+				emccluster->izpos() ) << "\t"
+           << get_tower_status(
+                               anatools::CorrectClusterSector( emccluster->arm() , emccluster->sector() ),
+                               emccluster->iypos(),
+                               emccluster->izpos() ) << "\t"
            << endl;
     }
 
