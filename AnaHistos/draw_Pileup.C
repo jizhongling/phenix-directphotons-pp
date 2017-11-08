@@ -27,7 +27,8 @@ void draw_Pileup()
           {
             Int_t ig = ipt*8+id*4+ic*2+is;
             TGraphErrors *gr = (TGraphErrors*)f->Get(Form("gr_%d",ig));
-            mg[ig]->Add(gr);
+            if( gr->GetN() > 0)
+              mg[ig]->Add(gr);
           }
   }
 
@@ -37,9 +38,8 @@ void draw_Pileup()
     for(Int_t ic=0; ic<2; ic++)
       for(Int_t is=0; is<2; is++)
       {
-        Int_t ig = id*4+ic*2+is;
-        gr_ratio[ig] = new TGraphErrors(npT);
-        gr_ratio[ig]->SetName( Form("gr_ratio_%d",ig) );
+        Int_t igr = id*4+ic*2+is;
+        gr_ratio[igr] = new TGraphErrors(npT);
       }
 
   TF1 *fn_fit = new TF1("fn_fit", "pol1");
@@ -55,24 +55,22 @@ void draw_Pileup()
           Int_t cond = ic*2+is;
           Int_t igr = id*4+cond;
           Int_t ig = ipt*8+igr;
+
           mcd(0, cond+1);
           mg[ig]->Draw("AP");  // must before GetXaxis()
           mg[ig]->SetTitle(cname[cond]);
           mg[ig]->GetXaxis()->SetTitle("Nmb/Nclock");
           mg[ig]->GetYaxis()->SetTitle("Npi0/Nevent");
           mg[ig]->GetXaxis()->SetLimits(0., 0.2);  // Do not use SetRangeUser()
+          //mg[ig]->GetYaxis()->SetRangeUser(0., 3.2e-3);  // Do not use SetLimits()
+
           //fn_fit->SetParameters(1e-4, 1.);
-          //for(Int_t ifit=0; ifit<3; ifit++)
+          //for(Int_t ifit=0; ifit<5; ifit++)
           //{
           //  mg[ig]->Fit(fn_fit, "Q0");
           //  fn_fit->SetParameters( fn_fit->GetParameters() );
           //}
           mg[ig]->Fit(fn_fit, "Q");
-
-          //mg[0]->GetYaxis()->SetRangeUser(0., 3.2e-3);  // Do not use SetLimits()
-          //mg[1]->GetYaxis()->SetRangeUser(0., 1.0e-3);  // Do not use SetLimits()
-          //mg[2]->GetYaxis()->SetRangeUser(0., 1.6e-3);  // Do not use SetLimits()
-          //mg[3]->GetYaxis()->SetRangeUser(0., 0.6e-3);  // Do not use SetLimits()
 
           if( ipt > 0 )
           {
@@ -80,13 +78,12 @@ void draw_Pileup()
             Double_t p0 = fn_fit->GetParameter(0);
             Double_t ep0 = fn_fit->GetParError(0) * scale;
 
-            Double_t mean, rms;
-            GetMeanRMS<TGraphErrors>(mg[ig], mean, rms);
+            Double_t mean, emean;
+            GetMeanError<TGraphErrors>(mg[ig], mean, emean);
 
             Double_t xx = ( pTbin[id][ipt-1] + pTbin[id][ipt] ) / 2.;
-            Double_t yy = p0/mean;
-            Double_t eyy = ep0/mean;
-            //Double_t eyy = yy * sqrt( pow(ep0/p0,2.) + pow(rms/mean,2.) );
+            Double_t yy = p0 / mean;
+            Double_t eyy = yy * sqrt( pow(ep0/p0,2.) + pow(emean/mean,2.) );
             if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
             {
               gr_ratio[igr]->SetPoint(igp[igr], xx, yy);
@@ -101,17 +98,20 @@ void draw_Pileup()
     }
 
   mc(1, 2,2);
+
   for(Int_t id=0; id<2; id++)
     for(Int_t is=0; is<2; is++)
     {
       Int_t igr = id*4+2+is;
       gr_ratio[igr]->Set(igp[igr]);
+
       mcd(1, id*2+is+1);
       gr_ratio[igr]->SetTitle( Form("%s %s", dname[id], cname[2+is]) );
-      aset(gr_ratio[igr], "pT [GeV]", "#frac{p0}{mean}");
+      aset(gr_ratio[igr], "pT [GeV]", "#frac{p0}{mean}", 1.,4.25);
       style(gr_ratio[igr], 20, kRed);
       gr_ratio[igr]->Draw("AP");
-      gr_ratio[igr]->Fit("pol0", "Q", "");
+      gr_ratio[igr]->Fit("pol0", "Q","", 1.5,30.);
     }
+
   c1->Print("pileup/Pileup-ratio-pol1.pdf");
 }

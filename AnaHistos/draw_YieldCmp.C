@@ -34,8 +34,8 @@ void draw_YieldCmp()
   const char *pname[3] = {"PbScW", "PbScE", "PbGlE"};
   for(Int_t part=0; part<3; part++)
   {
-    gr_ratio[part]->SetTitle("Ratio");
-    aset(gr_ratio[part], "p_{T} [GeV]","ratio", 0.,20., -1.,1.);
+    gr_ratio[part]->SetTitle("Difference");
+    aset(gr_ratio[part], "p_{T} [GeV]","Difference", 0.,20., -0.1,0.1);
     style(gr_ratio[part], part+20, part+1);
     if(part==0)
       gr_ratio[part]->Draw("APE");

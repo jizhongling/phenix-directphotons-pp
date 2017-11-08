@@ -1,6 +1,6 @@
 template <class GraphType>
 
-void GetMeanRMS(TMultiGraph *mg, Double_t &mean, Double_t &rms)
+void GetMeanError(TMultiGraph *mg, Double_t &mean, Double_t &emean)
 {
   Int_t sumN = 0;
   Double_t sumy = 0.;
@@ -24,6 +24,6 @@ void GetMeanRMS(TMultiGraph *mg, Double_t &mean, Double_t &rms)
 
   mean = sumy/sumN;
   Double_t rms2 = TMath::Abs( sumy2/sumN - mean*mean );
-  rms = TMath::Sqrt( rms2 );
+  emean = TMath::Sqrt( rms2/sumN );
   return;
 }

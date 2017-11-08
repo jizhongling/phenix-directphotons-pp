@@ -174,6 +174,17 @@ int FillHisto::process_event(PHCompositeNode *topNode)
 
   else if( datatype == MB )
   {
+    if( photoncont->get_bbcnarrow_scaled() )
+    {
+      h_events->Fill("bbc_narrow", 1.);
+      if( abs(bbc_z) < 10. )
+      {
+        h_events->Fill("bbc_narrow_10cm", 1.);
+        if( photoncont->get_ert_c_live() )
+          h_events->Fill("bbc_narrow_10cm_ert_c", 1.);
+      }
+    }
+
     if( photoncont->get_bbcnovtx_scaled() )
     {
       h_events->Fill("bbc_novtx", 1.);
@@ -184,17 +195,6 @@ int FillHisto::process_event(PHCompositeNode *topNode)
         h_events->Fill("bbc_novtx_narrow_10cm", 1.);
         if( photoncont->get_ert_c_live() )
           h_events->Fill("bbc_novtx_narrow_10cm_ert_c", 1.);
-      }
-    }
-
-    if( photoncont->get_bbcnarrow_scaled() )
-    {
-      h_events->Fill("bbc_narrow", 1.);
-      if( abs(bbc_z) < 10. )
-      {
-        h_events->Fill("bbc_narrow_10cm", 1.);
-        if( photoncont->get_ert_c_live() )
-          h_events->Fill("bbc_narrow_10cm_ert_c", 1.);
       }
     }
 
@@ -462,10 +462,16 @@ int FillHisto::FillSinglePhotonSpectrum( const PhotonContainer *photoncont )
   if( abs(bbc_z) > 10. ) return DISCARDEVENT;
 
   /* Check trigger */
-  if( datatype == ERT && !photoncont->get_ert_c_scaled() )
-    return DISCARDEVENT;
-  else if( datatype == MB && !photoncont->get_bbcnarrow_scaled() )
-    return DISCARDEVENT;
+  if( datatype == ERT )
+  {
+    if( !photoncont->get_ert_c_scaled() || !photoncont->get_bbcnarrow_live() )
+      return DISCARDEVENT;
+  }
+  else if( datatype == MB )
+  {
+    if( !photoncont->get_bbcnarrow_scaled() )
+      return DISCARDEVENT;
+  }
 
   unsigned nphotons = photoncont->Size();
 
@@ -505,10 +511,16 @@ int FillHisto::FillTwoPhotonSpectrum(const PhotonContainer *photoncont)
   if( abs(bbc_z) > 30. ) return DISCARDEVENT;
 
   /* Check trigger */
-  if( datatype == ERT && !photoncont->get_ert_c_scaled() )
-    return DISCARDEVENT;
-  else if( datatype == MB && !photoncont->get_bbcnarrow_scaled() )
-    return DISCARDEVENT;
+  if( datatype == ERT )
+  {
+    if( !photoncont->get_ert_c_scaled() || !photoncont->get_bbcnarrow_live() )
+      return DISCARDEVENT;
+  }
+  else if( datatype == MB )
+  {
+    if( !photoncont->get_bbcnarrow_scaled() )
+      return DISCARDEVENT;
+  }
 
   unsigned nphotons = photoncont->Size();
 
@@ -555,7 +567,7 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
   }
   else if( datatype == MB )
   {
-    if( !photoncont->get_bbcnovtx_scaled() )
+    if( !photoncont->get_bbcnarrow_scaled() )
       return DISCARDEVENT;
   }
 
@@ -705,13 +717,13 @@ void FillHisto::BookHistograms()
   else if( datatype == MB )
   {
     h_events = new TH1F("h_events", "Events counter", 9,0.5,9.5);
-    h_events->GetXaxis()->SetBinLabel(1, "bbc_novtx");
-    h_events->GetXaxis()->SetBinLabel(2, "bbc_novtx_10cm");
-    h_events->GetXaxis()->SetBinLabel(3, "bbc_novtx_narrow_10cm");
-    h_events->GetXaxis()->SetBinLabel(4, "bbc_novtx_narrow_10cm_ert_c");
-    h_events->GetXaxis()->SetBinLabel(5, "bbc_narrow");
-    h_events->GetXaxis()->SetBinLabel(6, "bbc_narrow_10cm");
-    h_events->GetXaxis()->SetBinLabel(7, "bbc_narrow_10cm_ert_c");
+    h_events->GetXaxis()->SetBinLabel(1, "bbc_narrow");
+    h_events->GetXaxis()->SetBinLabel(2, "bbc_narrow_10cm");
+    h_events->GetXaxis()->SetBinLabel(3, "bbc_narrow_10cm_ert_c");
+    h_events->GetXaxis()->SetBinLabel(4, "bbc_novtx");
+    h_events->GetXaxis()->SetBinLabel(5, "bbc_novtx_10cm");
+    h_events->GetXaxis()->SetBinLabel(6, "bbc_novtx_narrow_10cm");
+    h_events->GetXaxis()->SetBinLabel(7, "bbc_novtx_narrow_10cm_ert_c");
     h_events->GetXaxis()->SetBinLabel(8, "bbc_mb_narrow_10cm");
     h_events->GetXaxis()->SetBinLabel(9, "bbc_mb_narrow_10cm_ert_c");
   }

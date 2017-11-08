@@ -1,7 +1,7 @@
 #!/bin/bash
 # Function: Combine root files ten by ten.
 
-cd "histos-ERT"
+cd "histos-MB"
 rm -f total.root tmp.root
 
 prename="PhotonNode-"
@@ -33,4 +33,4 @@ if [[ -n "${files}" ]] ; then
   mv tmp.root total.root
 fi
 
-mv total.root ../${prename}histo.root
+mv total.root ../${prename}histo-MB.root

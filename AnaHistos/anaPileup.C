@@ -7,6 +7,7 @@ void anaPileup(const Int_t process = 0)
   const Int_t sech[2] = {6, 8};
 
   TGraphErrors *gr[npT*8];
+  TGraphErrors *gr_run[npT*8];
   Int_t igp[npT*8] = {};
   for(Int_t ipt=0; ipt<npT; ipt++)
     for(Int_t id=0; id<2; id++)
@@ -16,12 +17,14 @@ void anaPileup(const Int_t process = 0)
           Int_t ig = ipt*8+id*4+ic*2+is;
           mc(ig, 5,4);
           gr[ig] = new TGraphErrors(20);
+          gr_run[ig] = new TGraphErrors(20);
           gr[ig]->SetName(Form("gr_%d",ig));
+          gr_run[ig]->SetName(Form("gr_run_%d",ig));
         }
 
   const Int_t nThread = 20;
   Int_t thread = -1;
-  Int_t irun = 0;
+  Int_t irun =0;
   Int_t runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
@@ -46,9 +49,9 @@ void anaPileup(const Int_t process = 0)
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
     Double_t nev[2];
     nev[0] = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );
-    nev[1] = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_novtx_10cm") );
+    nev[1] = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm") );
 
-    TF1 *fn_fit = new TF1("fn_fit", "gaus+pol2(3)", 0.06, 0.25);
+    TF1 *fn_fit = new TF1("fn_fit", "gaus(0) + pol2(3)", 0.06, 0.25);
     TF1 *fn_bg = new TF1("fn_bg", "pol2", 0.06, 0.25);
 
     for(Int_t ipt=0; ipt<npT; ipt++)
@@ -76,9 +79,12 @@ void anaPileup(const Int_t process = 0)
             aset(h_minv, "m_{inv} [GeV]","", 0.,0.3);
 
             Double_t par[10] = {max,0.140,0.010, 0.,0.,0.};
-            fn_fit->SetParameters(par);
-            h_minv->Fit(fn_fit, "RQ0");
-            fn_fit->GetParameters(par);
+            for(Int_t ifit=0; ifit<5; ifit++)
+            {
+              fn_fit->SetParameters(par);
+              h_minv->Fit(fn_fit, "RQ0");
+              fn_fit->GetParameters(par);
+            }
             fn_bg->SetParameters(par+3);
 
             fn_fit->SetLineColor(kRed);
@@ -95,9 +101,16 @@ void anaPileup(const Int_t process = 0)
               Double_t bincenter = h_minv->GetXaxis()->GetBinCenter(ib);
               nbg += fn_bg->Eval(bincenter);
             }
-            if( max < 5. )
+            if( fn_fit->GetProb() < 0.1 )
+            {
+              delete h_minv;
+              continue;
               nbg = ( h_minv->Integral(6,10) + h_minv->Integral(19,23) ) / 2.;
+            }
+            if( nsig <= 0. ) nsig = 1.;
+            if( nbg <= 0. ) nbg = 1.;
 
+            //nbg = 0.;  // No bg subtraction!!!
             Double_t ensig = sqrt(nsig);
             Double_t rbg = nbg / nsig;
             Double_t erbg = sqrt(nbg) / nsig;
@@ -111,6 +124,8 @@ void anaPileup(const Int_t process = 0)
             {
               gr[ig]->SetPoint(igp[ig], xx, yy);
               gr[ig]->SetPointError(igp[ig], 0., eyy);
+              gr_run[ig]->SetPoint(igp[ig], runnumber, yy);
+              gr_run[ig]->SetPointError(igp[ig], 0., eyy);
               igp[ig]++;
             }
             delete h_minv;
@@ -130,9 +145,11 @@ void anaPileup(const Int_t process = 0)
         for(Int_t is=0; is<2; is++)
         {
           Int_t ig = ipt*8+id*4+ic*2+is;
+          //gROOT->ProcessLine( Form("c%d->Print(\"pileup/Minv-proc%d-data%d-cond%d-pt%d-%d.pdf\");", ig, process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
           gr[ig]->Set(igp[ig]);
-          gROOT->ProcessLine( Form("c%d->Print(\"pileup/Minv-proc%d-data%d-cond%d-pt%d-%d.pdf\");", ig, process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
+          gr_run[ig]->Set(igp[ig]);
           gr[ig]->Write();
+          gr_run[ig]->Write();
         }
   f_out->Close();
 }

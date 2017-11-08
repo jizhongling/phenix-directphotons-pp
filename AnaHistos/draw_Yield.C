@@ -26,7 +26,7 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t part)
   Int_t bin177 = axis_minv->FindBin(0.177);
   Int_t bin227 = axis_minv->FindBin(0.227);
 
-  for(Int_t ipt=2; ipt<21; ipt++)
+  for(Int_t ipt=2; ipt<25; ipt++)
   {
     char title[100];
     Double_t low = axis_pt->GetBinLowEdge(ipt+1);
@@ -57,7 +57,7 @@ void draw_Yield()
 {
   gROOT->ProcessLine(".L ReadGraph.C");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/PhotonNode-histo0.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo-MB.root");
   TObjArray *Glist = new TObjArray();
 
   for(Int_t part=0; part<3; part++)

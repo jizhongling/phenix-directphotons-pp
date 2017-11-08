@@ -39,6 +39,7 @@
 using namespace std;
 
 DirectPhotonPP::DirectPhotonPP(const char* outfile) :
+  _dsttype( "MinBias" ),
   _ievent( 0 ),
   _bbc_zvertex_cut( 10 ),
   _photon_energy_min( 0.3 ), // 0.3 used by Paul for run 9 pp 500 GeV
@@ -76,8 +77,8 @@ DirectPhotonPP::~DirectPhotonPP()
 int
 DirectPhotonPP::Init(PHCompositeNode *topNode)
 {
-  //ReadTowerStatus( "Warnmap_Run13pp510.txt" );
-  ReadSashaWarnmap( "warn_all_run13pp500gev.dat" );
+  ReadTowerStatus( "Warnmap_Run13pp510.txt" );
+  //ReadSashaWarnmap( "warn_all_run13pp500gev.dat" );
 
   return EVENT_OK;
 }
@@ -244,36 +245,70 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   /*
    * *** EVALUATE: Calibration and warnmap crosscheck ***
    */
-  /* Look at all clusters as crosscheck of warnmap */
+  /* Look at all cluster as crosscheck of warnmap */
   FillClusterPtSpectrum( "h2_pT_1cluster" , data_emc_cwarn );
   FillClusterPtSpectrum( "h2_pT_1cluster_nowarn" , data_emc );
 
-  /* Store TOF information for cluster as calibration check */
+  /* Store TOF information for all cluster as calibration check */
   FillClusterTofSpectrum( "hn_tof" , data_emc_corr_cwarn_cshape_cenergy , data_global , bbc_t0 );
   FillClusterTofSpectrum( "hn_tof_raw" , data_emc_cwarn_cshape_cenergy , data_global , bbc_t0 );
 
+  /* Check event information: analyze this event or no? */
 
-  if ( ( abs ( bbc_z ) <= _bbc_zvertex_cut ) // Check BBC-z location of event
-       //&& ( lvl1_scaled & bit_bbcnarrow ) // Check trigger
-       )
+
+  //  bool pass_event_trigger = true;
+
+  /* Check event information for MinBias data */
+  if ( _dsttype == "MinBias" )
     {
-      /* Analyze cluster pairs to find pi0's in events for calibration crosscheck */
-      FillPi0InvariantMass( "hn_pi0", data_emc_corr_cwarn_cshape_cenergy_ctof );
-      FillPi0InvariantMass( "hn_pi0_notof", data_emc_corr_cwarn_cshape_cenergy );
-      FillPi0InvariantMass( "hn_pi0_raw", data_emc_cwarn_cshape_cenergy );
-      //      FillPi0InvariantMassMod( "hn_pi0",
-      //                               data_emc_corr_cwarn_cshape_cenergy_ctof,
-      //                               data_global,
-      //                               data_triggerlvl1,
-      //                               data_ert );
+      /* Check trigger */
+      unsigned int lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
 
-      /* Analyze direct photon events */
-      //      if ( ( lvl1_live & bit_4x4b ) )
-      {
-        FillPhotonPtSpectrum( data_emc_corr_cwarn_cshape_cenergy_ctof , data_tracks , data_global );
-      }
+      if (
+          abs ( bbc_z ) > _bbc_zvertex_cut &&         /* if BBC-z location within range */
+          lvl1_scaled & anatools::Mask_BBC_narrowvtx  /* if trigger criteria met */
+          )
+        {
+          /* Analyze cluster pairs to find pi0's in events for calibration crosscheck */
+          FillPi0InvariantMass( "hn_pi0", data_emc_corr_cwarn_cshape_cenergy_ctof, data_triggerlvl1, data_ert );
+          FillPi0InvariantMass( "hn_pi0_notof", data_emc_corr_cwarn_cshape_cenergy, data_triggerlvl1, data_ert );
+          FillPi0InvariantMass( "hn_pi0_raw", data_emc_cwarn_cshape_cenergy, data_triggerlvl1, data_ert );
+
+          /* Analyze photon spectrum */
+          FillPhotonPtSpectrum( data_emc_corr_cwarn_cshape_cenergy_ctof , data_tracks , data_global );
+        }
     }
-  //  cout << bbc_t0 << endl;
+  /* check event information for ERT data */
+  else if ( _dsttype == "ERT" )
+    {
+      /* Check trigger */
+      unsigned int lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
+      unsigned int lvl1_live = data_triggerlvl1->get_lvl1_triglive();
+
+      if (
+          abs ( bbc_z ) > _bbc_zvertex_cut &&         /* if BBC-z location within range */
+          lvl1_live & anatools::Mask_BBC_narrowvtx && /* if trigger criteria met */
+          ( lvl1_scaled & anatools::Mask_ERT_4x4a ||
+            lvl1_scaled & anatools::Mask_ERT_4x4b ||
+            lvl1_scaled & anatools::Mask_ERT_4x4c )   /* if trigger criteria met */
+          )
+        {
+          /* Analyze cluster pairs to find pi0's in events for calibration crosscheck */
+          FillPi0InvariantMass( "hn_pi0", data_emc_corr_cwarn_cshape_cenergy_ctof, data_triggerlvl1, data_ert );
+          FillPi0InvariantMass( "hn_pi0_notof", data_emc_corr_cwarn_cshape_cenergy, data_triggerlvl1, data_ert );
+          FillPi0InvariantMass( "hn_pi0_raw", data_emc_cwarn_cshape_cenergy, data_triggerlvl1, data_ert );
+
+          /* Analyze photon spectrum */
+          FillPhotonPtSpectrum( data_emc_corr_cwarn_cshape_cenergy_ctof , data_tracks , data_global );
+        }
+    }
+  /* abort event if no matching data type */
+  else
+    {
+      cout<<"\nDISCARD EVENT \nDST type unknown: " << _dsttype <<endl;
+      return DISCARDEVENT;
+    }
+
   /* clean up */
   delete data_emc_cwarn_cshape_cenergy;
   delete data_emc_cwarn;
@@ -295,15 +330,6 @@ DirectPhotonPP::FillTriggerStats( string histname,
   TH1* h1_events = static_cast<TH1*>( _hm->getHisto(histname) );
 
   /* Get trigger information */
-  //  const unsigned bit_bbcwide = 0x00000001;
-  //  const unsigned bit_bbcnovtx = 0x00000002;
-  //  const unsigned bit_bbcnarrow = 0x00000010;
-
-  const unsigned int bit_4x4b  = 0x00000040;
-  const unsigned int bit_4x4a  = 0x00000080;
-  const unsigned int bit_4x4c  = 0x00000100;
-  const unsigned int bit_4x4or = 0x000001C0;
-
   //  unsigned int lvl1_raw = data_triggerlvl1->get_lvl1_trigraw();
   unsigned int lvl1_live = data_triggerlvl1->get_lvl1_triglive();
   //  unsigned int lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
@@ -316,16 +342,16 @@ DirectPhotonPP::FillTriggerStats( string histname,
     {
       h1_events->Fill("bbcz10",1);
 
-      if ( lvl1_live & bit_4x4b )
+      if ( lvl1_live & anatools::Mask_ERT_4x4b )
         h1_events->Fill("bbcz10_ert4x4b",1);
 
-      if ( lvl1_live & bit_4x4a )
+      if ( lvl1_live & anatools::Mask_ERT_4x4a )
         h1_events->Fill("bbcz10_ert4x4a",1);
 
-      if ( lvl1_live & bit_4x4c )
+      if ( lvl1_live & anatools::Mask_ERT_4x4c )
         h1_events->Fill("bbcz10_ert4x4c",1);
 
-      if ( lvl1_live & bit_4x4or )
+      if ( lvl1_live & anatools::Mask_ERT_4x4or )
         h1_events->Fill("bbcz10_ert4x4or",1);
     }
 
@@ -491,161 +517,22 @@ DirectPhotonPP::FillClusterTofSpectrum( string histname,
 /* ----------------------------------------------- */
 
 int
-DirectPhotonPP::FillPi0InvariantMassMod( string histname,
-                                         emcClusterContainer *data_emc,
-                                         PHGlobal *data_global,
-                                         TrigLvl1* data_triggerlvl1,
-                                         ErtOut *data_ert )
+DirectPhotonPP::FillPi0InvariantMass( string histname,
+                                      emcClusterContainer *data_emc,
+                                      TrigLvl1* data_triggerlvl1,
+                                      ErtOut *data_ert )
 {
   /* retrieve all histograms used in this function */
-  THnSparse* hn_pion            = static_cast<THnSparse*>( _hm->getHisto(histname) );
-
-  /* Get event global parameters */
-  double bbc_z = data_global->getBbcZVertex();
-  //  double bbc_t0 = data_global->getBbcTimeZero();
-  if( abs(bbc_z) > 10. ) return 1;
+  THnSparse* hn_pion = static_cast<THnSparse*>( _hm->getHisto(histname) );
 
   /* Get trigger information */
-  const unsigned int bit_4x4b  = 0x00000040;
-  const unsigned int bit_4x4a  = 0x00000080;
-  const unsigned int bit_4x4c  = 0x00000100;
-  //const unsigned int bit_4x4or = 0x000001C0;
-
-  //unsigned int lvl1_raw = data_triggerlvl1->get_lvl1_trigraw();
-  //unsigned int lvl1_live = data_triggerlvl1->get_lvl1_triglive();
   unsigned int lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
 
   /* Trigger selection */
-  enum bin_selection { ERT_4x4a = 0,
-                       ERT_4x4b = 1,
-                       ERT_4x4c = 2 };
-
-  unsigned int nemccluster = data_emc->size();
-
-  /* NEW method: Make all possible cluster combinations, avoid duplicate combinations */
-  vector< unsigned int > v_used;
-
-  /* loop over all EMCal cluster */
-  for( unsigned int cidx1 = 0; cidx1 < nemccluster; cidx1++ )
-    {
-      emcClusterContent *emccluster1 = data_emc->getCluster( cidx1 );
-
-      if ( testTightFiducial( emccluster1 )
-           //&& testPhoton( emccluster1 , bbc_t0 )
-           && testPhotonEnergy( emccluster1 )
-           && testPhotonShape( emccluster1 )
-           )
-        {
-          v_used.push_back( cidx1 );
-
-          /* loop over partner photon candidates */
-          for( unsigned int cidx2 = 0; cidx2 < nemccluster; cidx2++ )
-            {
-              /* skip if trying to combine cluster with itself */
-              if ( cidx1 == cidx2 )
-                continue;
-
-              /* skip if this cluster has already been used as primary cluster, i.e. emccluster1 */
-              if ( find( v_used.begin(), v_used.end(), cidx2 ) != v_used.end() )
-                continue;
-
-              emcClusterContent* emccluster2 = data_emc->getCluster( cidx2 );
-
-              if ( testGoodTower( emccluster2 )
-                   //&& testPhoton( emccluster2 , bbc_t0 )
-                   && testPhotonEnergy( emccluster2 )
-                   && testPhotonShape( emccluster2 )
-                   && anatools::GetAsymmetry_E( emccluster1, emccluster2 ) < 0.8
-                   )
-                {
-                  int sector1 = anatools::CorrectClusterSector( emccluster1->arm() , emccluster1->sector() );
-                  int sector2 = anatools::CorrectClusterSector( emccluster2->arm() , emccluster2->sector() );
-
-                  /* Require two photons are from the same part of the EMCal */
-                  int is = 3;
-                  if( sector1<4 && sector2<4 ) // W0,1,2,3
-                    is = 0;
-                  else if( (sector1==4 || sector1==5) && (sector2==4 || sector2==5) ) // E2,3
-                    is = 1;
-                  else if( (sector1==6 || sector1==7) && (sector2==6 || sector2==7) ) // PbGl
-                    is = 2;
-                  else
-                    is = 3;
-                  if(is==3) continue;
-
-                  /* pE = {px, py, pz, ecore} */
-                  TLorentzVector photon1_pE = anatools::Get_pE(emccluster1);
-                  TLorentzVector photon2_pE = anatools::Get_pE(emccluster2);
-                  TLorentzVector tot_pE =  photon1_pE + photon2_pE;
-                  double tot_px = tot_pE.Px();
-                  double tot_py = tot_pE.Py();
-                  double tot_pz = tot_pE.Pz();
-                  double tot_pT = tot_pE.Pt();
-                  double tot_mom = tot_pE.P();
-
-                  /* Fill invariant mass for pi0 candidate in histogram */
-                  double invMass = anatools::GetInvMass( emccluster1, emccluster2 );
-
-                  /* Use the photon which has higher energy to label the sector and trigger */
-                  int sector = sector1;
-                  int trig1 = anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4a);
-                  int trig2 = anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4b);
-                  int trig3 = anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4c);
-                  if( photon2_pE.E() > photon1_pE.E() )
-                    {
-                      sector = sector2;
-                      trig1 = anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4a);
-                      trig2 = anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4b);
-                      trig3 = anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4c);
-                    }
-
-                  /* Fill eta and phi */
-                  double tot_eta = tot_mom > 0. ? atan(tot_pz/tot_mom) : 9999.;
-                  double tot_phi = tot_px > 0. ? atan(tot_py/tot_px) : 3.1416+atan(tot_py/tot_px);
-
-                  /* Require the target cluster fires the trigger */
-                  if( abs(bbc_z) < 10. )
-                    {
-                      if( ( lvl1_scaled & bit_4x4a ) && trig1 )
-                        {
-                          double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)ERT_4x4a};
-                          hn_pion->Fill(fill_hn_pion);
-                        }
-                      if( ( lvl1_scaled & bit_4x4b ) && trig2 )
-                        {
-                          double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)ERT_4x4b};
-                          hn_pion->Fill(fill_hn_pion);
-                        }
-                      if( ( lvl1_scaled & bit_4x4c ) && trig3 )
-                        {
-                          double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)ERT_4x4c};
-                          hn_pion->Fill(fill_hn_pion);
-                        }
-                    }
-
-                  ///* more restrictive photon candidate pair selection for sector-by-sector pi0 energy
-                  // * calibration
-                  // */
-                  //if ( ( sector1 == sector2 ) && ( lvl1_live & bit_4x4or ) )
-                  //  {
-                  //    h3_inv_mass_pi0calib->Fill((double)sector1, tot_pT, invMass);
-                  //  } // check sector
-                } // check warnmap cluster 2
-            } // loop cluster 2
-        } // check warnmap cluster 1
-    } // loop cluster 1
-
-  return 0;
-}
-
-/* ----------------------------------------------- */
-
-int
-DirectPhotonPP::FillPi0InvariantMass( string histname,
-                                      emcClusterContainer *data_emc )
-{
-  /* retrieve all histograms used in this function */
-  THnSparse* hn_inv_mass_pi0calib = static_cast<THnSparse*>( _hm->getHisto(histname) );
+  enum bin_selection { FILL_ERT_null = 0,
+                       FILL_ERT_4x4a = 1,
+                       FILL_ERT_4x4b = 2,
+                       FILL_ERT_4x4c = 3 };
 
   /* NEW method: Make all possible cluster combinations, avoid duplicate combinations */
   vector< unsigned int > v_used;
@@ -673,31 +560,82 @@ DirectPhotonPP::FillPi0InvariantMass( string histname,
 
               emcClusterContent* emccluster2 = data_emc->getCluster( cidx2 );
 
-              //if ( anatools::GetAsymmetry_E( emccluster1, emccluster2 ) < 0.8 )
-              if ( true )
+              /* check energy asymmetry */
+              if ( anatools::GetAsymmetry_E( emccluster1, emccluster2 ) >= 0.8 )
+                continue;
+
+              /* get sectors */
+              int sector1 = anatools::CorrectClusterSector( emccluster1->arm() , emccluster1->sector() );
+              int sector2 = anatools::CorrectClusterSector( emccluster2->arm() , emccluster2->sector() );
+
+              /* Require two photons are from the same part of the EMCal */
+              int is = 3;
+              if( sector1<4 && sector2<4 ) // W0,1,2,3
+                is = 0;
+              else if( (sector1==4 || sector1==5) && (sector2==4 || sector2==5) ) // E2,3
+                is = 1;
+              else if( (sector1==6 || sector1==7) && (sector2==6 || sector2==7) ) // PbGl
+                is = 2;
+              else
+                is = 3;
+              if(is==3) continue;
+
+              /* more restrictive photon candidate pair selection for sector-by-sector pi0 energy
+               * calibration
+               */
+              //if ( ( sector1 != sector2 ) )
+              //continue;
+
+              /* pE = {px, py, pz, ecore} */
+              TLorentzVector photon1_pE = anatools::Get_pE(emccluster1);
+              TLorentzVector photon2_pE = anatools::Get_pE(emccluster2);
+              TLorentzVector tot_pE =  photon1_pE + photon2_pE;
+              double tot_pT = tot_pE.Pt();
+              double tot_mom = tot_pE.P();
+              double tot_px = tot_pE.Px();
+              double tot_py = tot_pE.Py();
+              double tot_pz = tot_pE.Pz();
+
+              /* Fill invariant mass for pi0 candidate in histogram */
+              double invMass = anatools::GetInvMass( emccluster1, emccluster2 );
+
+              /* Use the photon which has higher energy to label the sector and trigger */
+              int sector = sector1;
+              int trig1 = anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4a);
+              int trig2 = anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4b);
+              int trig3 = anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4c);
+              if( photon2_pE.E() > photon1_pE.E() )
                 {
-                  /* get sectors */
-                  int sector1 = anatools::CorrectClusterSector( emccluster1->arm() , emccluster1->sector() );
-                  int sector2 = anatools::CorrectClusterSector( emccluster2->arm() , emccluster2->sector() );
+                  sector = sector2;
+                  trig1 = anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4a);
+                  trig2 = anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4b);
+                  trig3 = anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4c);
+                }
 
-                  /* pE = {px, py, pz, ecore} */
-                  TLorentzVector photon1_pE = anatools::Get_pE(emccluster1);
-                  TLorentzVector photon2_pE = anatools::Get_pE(emccluster2);
-                  TLorentzVector tot_pE =  photon1_pE + photon2_pE;
-                  double tot_pT = tot_pE.Pt();
+              /* Fill eta and phi */
+              double tot_eta = tot_mom > 0. ? atan(tot_pz/tot_mom) : 9999.;
+              double tot_phi = tot_px > 0. ? atan(tot_py/tot_px) : 3.1416+atan(tot_py/tot_px);
 
-                  /* Fill invariant mass for pi0 candidate in histogram */
-                  double invMass = anatools::GetInvMass( emccluster1, emccluster2 );
+              /* Fill histogram */
+              double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)FILL_ERT_null};
+              hn_pion->Fill(fill_hn_pion);
 
-                  /* more restrictive photon candidate pair selection for sector-by-sector pi0 energy
-                   * calibration
-                   */
-                  if ( ( sector1 == sector2 ) )
-                    {
-                      double fill_hn_inv_mass_pi0calib[] = {(double)sector1, tot_pT, invMass};
-                      hn_inv_mass_pi0calib->Fill( fill_hn_inv_mass_pi0calib );
-                    } // check sector
-                } // check asymmetry
+              /* Require the target cluster fires the trigger */
+              if( ( lvl1_scaled & anatools::Mask_ERT_4x4a ) && trig1 )
+                {
+                  double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)FILL_ERT_4x4a};
+                  hn_pion->Fill(fill_hn_pion);
+                }
+              if( ( lvl1_scaled & anatools::Mask_ERT_4x4b ) && trig2 )
+                {
+                  double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)FILL_ERT_4x4b};
+                  hn_pion->Fill(fill_hn_pion);
+                }
+              if( ( lvl1_scaled & anatools::Mask_ERT_4x4c ) && trig3 )
+                {
+                  double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)FILL_ERT_4x4c};
+                  hn_pion->Fill(fill_hn_pion);
+                }
             } // loop cluster 2
         } // check if in tight fiducial volume
     } // loop cluster 1

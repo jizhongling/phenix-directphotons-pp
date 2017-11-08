@@ -1,12 +1,12 @@
 #include "BBCCounts.h"
 
-const char *dname[3] = {"NoVTX", "NarrowVTX", "MB"};
+const char *dname[3] = {"NarrowVTX", "NoVTX", "MB"};
 
 void draw_Ratio()
 {
   // NoVTX, NarrowVTX, MB
-  const Double_t mean_r_bbc[2] = {1.00209e+06, 575056.};
-  const Double_t mean_rej_bbc[3] = {164739., 309495., 589550.};
+  const Double_t mean_r_bbc[2] = {575056., 1.00209e+06};
+  const Double_t mean_rej_bbc[3] = {309495., 164739., 589550.};
 
   Double_t sum_r_bbc[2] = {}, sum_r_10cm[2] = {};
   Double_t sum_rej_bbc[3] = {}, sum_rej_ert_c[3];
@@ -14,8 +14,8 @@ void draw_Ratio()
   TH1::SetDefaultSumw2();
 
   TH1 *h_r10cm[2];
-  h_r10cm[0] = new TH1F("h_r10cm_0", "BBC10cm/BBCNoVTX", 100, 0.07, 0.27);
-  h_r10cm[1] = new TH1F("h_r10cm_1", "BBC10cm/BBCNarrow", 100, 0.45, 0.65);
+  h_r10cm[0] = new TH1F("h_r10cm_0", "BBC10cm/BBCNarrow", 100, 0.45, 0.65);
+  h_r10cm[1] = new TH1F("h_r10cm_1", "BBC10cm/BBCNoVTX", 100, 0.07, 0.27);
   
   TH1 *h_rej[3];
   for(Int_t id=0; id<3; id++)
@@ -35,7 +35,7 @@ void draw_Ratio()
   while( fin >> runnumber )
   {
     thread++;
-    if( thread%10 == 0 ) cout << "Nfile = " << thread << endl;
+    if( thread%10 == 0 ) cout << "Nfiles = " << thread << endl;
 
     TFile *f = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-MB/PhotonNode-%d.root",runnumber));
     if( f->IsZombie() ) continue;
@@ -43,10 +43,10 @@ void draw_Ratio()
     TH1 *h_events= (TH1*)f->Get("h_events");
 
     Double_t N_r_bbc[2], N_r_10cm[2];
-    N_r_bbc[0] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx") );
-    N_r_10cm[0] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx_narrow_10cm") );
-    N_r_bbc[1] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_narrow") );
-    N_r_10cm[1] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_narrow_10cm") );
+    N_r_bbc[0] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_narrow") );
+    N_r_10cm[0] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_narrow_10cm") );
+    N_r_bbc[1] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx") );
+    N_r_10cm[1] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx_narrow_10cm") );
 
     for(Int_t id=0; id<2; id++)
     {
@@ -57,10 +57,10 @@ void draw_Ratio()
     }
 
     Double_t N_rej_bbc[3], N_rej_ert_c[3];
-    N_rej_bbc[0] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx_narrow_10cm") );
-    N_rej_ert_c[0] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx_narrow_10cm_ert_c") );
-    N_rej_bbc[1] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_narrow_10cm") );
-    N_rej_ert_c[1] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_narrow_10cm_ert_c") );
+    N_rej_bbc[0] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_narrow_10cm") );
+    N_rej_ert_c[0] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_narrow_10cm_ert_c") );
+    N_rej_bbc[1] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx_narrow_10cm") );
+    N_rej_ert_c[1] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx_narrow_10cm_ert_c") );
     N_rej_bbc[2] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_mb_narrow_10cm") );
     N_rej_ert_c[2] = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_mb_narrow_10cm_ert_c") );
 
@@ -96,12 +96,12 @@ void draw_Ratio()
   mc(0, 2,3);
 
   mcd(0, 1);
-  fn_gaus->SetParameters(h_r10cm[0]->GetMaximum(), 0.17, 0.015);
-  h_r10cm[0]->Fit(fn_gaus, "Q", "", 0.07, 0.27);
+  fn_gaus->SetParameters(h_r10cm[0]->GetMaximum(), 0.55, 0.020);
+  h_r10cm[0]->Fit(fn_gaus, "Q", "", 0.45, 0.65);
 
   mcd(0, 2);
-  fn_gaus->SetParameters(h_r10cm[0]->GetMaximum(), 0.55, 0.020);
-  h_r10cm[1]->Fit(fn_gaus, "Q", "", 0.45, 0.65);
+  fn_gaus->SetParameters(h_r10cm[1]->GetMaximum(), 0.17, 0.015);
+  h_r10cm[1]->Fit(fn_gaus, "Q", "", 0.07, 0.27);
 
   for(Int_t id=0; id<3; id++)
   {
