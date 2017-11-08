@@ -1,20 +1,32 @@
+#include "Pileup.h"
 #include "BBCCounts.h"
 
 void anaPileup(const Int_t process = 0)
 {
-  TGraphErrors *gr[4];
-  for(Int_t ig=0; ig<4; ig++)
-  {
-    mc(ig, 5,4);
-    gr[ig] = new TGraphErrors(20);
-    gr[ig]->SetName(Form("gr_%d",ig));
-  }
+  const Int_t secl[2] = {1, 7};
+  const Int_t sech[2] = {6, 8};
+
+  TGraphErrors *gr[npT*8];
+  TGraphErrors *gr_run[npT*8];
+  Int_t igp[npT*8] = {};
+  for(Int_t ipt=0; ipt<npT; ipt++)
+    for(Int_t id=0; id<2; id++)
+      for(Int_t ic=0; ic<2; ic++)
+        for(Int_t is=0; is<2; is++)
+        {
+          Int_t ig = ipt*8+id*4+ic*2+is;
+          mc(ig, 5,4);
+          gr[ig] = new TGraphErrors(20);
+          gr_run[ig] = new TGraphErrors(20);
+          gr[ig]->SetName(Form("gr_%d",ig));
+          gr_run[ig]->SetName(Form("gr_run_%d",ig));
+        }
 
   const Int_t nThread = 20;
   Int_t thread = -1;
-  Int_t irun = 0;
+  Int_t irun =0;
   Int_t runnumber;
-  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runnumber.txt");
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
   ReadClockCounts();
 
@@ -23,100 +35,121 @@ void anaPileup(const Int_t process = 0)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    TFile *f = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/PhotonNode-%d.root",runnumber));
-    if( f->IsZombie() ) continue;
+    TFile *f_ert = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
+    TFile *f_mb = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-MB/PhotonNode-%d.root",runnumber));
+    if( f_ert->IsZombie() || f_mb->IsZombie() ) continue;
 
-    const Int_t secl[2] = {1, 7};
-    const Int_t sech[2] = {6, 8};
-
-    THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
-    TAxis *axis = hn_pion->GetAxis(2);
-    Int_t bin047 = axis->FindBin(0.047);
-    Int_t bin097 = axis->FindBin(0.097);
-    Int_t bin112 = axis->FindBin(0.112);
-    Int_t bin162 = axis->FindBin(0.162);
-    Int_t bin177 = axis->FindBin(0.177);
-    Int_t bin227 = axis->FindBin(0.227);
-
-    TF1 *fn_peak = new TF1("fn_peak", "gaus", 0., 0.3);
-    TF1 *fn_bg = new TF1("fn_bg", "pol3", 0., 0.3);
-    TF1 *fn_total = new TF1("fn_total", "gaus(0)+pol3(3)", 0., 0.3);
+    TH1 *h_events_ert = (TH1*)f_ert->Get("h_events");
+    TH1 *h_events_mb = (TH1*)f_mb->Get("h_events");
+    THnSparse *hn_pion[2];
+    hn_pion[0] = (THnSparse*)f_ert->Get("hn_pion");
+    hn_pion[1] = (THnSparse*)f_mb->Get("hn_pion");
 
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
-    ULong64_t scaledown = GetBBCNarrowScaledown(runnumber) + 1; 
+    Double_t nev[2];
+    nev[0] = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );
+    nev[1] = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm") );
 
-    for(Int_t ic=0; ic<2; ic++)
-      for(Int_t is=0; is<2; is++)
-      {
-        mcd(ic*2+is, irun+1);
+    TF1 *fn_fit = new TF1("fn_fit", "gaus(0) + pol2(3)", 0.06, 0.25);
+    TF1 *fn_bg = new TF1("fn_bg", "pol2", 0.06, 0.25);
 
-        hn_pion->GetAxis(3)->SetRange(ic+1,ic+1);
-        hn_pion->GetAxis(0)->SetRange(secl[is],sech[is]);
-        hn_pion->GetAxis(1)->SetRange(5,31);
-        TH1 *h_minv = hn_pion->Projection(2);
-        h_minv->SetTitle(Form("#%d",runnumber));
-        aset(h_minv, "m_{inv} [GeV]","", 0.,0.3);
+    for(Int_t ipt=0; ipt<npT; ipt++)
+      for(Int_t id=0; id<2; id++)
+        for(Int_t ic=0; ic<2; ic++)
+          for(Int_t is=0; is<2; is++)
+          {
+            Int_t ig = ipt*8+id*4+ic*2+is;
+            mcd(ig, irun+1);
 
-        //Double_t par[10] = {20.,0.135,0.01, 3.,-30.,350.,-900.};
-        //for(Int_t ifit=0; ifit<10; ifit++)
-        //{
-        //  fn_peak->SetParameters(par);
-        //  fn_bg->SetParameters(par+3);
-        //  h_minv->Fit(fn_peak, "Q0", "", 0.122, 0.152);
-        //  h_minv->Fit(fn_bg, "Q0", "", 0.047, 0.227);
-        //  fn_peak->GetParameters(par);
-        //  fn_bg->GetParameters(par+3);
-        //}
-        //for(Int_t ifit=0; ifit<50; ifit++)
-        //{
-        //  fn_total->SetParameters(par);
-        //  h_minv->Fit(fn_total, "Q0", "", 0.047, 0.227);
-        //  fn_total->GetParameters(par);
-        //}
-        //fn_bg->SetParameters(par+3);
+            hn_pion[id]->GetAxis(3)->SetRange(ic+1,ic+1);
+            hn_pion[id]->GetAxis(0)->SetRange(secl[is],sech[is]);
+            hn_pion[id]->GetAxis(1)->SetRange(pTlow[id][ipt], pThigh[id][ipt]);
 
-        //fn_total->SetLineColor(kRed);
-        //fn_bg->SetLineColor(kGreen);
-        h_minv->DrawCopy("EHIST");
-        //fn_total->DrawCopy("SAME");
-        //fn_bg->DrawCopy("SAME");
+            TH1 *h_minv = hn_pion[id]->Projection(2);
+            h_minv->Rebin(10);
+            Double_t max = h_minv->GetMaximum();
+            if( max <= 0. )
+            {
+              delete h_minv;
+              continue;
+            }
 
-        Double_t nsig = 0.;
-        Double_t nbg = 0.;
-        for(Int_t ib=bin112; ib<bin162; ib++)
-        {
-          nsig += h_minv->GetBinContent(ib);
-          //Double_t bincenter = axis->GetBinCenter(ib);
-          //nbg += fn_bg->Eval(bincenter);
-        }
-        for(Int_t ib=bin047; ib<bin097; ib++)
-          nbg += h_minv->GetBinContent(ib) / 2.;
-        for(Int_t ib=bin177; ib<bin227; ib++)
-          nbg += h_minv->GetBinContent(ib) / 2.;
-        Double_t npion = nsig - nbg;
-        Double_t enpion = sqrt(nsig + nbg);
+            h_minv->SetTitle(Form("#%d",runnumber));
+            aset(h_minv, "m_{inv} [GeV]","", 0.,0.3);
 
-        Double_t xx = (Double_t)nmb/(Double_t)nclock;
-        Double_t yy = npion * (Double_t)scaledown / (Double_t)nmb;
-        Double_t eyy = enpion * (Double_t)scaledown / (Double_t)nmb;
-        if( eyy > 0. && eyy < TMath::Infinity() )
-        {
-          gr[ic*2+is]->SetPoint(irun, xx, yy);
-          gr[ic*2+is]->SetPointError(irun, 0., eyy);
-        }
-        delete h_minv;
-      }
+            Double_t par[10] = {max,0.140,0.010, 0.,0.,0.};
+            for(Int_t ifit=0; ifit<5; ifit++)
+            {
+              fn_fit->SetParameters(par);
+              h_minv->Fit(fn_fit, "RQ0");
+              fn_fit->GetParameters(par);
+            }
+            fn_bg->SetParameters(par+3);
 
-    delete f;
+            fn_fit->SetLineColor(kRed);
+            fn_bg->SetLineColor(kGreen);
+            h_minv->DrawCopy("EHIST");
+            fn_fit->DrawCopy("SAME");
+            fn_bg->DrawCopy("SAME");
+
+            Double_t nsig = 0.;
+            Double_t nbg = 0.;
+            for(Int_t ib=12; ib<=16; ib++)
+            {
+              nsig += h_minv->GetBinContent(ib);
+              Double_t bincenter = h_minv->GetXaxis()->GetBinCenter(ib);
+              nbg += fn_bg->Eval(bincenter);
+            }
+            if( fn_fit->GetProb() < 0.1 )
+            {
+              delete h_minv;
+              continue;
+              nbg = ( h_minv->Integral(6,10) + h_minv->Integral(19,23) ) / 2.;
+            }
+            if( nsig <= 0. ) nsig = 1.;
+            if( nbg <= 0. ) nbg = 1.;
+
+            //nbg = 0.;  // No bg subtraction!!!
+            Double_t ensig = sqrt(nsig);
+            Double_t rbg = nbg / nsig;
+            Double_t erbg = sqrt(nbg) / nsig;
+            Double_t npion = nsig * (1-rbg);
+            Double_t enpion = sqrt( pow(ensig*(1-rbg),2.) + pow(nsig*erbg,2.) );
+
+            Double_t xx = (Double_t)nmb / (Double_t)nclock;
+            Double_t yy = npion / nev[id];
+            Double_t eyy = enpion / nev[id];
+            if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
+            {
+              gr[ig]->SetPoint(igp[ig], xx, yy);
+              gr[ig]->SetPointError(igp[ig], 0., eyy);
+              gr_run[ig]->SetPoint(igp[ig], runnumber, yy);
+              gr_run[ig]->SetPointError(igp[ig], 0., eyy);
+              igp[ig]++;
+            }
+            delete h_minv;
+          }
+
+    delete fn_fit;
+    delete fn_bg;
+    delete f_ert;
+    delete f_mb;
     irun++;
   }
 
-  TFile *f_out = new TFile(Form("pileup/Mine-%d.root",process), "RECREATE");
-  for(Int_t ig=0; ig<4; ig++)
-  {
-    gROOT->ProcessLine( Form("c%d->Print(\"pileup/Mine-proc%d-cond%d.pdf\");", ig, process, ig) );
-    gr[ig]->Write();
-  }
+  TFile *f_out = new TFile(Form("pileup/Pileup-%d.root",process), "RECREATE");
+  for(Int_t ipt=0; ipt<npT; ipt++)
+    for(Int_t id=0; id<2; id++)
+      for(Int_t ic=0; ic<2; ic++)
+        for(Int_t is=0; is<2; is++)
+        {
+          Int_t ig = ipt*8+id*4+ic*2+is;
+          //gROOT->ProcessLine( Form("c%d->Print(\"pileup/Minv-proc%d-data%d-cond%d-pt%d-%d.pdf\");", ig, process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
+          gr[ig]->Set(igp[ig]);
+          gr_run[ig]->Set(igp[ig]);
+          gr[ig]->Write();
+          gr_run[ig]->Write();
+        }
   f_out->Close();
 }

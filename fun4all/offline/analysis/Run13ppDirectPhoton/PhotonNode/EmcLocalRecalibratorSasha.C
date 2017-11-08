@@ -2,7 +2,6 @@
 
 #include <PhotonContainer.h>
 #include <Photon.h>
-#include <PhotonERT.h>
 
 #include <cmath>
 
@@ -72,10 +71,10 @@ void EmcLocalRecalibratorSasha::anaGetCorrTof(const char* fname)
       fCorrTof[ich] = corr;
       nn++;
     }
-  
+
     fclose(pf);
     printf("Info from GetCorrTof: %d towers read from file %s\n",nn,fname);
-  
+
   }
 }
 

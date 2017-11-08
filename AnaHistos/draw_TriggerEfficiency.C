@@ -2,9 +2,9 @@ void GenerateTriggerEfficiency(TFile *f, TObjArray *Glist, Int_t ispion, Int_t t
 {
   TH3 *h3_trig;
   if(ispion == 0)
-    h3_trig = (TH3*)f->Get("h3_trig");
+    h3_trig = (TH3*)f->Get("h3_ert");
   else if(ispion == 1)
-    h3_trig = (TH3*)f->Get("h3_trig_pion");
+    h3_trig = (TH3*)f->Get("h3_ert_pion");
 
   mc();
   mcd();
