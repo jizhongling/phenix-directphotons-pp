@@ -7,6 +7,7 @@
 
 #include "HistogramBooker.h"
 #include "EmcLocalRecalibrator.h"
+#include "EmcLocalRecalibratorSasha.h"
 
 /* Other Fun4All header */
 #include <getClass.h>
@@ -41,6 +42,7 @@ using namespace std;
 DirectPhotonPP::DirectPhotonPP(const char* outfile) :
   _dsttype( "MinBias" ),
   _ievent( 0 ),
+  _runnumber( 0 ),
   _bbc_zvertex_cut( 10 ),
   _photon_energy_min( 0.3 ), // 0.3 used by Paul for run 9 pp 500 GeV
   _photon_prob_min( 0.02 ),
@@ -48,6 +50,7 @@ DirectPhotonPP::DirectPhotonPP(const char* outfile) :
   _photon_tof_max( 10 ),
   _direct_photon_energy_min( 1.0 ),
   _emcrecalib( NULL ),
+  _emcrecalib_sasha( NULL ),
   _debug_cluster( false )
 {
   /* Initialize array for tower status */
@@ -77,8 +80,8 @@ DirectPhotonPP::~DirectPhotonPP()
 int
 DirectPhotonPP::Init(PHCompositeNode *topNode)
 {
-  ReadTowerStatus( "Warnmap_Run13pp510.txt" );
-  //ReadSashaWarnmap( "warn_all_run13pp500gev.dat" );
+  //ReadTowerStatus( "Warnmap_Run13pp510.txt" );
+  ReadSashaWarnmap( "warn_all_run13pp500gev.dat" );
 
   return EVENT_OK;
 }
@@ -94,6 +97,12 @@ DirectPhotonPP::InitRun(PHCompositeNode *topNode)
       return ABORTRUN;
     }
 
+  if(!_emcrecalib_sasha)
+    {
+      cerr << "No EmcLocalRecalibratorSasha set. Exit." << endl;
+      exit(1);
+    }
+
   /* Get run number */
   RunHeader* runheader = findNode::getClass<RunHeader>(topNode, "RunHeader");
   if(runheader == NULL)
@@ -101,7 +110,7 @@ DirectPhotonPP::InitRun(PHCompositeNode *topNode)
       cout << "No RunHeader." << endl;
       return ABORTRUN;
     }
-  int runnumber = runheader->get_RunNumber();
+  _runnumber = runheader->get_RunNumber();
 
   /* Get fill number */
   SpinDBContent spin_cont;
@@ -113,13 +122,13 @@ DirectPhotonPP::InitRun(PHCompositeNode *topNode)
   spin_out.SetTableName("spin");
 
   /* Retrieve entry from Spin DB and get fill number */
-  int qa_level=spin_out.GetDefaultQA(runnumber);
-  spin_out.StoreDBContent(runnumber, runnumber, qa_level);
-  spin_out.GetDBContentStore(spin_cont, runnumber);
+  int qa_level=spin_out.GetDefaultQA(_runnumber);
+  spin_out.StoreDBContent(_runnumber, _runnumber, qa_level);
+  spin_out.GetDBContentStore(spin_cont, _runnumber);
   int fillnumber = spin_cont.GetFillNumber();
 
   /* Load EMCal recalibrations for run and fill */
-  _emcrecalib->ReadEnergyCorrection( runnumber );
+  _emcrecalib->ReadEnergyCorrection( _runnumber );
   _emcrecalib->ReadTofCorrection( fillnumber );
 
   return EVENT_OK;
@@ -205,7 +214,8 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
    */
   /* Run local recalibration of EMCal cluster data */
   emcClusterContainer* data_emc_corr = data_emc->clone();
-  _emcrecalib->ApplyClusterCorrection( data_emc_corr );
+  //_emcrecalib->ApplyClusterCorrection( data_emc_corr );
+  _emcrecalib_sasha->ApplyClusterCorrection( _runnumber, data_emc_corr );
 
   /* Apply cuts to calorimeter cluster collections and create subsets for next analysis steps */
   emcClusterContainer* data_emc_cwarn = data_emc->clone();

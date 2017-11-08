@@ -9,6 +9,7 @@
 
 /* Local analysis Classes */
 class EmcLocalRecalibrator;
+class EmcLocalRecalibratorSasha;
 
 /* Fun4All classes */
 class PHCentralTrack;
@@ -65,6 +66,14 @@ public:
   void SetEmcLocalRecalibrator( EmcLocalRecalibrator* emcrecalib )
   {
     _emcrecalib = emcrecalib;
+  }
+
+  /**
+   * Set local recalibrator- Sasha style
+   */
+  void SetEmcLocalRecalibratorSasha( EmcLocalRecalibratorSasha* emcrecalib )
+  {
+    _emcrecalib_sasha = emcrecalib;
   }
 
 
@@ -240,6 +249,11 @@ private:
   int _ievent;
 
   /**
+   * Run number
+   */
+  int _runnumber;
+
+  /**
    * BBC z vertex range cut (in cm)
    */
   double _bbc_zvertex_cut;
@@ -273,6 +287,11 @@ private:
    * On-the-fly recalibration of EMCal towers
    */
   EmcLocalRecalibrator* _emcrecalib;
+
+  /**
+   * On-the-fly recalibration of EMCal towers- based on Sasha's analysis
+   */
+  EmcLocalRecalibratorSasha* _emcrecalib_sasha;
 
   /**
    * Name for output ROOT file for histograms
