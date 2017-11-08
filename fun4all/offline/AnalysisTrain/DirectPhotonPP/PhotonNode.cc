@@ -200,7 +200,6 @@ int PhotonNode::process_event(PHCompositeNode *topNode)
   // get bbc info
   float bbc_z = data_global->getBbcZVertex();
   float bbc_t0 = data_global->getBbcTimeZero();
-  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
 
   // get crossing number
   //int crossing = data_triggerlvl1->get_lvl1_clock_cross();
@@ -212,11 +211,15 @@ int PhotonNode::process_event(PHCompositeNode *topNode)
   if( (lvl1_live & bit_ppg) || (lvl1_scaled & bit_ppg) ) return DISCARDEVENT;
 
   // fill photon node
-  if( abs(bbc_z) < 10. )
-    photoncont->set_bbc10cm();
+  photoncont->set_bbc_z(bbc_z);
   photoncont->set_bbc_t0(bbc_t0);
   //photoncont->set_crossing(crossing);
   photoncont->set_trigger(lvl1_live, lvl1_scaled);
+
+  if( datatype == ERT && !photoncont->get_ert_b_scaled() && abs(bbc_z) > 30. )
+    return DISCARDEVENT;
+  else if( datatype == MB && abs(bbc_z) > 30. )
+    return EVENT_OK;
 
   // Run local recalibration of EMCal cluster data
   emcClusterContainer *data_emccontainer = data_emccontainer_raw->clone();

@@ -17,7 +17,7 @@ for prename in "AnaFastMC-PH-nowarn-" "AnaFastMC-PH-warn-" "AnaFastMC-Fast-nowar
 	    else
 		hadd tmp.root ${files}
 	    fi
-	    mv -f tmp.root total.root
+	    mv tmp.root total.root
 	    files=""
 	    count=0
 	fi
@@ -29,7 +29,7 @@ for prename in "AnaFastMC-PH-nowarn-" "AnaFastMC-PH-warn-" "AnaFastMC-Fast-nowar
 	else
 	    hadd tmp.root ${files}
 	fi
-	mv -f tmp.root total.root
+	mv tmp.root total.root
     fi
 
     mv total.root ../${prename}histo.root

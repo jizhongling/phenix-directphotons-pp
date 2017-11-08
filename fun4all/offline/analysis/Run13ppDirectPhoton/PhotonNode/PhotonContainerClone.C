@@ -10,7 +10,7 @@ PhotonContainerClone::PhotonContainerClone(PhotonContainer *photoncont)
     photon_list.push_back(*photon);
   }
 
-  bbc10cm = photoncont->get_bbc10cm();
+  bbc_z = photoncont->get_bbc_z();
   bbc_t0 = photoncont->get_bbc_t0();
   //crossing = photoncont->get_crossing();
 

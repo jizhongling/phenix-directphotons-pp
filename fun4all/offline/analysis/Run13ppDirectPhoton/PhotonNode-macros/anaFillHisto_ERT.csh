@@ -9,5 +9,5 @@ end
 source $HOME/.login
 
 cd $1
-if(! -e histos) mkdir histos
+if(! -e histos-ERT) mkdir histos-ERT
 root -l -b -q $0:t:r.C\($2\)
