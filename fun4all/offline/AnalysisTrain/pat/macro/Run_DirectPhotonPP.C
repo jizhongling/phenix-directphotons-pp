@@ -32,11 +32,16 @@ void Run_DirectPhotonPP(const char *outFile = "HISTOS.root")
   // passed in
   DirectPhotonPP *dp = new DirectPhotonPP(outFile);
 
+  // Set which type of DST is being used- MinBias or ERT
+  dp->SetDstDataType("MinBias");
+
   // You can only register ONE EmcLocalRecalibrator or the code will crash.
   //dp->SetEmcLocalRecalibrator( emclocal );
   dp->SetEmcLocalRecalibrator( emcrecalib_sasha );
 
-  //dp->SetWarnmap( warnmap_file, warnmap_type );
+  // Select which warn map file to read (filename, number of columns)
+  //dp->ReadTowerStatus( "Warnmap_Run13pp510.txt", 4 );
+  dp->ReadTowerStatus( "warn_all_run13pp500gev.dat", 2 );
 
   //dp->SetClusterDebugMode(true);
   //dp->anaSetRunList(file_runlist.c_str());
