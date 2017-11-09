@@ -11,25 +11,25 @@
 
 void pythia_display()
 {
-   TString dir = gSystem->UnixPathName(__FILE__);
-   dir.ReplaceAll("pythia_display.C","");
-   dir.ReplaceAll("/./","/");
-   gROOT->LoadMacro(dir +"MultiView.C+");
+  TString dir = gSystem->UnixPathName(__FILE__);
+  dir.ReplaceAll("pythia_display.C","");
+  dir.ReplaceAll("/./","/");
+  gROOT->LoadMacro(dir +"MultiView.C+");
 
 #ifndef G__WIN32 // libPythia6 is a static library on Windoze
-   if (gSystem->Load("libPythia6") < 0)
-   {
+  if (gSystem->Load("libPythia6") < 0)
+    {
       Error("pythia_display()",
             "Could not load 'libPythia6', make sure it is available!");
       return;
-   }
+    }
 #endif
-   gSystem->Load("libEGPythia6");
+  gSystem->Load("libEGPythia6");
 
-   gROOT->ProcessLine("#define __RUN_PYTHIA_DISPLAY__ 1");
-   gROOT->ProcessLine("#include \"pythia_display.C\"");
-   gROOT->ProcessLine("run_pythia_display()");
-   gROOT->ProcessLine("#undef __RUN_PYTHIA_DISPLAY__");
+  gROOT->ProcessLine("#define __RUN_PYTHIA_DISPLAY__ 1");
+  gROOT->ProcessLine("#include \"pythia_display.C\"");
+  gROOT->ProcessLine("run_pythia_display()");
+  gROOT->ProcessLine("#undef __RUN_PYTHIA_DISPLAY__");
 }
 
 #else
@@ -38,9 +38,15 @@ void pythia_display()
 // Constants.
 //------------------------------------------------------------------------------
 
-const Double_t kR_min = 240;
-const Double_t kR_max = 250;
-const Double_t kZ_d   = 300;
+const Double_t kR_min = 5030; // mm
+const Double_t kR_max = 6030; // mm
+const Double_t kZ_d   = 2160. * 2; // mm
+
+const Double_t kPhi1_west   = -45.;
+const Double_t kPhi2_west   =  45;
+
+const Double_t kPhi1_east   = 135;
+const Double_t kPhi2_east   = 225;
 
 // Solenoid field along z, in Tesla.
 const Double_t kMagField = 4;
@@ -81,108 +87,107 @@ void pythia_make_gui();
 
 void run_pythia_display()
 {
-   if (g_pythia != 0)
-   {
+  if (g_pythia != 0)
+    {
       Warning("pythia_display()", "Already initialized.");
       return;
-   }
+    }
 
-   //========================================================================
-   //========================================================================
+  //========================================================================
+  //========================================================================
 
-   // Create an instance of the Pythia event generator ...
-   g_pythia = new TPythia6;
-   TPythia6& P = * g_pythia;
+  // Create an instance of the Pythia event generator ...
+  g_pythia = new TPythia6;
+  TPythia6& P = * g_pythia;
 
-   P.SetMSEL(10);
+  P.SetMSEL(10);
 
-   P.SetCKIN(3, 2);
+  P.SetCKIN(3, 2);
 
-   P.Initialize("cms", "p", "p", 510);
+  P.Initialize("cms", "p", "p", 510);
 
-   //* Default: *//
-//   P.SetMSEL(0);           // full user controll;
-//   P.SetMSUB(102, 1);      // g + g -> H0
-//   //P.SetMSUB(123, 1);    // f + f' -> f + f' + H0
-//   //P.SetMSUB(124, 1);    // f + f' -> f" + f"' + H0
-//
-//   P.SetPMAS(6,  1, 175);  // mass of TOP
-//   P.SetPMAS(25, 1, 180);  // mass of Higgs
-//
-//
-//   P.SetCKIN(1, 170.0);    // range of allowed mass
-//   P.SetCKIN(2, 190.0);
-//
-//   P.SetMSTP(61, 0);   // switch off ISR
-//   P.SetMSTP(71, 0);   // switch off FSR
-//   P.SetMSTP(81, 0);   // switch off multiple interactions
-//
-//   P.SetMSTP(111, 0);  // Switch off fragmentation
-//
-//   // Force h0 -> ZZ
-//   for (Int_t i = 210; i <= 288; ++i)
-//      P.SetMDME(i, 1, 0);
-//   P.SetMDME(225, 1, 1);
-//
-//   // Force Z -> mumu
-//   for (Int_t i = 174; i <= 189; ++i)
-//      P.SetMDME(i, 1, 0);
-//   P.SetMDME(184, 1, 1);
-//
-//
-//   P.Initialize("cms", "p", "p", 14000);
+  //* Default: *//
+  //   P.SetMSEL(0);           // full user controll;
+  //   P.SetMSUB(102, 1);      // g + g -> H0
+  //   //P.SetMSUB(123, 1);    // f + f' -> f + f' + H0
+  //   //P.SetMSUB(124, 1);    // f + f' -> f" + f"' + H0
+  //
+  //   P.SetPMAS(6,  1, 175);  // mass of TOP
+  //   P.SetPMAS(25, 1, 180);  // mass of Higgs
+  //
+  //
+  //   P.SetCKIN(1, 170.0);    // range of allowed mass
+  //   P.SetCKIN(2, 190.0);
+  //
+  //   P.SetMSTP(61, 0);   // switch off ISR
+  //   P.SetMSTP(71, 0);   // switch off FSR
+  //   P.SetMSTP(81, 0);   // switch off multiple interactions
+  //
+  //   P.SetMSTP(111, 0);  // Switch off fragmentation
+  //
+  //   // Force h0 -> ZZ
+  //   for (Int_t i = 210; i <= 288; ++i)
+  //      P.SetMDME(i, 1, 0);
+  //   P.SetMDME(225, 1, 1);
+  //
+  //   // Force Z -> mumu
+  //   for (Int_t i = 174; i <= 189; ++i)
+  //      P.SetMDME(i, 1, 0);
+  //   P.SetMDME(184, 1, 1);
+  //
+  //
+  //   P.Initialize("cms", "p", "p", 14000);
 
-   //========================================================================
-   // Create views and containers.
-   //========================================================================
+  //========================================================================
+  // Create views and containers.
+  //========================================================================
 
-   TEveManager::Create();
+  TEveManager::Create();
 
-   TEveElementList *fake_geom = new TEveElementList("Geometry");
+  TEveElementList *fake_geom = new TEveElementList("Geometry");
 
-   TEveGeoShape *b;
+  TEveGeoShape *b;
 
-   b = new TEveGeoShape("Barell 1");
-   b->SetShape(new TGeoTube(kR_min, kR_max, kZ_d));
-   b->SetMainColor(kCyan);
-   b->SetMainTransparency(80);
-   fake_geom->AddElement(b);
+  b = new TEveGeoShape("EMCal East");
+  b->SetShape(new TGeoTubeSeg(kR_min, kR_max, kZ_d, kPhi1_east, kPhi2_east));
+  b->SetMainColor(kCyan);
+  b->SetMainTransparency(80);
+  fake_geom->AddElement(b);
 
-   b = new TEveGeoShape("Barell 2");
-   b->SetShape(new TGeoTube(2*kR_min, 2*kR_max, 2*kZ_d));
-   b->SetMainColor(kPink-3);
-   b->SetMainTransparency(80);
-   fake_geom->AddElement(b);
+  b = new TEveGeoShape("EMCal West");
+  b->SetShape(new TGeoTubeSeg(kR_min, kR_max, kZ_d, kPhi1_west, kPhi2_west));
+  b->SetMainColor(kCyan);
+  b->SetMainTransparency(80);
+  fake_geom->AddElement(b);
 
-   gEve->AddGlobalElement(fake_geom);
+  gEve->AddGlobalElement(fake_geom);
 
+  gMultiView = new MultiView;
 
-   gMultiView = new MultiView;
+  gMultiView->ImportGeomRPhi(fake_geom);
+  gMultiView->ImportGeomRhoZ(fake_geom);
 
-   gMultiView->ImportGeomRPhi(fake_geom);
-   gMultiView->ImportGeomRhoZ(fake_geom);
+  gEve->GetBrowser()->GetTabRight()->SetTab(1);
 
-   gEve->GetBrowser()->GetTabRight()->SetTab(1);
+  gTrackList = new TEveTrackList("Pythia Tracks");
+  gTrackList->SetMainColor(kYellow);
+  gTrackList->SetMarkerColor(kRed);
+  gTrackList->SetMarkerStyle(4);
+  gTrackList->SetMarkerSize(0.5);
+  gEve->AddElement(gTrackList);
 
-   gTrackList = new TEveTrackList("Pythia Tracks");
-   gTrackList->SetMainColor(kYellow);
-   gTrackList->SetMarkerColor(kRed);
-   gTrackList->SetMarkerStyle(4);
-   gTrackList->SetMarkerSize(0.5);
-   gEve->AddElement(gTrackList);
+  TEveTrackPropagator* trkProp = gTrackList->GetPropagator();
+  trkProp->SetMagField(kMagField);
+  trkProp->SetMaxR(2*kR_max);
+  trkProp->SetMaxZ(2*kZ_d);
 
-   TEveTrackPropagator* trkProp = gTrackList->GetPropagator();
-   trkProp->SetMagField(kMagField);
-   trkProp->SetMaxR(2*kR_max);
-   trkProp->SetMaxZ(2*kZ_d);
+  //========================================================================
+  //========================================================================
 
-   //========================================================================
-   //========================================================================
+  pythia_make_gui();
+  pythia_next_event();
 
-   pythia_make_gui();
-   pythia_next_event();
-
-   gEve->Redraw3D(kTRUE);
+  gEve->Redraw3D(kTRUE);
 }
 
 
@@ -192,31 +197,69 @@ void run_pythia_display()
 
 void pythia_next_event()
 {
-   gTrackList->DestroyElements();
+  gTrackList->DestroyElements();
 
-   TPythia6& P = * g_pythia;
+  TPythia6& P = * g_pythia;
 
-   P.GenerateEvent();
+  //  int nh = 0;
 
-   int nh = P.GetMSTU(72);
+  bool triggerevent = false;
+  unsigned ntrials = 0;
+  while ( !triggerevent && ntrials < 1000 )
+    {
+      ntrials += 1;
+      P.GenerateEvent();
 
-   // printf("N = %d, Nhard = %d :: NumSec = %d, separators (%d,%d,%d,%d)\n",
-   //    P.GetN(), nh, P.GetMSTU(70), P.GetMSTU(71), P.GetMSTU(72), P.GetMSTU(73), P.GetMSTU(74));
-   //                          2->2                 hard                  postfrag              final
+      int nh = P.GetMSTU(72);
 
-   TEveTrackPropagator *trkProp = gTrackList->GetPropagator();
-   TClonesArray        &MC      = * (TClonesArray*) P.GetListOfParticles();
-   for (Int_t i = 0; i < 1000; ++i)
-   {
+      /* Loop over all particles to find trigger particle- skip event if none found */
+      TClonesArray        &MCtmp      = * (TClonesArray*) P.GetListOfParticles();
+      for (Int_t i = 0; i < 10; ++i)
+        {
+          TMCParticle& p = (TMCParticle&)*MCtmp[nh+i];
+
+          if ( p.GetKS() == 1 &&
+               p.GetKF() == 22 )
+            {
+              // get momentum and energy
+              Float_t px = p.GetPx();
+              Float_t py = p.GetPy();
+              Float_t pz = p.GetPz();
+              Float_t energy = p.GetEnergy();
+              TLorentzVector gamma(px,py,pz,energy);
+
+              // make pT cut
+              if ( gamma.Pt() > 5.0 &&
+                   abs( gamma.Eta() ) < 0.35 &&
+		   (gamma.Phi() > 3./4.*TMath::Pi() && gamma.Phi() < 5./4.*TMath::Pi()) )
+                {
+                  cout << "FOUND trigger particle after " << ntrials << " trials!" << endl;
+                  triggerevent = true;
+                }
+            }
+        }
+    }
+
+  int nh = P.GetMSTU(72);
+
+  // printf("N = %d, Nhard = %d :: NumSec = %d, separators (%d,%d,%d,%d)\n",
+  //    P.GetN(), nh, P.GetMSTU(70), P.GetMSTU(71), P.GetMSTU(72), P.GetMSTU(73), P.GetMSTU(74));
+  //                          2->2                 hard                  postfrag              final
+
+  TEveTrackPropagator *trkProp = gTrackList->GetPropagator();
+  TClonesArray        &MC      = * (TClonesArray*) P.GetListOfParticles();
+
+  for (Int_t i = 0; i < 1000; ++i)
+    {
       TMCParticle& p = (TMCParticle&)*MC[nh+i];
 
       // skip unstable particles
       if ( p.GetKS() != 1 )
-	continue;
+        continue;
 
       // skip low energy particles
       if ( p.GetEnergy() < 0.5 )
-	continue;
+        continue;
 
       TParticle pb(p.GetKF(), p.GetKS(), 0, 0,
                    p.GetFirstChild()-nh-1, p.GetLastChild()-nh-1,
@@ -227,10 +270,34 @@ void pythia_next_event()
       track->SetName(Form("%s [%d]", pb.GetName(), i));
       track->SetStdTitle();
       track->SetAttLineAttMarker(gTrackList);
-      if (p.GetKF() == 22)
-         track->SetLineColor(kColors[0]);
-//      else if (i <= 2)
-//         track->SetLineColor(kColors[1]);
+//      if (p.GetKF() == 22)
+//        track->SetLineColor(kColors[0]);
+      //      else if (i <= 2)
+      //         track->SetLineColor(kColors[1]);
+
+
+      // select trigger photon
+      if ( p.GetKS() == 1 &&
+	   p.GetKF() == 22 )
+	{
+	  // get momentum and energy
+	  Float_t px = p.GetPx();
+	  Float_t py = p.GetPy();
+	  Float_t pz = p.GetPz();
+	  Float_t energy = p.GetEnergy();
+	  TLorentzVector gamma(px,py,pz,energy);
+
+	  // make pT cut
+	  if ( gamma.Pt() > 5.0 &&
+	       abs( gamma.Eta() ) < 0.35 &&
+	       (gamma.Phi() > 3./4.*TMath::Pi() && gamma.Phi() < 5./4.*TMath::Pi()) )
+	    {
+	      track->SetLineColor(kColors[0]);
+	    }
+	}
+
+
+
 
       gTrackList->AddElement(track);
 
@@ -243,20 +310,20 @@ void pythia_next_event()
         printf("%d - %f %f %f %f\n", i,
         p.GetVx(), p.GetVy(), p.GetVz(), p.GetTime());
       */
-   }
+    }
 
-   gTrackList->MakeTracks();
+  gTrackList->MakeTracks();
 
 
-   TEveElement* top = (gEve->GetCurrentEvent())->FindVizDBEntry("Pythia Tracks");
+  //TEveElement* top = (gEve->GetCurrentEvent())->FindVizDBEntry("Pythia Tracks");
+  //
+  //gMultiView->DestroyEventRPhi();
+  //gMultiView->ImportEventRPhi(top);
+  //
+  //gMultiView->DestroyEventRhoZ();
+  //gMultiView->ImportEventRhoZ(top);
 
-   gMultiView->DestroyEventRPhi();
-   gMultiView->ImportEventRPhi(top);
-
-   gMultiView->DestroyEventRhoZ();
-   gMultiView->ImportEventRhoZ(top);
-
-   gEve->Redraw3D();
+  gEve->Redraw3D();
 }
 
 
@@ -266,52 +333,52 @@ void pythia_next_event()
 class EvNavHandler
 {
 public:
-   void Fwd()
-   {
-      pythia_next_event();
-   }
-   void Bck()
-   {}
+  void Fwd()
+  {
+    pythia_next_event();
+  }
+  void Bck()
+  {}
 };
 
 //______________________________________________________________________________
 void pythia_make_gui()
 {
-   // Create minimal GUI for event navigation.
+  // Create minimal GUI for event navigation.
 
-   TEveBrowser* browser = gEve->GetBrowser();
-   browser->StartEmbedding(TRootBrowser::kLeft);
+  TEveBrowser* browser = gEve->GetBrowser();
+  browser->StartEmbedding(TRootBrowser::kLeft);
 
-   TGMainFrame* frmMain = new TGMainFrame(gClient->GetRoot(), 1000, 600);
-   frmMain->SetWindowName("XX GUI");
-   frmMain->SetCleanup(kDeepCleanup);
+  TGMainFrame* frmMain = new TGMainFrame(gClient->GetRoot(), 1000, 600);
+  frmMain->SetWindowName("XX GUI");
+  frmMain->SetCleanup(kDeepCleanup);
 
-   TGHorizontalFrame* hf = new TGHorizontalFrame(frmMain);
-   {
+  TGHorizontalFrame* hf = new TGHorizontalFrame(frmMain);
+  {
 
-      TString icondir( Form("%s/icons/", gSystem->Getenv("ROOTSYS")) );
-      TGPictureButton* b = 0;
-      EvNavHandler    *fh = new EvNavHandler;
+    TString icondir( Form("%s/icons/", gSystem->Getenv("ROOTSYS")) );
+    TGPictureButton* b = 0;
+    EvNavHandler    *fh = new EvNavHandler;
 
-      b = new TGPictureButton(hf, gClient->GetPicture(icondir+"GoBack.gif"));
-      b->SetEnabled(kFALSE);
-      b->SetToolTipText("Go to previous event - not supported.");
-      hf->AddFrame(b);
-      b->Connect("Clicked()", "EvNavHandler", fh, "Bck()");
+    b = new TGPictureButton(hf, gClient->GetPicture(icondir+"GoBack.gif"));
+    b->SetEnabled(kFALSE);
+    b->SetToolTipText("Go to previous event - not supported.");
+    hf->AddFrame(b);
+    b->Connect("Clicked()", "EvNavHandler", fh, "Bck()");
 
-      b = new TGPictureButton(hf, gClient->GetPicture(icondir+"GoForward.gif"));
-      b->SetToolTipText("Generate new event.");
-      hf->AddFrame(b);
-      b->Connect("Clicked()", "EvNavHandler", fh, "Fwd()");
-   }
-   frmMain->AddFrame(hf);
+    b = new TGPictureButton(hf, gClient->GetPicture(icondir+"GoForward.gif"));
+    b->SetToolTipText("Generate new event.");
+    hf->AddFrame(b);
+    b->Connect("Clicked()", "EvNavHandler", fh, "Fwd()");
+  }
+  frmMain->AddFrame(hf);
 
-   frmMain->MapSubwindows();
-   frmMain->Resize();
-   frmMain->MapWindow();
+  frmMain->MapSubwindows();
+  frmMain->Resize();
+  frmMain->MapWindow();
 
-   browser->StopEmbedding();
-   browser->SetTabTitle("Event Control", 0);
+  browser->StopEmbedding();
+  browser->SetTabTitle("Event Control", 0);
 }
 
 #endif
