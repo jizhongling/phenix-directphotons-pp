@@ -8,8 +8,7 @@ lib_LTLIBRARIES = libAnaPHPythiaDirectPhoton.la
 include_HEADERS =
 
 noinst_HEADERS = \
-  AnaPHPythiaDirectPhoton.h \
-  AnaToolsTowerID.h
+  AnaPHPythiaDirectPhoton.h
 
 libAnaPHPythiaDirectPhoton_la_SOURCES = \
   AnaPHPythiaDirectPhoton.C
