@@ -1,13 +1,14 @@
 //#include <libgen.h>
 
 void phpythia(
-              const int nevents = 1000000,
-              const char *configfile = "dirphoton.cfg",
-              const char *outputname = "phpythia_dirphoton.root",
-              const char *oscar_outputname = "oscar_dirphoton.txt"
-	      //const char *configfile = "pythia.cfg",
-	      //const char *outputname = "phpythia.root",
-	      //const char *oscar_outputname = "oscar.txt"
+              const int nevents = 100000,
+	      const int seed = 1,
+              //const char *configfile = "dirphoton.cfg",
+              //const char *outputname = "phpythia_dirphoton.root",
+              //const char *oscar_outputname = "oscar_dirphoton.txt"
+	      const char *configfile = "pythia.cfg",
+	      const char *outputname = "phpythia.root",
+	      const char *oscar_outputname = "oscar.txt"
               )
 {
   //gSystem->Load("libfun4allfuncs.so");        // framework only
@@ -36,7 +37,7 @@ void phpythia(
   phpythia->SetConfigFile(configfile);
 
   // Set your own seed, otherwise, seeds from /dev/random
-  //  phpythia->SetSeed(1999);
+  phpythia->SetSeed(seed);
 
   se->registerSubsystem(phpythia);
 
