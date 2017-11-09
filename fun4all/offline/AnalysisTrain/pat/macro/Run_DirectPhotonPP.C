@@ -55,6 +55,8 @@ void Run_DirectPhotonPP(const char *outFile = "HISTOS.root")
 
   // clean up
   delete toad_loader;
+  delete emclocal;
+  delete emcrecalib_sasha;
 }
 
 void
