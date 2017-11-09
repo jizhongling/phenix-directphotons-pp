@@ -31,8 +31,13 @@ void Run_DirectPhotonPP(const char *outFile = "HISTOS.root")
   // Note, however, you can do whatever you like with what is
   // passed in
   DirectPhotonPP *dp = new DirectPhotonPP(outFile);
-  dp->SetEmcLocalRecalibrator( emclocal );
-  dp->SetEmcLocalRecalibratorSasha( emcrecalib_sasha );
+
+  // You can only register ONE EmcLocalRecalibrator or the code will crash.
+  //dp->SetEmcLocalRecalibrator( emclocal );
+  dp->SetEmcLocalRecalibrator( emcrecalib_sasha );
+
+  //dp->SetWarnmap( warnmap_file, warnmap_type );
+
   //dp->SetClusterDebugMode(true);
   //dp->anaSetRunList(file_runlist.c_str());
   //dp->anaSelectGAMMA(); // Select GAMMA or MB data
