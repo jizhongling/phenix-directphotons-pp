@@ -593,23 +593,9 @@ DirectPhotonPP::FillPi0InvariantMass( string histname,
               int sector1 = anatools::CorrectClusterSector( emccluster1->arm() , emccluster1->sector() );
               int sector2 = anatools::CorrectClusterSector( emccluster2->arm() , emccluster2->sector() );
 
-              /* Require two photons are from the same part of the EMCal */
-              int is = 3;
-              if( sector1<4 && sector2<4 ) // W0,1,2,3
-                is = 0;
-              else if( (sector1==4 || sector1==5) && (sector2==4 || sector2==5) ) // E2,3
-                is = 1;
-              else if( (sector1==6 || sector1==7) && (sector2==6 || sector2==7) ) // PbGl
-                is = 2;
-              else
-                is = 3;
-              if(is==3) continue;
-
-              /* more restrictive photon candidate pair selection for sector-by-sector pi0 energy
-               * calibration
-               */
-              //if ( ( sector1 != sector2 ) )
-              //continue;
+	      /* check if clusters in same section of detector */
+	      if( !anatools::SectorCheck(sector1,sector2) )
+		continue;
 
               /* pE = {px, py, pz, ecore} */
               TLorentzVector photon1_pE = anatools::Get_pE(emccluster1);
