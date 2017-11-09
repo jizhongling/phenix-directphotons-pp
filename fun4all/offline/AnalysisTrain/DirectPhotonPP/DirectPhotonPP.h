@@ -87,6 +87,18 @@ public:
 
 
   /**
+   * Read tower status from text file with 4 columns (sector, y-idx, z-idx, status)
+   */
+  void ReadTowerStatus(const std::string &filename, unsigned ncols)
+  {
+    if ( ncols == 4 )
+      ReadTowerStatus4Cols(filename);
+    else if ( ncols == 2 )
+      ReadTowerStatusSasha(filename);
+  }
+
+
+  /**
    * Set debug mode for detailed cluster information output
    */
   void SetClusterDebugMode( bool mode )
@@ -175,13 +187,15 @@ protected:
    */
   int selectClusterPhotonTof( emcClusterContainer *emccontainer, double bbc_t0 );
 
-private:
+  /**
+   * Read tower status from text file with 4 columns (sector, y-idx, z-idx, status)
+   */
+  void ReadTowerStatus4Cols(const std::string &filename);
 
   /**
-   * Read tower status from text file
+   * Read tower status from text file with 2 columns (tower id, status - e.g. Sasha)
    */
-  void ReadTowerStatus(const std::string &filename);
-  void ReadSashaWarnmap(const std::string &filename);
+  void ReadTowerStatusSasha(const std::string &filename);
 
   /**
    * Fill histogram with trigger based event counts

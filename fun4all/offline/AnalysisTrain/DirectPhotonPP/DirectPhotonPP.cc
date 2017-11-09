@@ -95,9 +95,6 @@ DirectPhotonPP::Init(PHCompositeNode *topNode)
       throw (DONOTREGISTERSUBSYSTEM);
     }
 
-  //ReadTowerStatus( "Warnmap_Run13pp510.txt" );
-  ReadSashaWarnmap( "warn_all_run13pp500gev.dat" );
-
   return EVENT_OK;
 }
 
@@ -949,7 +946,7 @@ DirectPhotonPP::End(PHCompositeNode *topNode)
 /* ----------------------------------------------- */
 
 void
-DirectPhotonPP::ReadTowerStatus(const string &filename)
+DirectPhotonPP::ReadTowerStatus4Cols(const string &filename)
 {
   unsigned int nBadSc = 0;
   unsigned int nBadGl = 0;
@@ -985,7 +982,7 @@ DirectPhotonPP::ReadTowerStatus(const string &filename)
 /* ----------------------------------------------- */
 
 void
-DirectPhotonPP::ReadSashaWarnmap(const string &filename)
+DirectPhotonPP::ReadTowerStatusSasha(const string &filename)
 {
   unsigned int nBadSc = 0;
   unsigned int nBadGl = 0;
