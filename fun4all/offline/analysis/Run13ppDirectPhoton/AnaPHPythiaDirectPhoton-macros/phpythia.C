@@ -1,13 +1,13 @@
 //#include <libgen.h>
 
 void phpythia(
-              const int nevents = 100000,
-	      //              const char *configfile = "dirphoton.cfg",
-	      //              const char *outputname = "phpythia_dirphoton.root",
-	      //              const char *oscar_outputname = "oscar_dirphoton.txt"
-              const char *configfile = "pythia.cfg",
-              const char *outputname = "phpythia.root",
-              const char *oscar_outputname = "oscar.txt"
+              const int nevents = 1000000,
+              const char *configfile = "dirphoton.cfg",
+              const char *outputname = "phpythia_dirphoton.root",
+              const char *oscar_outputname = "oscar_dirphoton.txt"
+	      //const char *configfile = "pythia.cfg",
+	      //const char *outputname = "phpythia.root",
+	      //const char *oscar_outputname = "oscar.txt"
               )
 {
   //gSystem->Load("libfun4allfuncs.so");        // framework only
@@ -47,7 +47,8 @@ void phpythia(
   // se->registerSubsystem( new PHPyVertexShift( "PHPyVertexShift", "./events.txt") );
 
   //** You can use dedicated triggers, derived from the PHPyTrigger base class
-  // se->registerSubsystem( new PHPyJPsiMuonTrigger() );
+  float gamma_minpt = 1.0;
+  se->registerSubsystem( new  PHPyGammaCentralArmTrigger( gamma_minpt, "PHPyGammaCentralArmTrigger" ) );
 
   //** You can select only particular particles to write out
   //PHPyParticleSelect *pselect = new PHPyParticleSelect();
