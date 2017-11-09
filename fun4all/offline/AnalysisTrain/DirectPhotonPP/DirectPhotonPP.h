@@ -71,7 +71,7 @@ public:
   /**
    * Set local recalibrator- Sasha style
    */
-  void SetEmcLocalRecalibratorSasha( EmcLocalRecalibratorSasha* emcrecalib )
+  void SetEmcLocalRecalibrator( EmcLocalRecalibratorSasha* emcrecalib )
   {
     _emcrecalib_sasha = emcrecalib;
   }

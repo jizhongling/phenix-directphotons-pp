@@ -80,6 +80,21 @@ DirectPhotonPP::~DirectPhotonPP()
 int
 DirectPhotonPP::Init(PHCompositeNode *topNode)
 {
+  /* Check that ONE local recalibrator is defined */
+  if ( ! ( _emcrecalib || _emcrecalib_sasha ) )
+    {
+      cout << "!!! DirectPhotonPP: No EmcLocalRecalibrator set. Throw exception." << endl;
+      throw (DONOTREGISTERSUBSYSTEM);
+    }
+
+  /* Exit if MORE than one local recalibrator is defined
+   * (There Can Be Only One) */
+  if( _emcrecalib && _emcrecalib_sasha )
+    {
+      cerr << "!!! DirectPhotonPP: More than ONE EmcLocalRecalibrator set. Throw exception." << endl;
+      throw (DONOTREGISTERSUBSYSTEM);
+    }
+
   //ReadTowerStatus( "Warnmap_Run13pp510.txt" );
   ReadSashaWarnmap( "warn_all_run13pp500gev.dat" );
 
@@ -91,18 +106,6 @@ DirectPhotonPP::Init(PHCompositeNode *topNode)
 int
 DirectPhotonPP::InitRun(PHCompositeNode *topNode)
 {
-  if ( !_emcrecalib )
-    {
-      cout << "No EmcLocalRecalibrator set. Exit." << endl;
-      return ABORTRUN;
-    }
-
-  if(!_emcrecalib_sasha)
-    {
-      cerr << "No EmcLocalRecalibratorSasha set. Exit." << endl;
-      exit(1);
-    }
-
   /* Get run number */
   RunHeader* runheader = findNode::getClass<RunHeader>(topNode, "RunHeader");
   if(runheader == NULL)
@@ -128,8 +131,11 @@ DirectPhotonPP::InitRun(PHCompositeNode *topNode)
   int fillnumber = spin_cont.GetFillNumber();
 
   /* Load EMCal recalibrations for run and fill */
-  _emcrecalib->ReadEnergyCorrection( _runnumber );
-  _emcrecalib->ReadTofCorrection( fillnumber );
+  if ( _emcrecalib )
+    {
+      _emcrecalib->ReadEnergyCorrection( _runnumber );
+      _emcrecalib->ReadTofCorrection( fillnumber );
+    }
 
   return EVENT_OK;
 }
@@ -214,8 +220,15 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
    */
   /* Run local recalibration of EMCal cluster data */
   emcClusterContainer* data_emc_corr = data_emc->clone();
-  //_emcrecalib->ApplyClusterCorrection( data_emc_corr );
-  _emcrecalib_sasha->ApplyClusterCorrection( _runnumber, data_emc_corr );
+
+  if ( _emcrecalib )
+    {
+      _emcrecalib->ApplyClusterCorrection( data_emc_corr );
+    }
+  else if ( _emcrecalib_sasha )
+    {
+      _emcrecalib_sasha->ApplyClusterCorrection( _runnumber, data_emc_corr );
+    }
 
   /* Apply cuts to calorimeter cluster collections and create subsets for next analysis steps */
   emcClusterContainer* data_emc_cwarn = data_emc->clone();
@@ -928,7 +941,7 @@ DirectPhotonPP::End(PHCompositeNode *topNode)
   delete _hm;
 
   /* clean up */
-  delete _emcrecalib;
+  //...
 
   return EVENT_OK;
 }
