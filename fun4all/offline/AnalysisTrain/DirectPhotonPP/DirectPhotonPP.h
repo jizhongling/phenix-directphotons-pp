@@ -9,6 +9,7 @@
 
 /* Local analysis Classes */
 class EmcLocalRecalibrator;
+class EmcLocalRecalibratorSasha;
 
 /* Fun4All classes */
 class PHCentralTrack;
@@ -67,6 +68,14 @@ public:
     _emcrecalib = emcrecalib;
   }
 
+  /**
+   * Set local recalibrator- Sasha style
+   */
+  void SetEmcLocalRecalibrator( EmcLocalRecalibratorSasha* emcrecalib )
+  {
+    _emcrecalib_sasha = emcrecalib;
+  }
+
 
   /**
    * Choose type of DST input file- MinBias or ERT?
@@ -74,6 +83,18 @@ public:
   void SetDstDataType( std::string newtype )
   {
     _dsttype = newtype;
+  }
+
+
+  /**
+   * Read tower status from text file with 4 columns (sector, y-idx, z-idx, status)
+   */
+  void ReadTowerStatus(const std::string &filename, unsigned ncols)
+  {
+    if ( ncols == 4 )
+      ReadTowerStatus4Cols(filename);
+    else if ( ncols == 2 )
+      ReadTowerStatusSasha(filename);
   }
 
 
@@ -166,13 +187,15 @@ protected:
    */
   int selectClusterPhotonTof( emcClusterContainer *emccontainer, double bbc_t0 );
 
-private:
+  /**
+   * Read tower status from text file with 4 columns (sector, y-idx, z-idx, status)
+   */
+  void ReadTowerStatus4Cols(const std::string &filename);
 
   /**
-   * Read tower status from text file
+   * Read tower status from text file with 2 columns (tower id, status - e.g. Sasha)
    */
-  void ReadTowerStatus(const std::string &filename);
-  void ReadSashaWarnmap(const std::string &filename);
+  void ReadTowerStatusSasha(const std::string &filename);
 
   /**
    * Fill histogram with trigger based event counts
@@ -240,6 +263,11 @@ private:
   int _ievent;
 
   /**
+   * Run number
+   */
+  int _runnumber;
+
+  /**
    * BBC z vertex range cut (in cm)
    */
   double _bbc_zvertex_cut;
@@ -273,6 +301,11 @@ private:
    * On-the-fly recalibration of EMCal towers
    */
   EmcLocalRecalibrator* _emcrecalib;
+
+  /**
+   * On-the-fly recalibration of EMCal towers- based on Sasha's analysis
+   */
+  EmcLocalRecalibratorSasha* _emcrecalib_sasha;
 
   /**
    * Name for output ROOT file for histograms

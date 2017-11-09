@@ -7,6 +7,7 @@
 
 #include "HistogramBooker.h"
 #include "EmcLocalRecalibrator.h"
+#include "EmcLocalRecalibratorSasha.h"
 
 /* Other Fun4All header */
 #include <getClass.h>
@@ -41,6 +42,7 @@ using namespace std;
 DirectPhotonPP::DirectPhotonPP(const char* outfile) :
   _dsttype( "MinBias" ),
   _ievent( 0 ),
+  _runnumber( 0 ),
   _bbc_zvertex_cut( 10 ),
   _photon_energy_min( 0.3 ), // 0.3 used by Paul for run 9 pp 500 GeV
   _photon_prob_min( 0.02 ),
@@ -48,6 +50,7 @@ DirectPhotonPP::DirectPhotonPP(const char* outfile) :
   _photon_tof_max( 10 ),
   _direct_photon_energy_min( 1.0 ),
   _emcrecalib( NULL ),
+  _emcrecalib_sasha( NULL ),
   _debug_cluster( false )
 {
   /* Initialize array for tower status */
@@ -77,8 +80,20 @@ DirectPhotonPP::~DirectPhotonPP()
 int
 DirectPhotonPP::Init(PHCompositeNode *topNode)
 {
-  ReadTowerStatus( "Warnmap_Run13pp510.txt" );
-  //ReadSashaWarnmap( "warn_all_run13pp500gev.dat" );
+  /* Check that ONE local recalibrator is defined */
+  if ( ! ( _emcrecalib || _emcrecalib_sasha ) )
+    {
+      cout << "!!! DirectPhotonPP: No EmcLocalRecalibrator set. Throw exception." << endl;
+      throw (DONOTREGISTERSUBSYSTEM);
+    }
+
+  /* Exit if MORE than one local recalibrator is defined
+   * (There Can Be Only One) */
+  if( _emcrecalib && _emcrecalib_sasha )
+    {
+      cerr << "!!! DirectPhotonPP: More than ONE EmcLocalRecalibrator set. Throw exception." << endl;
+      throw (DONOTREGISTERSUBSYSTEM);
+    }
 
   return EVENT_OK;
 }
@@ -88,12 +103,6 @@ DirectPhotonPP::Init(PHCompositeNode *topNode)
 int
 DirectPhotonPP::InitRun(PHCompositeNode *topNode)
 {
-  if ( !_emcrecalib )
-    {
-      cout << "No EmcLocalRecalibrator set. Exit." << endl;
-      return ABORTRUN;
-    }
-
   /* Get run number */
   RunHeader* runheader = findNode::getClass<RunHeader>(topNode, "RunHeader");
   if(runheader == NULL)
@@ -101,7 +110,7 @@ DirectPhotonPP::InitRun(PHCompositeNode *topNode)
       cout << "No RunHeader." << endl;
       return ABORTRUN;
     }
-  int runnumber = runheader->get_RunNumber();
+  _runnumber = runheader->get_RunNumber();
 
   /* Get fill number */
   SpinDBContent spin_cont;
@@ -113,14 +122,17 @@ DirectPhotonPP::InitRun(PHCompositeNode *topNode)
   spin_out.SetTableName("spin");
 
   /* Retrieve entry from Spin DB and get fill number */
-  int qa_level=spin_out.GetDefaultQA(runnumber);
-  spin_out.StoreDBContent(runnumber, runnumber, qa_level);
-  spin_out.GetDBContentStore(spin_cont, runnumber);
+  int qa_level=spin_out.GetDefaultQA(_runnumber);
+  spin_out.StoreDBContent(_runnumber, _runnumber, qa_level);
+  spin_out.GetDBContentStore(spin_cont, _runnumber);
   int fillnumber = spin_cont.GetFillNumber();
 
   /* Load EMCal recalibrations for run and fill */
-  _emcrecalib->ReadEnergyCorrection( runnumber );
-  _emcrecalib->ReadTofCorrection( fillnumber );
+  if ( _emcrecalib )
+    {
+      _emcrecalib->ReadEnergyCorrection( _runnumber );
+      _emcrecalib->ReadTofCorrection( fillnumber );
+    }
 
   return EVENT_OK;
 }
@@ -183,6 +195,16 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   double bbc_z  = data_global->getBbcZVertex();
   double bbc_t0  = data_global->getBbcTimeZero();
 
+  /* Get Lvl1 trigger bits */
+  unsigned lvl1_live = data_triggerlvl1->get_lvl1_triglive();
+  unsigned lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
+
+  /* skip noise trigger + pulsed */
+  const unsigned bit_ppg = 0x70000000;
+  if( (lvl1_live & bit_ppg) ||
+      (lvl1_scaled & bit_ppg) )
+    return DISCARDEVENT;
+
   /* Count events */
   FillTriggerStats( "h1_events" , data_triggerlvl1 , bbc_z );
 
@@ -195,7 +217,15 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
    */
   /* Run local recalibration of EMCal cluster data */
   emcClusterContainer* data_emc_corr = data_emc->clone();
-  _emcrecalib->ApplyClusterCorrection( data_emc_corr );
+
+  if ( _emcrecalib )
+    {
+      _emcrecalib->ApplyClusterCorrection( data_emc_corr );
+    }
+  else if ( _emcrecalib_sasha )
+    {
+      _emcrecalib_sasha->ApplyClusterCorrection( _runnumber, data_emc_corr );
+    }
 
   /* Apply cuts to calorimeter cluster collections and create subsets for next analysis steps */
   emcClusterContainer* data_emc_cwarn = data_emc->clone();
@@ -262,8 +292,6 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   if ( _dsttype == "MinBias" )
     {
       /* Check trigger */
-      unsigned int lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
-
       if (
           abs ( bbc_z ) > _bbc_zvertex_cut &&         /* if BBC-z location within range */
           lvl1_scaled & anatools::Mask_BBC_narrowvtx  /* if trigger criteria met */
@@ -282,9 +310,6 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   else if ( _dsttype == "ERT" )
     {
       /* Check trigger */
-      unsigned int lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
-      unsigned int lvl1_live = data_triggerlvl1->get_lvl1_triglive();
-
       if (
           abs ( bbc_z ) > _bbc_zvertex_cut &&         /* if BBC-z location within range */
           lvl1_live & anatools::Mask_BBC_narrowvtx && /* if trigger criteria met */
@@ -568,23 +593,9 @@ DirectPhotonPP::FillPi0InvariantMass( string histname,
               int sector1 = anatools::CorrectClusterSector( emccluster1->arm() , emccluster1->sector() );
               int sector2 = anatools::CorrectClusterSector( emccluster2->arm() , emccluster2->sector() );
 
-              /* Require two photons are from the same part of the EMCal */
-              int is = 3;
-              if( sector1<4 && sector2<4 ) // W0,1,2,3
-                is = 0;
-              else if( (sector1==4 || sector1==5) && (sector2==4 || sector2==5) ) // E2,3
-                is = 1;
-              else if( (sector1==6 || sector1==7) && (sector2==6 || sector2==7) ) // PbGl
-                is = 2;
-              else
-                is = 3;
-              if(is==3) continue;
-
-              /* more restrictive photon candidate pair selection for sector-by-sector pi0 energy
-               * calibration
-               */
-              //if ( ( sector1 != sector2 ) )
-              //continue;
+	      /* check if clusters in same section of detector */
+	      if( !anatools::SectorCheck(sector1,sector2) )
+		continue;
 
               /* pE = {px, py, pz, ecore} */
               TLorentzVector photon1_pE = anatools::Get_pE(emccluster1);
@@ -913,7 +924,11 @@ DirectPhotonPP::End(PHCompositeNode *topNode)
   delete _hm;
 
   /* clean up */
-  delete _emcrecalib;
+  if ( _emcrecalib )
+    delete _emcrecalib;
+
+  if ( _emcrecalib_sasha )
+    delete _emcrecalib_sasha;
 
   return EVENT_OK;
 }
@@ -921,7 +936,7 @@ DirectPhotonPP::End(PHCompositeNode *topNode)
 /* ----------------------------------------------- */
 
 void
-DirectPhotonPP::ReadTowerStatus(const string &filename)
+DirectPhotonPP::ReadTowerStatus4Cols(const string &filename)
 {
   unsigned int nBadSc = 0;
   unsigned int nBadGl = 0;
@@ -957,7 +972,7 @@ DirectPhotonPP::ReadTowerStatus(const string &filename)
 /* ----------------------------------------------- */
 
 void
-DirectPhotonPP::ReadSashaWarnmap(const string &filename)
+DirectPhotonPP::ReadTowerStatusSasha(const string &filename)
 {
   unsigned int nBadSc = 0;
   unsigned int nBadGl = 0;
@@ -1301,7 +1316,7 @@ DirectPhotonPP::PrintClusterContainer( emcClusterContainer *emc , double bbc_t0 
   unsigned nemccluster = emc->size();
 
   cout << " *** Number of clusters: " << nemccluster << endl;
-  cout << " *** id ecore photon_prob tof-bbc_t0 sector tower_y tower_z" << endl;
+  cout << " *** id ecore photon_prob tof-bbc_t0 sector tower_y tower_z tower_id tower_status" << endl;
 
   for( unsigned i = 0; i < nemccluster; i++ )
     {
@@ -1315,6 +1330,14 @@ DirectPhotonPP::PrintClusterContainer( emcClusterContainer *emc , double bbc_t0 
            << anatools::CorrectClusterSector( emccluster->arm(), emccluster->sector() ) << "\t"
            << emccluster->iypos() << "\t"
            << emccluster->izpos() << "\t"
+           << anatools::TowerID(
+				anatools::CorrectClusterSector( emccluster->arm() , emccluster->sector() ),
+				emccluster->iypos(),
+				emccluster->izpos() ) << "\t"
+           << get_tower_status(
+                               anatools::CorrectClusterSector( emccluster->arm() , emccluster->sector() ),
+                               emccluster->iypos(),
+                               emccluster->izpos() ) << "\t"
            << endl;
     }
 

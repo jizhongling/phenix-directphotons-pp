@@ -1,4 +1,4 @@
-void Run_DirectPhotonPP(const char *outFile = "HISTOS.root")
+void Run_DirectPhotonPP_ERT(const char *outFile = "HISTOS.root")
 {
   /* Load all your necessary libraries here
    */
@@ -21,7 +21,7 @@ void Run_DirectPhotonPP(const char *outFile = "HISTOS.root")
 
   /* Set which type of DST is being used- MinBias or ERT
    */
-  dp->SetDstDataType("MinBias");
+  dp->SetDstDataType("ERT");
 
   /* You can only register ONE EmcLocalRecalibrator or the module will refuse to run.
    */
