@@ -4,9 +4,10 @@
 #include <cstdlib>
 #include <cstdlib>
 #include <ctime>
-//#include <cmath>
+#include <cmath>
 
 #include <TPythia6.h>
+#include <TVector3.h>
 
 #if ROOT_VERSION_CODE >= ROOT_VERSION(5,15,8)
 #include <TMCParticle.h>
@@ -27,6 +28,10 @@
 #include <PHPythiaContainer.h>
 #include <AnaPHPythiaDirectPhoton.h>
 
+#include "TFile.h"
+#include "THnSparse.h"
+#include "TLorentzVector.h"
+
 using namespace std;
 
 AnaPHPythiaDirectPhoton::AnaPHPythiaDirectPhoton(const std::string &name): SubsysReco(name)
@@ -42,12 +47,39 @@ AnaPHPythiaDirectPhoton::~AnaPHPythiaDirectPhoton()
 // Done at the beginning of processing
 int AnaPHPythiaDirectPhoton::InitRun(PHCompositeNode *topNode)
 {
+  _fout = new TFile("test.root","RECREATE");
+
+  int ndim_hn_photon = 4;
+  int nbins_hn_photon[] =   {100 , 100 ,  200 , 11 };
+  double xmin_hn_photon[] = {  0.,   0.,    0.,  -0.05};
+  double xmax_hn_photon[] = {100., 100.,    2.,   1.05};
+
+  _hEConeDirectPhoton = new THnSparseF("hn_EConeDirectPhoton",
+				       "Energy in cone around DirectPhoton; E [GeV]; E_cone [GeV]; f_cone; r_cone [rad];",
+				       ndim_hn_photon,
+				       nbins_hn_photon,
+				       xmin_hn_photon,
+				       xmax_hn_photon );
+
+
+  _hEConeOtherPhoton = (THnSparseF*) _hEConeDirectPhoton->Clone("hn_EConeOtherPhoton");
+
   return EVENT_OK;
 }
 
 // Done at the end of processing
 int AnaPHPythiaDirectPhoton::End(PHCompositeNode *topNode)
 {
+  _fout->cd();
+
+  if ( _hEConeDirectPhoton )
+    _hEConeDirectPhoton->Write();
+
+  if ( _hEConeOtherPhoton )
+    _hEConeOtherPhoton->Write();
+
+  _fout->Close();
+
   return EVENT_OK;
 }
 
@@ -71,62 +103,152 @@ int AnaPHPythiaDirectPhoton::process_event(PHCompositeNode *topNode)
     }
 
   // Print some header information
-  cout << "Event: " << phpythiaheader->GetEvt() << "\t" << phpythiaheader->GetNpart() << endl;
+  //  cout << "Event: " << phpythiaheader->GetEvt() << "\t" << phpythiaheader->GetNpart() << endl;
 
-  cout << "KS\tKF\tpid\tname\thistory" << endl;
-  // Print information from each
+  //  cout << "KS\tKF\tpid\tname\thistory" << endl;
+
+  // Print information from each DIRECT PHOTON
   int npart = phpythia->size();
   for (int ipart=0; ipart<npart; ipart++)
     {
       TMCParticle *part = phpythia->getParticle(ipart);
-      //TMCParticle *parent = phpythia->getParent(part);
-      cout << setw(4) << phpythia->getLineNumber(part)
-           << "\t" << part->GetKS()
-           << setw(8)  <<  part->GetKF() // << "\t" << part->GetEnergy()
-           << setw(12) << part->GetName()
-        //<< "\t" << ipart
-        //<< "\t" << part->GetParent()
-        //<< "\t" << part->GetFirstChild()
-        //<< "\t" << part->GetLastChild()
-        //<< "\t" << phpythia->getChildNumber(part)
-           << "\t" << phpythia->getHistoryString(part)
-           << endl;
+      TMCParticle *parent = phpythia->getParent(part);
+
+      /* test if particle is stable photon */
+      if ( part->GetKF() != 22 ||
+           part->GetKS() != 1 )
+	continue;
+
+      /* test if particle is in Central Arm acceptance */
+      Float_t px = part->GetPx();
+      Float_t py = part->GetPy();
+      Float_t pz = part->GetPz();
+      Float_t energy = part->GetEnergy();
+      TLorentzVector v_part(px,py,pz,energy);
+
+      Double_t Eta = v_part.Eta();
+      if ( fabs(Eta)<0.35 )
+	continue;
+
+      //      cout << InCentralArmAcceptance(v_part) << endl;
+
+      /* test if particle passed energy threshold */
+      double directPhoton_minEnergy = 0.5;
+      double otherParticle_minEnergy = 0.5;
+
+      if ( part->GetEnergy() < directPhoton_minEnergy )
+	continue;
+
+      /* test if particle is prompt photon */
+      bool isPromptPhoton = false;
+      if ( parent )
+	{
+	  if ( part->GetKF() == 22 &&
+	       parent->GetKF() == 22 &&
+	       parent->GetKS() == 21 &&
+	       !(parent->GetParent()) )
+	    {
+	      isPromptPhoton = true;
+	    }
+	}
+
+//        {
+//          cout << setw(4) << phpythia->getLineNumber(part)
+//               << "\t" << part->GetKS()
+//               << setw(8)  <<  part->GetKF() // << "\t" << part->GetEnergy()
+//               << setw(12) << part->GetName()
+//	       << "\t" << part->GetEnergy()
+//            //<< "\t" << ipart
+//            //<< "\t" << part->GetParent()
+//            //<< "\t" << part->GetFirstChild()
+//            //<< "\t" << part->GetLastChild()
+//            //<< "\t" << phpythia->getChildNumber(part)
+//               << "\t" << phpythia->getHistoryString(part)
+//               << endl;
+
+	  /* sum up all energy in cone around particle */
+	  double econe = 0;
+	  double rcone = 0.1;
+	  TVector3 v3_gamma(part->GetPx(), part->GetPy(), part->GetPz());
+
+	  for (int ipart2=0; ipart2<npart; ipart2++)
+	    {
+	      TMCParticle *part2 = phpythia->getParticle(ipart2);
+
+	      /* only consider stable particles, skip if pointer identical to 'reference' particle */
+	      if ( part2->GetKS() == 1 && part2 != part )
+		{
+		  TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
+
+		  /* test if particle is in Central Arm acceptance */
+		  Float_t px = part2->GetPx();
+		  Float_t py = part2->GetPy();
+		  Float_t pz = part2->GetPz();
+		  Float_t energy = part2->GetEnergy();
+		  TLorentzVector v_part2(px,py,pz,energy);
+
+		  Double_t Eta = v_part2.Eta();
+		  if ( fabs(Eta)<0.35 )
+		    continue;
+
+		  /* test if energy above threshold */
+		  if ( part2->GetEnergy() < otherParticle_minEnergy )
+		    continue;
+
+		  if ( v3_gamma.Angle( v3_part2 ) < rcone )
+		    econe += part2->GetEnergy();
+		}
+	    }
+	  double econe_frac = econe / part->GetEnergy();
+	  //cout << "Energy in cone, fraction: " << econe << ", " << econe_frac << endl;
+
+	  double fill[] = {part->GetEnergy(), econe, econe_frac, rcone};
+
+	  if ( isPromptPhoton )
+	    {
+	      _hEConeDirectPhoton->Fill( fill );
+	    }
+	  else
+	    {
+	      _hEConeOtherPhoton->Fill( fill );
+	    }
     }
 
-  cout << endl << "Example 1 : Get ancestor Ks0(pid=310)'s energy" << endl;
-  for (int ipart=0; ipart<npart; ipart++)  {
-    TMCParticle *part = phpythia->getParticle(ipart);
-    if (part->GetKS() != 1) continue;
 
-    TMCParticle *anc = phpythia->hasAncestor(part, 310);
-    float energy = 0.0;
-    if (anc) {
-      energy = anc->GetEnergy();
-      cout << setw(12) << phpythia->getLineNumber(part)
-           << setw(12) << part->GetName()
-           << " 's anc "
-           << setw(12) << anc->GetName() << setw(12) << energy << endl;
-    }
-  }
-
-  cout << endl << "Example 2 : Get stable particle pi-, which has ancestor K0(311) and Ks0(pid=310),  get K0's energy" << endl;
-  for (int ipart=0; ipart<npart; ipart++)  {
-    TMCParticle *part = phpythia->getParticle(ipart);
-    if (part->GetKF() != -211) continue;
-
-    if (phpythia->hasAncestor(part, 311, 310)) {
-      TMCParticle *anc = phpythia->hasAncestor(part, 311);
-      float energy = 0.0;
-      if (anc) {
-        energy = anc->GetEnergy();
-        cout << setw(12) << phpythia->getLineNumber(part)
-             << setw(12) << part->GetName()
-             << " 's anc "
-             << setw(12) << anc->GetName() << setw(12) << energy << endl;
-      }
-    }
-  }
-  cout << endl;
+  //  cout << endl << "Example 1 : Get ancestor Ks0(pid=310)'s energy" << endl;
+  //  for (int ipart=0; ipart<npart; ipart++)  {
+  //    TMCParticle *part = phpythia->getParticle(ipart);
+  //    if (part->GetKS() != 1) continue;
+  //
+  //    TMCParticle *anc = phpythia->hasAncestor(part, 310);
+  //    float energy = 0.0;
+  //    if (anc) {
+  //      energy = anc->GetEnergy();
+  //      cout << setw(12) << phpythia->getLineNumber(part)
+  //           << setw(12) << part->GetName()
+  //           << " 's anc "
+  //           << setw(12) << anc->GetName() << setw(12) << energy << endl;
+  //    }
+  //  }
+  //
+  //  cout << endl << "Example 2 : Get stable particle pi-, which has ancestor K0(311) and Ks0(pid=310),  get K0's energy" << endl;
+  //  for (int ipart=0; ipart<npart; ipart++)  {
+  //    TMCParticle *part = phpythia->getParticle(ipart);
+  //    if (part->GetKF() != -211) continue;
+  //
+  //    if (phpythia->hasAncestor(part, 311, 310)) {
+  //      TMCParticle *anc = phpythia->hasAncestor(part, 311);
+  //      float energy = 0.0;
+  //      if (anc) {
+  //        energy = anc->GetEnergy();
+  //        cout << setw(12) << phpythia->getLineNumber(part)
+  //             << setw(12) << part->GetName()
+  //             << " 's anc "
+  //             << setw(12) << anc->GetName() << setw(12) << energy << endl;
+  //      }
+  //    }
+  //  }
+//  cout << endl;
 
   // some useful functions
   // phpythia->getHistoryString(part)               // return a TString with part's all ancestor

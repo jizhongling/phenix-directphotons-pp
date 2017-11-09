@@ -7,6 +7,9 @@ class PHCompositeNode;
 class PHPythiaHeader;
 class PHPythiaContainer;
 
+class TFile;
+class THnSparse;
+
 class AnaPHPythiaDirectPhoton: public SubsysReco
 {
 public:
@@ -22,6 +25,10 @@ protected:
 
   PHPythiaHeader *phpythiaheader;
   PHPythiaContainer *phpythia;
+
+  TFile *_fout;
+  THnSparse*  _hEConeDirectPhoton;
+  THnSparse*  _hEConeOtherPhoton;
 
 };
 
