@@ -43,7 +43,7 @@ void Run_DirectPhotonPP(const char *outFile = "HISTOS.root")
   //dp->ReadTowerStatus( "Warnmap_Run13pp510.txt", 4 );
   dp->ReadTowerStatus( "warn_all_run13pp500gev.dat", 2 );
 
-  //dp->SetClusterDebugMode(true);
+  dp->SetClusterDebugMode(true);
   //dp->anaSetRunList(file_runlist.c_str());
   //dp->anaSelectGAMMA(); // Select GAMMA or MB data
   //dp->anaSetPtmin(10.);
@@ -55,8 +55,6 @@ void Run_DirectPhotonPP(const char *outFile = "HISTOS.root")
 
   // clean up
   delete toad_loader;
-  delete emclocal;
-  delete emcrecalib_sasha;
 }
 
 void

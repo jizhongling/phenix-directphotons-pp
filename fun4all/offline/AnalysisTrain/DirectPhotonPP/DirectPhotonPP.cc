@@ -924,7 +924,11 @@ DirectPhotonPP::End(PHCompositeNode *topNode)
   delete _hm;
 
   /* clean up */
-  //...
+  if ( _emcrecalib )
+    delete _emcrecalib;
+
+  if ( _emcrecalib_sasha )
+    delete _emcrecalib_sasha;
 
   return EVENT_OK;
 }
