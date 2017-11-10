@@ -49,8 +49,11 @@ void anaPileup(const Int_t process = 0)
 
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
+    ULong_t scaledown = GetERT4x4cScaledown(runnumber) + 1;
+    
     Double_t nev[2];
-    nev[0] = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );
+    //nev[0] = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );
+    nev[0] = nmb / scaledown;
     nev[1] = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm") );
 
     TF1 *fn_fit = new TF1("fn_fit", "gaus(0) + pol2(3)", 0.06, 0.25);
@@ -149,7 +152,7 @@ void anaPileup(const Int_t process = 0)
         for(Int_t is=0; is<2; is++)
         {
           Int_t ig = ipt*8+id*4+ic*2+is;
-          //gROOT->ProcessLine( Form("c%d->Print(\"pileup/Minv-proc%d-data%d-cond%d-pt%d-%d.pdf\");", ig, process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
+          gROOT->ProcessLine( Form("c%d->Print(\"pileup/Minv-proc%d-data%d-cond%d-pt%d-%d.pdf\");", ig, process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
           gr[ig]->Set(igp[ig]);
           gr_run[ig]->Set(igp[ig]);
           gr[ig]->Write();

@@ -1,8 +1,5 @@
 void GenerateGraph(TFile *f, TObjArray *Glist, Int_t part)
 {
-  enum DataType {MB, ERT};
-  const DataType datatype = MB;
-
   Double_t gx[30], gy[30] = {}, egy[30] = {};
   Double_t Acceptance[30], eAcceptance[30];
   ReadGraphErrors("Acceptance.root", 3+part, gx, Acceptance, eAcceptance);
@@ -12,8 +9,7 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t part)
   const Int_t sec_high[3] = {4, 6, 8};
 
   THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
-  if( datatype == MB )
-    hn_pion->GetAxis(3)->SetRange(2,2);
+  hn_pion->GetAxis(3)->SetRange(2,2);
 
   TAxis *axis_sec = hn_pion->GetAxis(0);
   TAxis *axis_pt = hn_pion->GetAxis(1);
@@ -57,7 +53,7 @@ void draw_Yield()
 {
   gROOT->ProcessLine(".L ReadGraph.C");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo-MB.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo.root");
   TObjArray *Glist = new TObjArray();
 
   for(Int_t part=0; part<3; part++)
