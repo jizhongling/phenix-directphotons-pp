@@ -106,6 +106,22 @@ public:
     _debug_cluster = mode;
   }
 
+  /**
+   * Set debug mode for detailed event selection  information output
+   */
+  void SetTriggerDebugMode( bool mode )
+  {
+    _debug_trigger = mode;
+  }
+
+  /**
+   * Set debug mode for detailed cluster pairing information output
+   */
+  void SetPi0DebugMode( bool mode )
+  {
+    _debug_pi0 = mode;
+  }
+
 protected:
 
   /**
@@ -321,6 +337,16 @@ protected:
    * switch- set to TRUE to print detailed cluster information to log file
    */
   bool _debug_cluster;
+
+  /**
+   * switch- set to TRUE to print detailed trigger information to log file
+   */
+  bool _debug_trigger;
+
+  /**
+   * switch- set to TRUE to print detailed cluster pairing information to log file
+   */
+  bool _debug_pi0;
 
 };
 #endif
