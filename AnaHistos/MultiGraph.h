@@ -44,31 +44,37 @@ Double_t GetMinimum(TMultiGraph *mg)
   return min;
 }
 
-template <class GraphType>
-void GetMeanError(TMultiGraph *mg, Double_t &mean, Double_t &emean)
+Double_t GetMeanError(TMultiGraph *mg, Double_t &mean, Double_t &emean)
 {
   Int_t sumN = 0;
+  Double_t sumw = 0.;
   Double_t sumy = 0.;
   Double_t sumy2 = 0.;
 
-  GraphType *gr;
+  TGraphErrors *gr;
   TIter iter( mg->GetListOfGraphs() );
-  while( gr = (GraphType*)iter.Next() )
+  while( gr = (TGraphErrors*)iter.Next() )
   {
     Int_t N = gr->GetN();
     if( N <= 0 ) continue;
-    sumN += N;
     for(Int_t i=0; i<N; i++)
     {
       Double_t xx, yy;
       gr->GetPoint(i, xx, yy);
-      sumy += yy;
-      sumy2 += yy*yy;
+      Double_t eyy = gr->GetErrorY(i);
+      if( eyy > 0. && eyy < TMath::Infinity() )
+      {
+        sumN++;
+        sumw += 1./eyy/eyy;
+        sumy += yy/eyy/eyy;
+        sumy2 += yy*yy/eyy/eyy;
+      }
     }
   }
 
-  mean = sumy/sumN;
-  Double_t rms2 = TMath::Abs( sumy2/sumN - mean*mean );
-  emean = TMath::Sqrt( rms2/sumN );
-  return;
+  mean = sumy/sumw;
+  emean = 1./sqrt(sumw);
+
+  Double_t chi2 = sumN > 0 ? ( sumy2 - sumw*mean*mean ) / ( sumN - 1 ) : 1e9;
+  return chi2;
 }
