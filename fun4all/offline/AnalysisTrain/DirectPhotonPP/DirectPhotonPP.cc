@@ -51,7 +51,9 @@ DirectPhotonPP::DirectPhotonPP(const char* outfile) :
   _direct_photon_energy_min( 1.0 ),
   _emcrecalib( NULL ),
   _emcrecalib_sasha( NULL ),
-  _debug_cluster( false )
+  _debug_cluster( false ),
+  _debug_trigger( false ),
+  _debug_pi0( false )
 {
   /* Initialize array for tower status */
   for(int isector = 0; isector < 8; isector++)
@@ -203,7 +205,17 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   const unsigned bit_ppg = 0x70000000;
   if( (lvl1_live & bit_ppg) ||
       (lvl1_scaled & bit_ppg) )
-    return DISCARDEVENT;
+    {
+      if ( _debug_trigger )
+        cout << " *** Event " << _ievent << ": Check bit_ppg - FAILED" << endl;
+
+      return DISCARDEVENT;
+    }
+  else
+    {
+      if ( _debug_trigger )
+        cout << " *** Event " << _ievent << ": Check bit_ppg - PASSED" << endl;
+    }
 
   /* Count events */
   FillTriggerStats( "h1_events" , data_triggerlvl1 , bbc_z );
@@ -246,27 +258,27 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   /* Print detailes cluster collection infomration for debugging purpose */
   if ( _debug_cluster )
     {
-      cout << "***** data_emc" << endl;
+      cout << "***** Event " << _ievent << ": data_emc" << endl;
       PrintClusterContainer( data_emc, bbc_t0 );
       cout << endl;
       cout << endl;
-      cout << "***** data_emc_corr" << endl;
+      cout << "***** Event " << _ievent << ": data_emc_corr" << endl;
       PrintClusterContainer( data_emc_corr, bbc_t0 );
       cout << endl;
       cout << endl;
-      cout << "***** data_emc_cwarn" << endl;
+      cout << "***** Event " << _ievent << ": data_emc_cwarn" << endl;
       PrintClusterContainer( data_emc_cwarn, bbc_t0 );
       cout << endl;
       cout << endl;
-      cout << "***** data_emc_cwarn_cshape_cenergy" << endl;
+      cout << "***** Event " << _ievent << ": data_emc_cwarn_cshape_cenergy" << endl;
       PrintClusterContainer( data_emc_cwarn_cshape_cenergy, bbc_t0 );
       cout << endl;
       cout << endl;
-      cout << "***** data_emc_corr_cwarn_cshape_cenergy" << endl;
+      cout << "***** Event " << _ievent << ": data_emc_corr_cwarn_cshape_cenergy" << endl;
       PrintClusterContainer( data_emc_corr_cwarn_cshape_cenergy, bbc_t0 );
       cout << endl;
       cout << endl;
-      cout << "***** data_emc_corr_cwarn_cshape_cenergy_ctof" << endl;
+      cout << "***** Event " << _ievent << ": data_emc_corr_cwarn_cshape_cenergy_ctof" << endl;
       PrintClusterContainer( data_emc_corr_cwarn_cshape_cenergy_ctof, bbc_t0 );
       cout << endl;
       cout << endl;
@@ -283,48 +295,86 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
   FillClusterTofSpectrum( "hn_tof" , data_emc_corr_cwarn_cshape_cenergy , data_global , bbc_t0 );
   FillClusterTofSpectrum( "hn_tof_raw" , data_emc_cwarn_cshape_cenergy , data_global , bbc_t0 );
 
-  /* Check event information: analyze this event or no? */
 
-
-  //  bool pass_event_trigger = true;
+  /* Check event information: analyze this event or not?
+   */
 
   /* Check event information for MinBias data */
   if ( _dsttype == "MinBias" )
     {
       /* Check trigger */
       if (
-          abs ( bbc_z ) > _bbc_zvertex_cut &&         /* if BBC-z location within range */
+          abs ( bbc_z ) <= _bbc_zvertex_cut &&         /* if BBC-z location within range */
           lvl1_scaled & anatools::Mask_BBC_narrowvtx  /* if trigger criteria met */
           )
         {
+          if ( _debug_trigger )
+            cout << " *** Event " << _ievent << ": Check BBC_narrowvertex scaled and BBC_Z <= cut - PASSED" << endl;
+
           /* Analyze cluster pairs to find pi0's in events for calibration crosscheck */
+          if ( _debug_pi0 )
+            cout << " *** Event " << _ievent << ": FillPi0InvariantMass (hn_pi0)" << endl;
           FillPi0InvariantMass( "hn_pi0", data_emc_corr_cwarn_cshape_cenergy_ctof, data_triggerlvl1, data_ert );
+
+          if ( _debug_pi0 )
+            cout << " *** Event " << _ievent << ": FillPi0InvariantMass (hn_pi0_notof)" << endl;
           FillPi0InvariantMass( "hn_pi0_notof", data_emc_corr_cwarn_cshape_cenergy, data_triggerlvl1, data_ert );
+
+          if ( _debug_pi0 )
+            cout << " *** Event " << _ievent << ": FillPi0InvariantMass (hn_pi0_raw)" << endl;
           FillPi0InvariantMass( "hn_pi0_raw", data_emc_cwarn_cshape_cenergy, data_triggerlvl1, data_ert );
 
           /* Analyze photon spectrum */
           FillPhotonPtSpectrum( data_emc_corr_cwarn_cshape_cenergy_ctof , data_tracks , data_global );
         }
+      else
+        {
+          if ( _debug_trigger )
+            cout << " *** Event " << _ievent << ": Check BBC_narrowvertex scaled and BBC_Z <= cut - FAILED" << endl;
+        }
     }
   /* check event information for ERT data */
   else if ( _dsttype == "ERT" )
     {
+      if ( _debug_trigger )
+        cout << " *** Event " << _ievent << ": BBC_z, ERT-a, ERT-b, ERT-c: " <<
+          (bbc_z) << ", " <<
+          (lvl1_scaled & anatools::Mask_ERT_4x4a) << ", " <<
+          (lvl1_scaled & anatools::Mask_ERT_4x4b) << ", " <<
+          (lvl1_scaled & anatools::Mask_ERT_4x4c) << endl;
+
       /* Check trigger */
       if (
-          abs ( bbc_z ) > _bbc_zvertex_cut &&         /* if BBC-z location within range */
+          abs ( bbc_z ) <= _bbc_zvertex_cut &&         /* if BBC-z location within range */
           lvl1_live & anatools::Mask_BBC_narrowvtx && /* if trigger criteria met */
           ( lvl1_scaled & anatools::Mask_ERT_4x4a ||
             lvl1_scaled & anatools::Mask_ERT_4x4b ||
             lvl1_scaled & anatools::Mask_ERT_4x4c )   /* if trigger criteria met */
           )
         {
+          if ( _debug_trigger )
+            cout << " *** Event " << _ievent << ": Check BBC_narrowvertex live and ERT scaled and BBC_Z <= cut - PASSED" << endl;
+
           /* Analyze cluster pairs to find pi0's in events for calibration crosscheck */
+          if ( _debug_pi0 )
+            cout << " *** Event " << _ievent << ": FillPi0InvariantMass (hn_pi0)" << endl;
           FillPi0InvariantMass( "hn_pi0", data_emc_corr_cwarn_cshape_cenergy_ctof, data_triggerlvl1, data_ert );
+
+          if ( _debug_pi0 )
+            cout << " *** Event " << _ievent << ": FillPi0InvariantMass (hn_pi0_notof)" << endl;
           FillPi0InvariantMass( "hn_pi0_notof", data_emc_corr_cwarn_cshape_cenergy, data_triggerlvl1, data_ert );
+
+          if ( _debug_pi0 )
+            cout << " *** Event " << _ievent << ": FillPi0InvariantMass (hn_pi0_raw)" << endl;
           FillPi0InvariantMass( "hn_pi0_raw", data_emc_cwarn_cshape_cenergy, data_triggerlvl1, data_ert );
 
           /* Analyze photon spectrum */
           FillPhotonPtSpectrum( data_emc_corr_cwarn_cshape_cenergy_ctof , data_tracks , data_global );
+        }
+      else
+        {
+          if ( _debug_trigger )
+            cout << " *** Event " << _ievent << ": Check BBC_narrowvertex live and ERT scaled and BBC_Z <= cut - FAILED" << endl;
         }
     }
   /* abort event if no matching data type */
@@ -585,17 +635,44 @@ DirectPhotonPP::FillPi0InvariantMass( string histname,
 
               emcClusterContent* emccluster2 = data_emc->getCluster( cidx2 );
 
+              if ( _debug_pi0 )
+                {
+                  cout << " *** Event " << _ievent << ": FillPi0InvariantMass: Cluster 1 energy    " << emccluster1->ecore() << endl;
+                  cout << " *** Event " << _ievent << ": FillPi0InvariantMass: Cluster 2 energy    " << emccluster2->ecore() << endl;
+                }
+
+
               /* check energy asymmetry */
               if ( anatools::GetAsymmetry_E( emccluster1, emccluster2 ) >= 0.8 )
-                continue;
+                {
+                  if ( _debug_pi0 )
+                    cout << " *** Event " << _ievent << ": FillPi0InvariantMass: Check GetStatus && AsymCut for photon pair - FAILED" << endl;
+
+                  continue;
+                }
+              else
+                {
+                  if ( _debug_pi0 )
+                    cout << " *** Event " << _ievent << ": FillPi0InvariantMass: Check GetStatus && AsymCut for photon pair - PASSED" << endl;
+                }
 
               /* get sectors */
               int sector1 = anatools::CorrectClusterSector( emccluster1->arm() , emccluster1->sector() );
               int sector2 = anatools::CorrectClusterSector( emccluster2->arm() , emccluster2->sector() );
 
-	      /* check if clusters in same section of detector */
-	      if( !anatools::SectorCheck(sector1,sector2) )
-		continue;
+              /* check if clusters in same section of detector */
+              if( !anatools::SectorCheck(sector1,sector2) )
+                {
+                  if ( _debug_pi0 )
+                    cout << " *** Event " << _ievent << ": FillPi0InvariantMass: Check Sectors for photon pair - FAILED" << endl;
+
+                  continue;
+                }
+              else
+                {
+                  if ( _debug_pi0 )
+                    cout << " *** Event " << _ievent << ": FillPi0InvariantMass: Check Sectors for photon pair - PASSED" << endl;
+                }
 
               /* pE = {px, py, pz, ecore} */
               TLorentzVector photon1_pE = anatools::Get_pE(emccluster1);
@@ -612,15 +689,21 @@ DirectPhotonPP::FillPi0InvariantMass( string histname,
 
               /* Use the photon which has higher energy to label the sector and trigger */
               int sector = sector1;
-              int trig1 = anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4a);
-              int trig2 = anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4b);
-              int trig3 = anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4c);
+              int trig_ert_a = anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4a);
+              int trig_ert_b = anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4b);
+              int trig_ert_c = anatools::PassERT(data_ert, emccluster1, anatools::ERT_4x4c);
               if( photon2_pE.E() > photon1_pE.E() )
                 {
                   sector = sector2;
-                  trig1 = anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4a);
-                  trig2 = anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4b);
-                  trig3 = anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4c);
+                  trig_ert_a = anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4a);
+                  trig_ert_b = anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4b);
+                  trig_ert_c = anatools::PassERT(data_ert, emccluster2, anatools::ERT_4x4c);
+                }
+
+              if ( _debug_pi0 )
+                {
+                  cout << " *** Event " << _ievent << ": FillPi0InvariantMass: trig_ert_a, trig_ert_b, trig_ert_c: " <<
+                    trig_ert_a << " , " << trig_ert_b << " , " << trig_ert_c << endl;
                 }
 
               /* Fill eta and phi */
@@ -628,24 +711,44 @@ DirectPhotonPP::FillPi0InvariantMass( string histname,
               double tot_phi = tot_px > 0. ? atan(tot_py/tot_px) : 3.1416+atan(tot_py/tot_px);
 
               /* Fill histogram */
+              if ( _debug_pi0 )
+                {
+                  cout << " *** Event " << _ievent << ": FillPi0InvariantMass: Fill (not checking ERT) photon pair tot_pT " << tot_pT << endl;
+                }
+
               double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)FILL_ERT_null};
               hn_pion->Fill(fill_hn_pion);
 
               /* Require the target cluster fires the trigger */
-              if( ( lvl1_scaled & anatools::Mask_ERT_4x4a ) && trig1 )
+              if( ( lvl1_scaled & anatools::Mask_ERT_4x4a ) && trig_ert_a )
                 {
                   double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)FILL_ERT_4x4a};
                   hn_pion->Fill(fill_hn_pion);
+
+                  if ( _debug_pi0 )
+                    {
+                      cout << " *** Event " << _ievent << ": FillPi0InvariantMass: Fill (ERT-a ) photon pair tot_pT " << tot_pT << endl;
+                    }
                 }
-              if( ( lvl1_scaled & anatools::Mask_ERT_4x4b ) && trig2 )
+              if( ( lvl1_scaled & anatools::Mask_ERT_4x4b ) && trig_ert_b )
                 {
                   double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)FILL_ERT_4x4b};
                   hn_pion->Fill(fill_hn_pion);
+
+                  if ( _debug_pi0 )
+                    {
+                      cout << " *** Event " << _ievent << ": FillPi0InvariantMass: Fill (ERT-b ) photon pair tot_pT " << tot_pT << endl;
+                    }
                 }
-              if( ( lvl1_scaled & anatools::Mask_ERT_4x4c ) && trig3 )
+              if( ( lvl1_scaled & anatools::Mask_ERT_4x4c ) && trig_ert_c )
                 {
                   double fill_hn_pion[] = {(double)sector, tot_pT, invMass, tot_eta, tot_phi, (double)FILL_ERT_4x4c};
                   hn_pion->Fill(fill_hn_pion);
+
+                  if ( _debug_pi0 )
+                    {
+                      cout << " *** Event " << _ievent << ": FillPi0InvariantMass: Fill (ERT-c ) photon pair tot_pT " << tot_pT << endl;
+                    }
                 }
             } // loop cluster 2
         } // check if in tight fiducial volume
@@ -1331,9 +1434,9 @@ DirectPhotonPP::PrintClusterContainer( emcClusterContainer *emc , double bbc_t0 
            << emccluster->iypos() << "\t"
            << emccluster->izpos() << "\t"
            << anatools::TowerID(
-				anatools::CorrectClusterSector( emccluster->arm() , emccluster->sector() ),
-				emccluster->iypos(),
-				emccluster->izpos() ) << "\t"
+                                anatools::CorrectClusterSector( emccluster->arm() , emccluster->sector() ),
+                                emccluster->iypos(),
+                                emccluster->izpos() ) << "\t"
            << get_tower_status(
                                anatools::CorrectClusterSector( emccluster->arm() , emccluster->sector() ),
                                emccluster->iypos(),
