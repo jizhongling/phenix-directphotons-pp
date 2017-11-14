@@ -87,11 +87,13 @@ void draw_Pileup()
             mg[ig]->Fit(fn_fit[im], "RQ");
 
             Double_t scale = sqrt( fn_fit[im]->GetChisquare() / fn_fit[im]->GetNDF() );
+            if(scale < 1.) scale = 1.;
             p0[ic] = fn_fit[im]->GetParameter(0);
             ep0[ic] = fn_fit[im]->GetParError(0) * scale;
 
             mg[ig]->Fit(fn_mean, "RQN");
             scale = sqrt( fn_mean->GetChisquare() / fn_mean->GetNDF() );
+            if(scale < 1.) scale = 1.;
             mean[ic] = fn_mean->GetParameter(0);
             emean[ic] = fn_mean->GetParError(0) * scale;
           } // ic

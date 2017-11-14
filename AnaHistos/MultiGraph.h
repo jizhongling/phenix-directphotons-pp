@@ -75,6 +75,6 @@ Double_t GetMeanError(TMultiGraph *mg, Double_t &mean, Double_t &emean)
   mean = sumy/sumw;
   emean = 1./sqrt(sumw);
 
-  Double_t chi2 = sumN > 0 ? ( sumy2 - sumw*mean*mean ) / ( sumN - 1 ) : 1e9;
+  Double_t chi2 = sumN > 1 ? ( sumy2 - sumw*mean*mean ) / ( sumN - 1 ) : 0.;
   return chi2;
 }

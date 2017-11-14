@@ -17,6 +17,6 @@ Double_t Chi2Fit(Int_t n, Double_t *x, Double_t *ex, Double_t &xbar, Double_t &e
   xbar = sumx/sumw;
   exbar = 1./sqrt(sumw);
 
-  Double_t chi2 = sumN > 0 ? ( sumx2 - sumw*xbar*xbar ) / ( sumN - 1 ) : 1e9;
+  Double_t chi2 = sumN > 1 ? ( sumx2 - sumw*xbar*xbar ) / ( sumN - 1 ) : 0.;
   return chi2;
 }
