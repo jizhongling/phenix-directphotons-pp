@@ -61,6 +61,14 @@ public:
   int End(PHCompositeNode *topNode);
 
   /**
+   * Set direct photon minimum energy
+   */
+  void SetDirectPhotonEnergyMin( double emin )
+  {
+    _direct_photon_energy_min = emin;
+  }
+
+  /**
    * Set local recalibrator
    */
   void SetEmcLocalRecalibrator( EmcLocalRecalibrator* emcrecalib )
@@ -144,14 +152,13 @@ protected:
   /**
    * Check if cluster matches criteria for photon candidate
    */
-  bool testPhoton( emcClusterContent *emccluster,
-                   double bbct0 );
+  //  bool testPhoton( emcClusterContent *emccluster,
+  //                   double bbct0 );
 
   /**
    * Check if cluster matches criteria for direct photon candidate
    */
-  bool testDirectPhoton( emcClusterContent *emccluster,
-                         double bbct0 );
+  bool testDirectPhotonEnergy( emcClusterContent *emccluster );
 
   /**
    * Check if cluster matches criteria for isolated photon candidate
@@ -223,7 +230,7 @@ protected:
   /**
    * Fill histogram with trigger based event counts
    */
-  int FillTriggerStats( std::string, TrigLvl1*, double );
+  int FillTriggerStats( std::string, TrigLvl1*, ErtOut*, double );
 
 
   /**

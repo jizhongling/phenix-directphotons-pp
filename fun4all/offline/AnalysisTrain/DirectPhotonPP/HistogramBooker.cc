@@ -60,14 +60,15 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
     /*
      * Histogram to count number of events
      */
-    TH1* h1_events = new TH1I("h1_events", "number of events;trigger;# events", 7,0.5,7.5);
+    TH1* h1_events = new TH1I("h1_events", "number of events;trigger;# events", 8,0.5,8.5);
     h1_events->GetXaxis()->SetBinLabel(1, "all");
-    h1_events->GetXaxis()->SetBinLabel(2, "bbcz30");
-    h1_events->GetXaxis()->SetBinLabel(3, "bbcz10");
-    h1_events->GetXaxis()->SetBinLabel(4, "bbcz10_ert4x4c");
-    h1_events->GetXaxis()->SetBinLabel(5, "bbcz10_ert4x4a");
-    h1_events->GetXaxis()->SetBinLabel(6, "bbcz10_ert4x4b");
-    h1_events->GetXaxis()->SetBinLabel(7, "bbcz10_ert4x4or");
+    h1_events->GetXaxis()->SetBinLabel(2, "BBCNarrow");
+    h1_events->GetXaxis()->SetBinLabel(3, "BBCNarrow_zcut");
+    h1_events->GetXaxis()->SetBinLabel(4, "BBCNarrow_zcut_ERT4x4a");
+    h1_events->GetXaxis()->SetBinLabel(5, "BBCNarrow_zcut_ERT4x4b");
+    h1_events->GetXaxis()->SetBinLabel(6, "BBCNarrow_zcut_ERT4x4c");
+    h1_events->GetXaxis()->SetBinLabel(7, "BBCNarrow_zcut_ERT4x4or");
+    h1_events->GetXaxis()->SetBinLabel(8, "ERT4x4or");
     hm->registerHisto( h1_events , 1 );
 
     /*
@@ -164,16 +165,16 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
      *
      * - sector
      * - transverse momentum of photon pair
-     * - invariant mass (paired with any other photon in event)
+     * - invariant mass (paired with any other photon in event) (default: 300, 0, 0.3)
      * - eta
      * - phi
      * - trigger
      *
      */
     int ndim_hn_pi0calib = 6;
-    int nbins_hn_pi0calib[] = {8, n_pTbins, 300, 70, n_phibins, 4};
+    int nbins_hn_pi0calib[] = {8, n_pTbins, 1200, 70, n_phibins, 4};
     double xmin_hn_pi0calib[] = {-0.5, 0., 0., -0.35, 0., -0.5};
-    double xmax_hn_pi0calib[] = {7.5, 0., 0.3, 0.35, 0., 3.5};
+    double xmax_hn_pi0calib[] = {7.5, 0., 1.2, 0.35, 0., 3.5};
 
     THnSparse* hn_pi0calib = new THnSparseF("hn_pi0",
                                             "Photon pair invariant mass;EMCal sector;p_{T} [GeV];m_{inv} [GeV];#eta;#phi [rad];ERT trigger;",
@@ -230,9 +231,9 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
      * - isolated photon? 0 = no, 1 = yes
      */
     int ndim_hn_1photon = 7;
-    int nbins_hn_1photon[] = {8, n_pTbins, 100, 70, n_phibins, 4, 2};
+    int nbins_hn_1photon[] = {8, n_pTbins, n_pTbins, 70, n_phibins, 4, 2};
     double xmin_hn_1photon[] = {-0.5, 0., 0., -0.35, 0., -0.5, -0.5};
-    double xmax_hn_1photon[] = {7.5, 0., 50., 0.35, 0., 3.5, 1.5};
+    double xmax_hn_1photon[] = {7.5, 0., 0., 0.35, 0., 3.5, 1.5};
 
     THnSparse* hn_1photon = new THnSparseF("hn_1photon",
                                            "Single Photon Spectrum;EMCal sector;p_{T} [GeV];E_{#gamma} [GeV];#eta;#phi [rad];ERT trigger;IsolationStatus;",
@@ -242,6 +243,7 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
                                            xmax_hn_1photon );
 
     hn_1photon->SetBinEdges(1,pTbins);
+    hn_1photon->SetBinEdges(2,pTbins);
     hn_1photon->GetAxis(0)->SetName("EMCalSector");
     hn_1photon->GetAxis(1)->SetName("pT");
     hn_1photon->GetAxis(2)->SetName("Egamma");

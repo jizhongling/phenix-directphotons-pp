@@ -218,7 +218,7 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
     }
 
   /* Count events */
-  FillTriggerStats( "h1_events" , data_triggerlvl1 , bbc_z );
+  FillTriggerStats( "h1_events" , data_triggerlvl1 , data_ert , bbc_z );
 
   /* Count events to calculate trigger efficiency */
   //  FillTriggerEfficiency( data_emc, data_global, data_ert );
@@ -413,7 +413,8 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
 int
 DirectPhotonPP::FillTriggerStats( string histname,
                                   TrigLvl1* data_triggerlvl1,
-                                  double bbc_z )
+				  ErtOut *data_ert ,
+				  double bbc_z )
 {
 
   /* retrieve histograms used in this function */
@@ -422,28 +423,41 @@ DirectPhotonPP::FillTriggerStats( string histname,
   /* Get trigger information */
   //  unsigned int lvl1_raw = data_triggerlvl1->get_lvl1_trigraw();
   unsigned int lvl1_live = data_triggerlvl1->get_lvl1_triglive();
-  //  unsigned int lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
+  unsigned int lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
 
   /* Fill event counter */
   h1_events->Fill("all",1);
 
   /* Count event trigger stats */
-  if ( abs ( bbc_z ) <= _bbc_zvertex_cut )
-    {
-      h1_events->Fill("bbcz10",1);
+  if ( lvl1_scaled & anatools::Mask_BBC_narrowvtx )
+    h1_events->Fill("BBCNarrow",1);
 
-      if ( lvl1_live & anatools::Mask_ERT_4x4b )
-        h1_events->Fill("bbcz10_ert4x4b",1);
+  if ( lvl1_scaled & anatools::Mask_BBC_narrowvtx &&
+       abs ( bbc_z ) <= _bbc_zvertex_cut )
+    h1_events->Fill("BBCNarrow_zcut",1);
 
-      if ( lvl1_live & anatools::Mask_ERT_4x4a )
-        h1_events->Fill("bbcz10_ert4x4a",1);
+  if ( lvl1_live & anatools::Mask_BBC_narrowvtx &&
+       lvl1_scaled & anatools::Mask_ERT_4x4a &&
+       abs ( bbc_z ) <= _bbc_zvertex_cut )
+    h1_events->Fill("BBCNarrow_zcut_ERT4x4a",1);
 
-      if ( lvl1_live & anatools::Mask_ERT_4x4c )
-        h1_events->Fill("bbcz10_ert4x4c",1);
+  if ( lvl1_live & anatools::Mask_BBC_narrowvtx &&
+       lvl1_scaled & anatools::Mask_ERT_4x4b &&
+       abs ( bbc_z ) <= _bbc_zvertex_cut )
+    h1_events->Fill("BBCNarrow_zcut_ERT4x4b",1);
 
-      if ( lvl1_live & anatools::Mask_ERT_4x4or )
-        h1_events->Fill("bbcz10_ert4x4or",1);
-    }
+  if ( lvl1_live & anatools::Mask_BBC_narrowvtx &&
+       lvl1_scaled & anatools::Mask_ERT_4x4c &&
+       abs ( bbc_z ) <= _bbc_zvertex_cut )
+    h1_events->Fill("BBCNarrow_zcut_ERT4x4c",1);
+
+  if ( lvl1_live & anatools::Mask_BBC_narrowvtx &&
+       lvl1_scaled & anatools::Mask_ERT_4x4or &&
+       abs ( bbc_z ) <= _bbc_zvertex_cut )
+    h1_events->Fill("BBCNarrow_zcut_ERT4x4or",1);
+
+  if ( lvl1_scaled & anatools::Mask_ERT_4x4or )
+    h1_events->Fill("ERT4x4or",1);
 
   return 0;
 }
@@ -812,7 +826,7 @@ DirectPhotonPP::FillPhotonPtSpectrum( string histname_1photon,
     {
       emcClusterContent *photon1 = data_photons->getCluster( cidx1 );
 
-      if ( testTightFiducial( photon1 ) )
+      if ( testTightFiducial( photon1 ) && testDirectPhotonEnergy( photon1 ) )
         {
           int sector1 = anatools::CorrectClusterSector( photon1->arm() , photon1->sector() );
 
@@ -1122,32 +1136,29 @@ DirectPhotonPP::testTightFiducial( emcClusterContent *emccluster )
 
 /* ----------------------------------------------- */
 
-bool
-DirectPhotonPP::testPhoton( emcClusterContent *emccluster,
-                            double bbc_t0 )
-{
-  bool test_e = testPhotonEnergy( emccluster );
-  bool test_tof = testPhotonTof( emccluster, bbc_t0 );
-  bool test_shape = testPhotonShape( emccluster );
-  bool test_trackveto = testPhotonTrackVeto( emccluster );
-
-  return ( test_e && test_tof && test_shape && test_trackveto );
-}
+//bool
+//DirectPhotonPP::testPhoton( emcClusterContent *emccluster,
+//                            double bbc_t0 )
+//{
+//  bool test_e = testPhotonEnergy( emccluster );
+//  bool test_tof = testPhotonTof( emccluster, bbc_t0 );
+//  bool test_shape = testPhotonShape( emccluster );
+//  bool test_trackveto = testPhotonTrackVeto( emccluster );
+//
+//  return ( test_e && test_tof && test_shape && test_trackveto );
+//}
 
 /* ----------------------------------------------- */
 
 bool
-DirectPhotonPP::testDirectPhoton( emcClusterContent *emccluster,
-                                  double bbc_t0 )
+DirectPhotonPP::testDirectPhotonEnergy( emcClusterContent *emccluster )
 {
-  bool test_photon = testPhoton( emccluster , bbc_t0 );
-
   bool test_direct_photon_energy = false;
 
   if ( emccluster->ecore() > _direct_photon_energy_min )
     test_direct_photon_energy = true;
 
-  return ( test_photon && test_direct_photon_energy );
+  return ( test_direct_photon_energy );
 }
 
 /* ----------------------------------------------- */
