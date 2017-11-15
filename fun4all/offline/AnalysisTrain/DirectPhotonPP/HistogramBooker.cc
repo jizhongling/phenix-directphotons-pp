@@ -29,9 +29,6 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
   Fun4AllHistoManager* hm = new Fun4AllHistoManager( managername );
 
   /* Parameters common among multiple histograms */
-  const int n_photon_selection_bins = 6;
-  const double photon_selection_bins[7] = { 0, 1, 2, 3, 4, 5, 6 };
-
   const int n_pTbins = 31;
   const double pTbins[n_pTbins+1] = { 0.0,
                                       0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
@@ -76,19 +73,19 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
     /*
      * 3D histogram to count for trigger efficiency
      */
-//    TH3 *h3_trig = new TH3F("h3_trig", "number of clusters;p_{T} [GeV];sector;trigger;", n_pTbins,0.,0., 8,-0.5,7.5, 4,0.5,4.5);
-//    h3_trig->GetXaxis()->Set(n_pTbins, pTbins);
-//    h3_trig->GetZaxis()->SetBinLabel(1, "all");
-//    h3_trig->GetZaxis()->SetBinLabel(2, "ERT4x4a");
-//    h3_trig->GetZaxis()->SetBinLabel(3, "ERT4x4b");
-//    h3_trig->GetZaxis()->SetBinLabel(4, "ERT4x4c");
-//    hm->registerHisto(h3_trig, 1);
+    //    TH3 *h3_trig = new TH3F("h3_trig", "number of clusters;p_{T} [GeV];sector;trigger;", n_pTbins,0.,0., 8,-0.5,7.5, 4,0.5,4.5);
+    //    h3_trig->GetXaxis()->Set(n_pTbins, pTbins);
+    //    h3_trig->GetZaxis()->SetBinLabel(1, "all");
+    //    h3_trig->GetZaxis()->SetBinLabel(2, "ERT4x4a");
+    //    h3_trig->GetZaxis()->SetBinLabel(3, "ERT4x4b");
+    //    h3_trig->GetZaxis()->SetBinLabel(4, "ERT4x4c");
+    //    hm->registerHisto(h3_trig, 1);
 
     /*
      * Trigger efficiency for pion
      */
-//    TH3 *h3_trig_pion = static_cast<TH3*>( h3_trig->Clone("h3_trig_pion") );
-//    hm->registerHisto(h3_trig_pion, 1);
+    //    TH3 *h3_trig_pion = static_cast<TH3*>( h3_trig->Clone("h3_trig_pion") );
+    //    hm->registerHisto(h3_trig_pion, 1);
   }
   /* ---------------------------------------------------
    * <==== END: Event count and trigger checks
@@ -179,11 +176,11 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
     double xmax_hn_pi0calib[] = {7.5, 0., 0.3, 0.35, 0., 3.5};
 
     THnSparse* hn_pi0calib = new THnSparseF("hn_pi0",
-					    "Photon pair invariant mass;EMCal sector;p_{T} [GeV];m_{inv} [GeV];#eta;#phi [rad];ERT trigger;",
-					    ndim_hn_pi0calib,
-					    nbins_hn_pi0calib,
-					    xmin_hn_pi0calib,
-					    xmax_hn_pi0calib );
+                                            "Photon pair invariant mass;EMCal sector;p_{T} [GeV];m_{inv} [GeV];#eta;#phi [rad];ERT trigger;",
+                                            ndim_hn_pi0calib,
+                                            nbins_hn_pi0calib,
+                                            xmin_hn_pi0calib,
+                                            xmax_hn_pi0calib );
     hn_pi0calib->SetBinEdges(1,pTbins);
     hn_pi0calib->GetAxis(0)->SetName("EMCalSector");
     hn_pi0calib->GetAxis(1)->SetName("pT");
@@ -224,66 +221,64 @@ Fun4AllHistoManager* HistogramBooker::GetHistoManager( std::string managername )
     /*
      * storing number of identified direct photon candidates in bins of
      *
-     * 0 - sector
-     * 1 - photon selection method
-     * 2 - transverse momentum of photon
-     * 3 - photon energy
-     * 4 - photon eta
-     * 5 - photon phi
-     *
+     * - sector
+     * - transverse momentum of photon
+     * - photon energy
+     * - eta
+     * - phi
+     * - trigger? MB, ERT-a, ERT-b, ERT-c
+     * - isolated photon? 0 = no, 1 = yes
      */
-    int nbins_hn_1photon[] = { 8, n_photon_selection_bins, n_pTbins, n_pTbins, 70, n_phibins };
-    double xmin_hn_1photon[] = { -0.5, 0, 0, 0, -0.35, 0 };
-    double xmax_hn_1photon[] = { 7.5, 0, 0, 0,  0.35, 0 };
+    int ndim_hn_1photon = 7;
+    int nbins_hn_1photon[] = {8, n_pTbins, 100, 70, n_phibins, 4, 2};
+    double xmin_hn_1photon[] = {-0.5, 0., 0., -0.35, 0., -0.5, -0.5};
+    double xmax_hn_1photon[] = {7.5, 0., 50., 0.35, 0., 3.5, 1.5};
+
     THnSparse* hn_1photon = new THnSparseF("hn_1photon",
-                                           "Single Photon Spectra;Sector;Photon cut;p_{T} [GeV];E [GeV];#eta;#phi;",
-                                           6, nbins_hn_1photon, xmin_hn_1photon, xmax_hn_1photon );
-    hn_1photon->SetBinEdges(1,photon_selection_bins);
-    hn_1photon->SetBinEdges(2,pTbins);
-    hn_1photon->SetBinEdges(3,pTbins);
-    hn_1photon->SetBinEdges(5,phi_twr);
+                                           "Single Photon Spectrum;EMCal sector;p_{T} [GeV];E_{#gamma} [GeV];#eta;#phi [rad];ERT trigger;IsolationStatus;",
+                                           ndim_hn_1photon,
+                                           nbins_hn_1photon,
+                                           xmin_hn_1photon,
+                                           xmax_hn_1photon );
+
+    hn_1photon->SetBinEdges(1,pTbins);
+    hn_1photon->GetAxis(0)->SetName("EMCalSector");
+    hn_1photon->GetAxis(1)->SetName("pT");
+    hn_1photon->GetAxis(2)->SetName("Egamma");
+    hn_1photon->SetBinEdges(4, phi_twr);
     hm->registerHisto( hn_1photon , 1 );
 
     /*
      * storing number of identified direct photon candidates paired with other photon in event in bins of
      *
      * - sector
-     * - photon selection method
-     * - transverse momentum of 'direct photon candidate'
-     * - transverse momentum of photon pair
-     * - invariant mass (paired with any other photon in event)
+     * - transverse momentum of photon
+     * - invariant mass of photon pair
+     * - eta
+     * - phi
+     * - trigger? MB, ERT-a, ERT-b, ERT-c
+     * - isolated photon? 0 = no, 1 = yes
      *
      */
-    int nbins_hn_2photon[] = { 8, n_photon_selection_bins, n_pTbins, n_pTbins, 300 };
-    double xmin_hn_2photon[] = { -0.5, 0, 0, 0, 0.0 };
-    double xmax_hn_2photon[] = { 7.5, 0, 0, 0, 0.3 };
+    int ndim_hn_2photon = 7;
+    int nbins_hn_2photon[] = {8, n_pTbins, 300, 70, n_phibins, 4, 2};
+    double xmin_hn_2photon[] = {-0.5, 0., 0., -0.35, 0., -0.5, -0.5};
+    double xmax_hn_2photon[] = {7.5, 0., 0.3, 0.35, 0., 3.5, 1.5};
+
     THnSparse* hn_2photon = new THnSparseF("hn_2photon",
-                                           "Photon pair invariant mass;Sector;Photon cut;p_{T}^{#gamma} [GeV];p_{T}^{#gamma#gamma} [GeV];m_{inv}^{#gamma#gamma} [GeV];",
-                                           5, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon );
-    hn_2photon->SetBinEdges(1,photon_selection_bins);
-    hn_2photon->SetBinEdges(2,pTbins);
-    hn_2photon->SetBinEdges(3,pTbins);
+                                           "Photon Pair Spectrum;EMCal sector;p_{T} [GeV];m_{inv} [GeV];#eta;#phi [rad];ERT trigger;IsolationStatus;",
+                                           ndim_hn_2photon,
+                                           nbins_hn_2photon,
+                                           xmin_hn_2photon,
+                                           xmax_hn_2photon );
+
+    hn_2photon->SetBinEdges(1,pTbins);
+    hn_2photon->GetAxis(0)->SetName("EMCalSector");
+    hn_2photon->GetAxis(1)->SetName("pT");
+    hn_2photon->GetAxis(2)->SetName("minv");
+    hn_2photon->SetBinEdges(4, phi_twr);
     hm->registerHisto( hn_2photon , 1 );
 
-    /*
-     * Same as _hn_2photon but applying isolation cut
-     */
-    //  THnSparseF* hn_2photon_isolation = static_cast<THnSparseF*>(hn_2photon->Clone("hn_2photon_isolation"));
-    //  hn_2photon_isolation->GetAxis(3)->SetBinLabel(1,"one");
-    //  hm->registerHisto( hn_2photon_isolation , 1 );
-
-    /*
-     * storing number of identified direct photon candidates in bins of
-     *  - cluster energy
-     *  - theta_cv
-     *  - invariant mass (paired with any other photon in event)
-     *  - sector
-     */
-    int nbins_hn_2photon_theta_cv[] = { 50, 100, 300, 8 };
-    double xmin_hn_2photon_theta_cv[] = { 0, 0, 0, -0.5 };
-    double xmax_hn_2photon_theta_cv[] = { 2, 0.1, 0.3, 7.5 };
-    THnSparse* hn_2photon_theta_cv = new THnSparseF("hn_2photon_theta_cv", "Photon pair invariant mass;clusterE [GeV];#theta_{CV};m_{inv} [GeV];Sector;", 4, nbins_hn_2photon_theta_cv, xmin_hn_2photon_theta_cv, xmax_hn_2photon_theta_cv );
-    hm->registerHisto( hn_2photon_theta_cv , 1 );
   }
   /* ---------------------------------------------------
    * <==== END: Direct Photon Candidates ====>
