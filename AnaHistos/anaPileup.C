@@ -6,6 +6,8 @@ void anaPileup(const Int_t process = 0)
   const Int_t secl[2] = {1, 7};
   const Int_t sech[2] = {6, 8};
 
+  TH1 *h_chi2 = new TH1F("h_chi2", "Fit chi square", 500, 0., 5.);
+  TH1 *h_prob = new TH1F("h_prob", "Fit probability", 100, 0., 1.);
   TGraphErrors *gr[npT*8];
   TGraphErrors *gr_run[npT*8];
   Int_t igp[npT*8] = {};
@@ -47,8 +49,11 @@ void anaPileup(const Int_t process = 0)
 
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
+    ULong_t scaledown = GetERT4x4cScaledown(runnumber) + 1;
+    
     Double_t nev[2];
-    nev[0] = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );
+    //nev[0] = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );
+    nev[0] = nmb / scaledown;
     nev[1] = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm") );
 
     TF1 *fn_fit = new TF1("fn_fit", "gaus(0) + pol2(3)", 0.06, 0.25);
@@ -101,16 +106,16 @@ void anaPileup(const Int_t process = 0)
               Double_t bincenter = h_minv->GetXaxis()->GetBinCenter(ib);
               nbg += fn_bg->Eval(bincenter);
             }
-            if( fn_fit->GetProb() < 0.1 )
-            {
-              delete h_minv;
-              continue;
-              nbg = ( h_minv->Integral(6,10) + h_minv->Integral(19,23) ) / 2.;
-            }
-            if( nsig <= 0. ) nsig = 1.;
-            if( nbg <= 0. ) nbg = 1.;
 
-            //nbg = 0.;  // No bg subtraction!!!
+            Int_t ndf = fn_fit->GetNDF();
+            Double_t chi2 = fn_fit->GetChisquare();
+            Double_t prob = fn_fit->GetProb();
+            if( ndf > 0 )
+              h_chi2->Fill( chi2/ndf );
+            h_prob->Fill( prob );
+            if( ndf < 10 || prob < 0.1 ) 
+              nbg = ( h_minv->Integral(6,10) + h_minv->Integral(19,23) ) / 2.;
+
             Double_t ensig = sqrt(nsig);
             Double_t rbg = nbg / nsig;
             Double_t erbg = sqrt(nbg) / nsig;
@@ -139,13 +144,15 @@ void anaPileup(const Int_t process = 0)
   }
 
   TFile *f_out = new TFile(Form("pileup/Pileup-%d.root",process), "RECREATE");
+  h_chi2->Write();
+  h_prob->Write();
   for(Int_t ipt=0; ipt<npT; ipt++)
     for(Int_t id=0; id<2; id++)
       for(Int_t ic=0; ic<2; ic++)
         for(Int_t is=0; is<2; is++)
         {
           Int_t ig = ipt*8+id*4+ic*2+is;
-          //gROOT->ProcessLine( Form("c%d->Print(\"pileup/Minv-proc%d-data%d-cond%d-pt%d-%d.pdf\");", ig, process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
+          gROOT->ProcessLine( Form("c%d->Print(\"pileup/Minv-proc%d-data%d-cond%d-pt%d-%d.pdf\");", ig, process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
           gr[ig]->Set(igp[ig]);
           gr_run[ig]->Set(igp[ig]);
           gr[ig]->Write();

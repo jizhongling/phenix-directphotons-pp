@@ -50,8 +50,9 @@ void draw_YieldSasha(const Int_t process = 0)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    TFile *f = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510MinBias/12233/data/Pi0PP-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510ERT/12232/data/Pi0PP-%d.root",runnumber));
     //TFile *f = new TFile(Form("/phenix/spin/phnxsp01/shura/taxi/Run13pp510MinBias/5096/data/%d.root",runnumber));
+    //TFile *f = new TFile(Form("/phenix/spin/phnxsp01/shura/taxi/Run13pp510ERT/5094/data/%d.root",runnumber));
     if( f->IsZombie() ) continue;
 
     TH1 *mchist[3][40];  // mchist[is][ip]

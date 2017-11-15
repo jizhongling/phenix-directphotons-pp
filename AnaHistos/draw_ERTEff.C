@@ -1,4 +1,4 @@
-void GenerateTriggerEfficiency(TFile *f, TObjArray *Glist, Int_t ispion, Int_t trig)
+void GenerateERTEff(TFile *f, TObjArray *Glist, Int_t ispion, Int_t trig)
 {
   TH3 *h3_trig;
   if(ispion == 0)
@@ -50,8 +50,8 @@ void GenerateTriggerEfficiency(TFile *f, TObjArray *Glist, Int_t ispion, Int_t t
     gPad->Update();
     TPaveStats *st = (TPaveStats*)gr[part]->FindObject("stats");
     st->SetX1NDC(0.5+0.2*part);
-    st->SetX2NDC(0.7+0.2*part);
     st->SetY1NDC(0.4);
+    st->SetX2NDC(0.7+0.2*part);
     st->SetY2NDC(0.6);
   }
 
@@ -74,7 +74,7 @@ void GenerateTriggerEfficiency(TFile *f, TObjArray *Glist, Int_t ispion, Int_t t
   return;
 }
 
-void draw_TriggerEfficiency()
+void draw_ERTEff()
 {
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo.root");
   TObjArray *Glist = new TObjArray();
@@ -83,10 +83,10 @@ void draw_TriggerEfficiency()
     for(Int_t trig=0; trig<3; trig++)
     {
       cout << "\nispion " << ispion << endl;
-      GenerateTriggerEfficiency(f, Glist, ispion, trig);
+      GenerateERTEff(f, Glist, ispion, trig);
     }
 
-  TFile *fout = new TFile("TriggerEfficiency.root", "RECREATE");
+  TFile *fout = new TFile("ERTEff.root", "RECREATE");
   Glist->Write();
   fout->Close();
 }
