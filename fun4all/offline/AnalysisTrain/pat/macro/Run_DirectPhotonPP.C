@@ -69,8 +69,6 @@ void Run_DirectPhotonPP(const char *outFile = "HISTOS.root")
   /* clean up
    */
   delete toad_loader;
-
-  cout << "All done." << endl;
 }
 
 void
