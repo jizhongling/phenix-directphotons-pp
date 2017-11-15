@@ -61,6 +61,14 @@ public:
   int End(PHCompositeNode *topNode);
 
   /**
+   * Set direct photon minimum energy
+   */
+  void SetDirectPhotonEnergyMin( double emin )
+  {
+    _direct_photon_energy_min = emin;
+  }
+
+  /**
    * Set local recalibrator
    */
   void SetEmcLocalRecalibrator( EmcLocalRecalibrator* emcrecalib )
@@ -144,23 +152,22 @@ protected:
   /**
    * Check if cluster matches criteria for photon candidate
    */
-  bool testPhoton( emcClusterContent *emccluster,
-                   double bbct0 );
+  //  bool testPhoton( emcClusterContent *emccluster,
+  //                   double bbct0 );
 
   /**
    * Check if cluster matches criteria for direct photon candidate
    */
-  bool testDirectPhoton( emcClusterContent *emccluster,
-                         double bbct0 );
+  bool testDirectPhotonEnergy( emcClusterContent *emccluster );
 
   /**
    * Check if cluster matches criteria for isolated photon candidate
    */
-  bool testIsolatedPhoton( emcClusterContent *emccluster0 ,
-                           emcClusterContainer *emccontainer ,
-                           PHCentralTrack *tracks ,
-                           double coneangle ,
-                           double bbct0 );
+  bool testIsolatedCluster( emcClusterContent* ,
+                            emcClusterContainer* ,
+                            PHCentralTrack* ,
+                            double ,
+                            double );
 
   /**
    * Test cluster energy
@@ -204,6 +211,13 @@ protected:
   int selectClusterPhotonTof( emcClusterContainer *emccontainer, double bbc_t0 );
 
   /**
+   * Select only clusters which have energy below threshold in surrounding isolation cone
+   */
+  //  int selectClusterIsolation( emcClusterContainer*,
+  //                          emcClusterContainer*,
+  //                          PHCentralTrack* );
+
+  /**
    * Read tower status from text file with 4 columns (sector, y-idx, z-idx, status)
    */
   void ReadTowerStatus4Cols(const std::string &filename);
@@ -216,7 +230,7 @@ protected:
   /**
    * Fill histogram with trigger based event counts
    */
-  int FillTriggerStats( std::string, TrigLvl1*, double );
+  int FillTriggerStats( std::string, TrigLvl1*, ErtOut*, double );
 
 
   /**
@@ -230,32 +244,36 @@ protected:
    * Fill histograms with cluster pT spectrum before and after applying bad tower map
    */
   int FillClusterPtSpectrum( std::string,
-			     emcClusterContainer* );
+                             emcClusterContainer* );
 
   /**
    * Fill histograms with cluster TOF spectrum before and after applying local TOF correction
    */
   int FillClusterTofSpectrum( std::string histname,
-			      emcClusterContainer *data_emc,
-			      PHGlobal *data_global,
-			      double bbc_t0 );
+                              emcClusterContainer *data_emc,
+                              PHGlobal *data_global,
+                              double bbc_t0 );
 
   /**
    * Fill histograms with invariant mass from two-photon pairs which are pi0 candidates
    * using tight cuts on pi0 identification before and after applying local tower energy correction
    */
   int FillPi0InvariantMass( std::string histname,
-			    emcClusterContainer *d_emcont,
-			    TrigLvl1 *d_trig,
-			    ErtOut *data_ert );
+                            emcClusterContainer *d_emcont,
+                            TrigLvl1 *d_trig,
+                            ErtOut *data_ert );
 
   /**
    * Fill histograms with photon pT spectrum and invariant mass histogram
    * for combinations with all other photons
    */
-  int FillPhotonPtSpectrum( emcClusterContainer *d_emccontainer,
-                            PHCentralTrack* d_tracks,
-                            PHGlobal *d_global );
+  int FillPhotonPtSpectrum( std::string,
+                            std::string,
+                            emcClusterContainer*,
+                            emcClusterContainer*,
+                            PHCentralTrack*,
+                            TrigLvl1*,
+                            ErtOut* );
 
   /**
    * Print infomration of cluster container

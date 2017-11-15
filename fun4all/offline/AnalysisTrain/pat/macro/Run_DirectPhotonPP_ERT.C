@@ -23,6 +23,10 @@ void Run_DirectPhotonPP_ERT(const char *outFile = "HISTOS.root")
    */
   dp->SetDstDataType("ERT");
 
+  /* Set minimum energy threshold for direct photons
+   */
+  dp->SetDirectPhotonEnergyMin( 5.0 );
+
   /* You can only register ONE EmcLocalRecalibrator or the module will refuse to run.
    */
 
@@ -65,6 +69,8 @@ void Run_DirectPhotonPP_ERT(const char *outFile = "HISTOS.root")
   /* clean up
    */
   delete toad_loader;
+
+  cout << "All done." << endl;
 }
 
 void
