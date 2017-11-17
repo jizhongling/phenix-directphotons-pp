@@ -27,8 +27,7 @@ protected:
   PHPythiaContainer *phpythia;
 
   TFile *_fout;
-  THnSparse*  _hEConeDirectPhoton;
-  THnSparse*  _hEConeOtherPhoton;
+  THnSparse*  _hECone;
 
 };
 
