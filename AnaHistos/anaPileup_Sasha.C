@@ -1,4 +1,5 @@
 #include "BBCCounts.h"
+#include "FitMinv.h"
 
 void anaPileup_Sasha(const Int_t process = 0)
 {
@@ -24,7 +25,7 @@ void anaPileup_Sasha(const Int_t process = 0)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    TFile *f = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510MinBias/12148/data/Pi0PP-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510MinBias/12233/data/Pi0PP-%d.root",runnumber));
     if( f->IsZombie() ) continue;
 
     TH1 *h_events = (TH1*)f->Get("hevtype");
@@ -62,33 +63,7 @@ void anaPileup_Sasha(const Int_t process = 0)
         mcd(ig, irun+1);
         h_minv[ic][is]->Rebin(10);
         h_minv[ic][is]->Scale(0.5);
-        aset(h_minv[ic][is], "m_{inv} [GeV]","", 0.,0.3);
-
-        Double_t par[10] = {h_minv[ic][is]->GetMaximum(),0.140,0.010, 0.,0.,0.};
-        fn_fit->SetParameters(par);
-        h_minv[ic][is]->Fit(fn_fit, "RQ0");
-        fn_fit->GetParameters(par);
-        fn_bg->SetParameters(par+3);
-
-        fn_fit->SetLineColor(kRed);
-        fn_bg->SetLineColor(kGreen);
-        h_minv[ic][is]->DrawCopy("EHIST");
-        fn_fit->DrawCopy("SAME");
-        fn_bg->DrawCopy("SAME");
-
-        Double_t nsig = 0.;
-        Double_t nbg = 0.;
-        for(Int_t ib=12; ib<=16; ib++)
-        {
-          nsig += h_minv[ic][is]->GetBinContent(ib);
-          Double_t bincenter = h_minv[ic][is]->GetXaxis()->GetBinCenter(ib);
-          nbg += fn_bg->Eval(bincenter);
-        }
-        Double_t ensig = sqrt(nsig);
-        Double_t rbg = nbg / nsig;
-        Double_t erbg = sqrt(nbg) / nsig;
-        npion[ic][is] = nsig * (1-rbg);
-        enpion[ic][is] = sqrt( pow(ensig*(1-rbg),2.) + pow(nsig*erbg,2.) );
+        FitMinv(h_minv[ic][is], npion[ic][is], enpion[ic][is]);
       }
 
     for(Int_t ic=0; ic<2; ic++)

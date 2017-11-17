@@ -79,11 +79,6 @@ void draw_Pileup()
             //mg[ig]->GetYaxis()->SetRangeUser(0., 1e-3);  // Do not use SetLimits()
 
             fn_fit[im]->SetParameters(GetMaximum<TGraphErrors>(mg[ig]), 1.);
-            for(Int_t ifit=0; ifit<5; ifit++)
-            {
-              mg[ig]->Fit(fn_fit[im], "RQN");
-              fn_fit[im]->SetParameters( fn_fit[im]->GetParameters() );
-            }
             mg[ig]->Fit(fn_fit[im], "RQ");
 
             Double_t scale = sqrt( fn_fit[im]->GetChisquare() / fn_fit[im]->GetNDF() );
