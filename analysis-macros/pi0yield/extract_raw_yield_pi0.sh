@@ -61,7 +61,7 @@ for DATASET in $DATASETS; do
 	    RUNINDEX=$(($RUNINDEX+1))
 
 	    HISTFILE=$FILE
-	    HISTNAME=hn_pi0_notof
+	    HISTNAME=hn_pi0
 
 	    root -b -q extract_raw_yield_pi0.C\($RUNINDEX,$RUNNUMBER,\"$HISTFILE\",\"$HISTNAME\",$WRITEPLOTS\) | grep "^Raw pi0 yield count" >> $OUTPUT_FILE
 	    #root -b -q extract_raw_yield_pi0.C\($RUNINDEX,$RUNNUMBER,\"$HISTFILE\",\"$HISTNAME\",$WRITEPLOTS\)
