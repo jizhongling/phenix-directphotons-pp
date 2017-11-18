@@ -16,11 +16,16 @@ compare_pi0_raw_yield()
   /* add first tree as friend to second */
   t2->AddFriend("t1");
 
+  /* plot ratio as function of run number */
   TCanvas *c1 = new TCanvas();
   t2->Draw("t2.npi0 / ( t1.npion_tof[0] + t1.npion_tof[1] + t1.npion_tof[2]) : runnumber");
 
+  /* plot ratio as function of entries in t2 (proxy for "run length") */
   TCanvas *c2 = new TCanvas();
   t2->Draw("t2.npi0 / ( t1.npion_tof[0] + t1.npion_tof[1] + t1.npion_tof[2]) : t2.npi0");
+
+  /* list runs with ratio < 1 */
+  t2->Scan("runnumber: t2.npi0 / ( t1.npion_tof[0] + t1.npion_tof[1] + t1.npion_tof[2])", "t2.npi0 / ( t1.npion_tof[0] + t1.npion_tof[1] + t1.npion_tof[2]) < 1");
 
   return 0;
 }
