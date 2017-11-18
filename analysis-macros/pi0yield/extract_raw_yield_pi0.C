@@ -1,5 +1,6 @@
 int extract_raw_yield_pi0( unsigned run_index, int run_number, string histfile, string histname, bool visualize )
 {
+
   gStyle->SetOptStat(1);
 
   /* Get number of events in run */
@@ -7,40 +8,46 @@ int extract_raw_yield_pi0( unsigned run_index, int run_number, string histfile, 
 
   /* Open THnSparse histogram file */
   TFile *f_in = new TFile( histfile.c_str(), "OPEN" );
-  THnSparse* h_inv_mass_allsector = (THnSparse*) f_in->Get( histname.c_str() );
-  cout << "Entries (all sectors): " << h_inv_mass_allsector->GetEntries() << endl;
+  THnSparse* hn_pi0_data = (THnSparse*) f_in->Get( histname.c_str() );
+  cout << "Entries (all sectors): " << hn_pi0_data->GetEntries() << endl;
 
-  /* Print histogram information */
-  for ( int i = 0; i < 6; i++ )
-    cout << "Axis " << i << " : " << h_inv_mass_allsector->GetAxis(i)->GetTitle() << endl;
+  /* Print histogram information
+   */
+  hn_pi0_data->Print("a");
+
+  /* Apply slices and selection on THnSparse
+   */
+  // @TODO
+  double ptmin = 2.0;
+  double ptmax = 29.0;
+  Int_t ptmin_bin = hn_pi0_data->GetAxis(1)->FindBin(ptmin);
+  Int_t ptmax_bin = hn_pi0_data->GetAxis(1)->FindBin(ptmax);
+
+  cout << "ptmin_bin: " << ptmin_bin << " center at " << hn_pi0_data->GetAxis(1)->GetBinCenter(ptmin_bin) << endl;
+  cout << "ptmax_bin: " << ptmax_bin << " center at " << hn_pi0_data->GetAxis(1)->GetBinCenter(ptmax_bin) << endl;
+
+  /* Apply cut */
+  hn_pi0_data->GetAxis(1)->SetRange(ptmin_bin,ptmax_bin); //pT
+  hn_pi0_data->GetAxis(5)->SetRange(4,4); //ERT trigger
 
   /* Project sector bins into single 1-D histogram:
    */
-  double ptmin = 2.0;
-  double ptmax = 29.0;
-  Int_t ptmin_bin = h_inv_mass_allsector->GetAxis(1)->FindBin(ptmin);
-  Int_t ptmax_bin = h_inv_mass_allsector->GetAxis(1)->FindBin(ptmax);
-
-  cout << "ptmin_bin: " << ptmin_bin << " center at " << h_inv_mass_allsector->GetAxis(1)->GetBinCenter(ptmin_bin) << endl;
-  cout << "ptmax_bin: " << ptmax_bin << " center at " << h_inv_mass_allsector->GetAxis(1)->GetBinCenter(ptmax_bin) << endl;
-
-  /* Apply cut */
-  h_inv_mass_allsector->GetAxis(1)->SetRange(ptmin_bin,ptmax_bin); //pT
-  h_inv_mass_allsector->GetAxis(5)->SetRange(1,1); //ERT trigger
-
-  TH1F* h_inv_mass_select = (TH1F*)h_inv_mass_allsector->Projection(2);
+  TH1F* h_inv_mass_select = (TH1F*)hn_pi0_data->Projection(2);
   cout << "X axis of 1-D histogram: " << h_inv_mass_select->GetXaxis()->GetTitle() << endl;
   cout << "Total entries: " << h_inv_mass_select->GetEntries() << endl;;
   cout << "Underflow entries: " << h_inv_mass_select->GetBinContent(0) << endl;;
   cout << "Overflow entries: " << h_inv_mass_select->GetBinContent(-1) << endl;;
 
   /* DEBUG step 1: Count entries, do side band subtraction */
-  Int_t bin047 = (h_inv_mass_select)->FindBin(0.047);
-  Int_t bin097 = (h_inv_mass_select)->FindBin(0.097);
-  Int_t bin112 = (h_inv_mass_select)->FindBin(0.112);
-  Int_t bin162 = (h_inv_mass_select)->FindBin(0.162);
-  Int_t bin187 = (h_inv_mass_select)->FindBin(0.187);
-  Int_t bin227 = (h_inv_mass_select)->FindBin(0.227);
+  Int_t bin047 =  47+1; //(h_inv_mass_select)->FindBin(0.047);
+  Int_t bin097 =  97; //(h_inv_mass_select)->FindBin(0.097);
+  Int_t bin112 = 112+1; //(h_inv_mass_select)->FindBin(0.112);
+  Int_t bin162 = 162; //(h_inv_mass_select)->FindBin(0.162);
+  Int_t bin187 = 187+1; //(h_inv_mass_select)->FindBin(0.187);
+  Int_t bin227 = 227; //(h_inv_mass_select)->FindBin(0.227);
+
+  cout << "centermin_bin: " << bin112 << endl;
+  cout << "centermax_bin: " << bin162 << endl;
 
   float raw_yield_count = (h_inv_mass_select)->Integral(bin112,bin162);
 
@@ -49,6 +56,9 @@ int extract_raw_yield_pi0( unsigned run_index, int run_number, string histfile, 
 
   /* print results */
   cout << "Raw pi0 yield count (run, yield): " << run_number << " " << raw_yield_count << endl;
+
+  TCanvas *c1 = new TCanvas();
+  h_inv_mass_select->Draw();
 
   return 0;
 
@@ -78,7 +88,7 @@ int extract_raw_yield_pi0( unsigned run_index, int run_number, string histfile, 
   //      TString hname_s("h_inv_mass_sector");
   //      hname_s+=s;
   //
-  //      h_inv_mass_sector[s] = (TH1F*)h_inv_mass_allsector->ProjectionZ( hname_s, s+1, s+1, ptmin_bin, ptmax_bin, "e" ); // sector/iterator count from 0, ROOT bins count from 1
+  //      h_inv_mass_sector[s] = (TH1F*)hn_pi0_data->ProjectionZ( hname_s, s+1, s+1, ptmin_bin, ptmax_bin, "e" ); // sector/iterator count from 0, ROOT bins count from 1
   //    }
   //
   //  /* combine sectors */
