@@ -1,14 +1,14 @@
 #!/bin/zsh
 
 DATASETS=(
-    Run13pp510MinBias
+    Run13pp510ERT
 )
 
 INPUT_DIR_BASE="/gpfs/mnt/gpfs02/phenix/spin/spin1/phnxsp01/nfeege/taxi/"
 OUTPUT_DIR="./"
 
-#RUNQALIST="../runqa/Run13pp510_RunQuality.txt"
-RUNQALIST="RunQA_Run13_Test.txt"
+RUNQALIST="../runqa/Run13pp510_RunQuality.txt"
+#RUNQALIST="RunQA_Run13_Test.txt"
 
 WRITEPLOTS=0
 
