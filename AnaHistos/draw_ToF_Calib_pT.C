@@ -73,7 +73,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t calib)
 
 void draw_ToF_Calib_pT()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
 
   mc(0, 2,2);
   gStyle->SetStatY(1.);

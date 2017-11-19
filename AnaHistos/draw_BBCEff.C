@@ -79,13 +79,13 @@ void anaBBCEff(const Int_t process = 0)
   f_out->Close();
 }
 
-void BBCEff()
+void draw_BBCEff_nocorr()
 {
   const Int_t secl[2] = {1, 7};
   const Int_t sech[2] = {6, 8};
   const char *name[2] = {"PbSc", "PbGl"};
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
 
   TH3 *h3_trig;
   h3_trig = (TH3*)f->Get("h3_bbc_pion");
@@ -170,7 +170,10 @@ void draw_BBCEff()
     st->SetY2NDC(0.8);
   }
 
-  c0->Print("BBCEff-PbSc.pdf");
-  c1->Print("BBCEff-PbGl.pdf");
+  TFile *f_out = new TFile("BBCEff-pileup.root", "RECREATE");
+  mcw(0, "PbSc");
+  mcw(1, "PbGl");
+  f_out->Close();
+
   c2->Print("BBCEff.pdf");
 }

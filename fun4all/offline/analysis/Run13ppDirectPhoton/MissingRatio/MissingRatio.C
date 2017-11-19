@@ -1,6 +1,7 @@
 #include "MissingRatio.h"
 
 #include "AnaTrk.h"
+#include "AnaToolsTowerID.h"
 #include "AnaToolsCluster.h"
 
 #include <PHGlobal.h>
@@ -114,7 +115,7 @@ int MissingRatio::Init(PHCompositeNode *topNode)
 
   // read warnmap
   //ReadTowerStatus("Warnmap_Run13pp510.txt");
-  ReadSashaWarnmap("dead_eff_run13pp500gev.dat");
+  ReadSashaWarnmap("warn_all_run13pp500gev.dat");
 
   return EVENT_OK;
 }
@@ -521,22 +522,43 @@ void MissingRatio::ReadSashaWarnmap(const string &filename)
   unsigned int nBadSc = 0;
   unsigned int nBadGl = 0;
 
-  unsigned int sector = 0;
-  unsigned int biny = 0;
-  unsigned int binz = 0;
+  int ich = 0;
+  int sector = 0;
+  int biny = 0;
+  int binz = 0;
+  int status = 0;
 
-  TOAD *toad_loader = new TOAD("MissingRatio");
+  TOAD *toad_loader = new TOAD("DirectPhotonPP");
   string file_location = toad_loader->location(filename);
   cout << "TOAD file location: " << file_location << endl;
   ifstream fin( file_location.c_str() );
 
-  while( fin >> sector >> binz >> biny )
+  while( fin >> ich >> status )
   {
-    // count tower with bad status for PbSc and PbGl
-    if( sector < 6 ) nBadSc++;
-    else nBadGl++;
+    // Attention!! I use my indexing for warn map in this program!!!
+    if( ich >= 10368 && ich < 15552 ) { // PbSc
+      if( ich < 12960 ) ich += 2592;
+      else              ich -= 2592;
+    }
+    else if( ich >= 15552 )           { // PbGl
+      if( ich < 20160 ) ich += 4608;
+      else              ich -= 4608;
+    }
 
-    tower_status[sector][biny][binz] = 1;
+    // get tower location
+    anatools::TowerLocation(ich, sector, biny, binz);
+
+    // count tower with bad status for PbSc and PbGl
+    if ( status > 0 )
+    {
+      if( sector < 6 ) nBadSc++;
+      else nBadGl++;
+    }
+    tower_status[sector][biny][binz] = status;
+
+    // mark edge towers
+    if( anatools::Edge_cg(sector, biny, binz) )
+      tower_status[sector][biny][binz] = 20;
   }
 
   cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;

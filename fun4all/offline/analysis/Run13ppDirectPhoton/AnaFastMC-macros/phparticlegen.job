@@ -1,7 +1,7 @@
 Universe        = vanilla
 Notification    = Complete
 Executable      = phparticlegen.csh
-Arguments       = $(Initialdir) $(Process)
+Arguments       = $(Initialdir) phparticlegen.C $(Process)
 Requirements    = (CPU_Speed >= 1 && TotalDisk > 0)
 Rank		= CPU_Speed
 Image_Size      = 16M

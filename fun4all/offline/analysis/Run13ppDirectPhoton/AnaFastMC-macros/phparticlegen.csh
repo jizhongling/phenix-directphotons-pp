@@ -1,5 +1,5 @@
 #!/bin/tcsh
-# Usage: $0 $(Initialdir) $(Process)
+# Usage: $0 $(Initialdir) Macro.C $(Process)
 
 setenv HOME /phenix/u/$LOGNAME
 source /etc/csh.login
@@ -10,4 +10,4 @@ source $HOME/.login
 
 cd $1
 if(! -e phparticlegen) then mkdir phparticlegen
-root -l -b -q $0:t:r.C\(20000,\"/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/phparticlegen/phparticlegen$2.root\"\)
+root -l -b -q $2\(20000,\"/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/phparticlegen/phparticlegen$3.root\"\)

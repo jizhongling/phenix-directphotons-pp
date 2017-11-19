@@ -88,7 +88,7 @@ void anaPileup_Sasha(const Int_t process = 0)
   for(Int_t ig=0; ig<4; ig++)
   {
     gr[ig]->Set(igp[ig]);
-    gROOT->ProcessLine( Form("c%d->Print(\"pileup/Sasha-proc%d-cond%d.pdf\");", ig, process, ig) );
+    mcw( ig, Form("proc%d-cond%d", process, ig) );
     gr[ig]->Write();
   }
   f_out->Close();

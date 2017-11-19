@@ -7,6 +7,8 @@ void draw_Pileup()
   const char *mname[2] = {"pol1", "log"};
   const char *cname[4] = {"PbSc without ToF", "PbGl without ToF", "PbSc with ToF", "PbGl with ToF"};
 
+  TFile *f_out = new TFile("Pileup-fit.root", "RECREATE");
+
   TMultiGraph *mg[npT*8];
   for(Int_t ipt=0; ipt<npT; ipt++)
     for(Int_t id=0; id<2; id++)
@@ -52,7 +54,7 @@ void draw_Pileup()
   fn_fit[0] = new TF1("fn_pol1", "pol1", 0., 0.2);
   fn_fit[1] = new TF1("fn_log", "-[0]*log(1-[1]*x)/([1]*x)", 1e-3, 0.2);
 
-  for(Int_t i=0; i<6; i++)
+  for(Int_t i=0; i<5; i++)
     mc(i, 2,2);
 
   for(Int_t ipt=0; ipt<npT; ipt++)
@@ -70,7 +72,7 @@ void draw_Pileup()
             Int_t cond = ic*2+is;
             Int_t ig = ipt*8+id*4+ic*2+is;
 
-            mcd(im, cond+1);
+            mcd(0, cond+1);
             mg[ig]->Draw("AP");  // must before GetXaxis()
             mg[ig]->SetTitle(cname[cond]);
             mg[ig]->GetXaxis()->SetTitle("Nmb/Nclock");
@@ -114,24 +116,11 @@ void draw_Pileup()
               igp2[igr]++;
             }
           } // ipt > 0
-          else if( ipt == 0 )
-          {
-            Double_t yy = p0[1] / p0[0];
-            Double_t eyy = yy * sqrt( pow(ep0[0]/p0[0],2.) + pow(ep0[1]/p0[1],2.) );
-            cout << Form("%s eff fit by %s in %s: ", cname[2+is], mname[im], dname[id]) << yy << " +- " << eyy << endl;
-          } // ipt == 0
         } // is
 
-        if( im == 0 )
-        {
-          c0->Print( Form("pileup/Pileup-data%d-pt%d-%d-pol1.pdf", id, pTlow[id][ipt], pThigh[id][ipt]) );
-          c0->Clear("D");
-        }
-        else if( im == 1 )
-        {
-          c1->Print( Form("pileup/Pileup-data%d-pt%d-%d-log.pdf", id, pTlow[id][ipt], pThigh[id][ipt]) );
-          c1->Clear("D");
-        }
+        f_out->cd();
+        mcw( 0, Form("data%d-pt%d-%d-%s", id, pTlow[id][ipt], pThigh[id][ipt], mname[im]) );
+        c0->Clear("D");
       } // ipt, id, im
 
   for(Int_t id=0; id<2; id++)
@@ -142,14 +131,14 @@ void draw_Pileup()
         gr_ratio[igr]->Set(igp[igr]);
         gr_tof[igr]->Set(igp2[igr]);
 
-        mcd(id+2, im*2+is+1);
+        mcd(id+1, im*2+is+1);
         gr_ratio[igr]->SetTitle( Form("%s %s fit by %s", dname[id], cname[2+is], mname[im]) );
         aset(gr_ratio[igr], "pT [GeV]", "#frac{p0}{mean}");
         style(gr_ratio[igr], 20, kRed);
         gr_ratio[igr]->Draw("AP");
         gr_ratio[igr]->Fit("pol0", "Q");
 
-        mcd(id+4, im*2+is+1);
+        mcd(id+3, im*2+is+1);
         gr_tof[igr]->SetTitle( Form("%s eff fit by %s in %s", cname[2+is], mname[im], dname[id]) );
         aset(gr_tof[igr], "pT [GeV]", "#ToF Eff");
         style(gr_tof[igr], 20, kRed);
@@ -157,8 +146,9 @@ void draw_Pileup()
         gr_tof[igr]->Fit("pol0", "Q");
       }
 
-  c2->Print("pileup/Pileup-ratio-ERT.pdf");
-  c3->Print("pileup/Pileup-ratio-MB.pdf");
-  c4->Print("pileup/ToF-ERT.pdf");
-  c5->Print("pileup/ToF-MB.pdf");
+  f_out->Close();
+  c1->Print("Pileup-ratio-ERT.pdf");
+  c2->Print("Pileup-ratio-MB.pdf");
+  c3->Print("ToFEff-ERT.pdf");
+  c4->Print("ToFEff-MB.pdf");
 }

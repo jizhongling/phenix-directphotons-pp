@@ -43,8 +43,8 @@
 
 using namespace std;
 
-const float PI = 3.1415927;
-const float mPi0 = 0.1349764;
+const float PI = TMath::Pi();
+const float mPi0 = 0.1349770;
 
 const float eMin = 0.3;
 const float AsymCut = 0.8;
@@ -118,7 +118,7 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
   if( warnmap == Nils )
     ReadTowerStatus("Warnmap_Run13pp510.txt");
   else if( warnmap == Sasha )
-    ReadSashaWarnmap("dead_eff_run13pp500gev.dat");
+    ReadSashaWarnmap("warn_all_run13pp500gev.dat");
 
   return EVENT_OK;
 }
@@ -578,27 +578,44 @@ void AnaFastMC::ReadSashaWarnmap(const string &filename)
   unsigned int nBadSc = 0;
   unsigned int nBadGl = 0;
 
-  unsigned int sector = 0;
-  unsigned int biny = 0;
-  unsigned int binz = 0;
+  int ich = 0;
+  int sector = 0;
+  int biny = 0;
+  int binz = 0;
+  int status = 0;
 
-  TOAD *toad_loader = new TOAD("MissingRatio");
+  TOAD *toad_loader = new TOAD("DirectPhotonPP");
   string file_location = toad_loader->location(filename);
   cout << "TOAD file location: " << file_location << endl;
   ifstream fin( file_location.c_str() );
 
-  while( fin >> sector >> binz >> biny )
+  while( fin >> ich >> status )
   {
+    // Attention!! I use my indexing for warn map in this program!!!
+    if( ich >= 10368 && ich < 15552 ) { // PbSc
+      if( ich < 12960 ) ich += 2592;
+      else              ich -= 2592;
+    }
+    else if( ich >= 15552 )           { // PbGl
+      if( ich < 20160 ) ich += 4608;
+      else              ich -= 4608;
+    }
+
+    // get tower location
+    anatools::TowerLocation(ich, sector, biny, binz);
+
     // count tower with bad status for PbSc and PbGl
-    if( sector < 6 ) nBadSc++;
-    else nBadGl++;
+    if ( status > 0 )
+    {
+      if( sector < 6 ) nBadSc++;
+      else nBadGl++;
+    }
+    tower_status[sector][biny][binz] = status;
 
-    tower_status[sector][biny][binz] = 1;
+    // mark edge towers
+    if( anatools::Edge_cg(sector, biny, binz) )
+      tower_status[sector][biny][binz] = 20;
   }
-
-  // mark edge towers
-  //if( anatools::Edge_cg(sector, biny, binz) )
-  //  tower_status[sector][biny][binz] = 1;
 
   cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
   fin.close();

@@ -3,24 +3,33 @@
 
 void draw_ProbEff()
 {
-  TFile *f = new TFile("ProbEff.root");
+  TFile *f = new TFile("Pi0PP-histo.root");
 
-  TH1 *h_pass[2][25];  // h_pass[part][ipt]
-  TH1 *h_total[2][25];  // h_total[part][ipt]
-  for(Int_t part=0; part<2; part++)
+  TH1 *h_pass[3][25];  // h_pass[is][ipt]
+  TH1 *h_total[3][25];  // h_total[is][ipt]
+  for(Int_t is=0; is<3; is++)
     for(Int_t ipt=0; ipt<25; ipt++)
     {
       char hname[100];
-      sprintf(hname,"h_pass_part%d_pt%d",part,ipt);
-      h_pass[part][ipt] = (TH1*)f->Get(hname);
-      sprintf(hname,"h_total_part%d_pt%d",part,ipt);
-      h_total[part][ipt] = (TH1*)f->Get(hname);
+      sprintf(hname, "mchist_s%d_pt%02d_tp", is, ipt);
+      h_pass[is][ipt] = (TH1*)f->Get(hname);
+      sprintf(hname, "mchist_s%d_pt%02d_t", is, ipt);
+      h_total[is][ipt] = (TH1*)f->Get(hname);
     }
+
+  for(Int_t ipt=0; ipt<25; ipt++)
+  {
+    h_pass[0][ipt]->Add(h_pass[1][ipt]);
+    h_total[0][ipt]->Add(h_total[1][ipt]);
+  }
 
   TGraphErrors *gr_prob[2];
   Int_t igp[2] = {};
-  for(Int_t ig=0; ig<2; ig++)
-    gr_prob[ig] = new TGraphErrors(npT);
+  for(Int_t part=0; part<2; part++)
+  {
+    gr_prob[part] = new TGraphErrors(npT);
+    gr_prob[part]->SetName(Form("gr_%d",part));
+  }
 
   for(Int_t part=0; part<2; part++)
     for(Int_t ic=0; ic<2; ic++)
@@ -31,17 +40,17 @@ void draw_ProbEff()
     {
       mcd(part*2, ipt+1);
       Double_t np, enp;
-      h_pass[part][ipt]->Rebin(10);
-      h_pass[part][ipt]->Scale(0.5);
-      h_pass[part][ipt]->SetTitle( Form("p_{T}: %4.2f-%4.2f", pTbin[ipt], pTbin[ipt+1]) );
-      FitMinv(h_pass[part][ipt], np, enp);
+      h_pass[part*2][ipt]->Rebin(10);
+      h_pass[part*2][ipt]->Scale(0.5);
+      h_pass[part*2][ipt]->SetTitle( Form("p_{T}: %4.2f-%4.2f", pTbin[ipt], pTbin[ipt+1]) );
+      FitMinv(h_pass[part*2][ipt], np, enp);
 
       mcd(part*2+1, ipt+1);
       Double_t nt, ent;
-      h_total[part][ipt]->Rebin(10);
-      h_total[part][ipt]->Scale(0.5);
-      h_total[part][ipt]->SetTitle( Form("p_{T}: %4.2f-%4.2f", pTbin[ipt], pTbin[ipt+1]) );
-      FitMinv(h_total[part][ipt], nt, ent);
+      h_total[part*2][ipt]->Rebin(10);
+      h_total[part*2][ipt]->Scale(0.5);
+      h_total[part*2][ipt]->SetTitle( Form("p_{T}: %4.2f-%4.2f", pTbin[ipt], pTbin[ipt+1]) );
+      FitMinv(h_total[part*2][ipt], nt, ent);
 
       Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
       Double_t yy = np / nt;
@@ -69,8 +78,14 @@ void draw_ProbEff()
   }
 
   const char* cond[2] = {"pass", "total"};
+  TFile *f_out = new TFile("ProbEff.root", "RECREATE");
   for(Int_t part=0; part<2; part++)
+  {
+    gr_prob[part]->Write();
     for(Int_t ic=0; ic<2; ic++)
-      gROOT->ProcessLine( Form("c%d->Print(\"ProbEff-part%d-%s.pdf\")", part*2+ic, part, cond[ic]) );
+      mcw(part*2+ic, Form("part%d-%s",part,cond[ic]));
+  }
+  f_out->Close();
+
   c5->Print("ProbEff.pdf");
 }

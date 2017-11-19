@@ -7,7 +7,7 @@ void draw_ToFEff()
   const Int_t sech[2] = {6, 8};
   const char *name[2] = {"PbSc", "PbGl"};
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
 
   THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
 
@@ -74,7 +74,10 @@ void draw_ToFEff()
     st->SetY2NDC(0.8);
   }
 
-  c0->Print("ToFEff-PbSc.pdf");
-  c1->Print("ToFEff-PbGl.pdf");
+  TFile *f_out = new TFile("ToFEff-fit.root", "RECREATE");
+  mcw(0, "PbSc.pdf");
+  mcw(1, "PbGl.pdf");
+  f_out->Close();
+
   c2->Print("ToFEff.pdf");
 }

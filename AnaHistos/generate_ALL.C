@@ -129,7 +129,7 @@ void generate_ALL(Int_t Process = 0)
   for(Int_t ir=firstRun; ir<lastRun; ir++)
   {
     TFile *f1 = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510ERT/8847/data/DirectPhotonPP_PhotonNode-%d.root", runnumber[ir]));
-    TFile *f2 = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/PhotonNode-histo-%d.root", runnumber[ir]));
+    TFile *f2 = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos/PhotonNode-ERT-%d.root", runnumber[ir]));
     TTree *T1 = (TTree*)f1->Get("T1");
 
     SpinPattern *spinpat = new SpinPattern;

@@ -1,47 +1,84 @@
 void draw_MergeAsym()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
-  //TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo.root");
-  THnSparse *hn_asym = (THnSparse*)f->Get("hn_asym");
-  hn_asym->GetAxis(4)->SetRange(113,162);
+  char name[100];
 
-  mc(0, 2,1);
-  mc(1, 2,1);
+  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
+  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
 
-  const char *name[2] = {"PbSc", "PbGl"};
+  THnSparse *hn_asym_sim = (THnSparse*)f_sim->Get("hn_asym");
+  THnSparse *hn_asym_data = (THnSparse*)f_data->Get("hn_asym");
+
+  hn_asym_sim->GetAxis(4)->SetRange(113,162);
+  hn_asym_data->GetAxis(4)->SetRange(113,162);
+
+  mc(0, 2,5);
+  legi(0, 0.4,0.7,0.7,0.9);
+
+  const char *sec_name[2] = {"PbSc", "PbGl"};
   const Int_t secl[2] = {1, 7};
   const Int_t sech[2] = {6, 8};
 
-  TLine *line[2];
-  line[0] = new TLine(0., 5.5, 30., 5.5);
-  line[1] = new TLine(0., 4., 30., 4.);
+  TGraphAsymmErrors *gr_sim[2][5];
+  TGraphAsymmErrors *gr_data[2][5];
+
+  TLine *line = new TLine(5., 0., 5., 1.);
+  line->SetLineColor(kBlue);
 
   for(Int_t part=0; part<2; part++)
   {
-    line[part]->SetLineColor(kRed);
-    hn_asym->GetAxis(0)->SetRange(secl[part], sech[part]);
+    hn_asym_sim->GetAxis(0)->SetRange(secl[part], sech[part]);
+    hn_asym_data->GetAxis(0)->SetRange(secl[part], sech[part]);
 
-    mcd(0, part+1);
-    gPad->SetLogz();
-    TH2 *h2_dR_pT = hn_asym->Projection(3,1);
-    h2_dR_pT->SetTitle(name[part]);
-    aset(h2_dR_pT, "p_{T}^{#pi^{0}} [GeV]");
-    h2_dR_pT->GetZaxis()->SetRangeUser(1e-7,1e1);
-    h2_dR_pT->DrawCopy("colz");
-    line[part]->Draw();
-    delete h2_dR_pT;
+    hn_asym_sim->GetAxis(2)->SetRange(1,50);
+    hn_asym_data->GetAxis(2)->SetRange(1,50);
 
-    mcd(1, part+1);
-    gPad->SetLogz();
-    TH2 *h2_asym_pT = hn_asym->Projection(2,1);
-    h2_asym_pT->SetTitle(name[part]);
-    aset(h2_asym_pT, "p_{T}^{#pi^{0}} [GeV]");
-    h2_asym_pT->GetZaxis()->SetRangeUser(1e-7,1e1);
-    h2_asym_pT->DrawCopy("colz");
-    line[part]->Draw();
-    delete h2_asym_pT;
+    TH1 *h_pt_sim = (TH1*)hn_asym_sim->Projection(1)->Clone("h_pt_sim");
+    TH1 *h_pt_data = (TH1*)hn_asym_data->Projection(1)->Clone("h_pt_data");
+
+    for(Int_t ias=0; ias<5; ias++)
+    {
+      mcd(0, 2*ias+part+1);
+
+      hn_asym_sim->GetAxis(2)->SetRange(10*ias+1,10*ias+10);
+      hn_asym_data->GetAxis(2)->SetRange(10*ias+1,10*ias+10);
+
+      Double_t AsymLow = hn_asym_sim->GetAxis(2)->GetBinLowEdge(10*ias+1);
+      Double_t AsymUp = hn_asym_sim->GetAxis(2)->GetBinUpEdge(10*ias+10);
+      sprintf(name, "%s Asym: %.1f-%.1f", sec_name[part], AsymLow, AsymUp);
+
+      TH1 *h_1pt_sim = (TH1*)hn_asym_sim->Projection(1)->Clone("h_1pt_sim");
+      TH1 *h_1pt_data = (TH1*)hn_asym_data->Projection(1)->Clone("h_1pt_data");
+
+      gr_sim[part][ias] = new TGraphAsymmErrors(h_1pt_sim, h_pt_sim, "n");
+      gr_data[part][ias] = new TGraphAsymmErrors(h_1pt_data, h_pt_data, "n");
+
+      gr_sim[part][ias]->SetTitle(name);
+      gr_data[part][ias]->SetTitle(name);
+
+      aset(gr_sim[part][ias], "p_{T} [GeV]", "ratio", 0.,30., 0.,1.);
+      aset(gr_data[part][ias], "p_{T} [GeV]", "ratio", 0.,30., 0.,1.);
+
+      style(gr_sim[part][ias], 20, 1);
+      style(gr_data[part][ias], 21, 2);
+
+      gr_sim[part][ias]->Draw("AP");
+      gr_data[part][ias]->Draw("P");
+      line->Draw();
+
+      if(ias==0 && part==0)
+      {
+        leg0->AddEntry(gr_sim[part][ias], "PISA", "LEP");
+        leg0->AddEntry(gr_data[part][ias], "Data", "LEP");
+      }
+      leg0->Draw();
+
+      delete h_1pt_sim;
+      delete h_1pt_data;
+    }
+
+    delete h_pt_sim;
+    delete h_pt_data;
   }
 
-  c0->Print("MergeAsym-dR-sim.pdf");
-  c1->Print("MergeAsym-asym-sim.pdf");
+  c0->Print("MergeAsym.pdf");
 }

@@ -76,7 +76,7 @@ void GenerateERTEff(TFile *f, TObjArray *Glist, Int_t ispion, Int_t trig)
 
 void draw_ERTEff()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
   TObjArray *Glist = new TObjArray();
 
   for(Int_t ispion=0; ispion<2; ispion++)
