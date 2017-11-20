@@ -96,8 +96,8 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
     delete h_pull;
 
     Double_t scale = 1.;
-    //if( fn2->GetNDF() > 0 )
-    //  scale = sqrt( fn2->GetChisquare() / fn2->GetNDF() );
+    if( fn2->GetNDF() > 0 )
+      scale = sqrt( fn2->GetChisquare() / fn2->GetNDF() );
 
     gx[0][ipt] = axis_pt->GetBinCenter(ipt+1);
     gy[0][ipt] = fn2->GetParameter(1);
@@ -131,7 +131,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
 void draw_Pi0Peak()
 {
   TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
-  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo.root");
+  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
 
   mc(0, 2,2);
 

@@ -1,0 +1,66 @@
+void AddHisto_Sasha(const Int_t process = 0)
+{
+  const char *tname[4] = {"", "_t", "_p", "_tp"};
+
+  TFile *f_out = new TFile(Form("histos/Pi0PP-%d.root",process), "RECREATE");
+
+  TH1 *mchist[3][25][4];  // mchist[is][ipt][it]
+  for(Int_t is=0; is<3; is++)
+    for(Int_t ipt=0; ipt<25; ipt++)
+      for(Int_t it=0; it<4; it++)
+      {
+        char hname[100];
+        sprintf(hname, "mchist_s%d_pt%02d%s", is, ipt, tname[it]);
+        mchist[is][ipt][it] = new TH1F(hname, hname, 1000, 0., 1.);
+      }
+
+  Int_t ptl[25];
+  Int_t ptr[25];
+  Int_t ipt = 0;
+  for(Int_t ip=0; ip<20; ip++)
+  {
+    ptl[ipt] = ip;
+    ptr[ipt] = ip;
+    ipt++;
+  }
+  for(Int_t ip=20; ip<40; ip+=4)
+  {
+    ptl[ipt] = ip;
+    ptr[ipt] = ip+3;
+    ipt++;
+  }
+
+  const Int_t nThread = 20;
+  Int_t thread = -1;
+  Int_t runnumber;
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
+
+  while( fin >> runnumber )
+  {
+    thread++;
+    if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
+
+    TFile *f = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510ERT/12232/data/Pi0PP-%d.root",runnumber));
+    if( f->IsZombie() ) continue;
+
+    TH1 *mch[3][40][4];  // mch[is][ip][it]
+    for(Int_t is=0; is<3; is++)
+      for(Int_t ip=0; ip<40; ip++)
+        for(Int_t it=0; it<4; it++)
+        {
+          char hname[100];
+          sprintf(hname, "mc_s%d_bcc0_pt_%03d%s", is, 5*ip, tname[it]);
+          mch[is][ip][it] = (TH1*)f->Get(hname);
+        }
+
+    for(Int_t is=0; is<3; is++)
+      for(Int_t ipt=0; ipt<25; ipt++)
+        for(Int_t ip=ptl[ipt]; ip<=ptr[ipt]; ip++)
+          for(Int_t it=0; it<4; it++)
+            mchist[is][ipt][it]->Add(mch[is][ip][it]);
+  }
+
+  f_out->cd();
+  f_out->Write();
+  f_out->Close();
+}

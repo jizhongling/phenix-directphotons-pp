@@ -53,7 +53,7 @@ void draw_Yield()
 {
   gROOT->ProcessLine(".L ReadGraph.C");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonNode-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
   TObjArray *Glist = new TObjArray();
 
   for(Int_t part=0; part<3; part++)

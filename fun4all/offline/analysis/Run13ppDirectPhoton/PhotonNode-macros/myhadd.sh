@@ -32,5 +32,3 @@ if [[ -n "${files}" ]] ; then
   fi
   mv tmp.root total.root
 fi
-
-mv total.root ../${prename}histo.root

@@ -1,7 +1,7 @@
 Universe        = vanilla
 Notification    = Complete
-Executable      = anaPileup.csh
-Arguments       = $(Initialdir) $(Process)
+Executable      = /phenix/u/zji/bin/condor-job.csh
+Arguments       = $(Initialdir) anaPileup.C $(Process)
 Requirements    = (CPU_Speed >= 1 && TotalDisk > 0)
 Rank		= CPU_Speed
 Image_Size      = 32M
