@@ -34,7 +34,7 @@ void draw_MergeAngle()
       char name[100];
       Double_t low =  hn_total->GetAxis(reco)->GetBinLowEdge(ipt+1);
       Double_t high = hn_total->GetAxis(reco)->GetBinLowEdge(ipt+2);
-      sprintf(name, "pT: %4.2f-%4.2f", low, high);
+      sprintf(name, "pT: %3.1f-%3.1f GeV", low, high);
 
       TH1 *h_total = hn_total->Projection(3);
       mcd(part,ipad);

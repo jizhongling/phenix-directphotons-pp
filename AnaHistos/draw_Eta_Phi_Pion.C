@@ -3,7 +3,7 @@ void draw_Eta_Phi_Pion()
   gROOT->ProcessLine(".L ReadGraph.C");
   TH1::SetDefaultSumw2();
 
-  TFile *f_sim = new TFile("MissingRatio-histo.root");
+  TFile *f_sim = new TFile("data/MissingRatio-histo.root");
   THnSparse *hn_photon = (THnSparse*)f_sim->Get("hn_pion");
   TAxis *axis_pt_hn_photon = hn_photon->GetAxis(1);
 
@@ -99,8 +99,8 @@ void draw_Eta_Phi_Pion()
       hv_1phi[part]->SetMarkerSize(2.);
       hv_1phi[part]->SetMarkerStyle(2);
       hv_1phi[part]->SetMarkerColor(2);
-      hv_1phi[part]->SetTitle(Form("p_{T}: %4.2f-%4.2f",low,high));
-      hv_phi[part]->SetTitle(Form("p_{T}: %4.2f-%4.2f",low,high));
+      hv_1phi[part]->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
+      hv_phi[part]->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
     }
 
     Double_t scale = h_1eta->GetEntries() / h_eta->GetEntries();
@@ -109,7 +109,7 @@ void draw_Eta_Phi_Pion()
     h2_eta_phi->Scale(scale);
 
     c1->cd(ipad);
-    h_1eta->SetTitle(Form("p_{T}: %4.2f-%4.2f",low,high));
+    h_1eta->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
     h_1eta->SetMarkerSize(2.);
     h_1eta->SetMarkerStyle(2);
     h_1eta->SetMarkerColor(2);
@@ -133,11 +133,11 @@ void draw_Eta_Phi_Pion()
       hv_phi[part]->DrawCopy("SAME");
 
     c3->cd(ipad);
-    h2_eta_phi->SetTitle(Form("p_{T}: %4.2f-%4.2f",low,high));
+    h2_eta_phi->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
     h2_eta_phi->Draw("COLZ");
 
     c4->cd(ipad);
-    h2_1eta_phi->SetTitle(Form("p_{T}: %4.2f-%4.2f",low,high));
+    h2_1eta_phi->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
     h2_1eta_phi->Draw("COLZ");
 
     ipad++;

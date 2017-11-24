@@ -1,0 +1,5 @@
+NarrowVTX (Each run separately)
+number of runs = 874
+sum_db = 3.61833e+11
+sum_rej = 3.62786e+11
+sum_rej/sum_db = 1.00263

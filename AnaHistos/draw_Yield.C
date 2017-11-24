@@ -27,7 +27,7 @@ void GenerateGraph(TFile *f, TObjArray *Glist, Int_t part)
     char title[100];
     Double_t low = axis_pt->GetBinLowEdge(ipt+1);
     Double_t high = axis_pt->GetBinLowEdge(ipt+2);
-    sprintf(title, "p_{T} %3.1f-%3.1f", low, high);
+    sprintf(title, "p_{T} %3.1f-%3.1f GeV", low, high);
 
     axis_sec->SetRange(sec_low[part], sec_high[part]);
     axis_pt->SetRange(ipt+1,ipt+1);
@@ -78,7 +78,7 @@ void draw_Yield()
   leg0->Draw();
   c0->Print("Yield.pdf");
 
-  TFile *fout = new TFile("Yield.root", "RECREATE");
+  TFile *fout = new TFile("data/Yield.root", "RECREATE");
   Glist->Write();
   fout->Close();
 }

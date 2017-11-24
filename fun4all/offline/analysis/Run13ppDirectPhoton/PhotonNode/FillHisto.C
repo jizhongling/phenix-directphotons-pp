@@ -11,28 +11,24 @@
 #include <Photon.h>
 #include <PhotonERT.h>
 #include <SpinPattern.h>
-#include <RunHeader.h>
 
 #include <TOAD.h>
 #include <phool.h>
 #include <PHCompositeNode.h>
+#include <RunHeader.h>
 #include <getClass.h>
 #include <Fun4AllHistoManager.h>
 #include <Fun4AllReturnCodes.h>
 
-#include <TFile.h>
-#include <TTree.h>
+#include <TH1.h>
 #include <TH3.h>
 #include <THnSparse.h>
-#include <TGraphErrors.h>
+#include <TMath.h>
 
-#include <cmath>
-#include <ctime>
 #include <iostream>
 #include <fstream>
-#include <utility>
-#include <map>
-#include <iterator>
+#include <ctime>
+#include <cmath>
 
 using namespace std;
 
@@ -49,17 +45,15 @@ FillHisto::FillHisto(const string &name, const char *filename) :
   h_events(NULL),
   h3_tof(NULL),
   h3_tof_raw(NULL),
-  h3_inv_mass_pi0calib(NULL),
-  h3_inv_mass_pi0calib_raw(NULL),
+  h3_minv(NULL),
+  h3_minv_raw(NULL),
   h3_bbc(NULL),
-  h3_bbc_pion(NULL),
+  hn_bbc_pion(NULL),
   h3_ert(NULL),
-  h3_ert_pion(NULL),
+  hn_ert_pion(NULL),
   hn_1photon(NULL),
   hn_2photon(NULL),
-  hn_pion(NULL),
-  hn_asym(NULL),
-  hn_minv(NULL)
+  hn_pion(NULL)
 {
   datatype = ERT;
 
@@ -223,13 +217,10 @@ int FillHisto::process_event(PHCompositeNode *topNode)
   FillBBCEfficiency( photoncont );
   FillERTEfficiency( photoncont );
 
-  // Analyze single photon event
-  FillSinglePhotonSpectrum( photoncont );
+  // Analyze photon for direct photon event
+  FillPhotonSpectrum( photoncont );
 
-  // Analyze photon pair for direct photon event
-  FillTwoPhotonSpectrum( photoncont );
-
-  // Analyze photon pair for pi0 event
+  // Analyze photon for pi0 event
   FillPi0Spectrum( photoncont );
 
   delete photoncont_raw;
@@ -285,11 +276,11 @@ int FillHisto::FillPi0InvariantMass( const PhotonContainer *photoncont, const st
       {
         Photon *photon1 = photoncont->GetPhoton(i);
         Photon *photon2 = photoncont->GetPhoton(j);
-        if( GetStatus(photon1) == 0
-            && GetStatus(photon2) == 0
-            && TestPhoton(photon1, bbc_t0)
-            && TestPhoton(photon2, bbc_t0)
-            && anatools::GetAsymmetry_E(photon1, photon2) < AsymCut )
+        if( GetStatus(photon1) == 0 &&
+            GetStatus(photon2) == 0 &&
+            TestPhoton(photon1, bbc_t0) &&
+            TestPhoton(photon2, bbc_t0) &&
+            anatools::GetAsymmetry_E(photon1, photon2) < AsymCut )
         {
           int sector1 = anatools::GetSector(photon1);
           int sector2 = anatools::GetSector(photon2);
@@ -299,9 +290,9 @@ int FillHisto::FillPi0InvariantMass( const PhotonContainer *photoncont, const st
           double minv = anatools::GetInvMass(photon1, photon2);
 
           if ( quali == "raw" )
-            h3_inv_mass_pi0calib_raw->Fill(sector1, tot_pT, minv);
+            h3_minv_raw->Fill(sector1, tot_pT, minv);
           else
-            h3_inv_mass_pi0calib->Fill(sector1, tot_pT, minv);
+            h3_minv->Fill(sector1, tot_pT, minv);
         }
       }
   }
@@ -324,14 +315,16 @@ int FillHisto::FillBBCEfficiency( const PhotonContainer *photoncont )
     Photon *photon1 = photoncont->GetPhoton(i);
     if( GetStatus(photon1) == 0 )
     {
+      v_used.push_back(i);
+
       int sector = anatools::GetSector( photon1 );
       double photon_pT = anatools::Get_pT( photon1 );
 
       if( photon1->get_trg2() ) 
       {
-        h3_bbc->Fill(photon_pT, sector, "all", 1.);
+        h3_bbc->Fill(sector, photon_pT, "all", 1.);
         if( photoncont->get_bbcnovtx_live() )
-          h3_bbc->Fill(photon_pT, sector, "bbc", 1.);
+          h3_bbc->Fill(sector, photon_pT, "bbc", 1.);
       }
 
       for(unsigned j=0; j<nphotons; j++)
@@ -341,12 +334,7 @@ int FillHisto::FillBBCEfficiency( const PhotonContainer *photoncont )
           if( GetStatus(photon2) == 0 )
           {
             int sector2 = anatools::GetSector( photon2 );
-            if( !anatools::SectorCheck(sector,sector2) )
-              continue;
-
-            double minv = anatools::GetInvMass(photon1, photon2);
-            if( minv < 0.112 || minv > 0.162 )
-              continue;
+            if( !anatools::SectorCheck(sector,sector2) ) continue;
 
             bool trig = photon1->get_trg2();
             if( photon2->get_E() > photon1->get_E() )
@@ -356,17 +344,22 @@ int FillHisto::FillBBCEfficiency( const PhotonContainer *photoncont )
             }
 
             double tot_pT = anatools::GetTot_pT(photon1, photon2);
+            double minv = anatools::GetInvMass(photon1, photon2);
 
             if( trig )
             {
-              h3_bbc_pion->Fill(tot_pT, sector, "all", 1.);
+              double fill_hn_bbc_pion[] = {sector, tot_pT, minv, 0.};
+              hn_bbc_pion->Fill(fill_hn_bbc_pion);
               if( photoncont->get_bbcnovtx_live() )
-                h3_bbc_pion->Fill(tot_pT, sector, "bbc", 1.);
+              {
+                fill_hn_bbc_pion[3] = 1.;
+                hn_bbc_pion->Fill(fill_hn_bbc_pion);
+              }
             }
-          }
-        }
-    }
-  }
+          } // check photon2
+        } // j
+    } // check photon1
+  } // i
 
   return EVENT_OK;
 }
@@ -411,13 +404,13 @@ int FillHisto::FillERTEfficiency( const PhotonContainer *photoncont )
     {
       v_used.push_back(i);
 
-      h3_ert->Fill(photon_pT, sector, "all", 1.);
+      h3_ert->Fill(sector, photon_pT, "all", 1.);
       if( photon1->get_trg1() )
-        h3_ert->Fill(photon_pT, sector, "ERT4x4a", 1.);
+        h3_ert->Fill(sector, photon_pT, "ERT4x4a", 1.);
       if( photon1->get_trg2() )
-        h3_ert->Fill(photon_pT, sector, "ERT4x4b", 1.);
+        h3_ert->Fill(sector, photon_pT, "ERT4x4b", 1.);
       if( photon1->get_trg3() )
-        h3_ert->Fill(photon_pT, sector, "ERT4x4c", 1.);
+        h3_ert->Fill(sector, photon_pT, "ERT4x4c", 1.);
 
       for(unsigned j=0; j<nphotons; j++)
         if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
@@ -427,83 +420,48 @@ int FillHisto::FillERTEfficiency( const PhotonContainer *photoncont )
               TestPhoton(photon2, bbc_t0) )
           {
             int sector2 = anatools::GetSector( photon2 );
-            if( !anatools::SectorCheck(sector,sector2) )
-              continue;
+            if( !anatools::SectorCheck(sector,sector2) ) continue;
 
-            double minv = anatools::GetInvMass(photon1, photon2);
-            if( minv < 0.112 || minv > 0.162 )
-              continue;
+            bool trig1 = photon1->get_trg1();
+            bool trig2 = photon1->get_trg2();
+            bool trig3 = photon1->get_trg3();
+            if( photon2->get_E() > photon1->get_E() )
+            {
+              sector = sector2;
+              trig1 = photon2->get_trg1();
+              trig2 = photon2->get_trg2();
+              trig3 = photon2->get_trg3();
+            }
 
             double tot_pT = anatools::GetTot_pT(photon1, photon2);
+            double minv = anatools::GetInvMass(photon1, photon2);
 
-            h3_ert_pion->Fill(tot_pT, sector, "all", 1.);
-            if( photon1->get_trg1() ||
-                photon2->get_trg1() )
-              h3_ert_pion->Fill(tot_pT, sector, "ERT4x4a", 1.);
-            if( photon1->get_trg2() ||
-                photon2->get_trg2() )
-              h3_ert_pion->Fill(tot_pT, sector, "ERT4x4b", 1.);
-            if( photon1->get_trg3() ||
-                photon2->get_trg3() )
-              h3_ert_pion->Fill(tot_pT, sector, "ERT4x4c", 1.);
-          }
-        }
-    }
-  }
-
-  return EVENT_OK;
-}
-
-int FillHisto::FillSinglePhotonSpectrum( const PhotonContainer *photoncont )
-{
-  /* Get event global parameters */
-  double bbc_z = photoncont->get_bbc_z();
-  double bbc_t0 = photoncont->get_bbc_t0();
-  if( abs(bbc_z) > 10. ) return DISCARDEVENT;
-
-  /* Check trigger */
-  if( datatype == ERT )
-  {
-    if( !photoncont->get_ert_c_scaled() || !photoncont->get_bbcnarrow_live() )
-      return DISCARDEVENT;
-  }
-  else if( datatype == MB )
-  {
-    if( !photoncont->get_bbcnarrow_scaled() )
-      return DISCARDEVENT;
-  }
-
-  unsigned nphotons = photoncont->Size();
-
-  int pattern = GetPattern(photoncont);
-
-  for(unsigned i=0; i<nphotons; i++)
-  {
-    Photon *photon = photoncont->GetPhoton(i);
-    if( GetStatus(photon) == 0
-        && TestPhoton(photon, bbc_t0) )
-    {
-      int sector = anatools::GetSector(photon);
-
-      TLorentzVector pE = anatools::Get_pE(photon);
-      double px = pE.Px();
-      double py = pE.Py();
-      double pz = pE.Pz();
-      double pT = pE.Pt();
-      double mom = pE.P(); 
-
-      double eta = mom > 0. ? atan(pz/mom) : 9999.;
-      double phi = px > 0. ? atan(py/px) : PI+atan(py/px);
-
-      double fill_hn_1photon[] = {sector, pT, pattern, eta, phi};
-      hn_1photon->Fill(fill_hn_1photon);
-    }
-  }
+            double fill_hn_ert_pion[] = {sector, tot_pT, minv, 0.};
+            hn_ert_pion->Fill(fill_hn_ert_pion);
+            if(trig1)
+            {
+              fill_hn_ert_pion[3] = 1.;
+              hn_ert_pion->Fill(fill_hn_ert_pion);
+            }
+            if(trig2)
+            {
+              fill_hn_ert_pion[3] = 2.;
+              hn_ert_pion->Fill(fill_hn_ert_pion);
+            }
+            if(trig3)
+            {
+              fill_hn_ert_pion[3] = 3.;
+              hn_ert_pion->Fill(fill_hn_ert_pion);
+            }
+          } // check photon2
+        } // j
+    } // check photon1
+  } // i
 
   return EVENT_OK;
 }
 
-int FillHisto::FillTwoPhotonSpectrum(const PhotonContainer *photoncont)
+int FillHisto::FillPhotonSpectrum( const PhotonContainer *photoncont )
 {
   /* Get event global parameters */
   double bbc_z = photoncont->get_bbc_z();
@@ -523,31 +481,45 @@ int FillHisto::FillTwoPhotonSpectrum(const PhotonContainer *photoncont)
   }
 
   unsigned nphotons = photoncont->Size();
-
   int pattern = GetPattern(photoncont);
 
   for(unsigned i=0; i<nphotons; i++)
-    for(unsigned j=0; j<nphotons; j++)
-      if(j != i)
-      {
-        Photon *photon1 = photoncont->GetPhoton(i);
-        Photon *photon2 = photoncont->GetPhoton(j);
+  {
+    Photon *photon = photoncont->GetPhoton(i);
+    if( GetStatus(photon) == 0 &&
+        TestPhoton(photon, bbc_t0) )
+    {
+      int sector = anatools::GetSector(photon);
 
-        if( GetStatus(photon1) == 0
-            && GetStatus(photon2) == 0
-            && TestPhoton(photon1, bbc_t0)
-            && TestPhoton(photon2, bbc_t0)
-            && anatools::GetAsymmetry_E(photon1, photon2) < AsymCut )
+      TLorentzVector pE = anatools::Get_pE(photon);
+      double px = pE.Px();
+      double py = pE.Py();
+      double pz = pE.Pz();
+      double pT = pE.Pt();
+      double mom = pE.P(); 
+
+      double eta = mom > 0. ? atan(pz/mom) : 9999.;
+      double phi = px > 0. ? atan(py/px) : PI+atan(py/px);
+
+      double fill_hn_1photon[] = {sector, pT, pattern, eta, phi};
+      hn_1photon->Fill(fill_hn_1photon);
+
+      for(unsigned j=0; j<nphotons; j++)
+        if(j != i)
         {
-          int sector = anatools::GetSector(photon1);
-          double pT = anatools::Get_pT(photon1);
-          double tot_pT = anatools::GetTot_pT(photon1, photon2);
-          double minv = anatools::GetInvMass(photon1, photon2);
+          Photon *photon2 = photoncont->GetPhoton(j);
+          if( GetStatus(photon2) == 0 &&
+              TestPhoton(photon2, bbc_t0) &&
+              anatools::GetAsymmetry_E(photon, photon2) < AsymCut )
+          {
+            double minv = anatools::GetInvMass(photon, photon2);
 
-          double fill_hn_2photon[] = {sector, pT, tot_pT, minv, pattern};
-          hn_2photon->Fill(fill_hn_2photon);
-        }
-      }
+            double fill_hn_2photon[] = {sector, pT, minv, pattern};
+            hn_2photon->Fill(fill_hn_2photon);
+          } // check photon2
+        } // j
+    } // check photon1
+  } // i
 
   return EVENT_OK;
 }
@@ -583,10 +555,9 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
       {
         Photon *photon1 = photoncont->GetPhoton(i);
         Photon *photon2 = photoncont->GetPhoton(j);
-        double asym = anatools::GetAsymmetry_E(photon1, photon2);
         if( GetStatus(photon1) == 0 &&
             GetStatus(photon2) == 0 &&
-            asym < AsymCut )
+            anatools::GetAsymmetry_E(photon1, photon2) < AsymCut )
         {
           int sector1 = anatools::GetSector(photon1);
           int sector2 = anatools::GetSector(photon2);
@@ -601,34 +572,20 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
           }
           if( datatype == ERT && !trig ) continue;
 
-          TLorentzVector pE1 = anatools::Get_pE(photon1);
-          TLorentzVector pE2 = anatools::Get_pE(photon2);
-          TLorentzVector tot_pE =  pE1 + pE2;
-          double tot_pT = tot_pE.Pt();
-          double minv = tot_pE.M();
+          double tot_pT = anatools::GetTot_pT(photon1, photon2);
+          double minv = anatools::GetInvMass(photon1, photon2);
 
-          double fill_hn_pion_0[] = {sector, tot_pT, minv, 0.};
-          hn_pion->Fill(fill_hn_pion_0);
+          double fill_hn_pion[] = {sector, tot_pT, minv, 0.};
+          hn_pion->Fill(fill_hn_pion);
           if( TestPhoton(photon1, bbc_t0) &&
               TestPhoton(photon2, bbc_t0) )
           {
-            double fill_hn_pion_1[] = {sector, tot_pT, minv, 1.};
-            hn_pion->Fill(fill_hn_pion_1);
-
-            double dx = photon1->get_x() - photon2->get_x();
-            double dy = photon1->get_y() - photon2->get_y();
-            double dz = photon1->get_z() - photon2->get_z();
-            double dR = sqrt(dx*dx + dy*dy + dz*dz);
-            double fill_hn_asym[] = {sector, tot_pT, asym, dR, minv};
-            hn_asym->Fill(fill_hn_asym);
-
-            double angle = sqrt( 1. - cos( pE1.Angle(pE2.Vect()) ) );
-            double fill_hn_minv[] = {sector, tot_pT, pE1.E(), pE2.E(), angle};
-            hn_minv->Fill(fill_hn_minv);
+            fill_hn_pion[3] = 1.;
+            hn_pion->Fill(fill_hn_pion);
           } // TestPhoton
         } // GetStatus and asymmetry cut
-      } // second cluster loop
-  } // first cluster loop
+      } // j 
+  } // i 
 
   return EVENT_OK;
 }
@@ -637,12 +594,12 @@ int FillHisto::EndRun(const int runnumber)
 {
   // Write histograms to file for this run
   // and reset histograms for the next run
-  char filename[200];
+  char fname[200];
   if( datatype == ERT )
-    sprintf(filename, "histos-ERT/PhotonNode-%d.root", runnumber);
+    sprintf(fname, "histos-ERT/PhotonNode-%d.root", runnumber);
   else if( datatype == MB )
-    sprintf(filename, "histos-MB/PhotonNode-%d.root", runnumber);
-  hm->dumpHistos(filename);
+    sprintf(fname, "histos-MB/PhotonNode-%d.root", runnumber);
+  hm->dumpHistos(fname);
   hm->Reset();
 
   return EVENT_OK;
@@ -674,49 +631,40 @@ void FillHisto::BookHistograms()
   /* Create HistogramManager */
   hm = new Fun4AllHistoManager("HistogramManager");
 
-  /*
-   * pT bins
-   */
-  const int n_pTbins = 31;
-  const double pTbins[n_pTbins+1] = { 0.0,
+  /* pT bins */
+  const int npT = 30;
+  const double pTbin[npT+1] = { 0.0,
     0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
     5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
-    12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0,
-    100.0};
+    12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
 
-  /*
-   * phi sector
-   */
+  /* phi sector */
   const double phi_sec[8] = {
     -PI/8, 0, PI/8, 2*PI/8,
     PI-2*PI/8, PI-PI/8, PI, PI+PI/8
   };
 
-  /*
-   * phi bins
-   */
-  const int n_phibins = 163;
-  double phi_twr[n_phibins+1];
+  /* phi bins */
+  const int nphi = 163;
+  double phibin[nphi+1];
   for(int is=0; is<6; is++)
     for(int it=0; it<19; it++)
-      phi_twr[19*is+it] = phi_sec[is] + 0.02 * ( it - 9 );
+      phibin[19*is+it] = phi_sec[is] + 0.02 * ( it - 9 );
   for(int is=6; is<8; is++)
     for(int it=0; it<25; it++)
-      phi_twr[114+25*(is-6)+it] = phi_sec[is] + 0.016 * ( it - 12 );
+      phibin[114+25*(is-6)+it] = phi_sec[is] + 0.016 * ( it - 12 );
 
-  /*
-   * Events counter
-   */
+  /* Events counter */
   if( datatype == ERT )
   {
-    h_events = new TH1F("h_events", "Events counter", 3,0.5,3.5);
+    h_events = new TH1F("h_events", "Events counter", 3,-0.5,2.5);
     h_events->GetXaxis()->SetBinLabel(1, "ert_a");
     h_events->GetXaxis()->SetBinLabel(2, "ert_b");
     h_events->GetXaxis()->SetBinLabel(3, "ert_c");
   }
   else if( datatype == MB )
   {
-    h_events = new TH1F("h_events", "Events counter", 9,0.5,9.5);
+    h_events = new TH1F("h_events", "Events counter", 9,-0.5,8.5);
     h_events->GetXaxis()->SetBinLabel(1, "bbc_narrow");
     h_events->GetXaxis()->SetBinLabel(2, "bbc_narrow_10cm");
     h_events->GetXaxis()->SetBinLabel(3, "bbc_narrow_10cm_ert_c");
@@ -727,160 +675,97 @@ void FillHisto::BookHistograms()
     h_events->GetXaxis()->SetBinLabel(8, "bbc_mb_narrow_10cm");
     h_events->GetXaxis()->SetBinLabel(9, "bbc_mb_narrow_10cm_ert_c");
   }
-  hm->registerHisto( h_events, 1 );
+  hm->registerHisto(h_events);
 
-  /*
-   * 3D histogram of sector, pT and TOF to check TOF calibration
-   */
-  h3_tof = new TH3F("h3_tof", "TOF;EMCal sector;p_{T} [GeV];TOF [ns];", 8,-0.5,7.5, n_pTbins,0.,0., 1001,-100.05,100.05);
-  h3_tof->GetYaxis()->Set(n_pTbins, pTbins);
-  hm->registerHisto( h3_tof , 1 );
+  /* ToF calibration */
+  h3_tof = new TH3F("h3_tof", "ToF;sector;p_{T} [GeV];ToF [ns];", 8,-0.5,7.5, npT,0.,0., 1001,-100.05,100.05);
+  h3_tof->GetYaxis()->Set(npT, pTbin);
+  hm->registerHisto(h3_tof);
 
-  /*
-   * Using TOF from DST file without local recalibration.
-   */
   h3_tof_raw = static_cast<TH3*>(h3_tof->Clone("h3_tof_raw"));
-  hm->registerHisto( h3_tof_raw , 1 );
+  hm->registerHisto(h3_tof_raw);
 
-  /*
-   * 3D histogram storing invariant mass of photon
-   * candidate pairs in different sectors and pT bins; photon pair
-   * selection particularly strict for asymmetry.
-   * Require both photons to be in same sector. Used to check sector-by-
-   * sector EMCal energy calibration.
+  /* Storing invariant mass of photon pairs in different sectors and pT bins.
+   * Require both photons to be in same sector.
+   * Used to check sector-by-sector EMCal energy calibration.
    */
-  h3_inv_mass_pi0calib = new TH3F("h3_inv_mass_pi0calib", "Photon pair invariant mass;EMCal sector;p_{T} [GeV];m_{inv} [GeV];", 8,-0.5,7.5, n_pTbins,0.,0., 300,0.,0.3);
-  h3_inv_mass_pi0calib->GetYaxis()->Set(n_pTbins, pTbins);
-  hm->registerHisto( h3_inv_mass_pi0calib , 1 );
+  h3_minv = new TH3F("h3_minv", "Photon pair invariant mass;sector;p_{T} [GeV];m_{inv} [GeV];", 8,-0.5,7.5, npT,0.,0., 300,0.,0.3);
+  h3_minv->GetYaxis()->Set(npT, pTbin);
+  hm->registerHisto(h3_minv);
 
-  /*
-   * Using energies from DST file without local recalibration.
-   */
-  h3_inv_mass_pi0calib_raw = static_cast<TH3*>(h3_inv_mass_pi0calib->Clone("h3_inv_mass_pi0calib_raw"));
-  hm->registerHisto( h3_inv_mass_pi0calib_raw , 1 );
+  h3_minv_raw = static_cast<TH3*>(h3_minv->Clone("h3_minv_raw"));
+  hm->registerHisto(h3_minv_raw);
 
-  /*
-   * 3D histogram to count for BBC trigger efficiency
-   */
-  h3_bbc = new TH3F("h3_bbc", "Number of clusters;p_{T} [GeV];sector;trigger;", n_pTbins,0.,0., 8,-0.5,7.5, 2,0.5,2.5);
-  h3_bbc->GetXaxis()->Set(n_pTbins, pTbins);
+  /* Store single photon information */
+  const int nbins_hn_1photon[] = {8, npT, 3, 70, nphi};
+  const double xmin_hn_1photon[] = {-0.5, 0., -1.5, -0.35, 0.};
+  const double xmax_hn_1photon[] = {7.5, 0., 1.5, 0.35, 0.};
+  hn_1photon = new THnSparseF("hn_1photon", "Single photon spectrum;sector;p_{T} [GeV];pattern;#eta;#phi [rad];",
+      5, nbins_hn_1photon, xmin_hn_1photon, xmax_hn_1photon);
+  hn_1photon->SetBinEdges(1, pTbin);
+  hn_1photon->SetBinEdges(4, phibin);
+  hn_1photon->GetAxis(2)->SetBinLabel(1, "opposite");
+  hn_1photon->GetAxis(2)->SetBinLabel(2, "other");
+  hn_1photon->GetAxis(2)->SetBinLabel(3, "same");
+  hm->registerHisto(hn_1photon);
+
+  /* Store two photons information */
+  const int nbins_hn_2photon[] = {8, npT, 300, 3};
+  const double xmin_hn_2photon[] = {-0.5, 0., 0., -1.5};
+  const double xmax_hn_2photon[] = {7.5, 0., 0.3, 1.5};
+  hn_2photon = new THnSparseF("hn_2photon", "Two photons spectrum;sector;p_{T} [GeV];m_{inv} [GeV];pattern;",
+      4, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon);
+  hn_2photon->SetBinEdges(1, pTbin);
+  hn_2photon->GetAxis(3)->SetBinLabel(1, "opposite");
+  hn_2photon->GetAxis(3)->SetBinLabel(2, "other");
+  hn_2photon->GetAxis(3)->SetBinLabel(3, "same");
+  hm->registerHisto(hn_2photon);
+
+  /* Store pion information */
+  const int nbins_hn_pion[] = {8, npT, 300, 2};
+  const double xmin_hn_pion[] = {-0.5, 0., 0., -0.5};
+  const double xmax_hn_pion[] = {7.5, 0., 0.3, 1.5};
+  hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p_{T} [GeV];m_{inv} [GeV];w/o ToF;",
+      4, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
+  hn_pion->SetBinEdges(1, pTbin);
+  hn_pion->GetAxis(3)->SetBinLabel(1, "all");
+  hn_pion->GetAxis(3)->SetBinLabel(2, "tof");
+  hm->registerHisto(hn_pion);
+
+  /* BBC trigger efficiency for photon */
+  h3_bbc = new TH3F("h3_bbc", "BBC efficiency;sector;p_{T} [GeV];w/o BBC;", 8,-0.5,7.5, npT,0.,0., 2,-0.5,1.5);
+  h3_bbc->GetYaxis()->Set(npT, pTbin);
   h3_bbc->GetZaxis()->SetBinLabel(1, "all");
   h3_bbc->GetZaxis()->SetBinLabel(2, "bbc");
-  hm->registerHisto(h3_bbc, 1);
+  hm->registerHisto(h3_bbc);
 
-  /*
-   * Trigger efficiency for pion
-   */
-  h3_bbc_pion = static_cast<TH3*>( h3_bbc->Clone("h3_bbc_pion") );
-  hm->registerHisto(h3_bbc_pion, 1);
+  /* BBC Trigger efficiency for pion */
+  hn_bbc_pion = static_cast<THnSparse*>( hn_pion->Clone("hn_bbc_pion") );
+  hn_bbc_pion->SetTitle("BBC efficiency");
+  hn_bbc_pion->GetAxis(3)->SetTitle("w/o BBC");
+  hn_bbc_pion->GetAxis(3)->SetBinLabel(1, "all");
+  hn_bbc_pion->GetAxis(3)->SetBinLabel(2, "bbc");
+  hm->registerHisto(hn_bbc_pion);
 
-  /*
-   * 3D histogram to count for ERT trigger efficiency
-   */
-  h3_ert = new TH3F("h3_ert", "Number of clusters;p_{T} [GeV];sector;trigger;", n_pTbins,0.,0., 8,-0.5,7.5, 4,0.5,4.5);
-  h3_ert->GetXaxis()->Set(n_pTbins, pTbins);
+  /* ERT trigger efficiency for photon */
+  h3_ert = new TH3F("h3_ert", "ERT efficiency;sector;p_{T} [GeV];w/o ERT;", 8,-0.5,7.5, npT,0.,0., 4,-0.5,3.5);
+  h3_ert->GetYaxis()->Set(npT, pTbin);
   h3_ert->GetZaxis()->SetBinLabel(1, "all");
   h3_ert->GetZaxis()->SetBinLabel(2, "ERT4x4a");
   h3_ert->GetZaxis()->SetBinLabel(3, "ERT4x4b");
   h3_ert->GetZaxis()->SetBinLabel(4, "ERT4x4c");
-  hm->registerHisto(h3_ert, 1);
+  hm->registerHisto(h3_ert);
 
-  /*
-   * Trigger efficiency for pion
-   */
-  h3_ert_pion = static_cast<TH3*>( h3_ert->Clone("h3_ert_pion") );
-  hm->registerHisto(h3_ert_pion, 1);
-
-  /* store single photon information
-   *
-   * - sector
-   * - pT
-   * - spin pattern
-   * - eta
-   * - phi
-   *
-   */
-  const int nbins_hn_1photon[] = {8, n_pTbins, 3, 70, n_phibins};
-  const double xmin_hn_1photon[] = {-0.5, 0., -1.5, -0.35, 0.};
-  const double xmax_hn_1photon[] = {7.5, 0., 1.5, 0.35, 0.};
-  hn_1photon = new THnSparseF("hn_1photon", "Single photon spectrum;sector;p_{T} [GeV];selection;#eta;#phi [rad];",
-      5, nbins_hn_1photon, xmin_hn_1photon, xmax_hn_1photon);
-  hn_1photon->SetBinEdges(1, pTbins);
-  hn_1photon->SetBinEdges(4, phi_twr);
-  hn_1photon->GetAxis(2)->SetBinLabel(1, "opposite");
-  hn_1photon->GetAxis(2)->SetBinLabel(2, "other");
-  hn_1photon->GetAxis(2)->SetBinLabel(3, "same");
-  hm->registerHisto(hn_1photon, 1);
-
-  /* store two photons information
-   *
-   * - sector
-   * - single photon pT
-   * - photon pair pT
-   * - invariant mass
-   * - spin pattern
-   *
-   */
-  const int nbins_hn_2photon[] = {8, n_pTbins, n_pTbins, 700, 3};
-  const double xmin_hn_2photon[] = {-0.5, 0., 0., 0., -1.5};
-  const double xmax_hn_2photon[] = {7.5, 0., 0., 0.7, 1.5};
-  hn_2photon = new THnSparseF("hn_2photon", "Two photons spectrum;sector;p^{photon}_{T} [GeV];p^{#pi^0}_{T};m_{inv} [GeV];selection;",
-      5, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon);
-  hn_2photon->SetBinEdges(1, pTbins);
-  hn_2photon->SetBinEdges(2, pTbins);
-  hn_2photon->GetAxis(4)->SetBinLabel(1, "opposite");
-  hn_2photon->GetAxis(4)->SetBinLabel(2, "other");
-  hn_2photon->GetAxis(4)->SetBinLabel(3, "same");
-  hm->registerHisto(hn_2photon, 1);
-
-  /* store pion information
-   *
-   * - sector
-   * - pion pT
-   * - invariant mass
-   * - w/o ToF 
-   *
-   */
-  const int nbins_hn_pion[] = {8, n_pTbins, 300, 2};
-  const double xmin_hn_pion[] = {-0.5, 0., 0., -0.5};
-  const double xmax_hn_pion[] = {7.5, 0., 0.3, 1.5};
-  hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p^{#pi^0}_{T};m_{inv} [GeV];condition;",
-      4, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
-  hn_pion->SetBinEdges(1, pTbins);
-  hm->registerHisto(hn_pion, 1);
-
-  /*
-   * histogram for asymmetry and merging
-   *
-   * - sector
-   * - pion pT
-   * - asymmetry
-   * - deltaR
-   *
-   */
-  int nbins_hn_asym[] = {8, 60, 50, 50, 300};
-  double xmin_hn_asym[] = {-0.5, 0., 0., 0., 0.};
-  double xmax_hn_asym[] = {7.5, 30., 1., 50., 0.3};
-  hn_asym = new THnSparseF("hn_asym", "Asymmetry and merging; sector; Reco p_{T} [GeV]; Asymmetry; deltaR [cm]; m_{inv} [GeV];",
-      5, nbins_hn_asym, xmin_hn_asym, xmax_hn_asym);
-  hm->registerHisto(hn_asym, 1);
-
-  /* sotore pion invariant mass information
-   *
-   * - sector
-   * - pion pT
-   * - E1
-   * - E2
-   * - angle
-   *
-   */
-  const int nbins_hn_minv[] = {8, n_pTbins, 300, 300, 100};
-  const double xmin_hn_minv[] = {-0.5, 0., 0., 0., 0.};
-  const double xmax_hn_minv[] = {7.5, 0., 30., 30., 1.};
-  hn_minv = new THnSparseF("hn_minv", "Contribution to m_{inv};sector;p^{#pi^0}_{T} [GeV];E_{1} [GeV];E_{2} [GeV];#sqrt{1-cos(#theta)};",
-      5, nbins_hn_minv, xmin_hn_minv, xmax_hn_minv);
-  hn_minv->SetBinEdges(1, pTbins);
-  //hm->registerHisto(hn_minv, 1);
+  /* ERT Trigger efficiency for pion */
+  hn_ert_pion = static_cast<THnSparse*>( hn_pion->Clone("hn_ert_pion") );
+  hn_ert_pion->SetTitle("ERT efficiency");
+  hn_ert_pion->GetAxis(3)->SetTitle("w/o ERT");
+  hn_ert_pion->GetAxis(3)->Set(4, -0.5, 3.5);
+  hn_ert_pion->GetAxis(3)->SetBinLabel(1, "all");
+  hn_ert_pion->GetAxis(3)->SetBinLabel(2, "ERT4x4a");
+  hn_ert_pion->GetAxis(3)->SetBinLabel(3, "ERT4x4b");
+  hn_ert_pion->GetAxis(3)->SetBinLabel(4, "ERT4x4c");
+  hm->registerHisto(hn_ert_pion);
 
   return;
 }
@@ -1002,25 +887,6 @@ bool FillHisto::TestPhoton( const Photon *photon, double bbc_t0 )
     return false;
 }
 
-int FillHisto::GetStatus(const Photon *photon)
-{
-  int sector, iypos, izpos;
-  anatools::TowerLocation(photon, sector, iypos, izpos);
-
-  return tower_status[sector][iypos][izpos];
-}
-
-int FillHisto::GetPattern(const PhotonContainer *photoncont)
-{
-  //int crossing = photoncont->get_crossing();
-  int crossing = 0;
-  crossing = (crossing + crossing_shift) % 120;
-  int pattern = spinpattern_blue[crossing] * spinpattern_yellow[crossing];  
-  if( abs(pattern) != 1 ) pattern = 0;
-
-  return pattern;
-}
-
 bool FillHisto::TestTrackVeto(const PhotonERT *photon)
 {
   // angle between EMC cluster and PC3 track
@@ -1043,4 +909,23 @@ bool FillHisto::TestTrackVeto(const PhotonERT *photon)
   }
 
   return true;
+}
+
+int FillHisto::GetStatus(const Photon *photon)
+{
+  int sector, iypos, izpos;
+  anatools::TowerLocation(photon, sector, iypos, izpos);
+
+  return tower_status[sector][iypos][izpos];
+}
+
+int FillHisto::GetPattern(const PhotonContainer *photoncont)
+{
+  //int crossing = photoncont->get_crossing();
+  int crossing = 0;
+  crossing = (crossing + crossing_shift) % 120;
+  int pattern = spinpattern_blue[crossing] * spinpattern_yellow[crossing];  
+  if( abs(pattern) != 1 ) pattern = 0;
+
+  return pattern;
 }

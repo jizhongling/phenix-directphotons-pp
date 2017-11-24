@@ -3,20 +3,20 @@
 
 void anaPileup_Sasha(const Int_t process = 0)
 {
-  TGraphErrors *gr[4];
-  Int_t igp[4] = {};
-  for(Int_t ig=0; ig<4; ig++)
-  {
-    mc(ig, 5,4);
-    gr[ig] = new TGraphErrors(20);
-    gr[ig]->SetName(Form("gr_%d",ig));
-  }
-
   const Int_t nThread = 20;
   Int_t thread = -1;
   Int_t irun = 0;
   Int_t runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
+
+  TGraphErrors *gr[4];
+  Int_t igp[4] = {};
+  for(Int_t ig=0; ig<4; ig++)
+  {
+    mc(ig, 5,4);
+    gr[ig] = new TGraphErrors(nThread);
+    gr[ig]->SetName(Form("gr_%d",ig));
+  }
 
   ReadClockCounts();
 

@@ -242,9 +242,9 @@ void GenerateGraph(TFile *f, Int_t part, Int_t ispion, Int_t gn, Double_t **gx, 
     Double_t nfit = npair - nbgfit;
     Double_t enfit = sqrt(1./npair + 1./nbgfit);
     Double_t nsub = npair - nbgside;
-    Double_t ndiff = fabs(nbgfit - nbgside - nextra);
+    Double_t ndiff = TMath::Abs(nbgfit - nbgside - nextra);
     Double_t ngpr = npair - nbggpr;
-    Double_t nerror = fabs(nfit - ngpr);
+    Double_t nerror = TMath::Abs(nfit - ngpr);
 
     if(nfit > 0. && nfit < npair)
       Double_t npion = nfit * ( 1. + MissR[ipt] );

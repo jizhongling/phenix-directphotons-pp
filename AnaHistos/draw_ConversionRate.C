@@ -193,7 +193,7 @@ void draw_ConversionRate()
   c1->Print("ConversionRate-total.pdf");
   c2->Print("ConversionRate-allconv.pdf");
 
-  TFile *fout = new TFile("ConversionRate.root", "RECREATE");
+  TFile *fout = new TFile("data/ConversionRate.root", "RECREATE");
   Glist->Write();
   fout->Close();
 }

@@ -1,4 +1,4 @@
-void anaFastMC(const int process=0)
+void anaFastMC(const int process = 0)
 {
   // Set up Fun4All libraries
   gSystem->Load("libfun4allfuncs.so");	// framework + reco modules
@@ -10,6 +10,7 @@ void anaFastMC(const int process=0)
 
   // Used for input DST files and output files
   const int nThread = 20;
+  const int nProcess = 591/nThread + 1;
   char dstFileName[1000];
   char outFileName[1000];
 
@@ -47,7 +48,7 @@ void anaFastMC(const int process=0)
   reco_fast_warn->set_warnmap(Sasha);
 
   // Register reconstruction modules for FastMC generater
-  se->registerSubsystem(reco_fast_nowarn);
+  //se->registerSubsystem(reco_fast_nowarn);
   se->registerSubsystem(reco_fast_warn);
 
   // A dummy (null) input is needed for the Fun4All framework
@@ -55,15 +56,22 @@ void anaFastMC(const int process=0)
   se->registerInputManager(dummy_in);
 
   // Run over all events
-  se->run(2000000);
+  se->run(5000000);
 
   // Write histograms and unregister reconstruction modules for FastMC generator
   se->End();
-  se->unregisterSubsystem(reco_fast_nowarn);
+  //se->unregisterSubsystem(reco_fast_nowarn);
   se->unregisterSubsystem(reco_fast_warn);
 
+  // If out of PHParticleGen files range
+  if(process >= nProcess)
+  {
+    delete se;
+    return;
+  }
+
   // Register reconstruction modules for PHParticleGen generater
-  se->registerSubsystem(reco_ph_nowarn);
+  //se->registerSubsystem(reco_ph_nowarn);
   se->registerSubsystem(reco_ph_warn);
 
   // Real input from DST files
@@ -94,8 +102,8 @@ void anaFastMC(const int process=0)
 
   // Write histograms and unregister reconstruction modules for PHParticleGen generator
   se->End();
-  se->unregisterSubsystem(reco_fast_nowarn);
-  se->unregisterSubsystem(reco_fast_warn);
+  //se->unregisterSubsystem(reco_ph_nowarn);
+  se->unregisterSubsystem(reco_ph_warn);
 
   // Delete Fun4All server
   delete se;

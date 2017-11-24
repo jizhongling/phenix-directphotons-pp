@@ -19,7 +19,7 @@ void draw_TowerEnergy()
       Double_t pTlow = hn_towers->GetAxis(1)->GetBinLowEdge(ipt+1);
       Double_t pThigh = hn_towers->GetAxis(1)->GetBinUpEdge(ipt+1);
       TH1 *h_frac = hn_towers->Projection(2);
-      h_frac->SetTitle(Form("pT: %4.2f-%4.2f",pTlow,pThigh));
+      h_frac->SetTitle(Form("pT: %3.1f-%3.1f GeV",pTlow,pThigh));
       aset(h_frac);
       h_frac->DrawCopy();
       delete h_frac;

@@ -17,12 +17,11 @@ class Fun4AllHistoManager;
 class TH1;
 class TH3;
 class THnSparse;
-class TGraphErrors;
 
 class FillHisto: public SubsysReco
 {
   public:
-    FillHisto(const std::string &name = "FILLHISTO", const char *filename = "histo.root");
+    FillHisto(const std::string &name = "FillHisto", const char *filename = "histo.root");
     virtual ~FillHisto();
 
     int Init(PHCompositeNode *topNode);
@@ -39,8 +38,7 @@ class FillHisto: public SubsysReco
     int FillPi0InvariantMass( const PhotonContainer *photoncont, const std::string &quali = "" );
     int FillBBCEfficiency(const PhotonContainer *photoncont);
     int FillERTEfficiency(const PhotonContainer *photoncont);
-    int FillSinglePhotonSpectrum(const PhotonContainer *photoncont);
-    int FillTwoPhotonSpectrum(const PhotonContainer *photoncont);
+    int FillPhotonSpectrum(const PhotonContainer *photoncont);
     int FillPi0Spectrum(const PhotonContainer *photoncont);
 
     void BookHistograms();
@@ -49,9 +47,9 @@ class FillHisto: public SubsysReco
     void ReadSashaWarnmap(const std::string &filename);
 
     bool TestPhoton(const Photon *photon, double bbc_t0);
+    bool TestTrackVeto(const PhotonERT *photon);
 
     int GetStatus(const Photon *photon);
-    bool TestTrackVeto(const PhotonERT *photon);
     int GetPattern(const PhotonContainer *photoncont);
 
     enum DataType {MB, ERT};
@@ -65,17 +63,15 @@ class FillHisto: public SubsysReco
     TH1 *h_events;
     TH3 *h3_tof;
     TH3 *h3_tof_raw;
-    TH3 *h3_inv_mass_pi0calib;
-    TH3 *h3_inv_mass_pi0calib_raw;
+    TH3 *h3_minv;
+    TH3 *h3_minv_raw;
     TH3 *h3_bbc;
-    TH3 *h3_bbc_pion;
+    THnSparse *hn_bbc_pion;
     TH3 *h3_ert;
-    TH3 *h3_ert_pion;
+    THnSparse *hn_ert_pion;
     THnSparse *hn_1photon;
     THnSparse *hn_2photon;
     THnSparse *hn_pion;
-    THnSparse *hn_asym;
-    THnSparse *hn_minv;
 
     // tower status for warnmap
     int tower_status[8][48][96];

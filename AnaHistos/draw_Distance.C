@@ -1,9 +1,9 @@
 void Draw(Int_t fn)
 {
   if(fn==0)
-    TFile *f = new TFile("MissingRatio-histo.root");
+    TFile *f = new TFile("data/MissingRatio-histo.root");
   else if(fn==1)
-    TFile *f = new TFile("AnaPHPythia-histo.root");
+    TFile *f = new TFile("data/AnaPHPythia-histo.root");
 
   THnSparse *hn_distance = (THnSparse*)f->Get("hn_distance");
 
@@ -28,7 +28,7 @@ void Draw(Int_t fn)
       h_distance->Scale(1./scale);
       Float_t pTlow = hn_distance->GetAxis(0)->GetBinLowEdge(ipt+1);
       Float_t pThigh = pTlow + hn_distance->GetAxis(0)->GetBinWidth(ipt+1);
-      h_distance->SetTitle(Form("p_{T}: %4.2f-%4.2f",pTlow,pThigh));
+      h_distance->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",pTlow,pThigh));
       h_distance->GetXaxis()->SetRangeUser(0.,15.);
       h_distance->SetMarkerStyle(20+part);
       h_distance->SetMarkerColor(1+part);

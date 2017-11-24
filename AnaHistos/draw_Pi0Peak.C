@@ -56,7 +56,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
     aset(h_minv);
     Double_t low = axis_pt->GetBinLowEdge(ipt+1);
     Double_t high = axis_pt->GetBinUpEdge(ipt+1);
-    h_minv->SetTitle(Form("pT: %4.2f-%4.2f",low, high));
+    h_minv->SetTitle(Form("pT: %3.1f-%3.1f GeV",low, high));
 
     TF1 *fn1 = new TF1("fn1", "gaus", 0., 0.5);
     TF1 *fn2 = new TF1("fn2", "gaus(0)+pol1(3)", 0., 0.5);
@@ -90,7 +90,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
 
     mcd(2, ipad);
     aset(h_pull);
-    h_pull->SetTitle(Form("pT: %4.2f-%4.2f",low, high));
+    h_pull->SetTitle(Form("pT: %3.1f-%3.1f GeV",low, high));
     h_pull->GetYaxis()->SetRangeUser(-10.,10.);
     h_pull->DrawCopy();
     delete h_pull;

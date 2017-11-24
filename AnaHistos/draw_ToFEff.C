@@ -16,8 +16,8 @@ void draw_ToFEff()
   for(Int_t part=0; part<2; part++)
     gr_tof[part] =  new TGraphErrors(npT);
 
-  mc(0, 5,6);
-  mc(1, 5,6);
+  mc(0, 6,5);
+  mc(1, 6,5);
   mc(2, 2,1);
 
   for(Int_t part=0; part<2; part++)
@@ -32,7 +32,7 @@ void draw_ToFEff()
       hn_pion->GetAxis(1)->SetRange(ipt+1,ipt+1);
       h_minv = hn_pion->Projection(2); 
       h_minv->Rebin(10);
-      h_minv->SetTitle(Form("pT: %4.2f-%4.2f",pTbin[ipt],pTbin[ipt+1]));
+      h_minv->SetTitle(Form("pT: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]));
       FitMinv(h_minv, nt, ent);
       delete h_minv;
 
@@ -42,7 +42,7 @@ void draw_ToFEff()
       hn_pion->GetAxis(1)->SetRange(ipt+1,ipt+1);
       h_minv = hn_pion->Projection(2); 
       h_minv->Rebin(10);
-      h_minv->SetTitle(Form("pT: %4.2f-%4.2f",pTbin[ipt],pTbin[ipt+1]));
+      h_minv->SetTitle(Form("pT: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]));
       FitMinv(h_minv, np, enp);
       delete h_minv;
 
@@ -74,7 +74,7 @@ void draw_ToFEff()
     st->SetY2NDC(0.8);
   }
 
-  TFile *f_out = new TFile("ToFEff-fit.root", "RECREATE");
+  TFile *f_out = new TFile("data/ToFEff-fit.root", "RECREATE");
   mcw(0, "PbSc.pdf");
   mcw(1, "PbGl.pdf");
   f_out->Close();

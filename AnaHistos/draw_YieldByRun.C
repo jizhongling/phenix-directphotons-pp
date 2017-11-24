@@ -74,7 +74,7 @@ void draw_YieldByRun()
   }
   fin_mb.close();
 
-  TFile *f_out = new TFile("RawYield.root", "RECREATE");
+  TFile *f_out = new TFile("data/RawYield.root", "RECREATE");
   t_ert->Write();
   t_mb->Write();
   f_out->Close();

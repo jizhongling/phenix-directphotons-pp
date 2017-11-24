@@ -2,8 +2,8 @@
 
 void draw_pTSmear()
 {
-  TFile *f = new TFile("AnaPHPythia-histo.root");
-  TFile *f1 = new TFile("MissingRatio-histo.root");
+  TFile *f = new TFile("data/AnaPHPythia-histo.root");
+  TFile *f1 = new TFile("data/MissingRatio-histo.root");
 
   TH1::SetDefaultSumw2();
 

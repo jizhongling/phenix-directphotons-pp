@@ -108,7 +108,7 @@ void draw_YieldSasha(const Int_t process = 0)
   leg0->Draw();
   c0->Print("YieldSasha.pdf");
 
-  TFile *fout = new TFile("YieldSasha.root", "RECREATE");
+  TFile *fout = new TFile("data/YieldSasha.root", "RECREATE");
   Glist->Write();
   fout->Close();
 }

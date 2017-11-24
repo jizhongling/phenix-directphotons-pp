@@ -6,7 +6,7 @@ void draw_ConversionPosition()
   THnSparse *hn_position = (THnSparse*)f->Get("hn_conversion_position");
 
   for(Int_t ic=0; ic<4; ic++)
-    mc(ic, 5,6);
+    mc(ic, 6,5);
 
   Int_t ipad = 1;
   for(Int_t ipt=0; ipt<30; ipt++)
@@ -16,7 +16,7 @@ void draw_ConversionPosition()
 
     mcd(0, ipad);
     TH1 *h_radius= h2_radius->ProjectionY(Form("h_radius_py_%d",ipt), ipt+1,ipt+1);
-    h_radius->SetTitle(Form("pT: %4.2f-%4.2f",pTlow,pTup));
+    h_radius->SetTitle(Form("pT: %3.1f-%3.1f GeV",pTlow,pTup));
     aset(h_radius);
     h_radius->DrawCopy("HIST");
 
@@ -34,14 +34,14 @@ void draw_ConversionPosition()
 
     mcd(2, ipad);
     TH1 *h_angle = h2_angle->ProjectionY(Form("h_angle_py_%d",ipt), ipt+1,ipt+1);
-    h_angle->SetTitle(Form("pT: %4.2f-%4.2f",pTlow,pTup));
+    h_angle->SetTitle(Form("pT: %3.1f-%3.1f GeV",pTlow,pTup));
     aset(h_angle);
     h_angle->DrawCopy("HIST");
 
     mcd(3, ipad);
     hn_position->GetAxis(0)->SetRange(ipt+1,ipt+1);
     TH2 *h2_position = hn_position->Projection(2,1);
-    h2_position->SetTitle(Form("pT: %4.2f-%4.2f",pTlow,pTup));
+    h2_position->SetTitle(Form("pT: %3.1f-%3.1f GeV",pTlow,pTup));
     aset(h2_position);
     h2_position->DrawCopy();
     delete h2_position;

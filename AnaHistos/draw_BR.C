@@ -2,7 +2,7 @@ void draw_BR()
 {
   gROOT->ProcessLine(".L ReadGraph.C");
 
-  TFile *f = new TFile("particles.root");
+  TFile *f = new TFile("data/particles.root");
   TH2 *h2_particles = (TH2*)f->Get("h2_particles");
   TH1* h_others = h2_particles->ProjectionX("h_others", 2, 3);
   TH1* h_pion = h2_particles->ProjectionX("h_pion", 1, 1);
@@ -35,7 +35,7 @@ void draw_BR()
 
   TGraphErrors *grout = new TGraphErrors(30, gx, gy, 0, egy);
   grout->SetName("gr_0");
-  TFile *fout = new TFile("BR.root", "RECREATE");
+  TFile *fout = new TFile("data/BR.root", "RECREATE");
   grout->Write();
   fout->Close();
 }

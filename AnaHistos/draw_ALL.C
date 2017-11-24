@@ -14,7 +14,7 @@ void draw_ALL()
     TCanvas *c = new TCanvas("c", "Canvas", 2000, 2400);
     gStyle->SetOptStat(0);
     gStyle->SetOptFit();
-    c->Divide(5,6);
+    c->Divide(6,5);
 
     for(Int_t ipt=0; ipt<npT; ipt++)
     {

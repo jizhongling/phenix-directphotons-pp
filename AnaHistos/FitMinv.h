@@ -29,7 +29,6 @@ Bool_t FitMinv(TH1 *h_minv, Double_t &npion, Double_t &enpion)
     Double_t bincenter = h_minv->GetXaxis()->GetBinCenter(ib);
     nbg += fn_bg->Eval(bincenter);
   }
-
   if( fn_fit->GetNDF() < 10 ) 
     nbg = ( h_minv->Integral(6,10) + h_minv->Integral(19,23) ) / 2.;
 

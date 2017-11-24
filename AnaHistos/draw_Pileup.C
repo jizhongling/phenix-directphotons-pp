@@ -7,7 +7,7 @@ void draw_Pileup()
   const char *mname[2] = {"pol1", "log"};
   const char *cname[4] = {"PbSc without ToF", "PbGl without ToF", "PbSc with ToF", "PbGl with ToF"};
 
-  TFile *f_out = new TFile("Pileup-fit.root", "RECREATE");
+  TFile *f_out = new TFile("data/Pileup-fit.root", "RECREATE");
 
   TMultiGraph *mg[npT*8];
   for(Int_t ipt=0; ipt<npT; ipt++)

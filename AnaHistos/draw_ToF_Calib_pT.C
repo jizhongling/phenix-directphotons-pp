@@ -35,7 +35,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t calib)
       TH1 *h_tof = (TH1*)h3_tof->ProjectionZ("h_tof", 7,8, ipt+1,ipt+1)->Clone();
     Double_t low = axis_pt->GetBinLowEdge(ipt+1);
     Double_t high = axis_pt->GetBinUpEdge(ipt+1);
-    h_tof->SetTitle(Form("pT: %4.2f-%4.2f",low, high));
+    h_tof->SetTitle(Form("pT: %3.1f-%3.1f GeV",low, high));
 
     TF1 *fn2 = new TF1("fn2", "gaus", -30., 30.);
 

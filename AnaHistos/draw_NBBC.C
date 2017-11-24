@@ -113,7 +113,7 @@ void draw_Ratio()
 
   c0->Print("NBBC-r10cm-rej.pdf");
 
-  TFile *f_out = new TFile("NBBC.root", "RECREATE");
+  TFile *f_out = new TFile("data/NBBC.root", "RECREATE");
   t1->Write();
   f_out->Close();
 }
