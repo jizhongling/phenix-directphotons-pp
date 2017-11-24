@@ -81,6 +81,6 @@ void draw_Theta_CV()
     icol++;
   }
 
-  //c->Print("Theta_CV_PbSc.pdf");
-  c->Print("Theta_CV_PbGl.pdf");
+  //c->Print("plots/Theta_CV_PbSc.pdf");
+  c->Print("plots/Theta_CV_PbGl.pdf");
 }

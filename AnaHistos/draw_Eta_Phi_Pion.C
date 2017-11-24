@@ -143,9 +143,9 @@ void draw_Eta_Phi_Pion()
     ipad++;
   }
 
-  c1->Print("Eta.pdf");
-  c2_1->Print("Phi-pion-1.pdf");
-  c2_2->Print("Phi-pion-2.pdf");
-  c3->Print("Eta-Phi-sim.pdf");
-  c4->Print("Eta-Phi-data.pdf");
+  c1->Print("plots/Eta.pdf");
+  c2_1->Print("plots/Phi-pion-1.pdf");
+  c2_2->Print("plots/Phi-pion-2.pdf");
+  c3->Print("plots/Eta-Phi-sim.pdf");
+  c4->Print("plots/Eta-Phi-data.pdf");
 }

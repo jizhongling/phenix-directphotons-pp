@@ -62,5 +62,5 @@ void draw_pTSmear()
     leg->Draw();
   }
 
-  c->Print("pTSmear.pdf");
+  c->Print("plots/pTSmear.pdf");
 }

@@ -71,7 +71,7 @@ void draw_ToF_Calib_ByRun() {
     g_tof_runnumber[is]->Draw("AP");
   }
 
-  //c0->Print("ToF_NoCalib_ByRun.pdf");
-  c0->Print("ToF_Calib_ByRun.pdf");
+  //c0->Print("plots/ToF_NoCalib_ByRun.pdf");
+  c0->Print("plots/ToF_Calib_ByRun.pdf");
 
 }

@@ -24,5 +24,5 @@ void draw_RawYieldCmp()
   }
   leg0->Draw();
 
-  c0->Print("RawYieldCmp.pdf");
+  c0->Print("plots/RawYieldCmp.pdf");
 }

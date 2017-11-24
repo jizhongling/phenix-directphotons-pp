@@ -77,7 +77,7 @@ void draw_ERTEff()
       gr[part]->Draw("APE");
     else
       gr[part]->Draw("PE");
-    TGraph *gr_sasha =  new TGraph( Form("sasha-trig-part%d.txt",part) );
+    TGraph *gr_sasha =  new TGraph( Form("data/sasha-trig-part%d.txt",part) );
     gr_sasha->Draw("C");
   }
 
@@ -86,7 +86,7 @@ void draw_ERTEff()
   leg0->AddEntry(gr[1], "PbGl", "LPE");
   leg0->Draw();
 
-  c2->Print("ERTEff.pdf");
+  c2->Print("plots/ERTEff.pdf");
 
   TFile *f_out = new TFile("data/ERTEff.root", "RECREATE");
   for(Int_t part=0; part<2; part++)

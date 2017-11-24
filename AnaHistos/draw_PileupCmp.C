@@ -83,5 +83,5 @@ void draw_PileupCmp()
   gr_ratio[0]->Draw("AP");
   gr_ratio[1]->Draw("P");
 
-  c0->Print("PileupCmp.pdf");
+  c0->Print("plots/PileupCmp.pdf");
 }

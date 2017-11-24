@@ -96,12 +96,12 @@ void GenerateMissingRatio(TFile *f, TObjArray *Glist, Int_t ispion)
 
   if(ispion == 0)
   {
-    c->Print("MissingRatio-photon.pdf");
+    c->Print("plots/MissingRatio-photon.pdf");
     delete c;
   }
   else if(ispion == 1)
   {
-    c->Print("MissingRatio-pion.pdf");
+    c->Print("plots/MissingRatio-pion.pdf");
     delete c;
   }
 

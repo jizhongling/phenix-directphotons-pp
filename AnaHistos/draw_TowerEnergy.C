@@ -24,7 +24,7 @@ void draw_TowerEnergy()
       h_frac->DrawCopy();
       delete h_frac;
     }
-    c0->Print(Form("TowerEnergy-part%d.pdf",part));
+    c0->Print(Form("plots/TowerEnergy-part%d.pdf",part));
     c0->Clear("D");
   }
 }

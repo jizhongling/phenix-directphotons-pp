@@ -82,5 +82,5 @@ void draw_BBCEff_Pileup()
   mcw(1, "PbGl");
   f_out->Close();
 
-  c2->Print("BBCEff-pileup.pdf");
+  c2->Print("plots/BBCEff-pileup.pdf");
 }

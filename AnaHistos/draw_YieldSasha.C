@@ -106,7 +106,7 @@ void draw_YieldSasha(const Int_t process = 0)
     leg0->AddEntry(gr, legname[part], "P");
   }
   leg0->Draw();
-  c0->Print("YieldSasha.pdf");
+  c0->Print("plots/YieldSasha.pdf");
 
   TFile *fout = new TFile("data/YieldSasha.root", "RECREATE");
   Glist->Write();

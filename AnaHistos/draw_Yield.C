@@ -76,7 +76,7 @@ void draw_Yield()
       gr->Draw("P");
   }
   leg0->Draw();
-  c0->Print("Yield.pdf");
+  c0->Print("plots/Yield.pdf");
 
   TFile *fout = new TFile("data/Yield.root", "RECREATE");
   Glist->Write();

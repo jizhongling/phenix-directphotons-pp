@@ -96,12 +96,12 @@ void GenerateSmear(TFile *f, TObjArray *Glist, Int_t ispion)
 
   if(ispion==0)
   {
-    c->Print("Smear-photon.pdf");
+    c->Print("plots/Smear-photon.pdf");
     delete c;
   }
   else if(ispion==1)
   {
-    c->Print("Smear-pion.pdf");
+    c->Print("plots/Smear-pion.pdf");
     delete c;
   }
 

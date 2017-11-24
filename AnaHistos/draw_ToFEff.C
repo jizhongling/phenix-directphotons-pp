@@ -79,5 +79,5 @@ void draw_ToFEff()
   mcw(1, "PbGl.pdf");
   f_out->Close();
 
-  c2->Print("ToFEff.pdf");
+  c2->Print("plots/ToFEff.pdf");
 }

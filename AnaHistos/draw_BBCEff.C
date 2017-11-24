@@ -93,5 +93,5 @@ void draw_BBCEff()
   }
   f_out->Close();
 
-  c2->Print("BBCEff.pdf");
+  c2->Print("plots/BBCEff.pdf");
 }

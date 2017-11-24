@@ -290,17 +290,17 @@ void GenerateGraph(TFile *f, Int_t part, Int_t ispion, Int_t gn, Double_t **gx, 
   {
     if(part == 0)
     {
-      c->Print("CrossSection-PbScW.pdf");
+      c->Print("plots/CrossSection-PbScW.pdf");
       delete c;
     }
     if(part == 1)
     {
-      c->Print("CrossSection-PbScE.pdf");
+      c->Print("plots/CrossSection-PbScE.pdf");
       delete c;
     }
     else if(part == 2)
     {
-      c->Print("CrossSection-PbGlE.pdf");
+      c->Print("plots/CrossSection-PbGlE.pdf");
       delete c;
     }
   }
@@ -308,17 +308,17 @@ void GenerateGraph(TFile *f, Int_t part, Int_t ispion, Int_t gn, Double_t **gx, 
   {
     if(part == 0)
     {
-      c->Print("CrossSection-PbScW-pion.pdf");
+      c->Print("plots/CrossSection-PbScW-pion.pdf");
       delete c;
     }
     if(part == 1)
     {
-      c->Print("CrossSection-PbScE-pion.pdf");
+      c->Print("plots/CrossSection-PbScE-pion.pdf");
       delete c;
     }
     else if(part == 2)
     {
-      c->Print("CrossSection-PbGlE-pion.pdf");
+      c->Print("plots/CrossSection-PbGlE-pion.pdf");
       delete c;
     }
   }
@@ -496,5 +496,5 @@ void draw_CrossSection()
     grt->Draw("AP");
   }
 
-  c0->Print("CrossSection-ertb-cv.pdf");
+  c0->Print("plots/CrossSection-ertb-cv.pdf");
 }

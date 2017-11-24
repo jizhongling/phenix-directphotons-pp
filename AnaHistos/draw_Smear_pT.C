@@ -50,7 +50,7 @@ void draw_Smear_pT()
   }
 
   leg0->Draw();
-  c0->Print("Smear-pT.pdf");
-  //c0->Print("Smear-pT-Mine.pdf");
-  //c1->Print("Smear-pT-Sasha.pdf");
+  c0->Print("plots/Smear-pT.pdf");
+  //c0->Print("plots/Smear-pT-Mine.pdf");
+  //c1->Print("plots/Smear-pT-Sasha.pdf");
 }

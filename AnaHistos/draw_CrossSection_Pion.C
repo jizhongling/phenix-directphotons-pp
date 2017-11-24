@@ -1,7 +1,7 @@
 #include "GlobalVars.h"
 #include "ReadGraph.h"
-#include "Chi2Fit.h"
 #include "FitMinv.h"
+#include "Chi2Fit.h"
 
 void draw_CrossSection_Pion()
 {
@@ -41,14 +41,16 @@ void draw_CrossSection_Pion()
   const Double_t eConv[3] = {0.033, 0., 0.};
 
   Double_t xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
+  Double_t xMerge[3][npT] = {}, Merge[3][npT] = {}, eMerge[3][npT] = {};
   Double_t xTrigERT[3][npT] = {}, TrigERT[3][npT] = {}, eTrigERT[3][npT] = {};
   Double_t xProb[3][npT] = {}, Prob[3][npT] = {}, eProb[3][npT] = {};
 
   for(Int_t part=0; part<3; part++)
   {
-    ReadGraph<TGraphAsymmErrors>("Acceptance.root", part, xAcc[part], Acc[part], eAcc[part]);
-    ReadGraph<TGraphAsymmErrors>("ERTEff.root", part/2, xTrigERT[part], TrigERT[part], eTrigERT[part]);
-    ReadGraph<TGraphAsymmErrors>("ProbEff.root", part/2, xProb[part], Prob[part], eProb[part]);
+    ReadGraph<TGraphAsymmErrors>("data/Acceptance.root", part, xAcc[part], Acc[part], eAcc[part]);
+    ReadGraph<TGraphAsymmErrors>("data/Merge.root", part/2, xMerge[part], Merge[part], eMerge[part]);
+    ReadGraph<TGraphAsymmErrors>("data/ERTEff.root", part/2, xTrigERT[part], TrigERT[part], eTrigERT[part]);
+    ReadGraph<TGraphAsymmErrors>("data/ProbEff.root", part/2, xProb[part], Prob[part], eProb[part]);
     mc(part, 6,5);
   }
 
@@ -72,14 +74,18 @@ void draw_CrossSection_Pion()
 
       xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
       Int_t ipAcc = Get_ipt(xAcc[part], xx);
+      Int_t ipMerge = Get_ipt(xMerge[part], xx);
       Int_t ipTrigERT = Get_ipt(xTrigERT[part], xx);
       Int_t ipProb = Get_ipt(xProb[part], xx);
       yy[part] = (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
-        * npion / Acc[part][ipAcc] / TrigERT[part][ipTrigERT] / Prob[part][ipProb]
+        * npion / Acc[part][ipAcc] / Merge[part][ipMerge]
+        / TrigERT[part][ipTrigERT] / Prob[part][ipProb]
         / ToF[part] / Conv[part] / TrigBBC * Pile;
-      eyy[part] = yy[part] * sqrt(
-          pow(enpion/npion,2.) + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2.)
-          + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2.) + pow(eProb[part][ipProb]/Prob[part][ipProb],2.)
+      eyy[part] = yy[part] * sqrt( pow(enpion/npion,2.)
+          + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2.)
+          + pow(eMerge[part][ipMerge]/Merge[part][ipMerge],2.)
+          + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2.)
+          + pow(eProb[part][ipProb]/Prob[part][ipProb],2.)
           + pow(eToF[part]/ToF[part],2.) + pow(eConv[part]/Conv[part],2.)
           //+ pow(eTrigBBC/TrigBBC,2.) + pow(ePile/Pile,2.) + pow(eXBBC/XBBC,2.)
           );
@@ -123,7 +129,7 @@ void draw_CrossSection_Pion()
   gr[3]->SetTitle("Combined");
   mcd(3, 1);
   leg0->Draw();
-  c3->Print("CrossSection-pion.pdf");
+  c3->Print("plots/CrossSection-pion.pdf");
 
   TFile *f_out = new TFile("data/CrossSection-pion.root", "RECREATE");
   for(Int_t part=0; part<4; part++)

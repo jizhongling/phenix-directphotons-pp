@@ -84,5 +84,5 @@ void draw_Acceptance_Cmp()
   mcd(0, 7);
   leg0->Draw();
 
-  c0->Print("Acceptance-cmp.pdf");
+  c0->Print("plots/Acceptance-cmp.pdf");
 }

@@ -72,7 +72,7 @@ void draw_InvMass_Calib_ByRun() {
     g_minv_runnumber[is]->Draw("AP");
   }
 
-  c0->Print("InvMass_NoCalib_ByRun.pdf");
-  //c0->Print("InvMass_Calib_ByRun.pdf");
+  c0->Print("plots/InvMass_NoCalib_ByRun.pdf");
+  //c0->Print("plots/InvMass_Calib_ByRun.pdf");
 
 }

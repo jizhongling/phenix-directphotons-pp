@@ -35,5 +35,5 @@ void draw_SimCmpAsym()
     delete h_asym_pisa;
   }
 
-  c0->Print("SimCmpAsym.pdf");
+  c0->Print("plots/SimCmpAsym.pdf");
 }

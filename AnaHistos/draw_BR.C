@@ -18,7 +18,7 @@ void draw_BR()
   gr->GetYaxis()->SetRangeUser(0., 0.5);
   gr->Draw("AP");
 
-  c->Print("BR.pdf");
+  c->Print("plots/BR.pdf");
 
   Double_t gx[30], gy[30], egy[30];
   ReadGraph(gr, gx, gy, egy);

@@ -40,9 +40,9 @@ void Draw(Int_t fn)
   }
 
   if(fn==0)
-    c->Print("Distance-PISA.pdf");
+    c->Print("plots/Distance-PISA.pdf");
   else if(fn==1)
-    c->Print("Distance-FastMC.pdf");
+    c->Print("plots/Distance-FastMC.pdf");
 
   return;
 }

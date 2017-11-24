@@ -92,5 +92,5 @@ void draw_ProbEff()
   }
   f_out->Close();
 
-  c5->Print("ProbEff.pdf");
+  c5->Print("plots/ProbEff.pdf");
 }

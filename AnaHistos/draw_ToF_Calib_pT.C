@@ -62,7 +62,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t calib)
     delete h_tof;
   }
 
-  c1->Print(Form("ToF_Calib-part%d-calib%d.pdf",part,calib));
+  c1->Print(Form("plots/ToF_Calib-part%d-calib%d.pdf",part,calib));
   delete c1;
 
   TGraphErrors **graph = new TGraphErrors*[2];
@@ -104,5 +104,5 @@ void draw_ToF_Calib_pT()
   //TF1 *f1 = new TF1("f1", "[0]*sqrt(x-[1])+pol2(2)", 0.5,30.);
   //gr_calib[0][0]->Fit(f1, "R");
 
-  c0->Print("ToF_Calib.pdf");
+  c0->Print("plots/ToF_Calib.pdf");
 }

@@ -49,7 +49,7 @@ void draw_ALL()
         }
     }
 
-    c->Print(Form("ALL-runbyrun-type%d.pdf",itype));
+    c->Print(Form("plots/ALL-runbyrun-type%d.pdf",itype));
     delete c;
   }
 
@@ -71,5 +71,5 @@ void draw_ALL()
   //gr0->SetMarkerColor(2);
   //gr0->Draw("AP");
 
-  //c0->Print("ALL-average.pdf");
+  //c0->Print("plots/ALL-average.pdf");
 }

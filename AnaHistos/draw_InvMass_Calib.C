@@ -67,7 +67,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
     delete h_minv;
   }
 
-  c->Print(Form("InvMass_Calib-part%d-data%d.pdf",part,data));
+  c->Print(Form("plots/InvMass_Calib-part%d-data%d.pdf",part,data));
   delete c;
 
   TGraphErrors **graph = new TGraphErrors*[2];
@@ -119,5 +119,5 @@ void draw_InvMass_Calib()
   gr_sim[0][1]->SetTitle("PbSc #sigma_{#gamma#gamma}");
   gr_sim[1][1]->SetTitle("PbGl #sigma_{#gamma#gamma}");
 
-  c0->Print("InvMass_Calib.pdf");
+  c0->Print("plots/InvMass_Calib.pdf");
 }

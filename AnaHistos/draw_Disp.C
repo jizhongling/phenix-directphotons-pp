@@ -29,7 +29,7 @@ void draw_Disp()
       h_disp->GetXaxis()->SetRangeUser(0.1, 1.);
       h_disp->DrawCopy();
     }
-    c->Print(Form("Disp-disp-photon-%d.pdf",part));
+    c->Print(Form("plots/Disp-disp-photon-%d.pdf",part));
     c->Clear("D");
   }
 }

@@ -40,5 +40,5 @@ void draw_MergeAsym_photon()
     }
   }
 
-  c0->Print("MergeAsym-photon.pdf");
+  c0->Print("plots/MergeAsym-photon.pdf");
 }

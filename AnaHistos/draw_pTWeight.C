@@ -90,5 +90,5 @@ void draw_pTWeight()
   gr_gy->SetMarkerStyle(23);
   gr_gy->Draw("PSAME");
 
-  c->Print("pTWeight-ertc.pdf");
+  c->Print("plots/pTWeight-ertc.pdf");
 }

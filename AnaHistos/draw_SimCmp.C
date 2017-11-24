@@ -60,7 +60,7 @@ void GenerateAcceptance(TFile *fsig, TFile *ftot, TObjArray *Glist, Int_t isim)
     leg1->Draw();
   }
 
-  c1->Print(Form("SimCmp-%d.pdf",isim));
+  c1->Print(Form("plots/SimCmp-%d.pdf",isim));
   delete c1;
 
   for(Int_t part=0; part<3; part++)
@@ -114,7 +114,7 @@ void DrawCmp(TObjArray *Glist)
   }
   leg0->Draw();
 
-  c0->Print("SimCmp.pdf");
+  c0->Print("plots/SimCmp.pdf");
   delete c0;
 
   return;

@@ -43,8 +43,8 @@ void draw_ClusterEShare()
       delete h_dR;
     }
 
-    c0->Print(Form("ClusterESharing-part%d.pdf",part));
-    c1->Print(Form("ClusterDistance-part%d.pdf",part));
+    c0->Print(Form("plots/ClusterESharing-part%d.pdf",part));
+    c1->Print(Form("plots/ClusterDistance-part%d.pdf",part));
     c0->Clear("D");
     c1->Clear("D");
   }

@@ -7,9 +7,9 @@ void draw_CrossSectionCmp()
 
   Double_t gx[4][npT] = {}, gy[4][npT] = {}, egy[4][npT] = {};
   for(Int_t part=0; part<4; part++)
-    ReadGraph<TGraphErrors>("CrossSection-pion.root", part, gx[part], gy[part], egy[part]);
+    ReadGraph<TGraphErrors>("data/CrossSection-pion.root", part, gx[part], gy[part], egy[part]);
 
-  TGraph *gr_sasha = new TGraph("sasha-cross.txt");
+  TGraph *gr_sasha = new TGraph("data/sasha-cross.txt");
   const Double_t scale_sasha = 1e9;
 
   TGraphErrors *gr_ratio[4];
@@ -77,5 +77,5 @@ void draw_CrossSectionCmp()
   mcd(0, 1);
   leg0->Draw();
 
-  c0->Print("CrossSectionCmp.pdf");
+  c0->Print("plots/CrossSectionCmp.pdf");
 }

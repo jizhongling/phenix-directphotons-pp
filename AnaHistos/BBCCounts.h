@@ -14,7 +14,7 @@ void ReadClockCounts()
     for(int j=0; j<NRUN; j++)
       n_db[i][j] = 0;
 
-  TFile *fin = new TFile("clock-counts.root");
+  TFile *fin = new TFile("data/clock-counts.root");
   TTree *t1 = (TTree*)fin->Get("t1");
 
   long long runno, clock, bbcnovtx_live, bbcnarrow_live;

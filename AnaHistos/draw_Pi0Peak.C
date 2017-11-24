@@ -111,10 +111,10 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
     delete h_minv;
   }
 
-  c1->Print(Form("Pi0Peak-part%d-data%d.pdf",part,olddata));
+  c1->Print(Form("plots/Pi0Peak-part%d-data%d.pdf",part,olddata));
   delete c1;
 
-  c2->Print(Form("Pi0Peak-part%d-data%d-pull.pdf",part,olddata));
+  c2->Print(Form("plots/Pi0Peak-part%d-data%d-pull.pdf",part,olddata));
   delete c2;
 
   if(data == 0)
@@ -168,5 +168,5 @@ void draw_Pi0Peak()
   gr_sim[0][1]->SetTitle("PbSc #sigma_{#gamma#gamma}");
   gr_sim[1][1]->SetTitle("PbGl #sigma_{#gamma#gamma}");
 
-  c0->Print("Pi0Peak.pdf");
+  c0->Print("plots/Pi0Peak.pdf");
 }

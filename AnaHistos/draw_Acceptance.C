@@ -8,8 +8,7 @@ void draw_Acceptance()
   const Int_t secl[3] = {1, 5, 7};
   const Int_t sech[3] = {4, 6, 8};
 
-  TF1 *cross = new TF1("cross", "x*(1/(1+exp((x-[5])/[6]))*[0]/pow(1+x/[1],[2])+(1-1/(1+exp((x-[5])/[6])))*[3]/pow(x,[4]))", 0, 30);
-  cross->SetParameters(2.02819e+04, 4.59173e-01, 7.51170e+00, 1.52867e+01, 7.22708e+00, 2.15396e+01, 3.65471e+00);
+  SetWeight();
 
   TGraphAsymmErrors *gr[3];
   Int_t igp[3] = {};
@@ -89,12 +88,12 @@ void draw_Acceptance()
     else
       gr[part]->Draw("P");
     leg0->AddEntry(gr[part], pname[part], "P");
-    TGraph *gr_sasha =  new TGraph( Form("sasha-acc-part%d.txt",part) );
+    TGraph *gr_sasha =  new TGraph( Form("data/sasha-acc-part%d.txt",part) );
     gr_sasha->Draw("C");
   }
 
   leg0->Draw();
-  c3->Print("Acceptance.pdf");
+  c3->Print("plots/Acceptance.pdf");
 
   TFile *f_out = new TFile("data/Acceptance.root", "RECREATE");
   for(Int_t part=0; part<3; part++)

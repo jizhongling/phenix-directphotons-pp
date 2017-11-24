@@ -86,6 +86,6 @@ void draw_Smear_Sasha()
     }
   }
 
-  c0->Print("SmearRatio.pdf");
-  c1->Print("Smear.pdf");
+  c0->Print("plots/SmearRatio.pdf");
+  c1->Print("plots/Smear.pdf");
 }

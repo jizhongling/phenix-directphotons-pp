@@ -49,8 +49,8 @@ void draw_ConversionPosition()
     ipad++;
   }
 
-  c0->Print("Conversion-radius-full.pdf");
-  c1->Print("Conversion-radius-center.pdf");
-  c2->Print("Conversion-angle.pdf");
-  c3->Print("Conversion-position.pdf");
+  c0->Print("plots/Conversion-radius-full.pdf");
+  c1->Print("plots/Conversion-radius-center.pdf");
+  c2->Print("plots/Conversion-angle.pdf");
+  c3->Print("plots/Conversion-position.pdf");
 }
