@@ -1,5 +1,6 @@
 #include "GlobalVars.h"
 #include "FitMinv.h"
+#include "GetEfficiency.h"
 
 void draw_ToFEff()
 {
@@ -10,11 +11,15 @@ void draw_ToFEff()
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
 
   THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
+  TAxis *axis_sec = hn_pion->GetAxis(0);
+  TAxis *axis_pt = hn_pion->GetAxis(1);
+  TAxis *axis_minv = hn_pion->GetAxis(2);
+  TAxis *axis_cond = hn_pion->GetAxis(3);
 
-  TGraphErrors *gr_tof[2];
+  TGraphAsymmErrors *gr_tof[2];
   Int_t igr[2] = {};
   for(Int_t part=0; part<2; part++)
-    gr_tof[part] =  new TGraphErrors(npT);
+    gr_tof[part] =  new TGraphAsymmErrors(npT);
 
   mc(0, 6,5);
   mc(1, 6,5);
@@ -23,36 +28,39 @@ void draw_ToFEff()
   for(Int_t part=0; part<2; part++)
     for(Int_t ipt=0; ipt<npT; ipt++)
     {
-      hn_pion->GetAxis(0)->SetRange(secl[part],sech[part]);
+      axis_sec->SetRange(secl[part],sech[part]);
+      axis_pt->SetRange(ipt+1,ipt+1);
       TH1 *h_minv;
 
       mcd(0, ipt+1);
       Double_t nt, ent;
-      hn_pion->GetAxis(3)->SetRange(1,1);
-      hn_pion->GetAxis(1)->SetRange(ipt+1,ipt+1);
+      axis_cond->SetRange(1,1);
       h_minv = hn_pion->Projection(2); 
       h_minv->Rebin(10);
-      h_minv->SetTitle(Form("pT: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]));
+      h_minv->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]));
       FitMinv(h_minv, nt, ent);
       delete h_minv;
 
       mcd(1, ipt+1);
       Double_t np, enp;
-      hn_pion->GetAxis(3)->SetRange(2,2);
-      hn_pion->GetAxis(1)->SetRange(ipt+1,ipt+1);
+      axis_cond->SetRange(2,2);
       h_minv = hn_pion->Projection(2); 
       h_minv->Rebin(10);
-      h_minv->SetTitle(Form("pT: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]));
+      h_minv->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]));
       FitMinv(h_minv, np, enp);
       delete h_minv;
 
       Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Double_t yy = np / nt;
-      Double_t eyy = yy * sqrt( pow(ent/nt,2.) + pow(enp/np,2.) );
-      if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
+      Double_t yy, eyyl, eyyh;
+      if( !GetEfficiency(nt,np, yy,eyyl,eyyh) )
+      {
+        eyyl = yy * sqrt( pow(ent/nt,2.) + pow(enp/np,2.) );
+        eyyh = 0.;
+      }
+      if( yy >= 0. && eyyl >= 0. && eyyl < TMath::Infinity() )
       {
         gr_tof[part]->SetPoint(igr[part], xx, yy);
-        gr_tof[part]->SetPointError(igr[part], 0., eyy);
+        gr_tof[part]->SetPointError(igr[part], 0.,0., eyyl,eyyh);
         igr[part]++;
       }
     }

@@ -1,4 +1,4 @@
-Bool_t GetEfficiency(Double_t total, Double_t passed, Double_t &Eff, Double_t &eLow, Double_t eHigh)
+Bool_t GetEfficiency(Double_t total, Double_t passed, Double_t &Eff, Double_t &eLow, Double_t &eHigh)
 {
   const Double_t level = 0.682689492137086;
 
