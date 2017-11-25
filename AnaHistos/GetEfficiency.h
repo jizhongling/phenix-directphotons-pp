@@ -7,7 +7,7 @@ Bool_t GetEfficiency(Double_t total, Double_t passed, Double_t &Eff, Double_t &e
   {
     Double_t Low = TEfficiency::ClopperPearson(total, passed, level, kFALSE);
     Double_t Up = TEfficiency::ClopperPearson(total, passed, level, kTRUE);
-    eLow = TMath::Abs( Low - Eff );
+    eLow = TMath::Abs( Eff - Low );
     eHigh = TMath::Abs( Up - Eff );
     return kTRUE;
   }

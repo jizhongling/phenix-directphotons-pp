@@ -366,10 +366,17 @@ int FillHisto::FillBBCEfficiency( const PhotonContainer *photoncont )
 
 int FillHisto::FillERTEfficiency( const PhotonContainer *photoncont )
 {
+  /* Check trigger */
+  if( datatype == ERT )
+  {
+    if( !photoncont->get_ert_c_scaled() || !photoncont->get_bbcnarrow_live() )
+      return DISCARDEVENT;
+  }
+
   /* Get event global parameters */
   double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
-  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
+  if( abs(bbc_z) > 10. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
 
@@ -380,9 +387,7 @@ int FillHisto::FillERTEfficiency( const PhotonContainer *photoncont )
   {
     Photon *photon = photoncont->GetPhoton(i);
     int arm = anatools::GetSector(photon) / 4;
-    if( photon->get_trg1() ||
-        photon->get_trg2() ||
-        photon->get_trg3() )
+    if( photon->get_trg3() )
       FireERT[arm] = true;
   }
 
@@ -405,10 +410,6 @@ int FillHisto::FillERTEfficiency( const PhotonContainer *photoncont )
       v_used.push_back(i);
 
       h3_ert->Fill(sector, photon_pT, "all", 1.);
-      if( photon1->get_trg1() )
-        h3_ert->Fill(sector, photon_pT, "ERT4x4a", 1.);
-      if( photon1->get_trg2() )
-        h3_ert->Fill(sector, photon_pT, "ERT4x4b", 1.);
       if( photon1->get_trg3() )
         h3_ert->Fill(sector, photon_pT, "ERT4x4c", 1.);
 
@@ -422,15 +423,11 @@ int FillHisto::FillERTEfficiency( const PhotonContainer *photoncont )
             int sector2 = anatools::GetSector( photon2 );
             if( !anatools::SectorCheck(sector,sector2) ) continue;
 
-            bool trig1 = photon1->get_trg1();
-            bool trig2 = photon1->get_trg2();
-            bool trig3 = photon1->get_trg3();
+            bool trig = photon1->get_trg3();
             if( photon2->get_E() > photon1->get_E() )
             {
               sector = sector2;
-              trig1 = photon2->get_trg1();
-              trig2 = photon2->get_trg2();
-              trig3 = photon2->get_trg3();
+              trig = photon2->get_trg3();
             }
 
             double tot_pT = anatools::GetTot_pT(photon1, photon2);
@@ -438,19 +435,9 @@ int FillHisto::FillERTEfficiency( const PhotonContainer *photoncont )
 
             double fill_hn_ert_pion[] = {sector, tot_pT, minv, 0.};
             hn_ert_pion->Fill(fill_hn_ert_pion);
-            if(trig1)
+            if( trig )
             {
               fill_hn_ert_pion[3] = 1.;
-              hn_ert_pion->Fill(fill_hn_ert_pion);
-            }
-            if(trig2)
-            {
-              fill_hn_ert_pion[3] = 2.;
-              hn_ert_pion->Fill(fill_hn_ert_pion);
-            }
-            if(trig3)
-            {
-              fill_hn_ert_pion[3] = 3.;
               hn_ert_pion->Fill(fill_hn_ert_pion);
             }
           } // check photon2
@@ -463,11 +450,6 @@ int FillHisto::FillERTEfficiency( const PhotonContainer *photoncont )
 
 int FillHisto::FillPhotonSpectrum( const PhotonContainer *photoncont )
 {
-  /* Get event global parameters */
-  double bbc_z = photoncont->get_bbc_z();
-  double bbc_t0 = photoncont->get_bbc_t0();
-  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
-
   /* Check trigger */
   if( datatype == ERT )
   {
@@ -479,6 +461,11 @@ int FillHisto::FillPhotonSpectrum( const PhotonContainer *photoncont )
     if( !photoncont->get_bbcnarrow_scaled() )
       return DISCARDEVENT;
   }
+
+  /* Get event global parameters */
+  double bbc_z = photoncont->get_bbc_z();
+  double bbc_t0 = photoncont->get_bbc_t0();
+  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
   int pattern = GetPattern(photoncont);
@@ -526,11 +513,6 @@ int FillHisto::FillPhotonSpectrum( const PhotonContainer *photoncont )
 
 int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
 {
-  /* Get event global parameters */
-  double bbc_z = photoncont->get_bbc_z();
-  double bbc_t0 = photoncont->get_bbc_t0();
-  if( abs(bbc_z) > 10. ) return DISCARDEVENT;
-
   /* Check trigger */
   if( datatype == ERT )
   {
@@ -542,6 +524,11 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
     if( !photoncont->get_bbcnarrow_scaled() )
       return DISCARDEVENT;
   }
+
+  /* Get event global parameters */
+  double bbc_z = photoncont->get_bbc_z();
+  double bbc_t0 = photoncont->get_bbc_t0();
+  if( abs(bbc_z) > 10. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
 
@@ -748,23 +735,18 @@ void FillHisto::BookHistograms()
   hm->registerHisto(hn_bbc_pion);
 
   /* ERT trigger efficiency for photon */
-  h3_ert = new TH3F("h3_ert", "ERT efficiency;sector;p_{T} [GeV];w/o ERT;", 8,-0.5,7.5, npT,0.,0., 4,-0.5,3.5);
+  h3_ert = new TH3F("h3_ert", "ERT efficiency;sector;p_{T} [GeV];w/o ERT;", 8,-0.5,7.5, npT,0.,0., 2,-0.5,1.5);
   h3_ert->GetYaxis()->Set(npT, pTbin);
   h3_ert->GetZaxis()->SetBinLabel(1, "all");
-  h3_ert->GetZaxis()->SetBinLabel(2, "ERT4x4a");
-  h3_ert->GetZaxis()->SetBinLabel(3, "ERT4x4b");
-  h3_ert->GetZaxis()->SetBinLabel(4, "ERT4x4c");
+  h3_ert->GetZaxis()->SetBinLabel(2, "ERT4x4c");
   hm->registerHisto(h3_ert);
 
   /* ERT Trigger efficiency for pion */
   hn_ert_pion = static_cast<THnSparse*>( hn_pion->Clone("hn_ert_pion") );
   hn_ert_pion->SetTitle("ERT efficiency");
   hn_ert_pion->GetAxis(3)->SetTitle("w/o ERT");
-  hn_ert_pion->GetAxis(3)->Set(4, -0.5, 3.5);
   hn_ert_pion->GetAxis(3)->SetBinLabel(1, "all");
-  hn_ert_pion->GetAxis(3)->SetBinLabel(2, "ERT4x4a");
-  hn_ert_pion->GetAxis(3)->SetBinLabel(3, "ERT4x4b");
-  hn_ert_pion->GetAxis(3)->SetBinLabel(4, "ERT4x4c");
+  hn_ert_pion->GetAxis(3)->SetBinLabel(2, "ERT4x4c");
   hm->registerHisto(hn_ert_pion);
 
   return;

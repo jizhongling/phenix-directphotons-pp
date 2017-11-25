@@ -29,8 +29,8 @@ void draw_CrossSection_Pion()
 
   const Double_t DeltaEta = 1.0;
   const Double_t NBBC =  3.62e11;
-  const Double_t XBBC = 32.5e9;
-  const Double_t eXBBC = 3.25e9;
+  const Double_t XBBC = 32.51e9;
+  const Double_t eXBBC = 3.24e9;
   const Double_t Pile = 0.94;
   const Double_t ePile = 0.01;
   const Double_t TrigBBC = 0.91;
@@ -77,8 +77,8 @@ void draw_CrossSection_Pion()
       Int_t ipMerge = Get_ipt(xMerge[part], xx);
       Int_t ipTrigERT = Get_ipt(xTrigERT[part], xx);
       Int_t ipProb = Get_ipt(xProb[part], xx);
-      yy[part] = (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
-        * npion / Acc[part][ipAcc] / Merge[part][ipMerge]
+      yy[part] = npion * (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
+        / Acc[part][ipAcc] / Merge[part][ipMerge]
         / TrigERT[part][ipTrigERT] / Prob[part][ipProb]
         / ToF[part] / Conv[part] / TrigBBC * Pile;
       eyy[part] = yy[part] * sqrt( pow(enpion/npion,2.)
@@ -115,7 +115,7 @@ void draw_CrossSection_Pion()
     gr[part]->Set(igp[part]);
     mcd(3, part/3+1);
     gPad->SetLogy();
-    aset(gr[part], "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb*GeV^{-2}*c^{-3}]", 6.,20., 1.,1e5);
+    aset(gr[part], "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 6.,20., 1.,1e5);
     style(gr[part], part+20, part+1);
     if(part%3==0)
       gr[part]->Draw("AP");

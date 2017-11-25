@@ -13,7 +13,8 @@ void draw_ERTEff()
   {
     gr[part] = new TGraphAsymmErrors(npT);
     gr[part]->SetName(Form("gr_%d",part));
-    mc(part, 6,5);
+    for(Int_t ic=0; ic<2; ic++)
+      mc(part*2+ic, 6,5);
   }
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
@@ -32,7 +33,7 @@ void draw_ERTEff()
       TH1 *h_minv;
 
       Double_t nt, ent;
-      mcd(part, ipt+1);
+      mcd(part*2, ipt+1);
       axis_cond->SetRange(1,1);
       h_minv = hn_trig->Projection(2);
       h_minv->Rebin(10);
@@ -41,8 +42,8 @@ void draw_ERTEff()
       delete h_minv;
 
       Double_t np, enp;
-      mcd(part, ipt+1);
-      axis_cond->SetRange(4,4);
+      mcd(part*2+1, ipt+1);
+      axis_cond->SetRange(2,2);
       h_minv = hn_trig->Projection(2);
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
@@ -64,8 +65,8 @@ void draw_ERTEff()
       }
     }
 
-  mc(2);
-  mcd(2);
+  mc(4);
+  mcd(4);
 
   for(Int_t part=0; part<2; part++)
   {
@@ -86,10 +87,14 @@ void draw_ERTEff()
   leg0->AddEntry(gr[1], "PbGl", "LPE");
   leg0->Draw();
 
-  c2->Print("plots/ERTEff.pdf");
+  c4->Print("plots/ERTEff.pdf");
 
   TFile *f_out = new TFile("data/ERTEff.root", "RECREATE");
   for(Int_t part=0; part<2; part++)
+  {
+    mcw( part*2, Form("part%d-total",part) );
+    mcw( part*2+1, Form("part%d-passed",part) );
     gr[part]->Write();
+  }
   f_out->Close();
 }
