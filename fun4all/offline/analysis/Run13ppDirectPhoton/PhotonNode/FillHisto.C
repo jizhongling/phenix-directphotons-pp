@@ -313,7 +313,8 @@ int FillHisto::FillBBCEfficiency( const PhotonContainer *photoncont )
   for(unsigned i=0; i<nphotons; i++)
   {
     Photon *photon1 = photoncont->GetPhoton(i);
-    if( GetStatus(photon1) == 0 )
+    if( GetStatus(photon1) == 0 &&
+        photon1->get_prob() )
     {
       v_used.push_back(i);
 
@@ -331,7 +332,8 @@ int FillHisto::FillBBCEfficiency( const PhotonContainer *photoncont )
         if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
         {
           Photon *photon2 = photoncont->GetPhoton(j);
-          if( GetStatus(photon2) == 0 )
+          if( GetStatus(photon2) == 0 &&
+              photon2->get_prob() )
           {
             int sector2 = anatools::GetSector( photon2 );
             if( !anatools::SectorCheck(sector,sector2) ) continue;
@@ -544,6 +546,8 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont)
         Photon *photon2 = photoncont->GetPhoton(j);
         if( GetStatus(photon1) == 0 &&
             GetStatus(photon2) == 0 &&
+            photon1->get_prob() &&
+            photon2->get_prob() &&
             anatools::GetAsymmetry_E(photon1, photon2) < AsymCut )
         {
           int sector1 = anatools::GetSector(photon1);
@@ -863,6 +867,7 @@ void FillHisto::ReadSashaWarnmap(const string &filename)
 bool FillHisto::TestPhoton( const Photon *photon, double bbc_t0 )
 {
   if( photon->get_E() > eMin &&
+      photon->get_prob() &&
       abs( photon->get_tof() - bbc_t0 ) < 10. )
     return true;
   else

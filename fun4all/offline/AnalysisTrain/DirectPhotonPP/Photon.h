@@ -20,9 +20,10 @@ class Photon: public PHObject
     float get_E() const { return E; }
     float get_Ecorr() const { return Ecorr; }
     float get_tof() const { return tof; }
-    bool get_trg1() const { return ( trig & 0x1 ); }
-    bool get_trg2() const { return ( trig & 0x2 ); }
-    bool get_trg3() const { return ( trig & 0x4 ); }
+    bool get_trg1() const { return ( trig & 0x0001 ); }
+    bool get_trg2() const { return ( trig & 0x0002 ); }
+    bool get_trg3() const { return ( trig & 0x0004 ); }
+    bool get_prob() const { return ( trig & 0x0008 ); }
 
     void set_towerid(short a_towerid) { towerid = a_towerid; }
     void set_x(float a_x) { x = a_x; }
@@ -32,6 +33,7 @@ class Photon: public PHObject
     void set_Ecorr(float a_Ecorr) { Ecorr = a_Ecorr; }
     void set_tof(float a_tof) { tof = a_tof; }
     void set_trig(ErtOut *ertout, emcClusterContent *cluster);
+    void set_prob(bool is_prob = true);
 
   protected:
     short towerid;
