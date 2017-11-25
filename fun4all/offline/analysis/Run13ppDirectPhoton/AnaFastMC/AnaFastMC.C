@@ -24,29 +24,29 @@
 #include <TMCParticle6.h>
 #endif
 
+#include <TMath.h>
+#include <TF1.h>
+#include <TLorentzVector.h>
+#include <TRandom.h>
+#include <TGenPhaseSpace.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <THnSparse.h>
-#include <TGenPhaseSpace.h>
-#include <TRandom.h>
-#include <TLorentzVector.h>
-#include <TF1.h>
-#include <TMath.h>
 
+#include <cstdlib>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <cstdlib>
-#include <cmath>
 #include <vector>
 
 using namespace std;
 
-const float PI = TMath::Pi();
-const float mPi0 = 0.1349770;
+const double PI = TMath::Pi();
+const double mPi0 = 0.1349770;
 
-const float eMin = 0.3;
-const float AsymCut = 0.8;
+const double eMin = 0.3;
+const double AsymCut = 0.8;
 
 double AnaFastMC::vpT[] = { 0.0,
   0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
@@ -118,8 +118,8 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
 
   vector<TLorentzVector> incident;
 
-  float pionpt = 0.;
-  float weight = 1.;
+  double pionpt = 0.;
+  double weight = 1.;
 
   /* Select method to generate input particle */
   /* Use PHParticleGen */
@@ -147,10 +147,10 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
       TMCParticle *part = phpythia->getParticle(ipart);
       if( part->GetKF() == 111 )
       {
-        float px = part->GetPx();
-        float py = part->GetPy();
-        float pz = part->GetPz();
-        float energy = part->GetEnergy();
+        double px = part->GetPx();
+        double py = part->GetPy();
+        double pz = part->GetPz();
+        double energy = part->GetEnergy();
 
         beam.SetPxPyPzE(px,py,pz,energy);
         pionpt = anatools::GetPt(part);
@@ -162,20 +162,20 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
   else if( mcmethod == FastMC )
   {
     const Double_t eta_max = 0.5;
-    float phi = 2.0*PI*gRandom->Rndm();
-    float eta = eta_max*2*gRandom->Rndm() - eta_max;
+    double phi = 2.0*PI*gRandom->Rndm();
+    double eta = eta_max*2*gRandom->Rndm() - eta_max;
 
-    const float emin = 0.; // min pi0 energy
-    const float emax = 40.; // max pi0 energy
-    float pt = gRandom->Rndm() * (emax-emin) + emin;
-    float px = pt*TMath::Cos(phi);
-    float py = pt*TMath::Sin(phi);
+    const double emin = 0.; // min pi0 energy
+    const double emax = 40.; // max pi0 energy
+    double pt = gRandom->Rndm() * (emax-emin) + emin;
+    double px = pt*TMath::Cos(phi);
+    double py = pt*TMath::Sin(phi);
 
     // This is if we use uniform rapidity (eta here is y)
-    float pz = sqrt((pt*pt+mPi0*mPi0)*(exp(2*eta)-1)*(exp(2*eta)-1)/4./(exp(2*eta))); // p138 v5
+    double pz = sqrt((pt*pt+mPi0*mPi0)*(exp(2*eta)-1)*(exp(2*eta)-1)/4./(exp(2*eta))); // p138 v5
     if( eta < 0 ) pz = -pz;
-    float pp = sqrt(pz*pz+pt*pt);
-    float energy = sqrt(pp*pp+mPi0*mPi0);
+    double pp = sqrt(pz*pz+pt*pt);
+    double energy = sqrt(pp*pp+mPi0*mPi0);
 
     beam.SetPxPyPzE(px,py,pz,energy);
     pionpt = pt;
@@ -212,9 +212,9 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
 
   /* Initialize parameters for pi0_sim */
   bool acc = false;
-  float ptsim = 0.;
-  float minv = 0.;
-  float dist = 9999.;
+  double ptsim = 0.;
+  double minv = 0.;
+  double dist = 9999.;
 
   /* determine if pi0 decay photons within a tower that is NOT flagged bad (set boolean 'acc' )
    * and fill ptsim, minv, and dist values */
@@ -248,8 +248,8 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
     /* parameters for two clusters from pi0 decay photons */
     int sec1 = sector[0];
     int sec2 = sector[1];
-    float e1 = Vpart[0].E();
-    float e2 = Vpart[1].E();
+    double e1 = Vpart[0].E();
+    double e2 = Vpart[1].E();
 
     /* Check in the same detector part
      * and pass the energy and asymmetry cuts */

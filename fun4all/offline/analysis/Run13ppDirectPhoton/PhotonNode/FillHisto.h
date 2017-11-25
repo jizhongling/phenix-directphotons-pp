@@ -2,7 +2,6 @@
 #define __FILLHISTO_H__
 
 #include <SubsysReco.h>
-
 #include <string>
 
 class PhotonContainer;
@@ -37,15 +36,17 @@ class FillHisto: public SubsysReco
     int FillClusterTofSpectrum( const PhotonContainer *photoncont, const std::string &quali = "" );
     int FillPi0InvariantMass( const PhotonContainer *photoncont, const std::string &quali = "" );
     int FillBBCEfficiency(const PhotonContainer *photoncont);
-    int FillERTEfficiency(const PhotonContainer *photoncont);
-    int FillPhotonSpectrum(const PhotonContainer *photoncont);
-    int FillPi0Spectrum(const PhotonContainer *photoncont);
+    int FillERTEfficiency(const PhotonContainer *photoncont, const int evtype);
+    int FillPhotonSpectrum(const PhotonContainer *photoncont, const int evtype);
+    int FillPi0Spectrum(const PhotonContainer *photoncont, const int evtype);
 
     void BookHistograms();
     void EMCRecalibSetup();
     void ReadTowerStatus(const std::string &filename);
     void ReadSashaWarnmap(const std::string &filename);
 
+    bool IsEventType(const int evtype, const PhotonContainer *photoncont);
+    bool CheckGammaTrigger(const int evtype, const bool trig1, const bool trig2, const bool trig3);
     bool TestPhoton(const Photon *photon, double bbc_t0);
     bool TestTrackVeto(const PhotonERT *photon);
 
