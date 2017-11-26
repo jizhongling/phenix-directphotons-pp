@@ -41,7 +41,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
       TH1 *h_minv = (TH1*)h3_minv->ProjectionZ("h_minv", 7,8, ipt+1,ipt+1)->Clone();
     Double_t low = axis_pt->GetBinLowEdge(ipt+1);
     Double_t high = axis_pt->GetBinUpEdge(ipt+1);
-    h_minv->SetTitle(Form("pT: %4.2f-%4.2f",low, high));
+    h_minv->SetTitle(Form("pT: %3.1f-%3.1f GeV",low, high));
 
     TF1 *fn1 = new TF1("fn1", "gaus", 0., 0.5);
     TF1 *fn2 = new TF1("fn2", "gaus(0)+pol1(3)", 0., 0.5);
@@ -67,7 +67,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
     delete h_minv;
   }
 
-  c->Print(Form("InvMass_Calib-part%d-data%d.pdf",part,data));
+  c->Print(Form("plots/InvMass_Calib-part%d-data%d.pdf",part,data));
   delete c;
 
   TGraphErrors **graph = new TGraphErrors*[2];
@@ -119,5 +119,5 @@ void draw_InvMass_Calib()
   gr_sim[0][1]->SetTitle("PbSc #sigma_{#gamma#gamma}");
   gr_sim[1][1]->SetTitle("PbGl #sigma_{#gamma#gamma}");
 
-  c0->Print("InvMass_Calib.pdf");
+  c0->Print("plots/InvMass_Calib.pdf");
 }

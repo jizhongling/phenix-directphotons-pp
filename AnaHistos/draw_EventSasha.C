@@ -38,12 +38,12 @@ void draw_EventSasha()
     treePi0->GetEntry(i);
     if( count < 10 &&
         (evtype & 0x1) && 
-        abs(bbc_z) < 10. &&
+        TMath::Abs(bbc_z) < 10. &&
         pi0_prob1 > 0.02 &&
         pi0_prob2 > 0.02 && 
-        abs(pi0_tof1) < 10. &&
-        abs(pi0_tof2) < 10. &&
-        abs( (pi0_eg1 - pi0_eg2) / (pi0_eg1 + pi0_eg2) ) < 0.8 )
+        TMath::Abs(pi0_tof1) < 10. &&
+        TMath::Abs(pi0_tof2) < 10. &&
+        TMath::Abs( (pi0_eg1 - pi0_eg2) / (pi0_eg1 + pi0_eg2) ) < 0.8 )
     {
       ID1list[count] = pi0_id1;
       ID2list[count] = pi0_id2;

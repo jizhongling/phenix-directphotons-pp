@@ -1,112 +1,105 @@
-#include "DivideFunctions.h"
+#include "GlobalVars.h"
+#include "FitMinv.h"
+#include "GetEfficiency.h"
 
-void GenerateAcceptance(TFile *fsig, TFile *ftot, TObjArray *Glist, Int_t ispion)
+void draw_Acceptance()
 {
-  const Int_t npT = 31;
-  const Double_t vpT[npT] = { 0.0,
-    0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
-    5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
-    12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
-
-  TF1 *cross = new TF1("cross", "x*(1/(1+exp((x-[5])/[6]))*[0]/pow(1+x/[1],[2])+(1-1/(1+exp((x-[5])/[6])))*[3]/pow(x,[4]))", 0, 30);
-  cross->SetParameters(2.02819e+04, 4.59173e-01, 7.51170e+00, 1.52867e+01, 7.22708e+00, 2.15396e+01, 3.65471e+00);
-
-  TH1 *h_sig[3];
-  for(Int_t part=0; part<3; part++)
-    h_sig[part] = new TH1D(Form("h_sig%d",part), "#pi^{0} signal count; p_{T} [GeV/c];", npT-1,vpT);
-  TH1 *h_tot;
-
+  const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
   const Int_t secl[3] = {1, 5, 7};
   const Int_t sech[3] = {4, 6, 8};
-  char *pname[3] = {"PbScW", "PbScE", "PbGlE"};  // must be non-const if used directly in TLegend
 
-  if(ispion == 0)
+  SetWeight();
+
+  TGraphAsymmErrors *gr[3];
+  Int_t igp[3] = {};
+  for(Int_t part=0; part<3; part++)
   {
-    THnSparse *hn_sig = (THnSparse*)fsig->Get("hn_photon");
-    for(Int_t part=0; part<3; part++)
-    {
-      hn_sig->GetAxis(2)->SetRange(secl[part],sech[part]);
-      h_sig[part] = (TH1*)hn_sig->Projection(0)->Clone();
-    }
-    h_tot = (TH1*)ftot->Get("h_photon");
+    gr[part] = new TGraphAsymmErrors(npT);
+    gr[part]->SetName(Form("gr_%d",part));
+    mc(part, 6,5);
   }
-  else if(ispion == 1)
-  {
-    THnSparse *hn_pion = (THnSparse*)fsig->Get("hn_separate");
-    for(Int_t part=0; part<3; part++)
+
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-warn-histo.root");
+
+  TH1 *h_total = (TH1*)f->Get("h_pion");
+
+  THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
+  TAxis *axis_pt0 = hn_pion->GetAxis(0);
+  TAxis *axis_pt = hn_pion->GetAxis(1);
+  TAxis *axis_minv = hn_pion->GetAxis(2);
+  TAxis *axis_sec = hn_pion->GetAxis(3);
+  TAxis *axis_peak = hn_pion->GetAxis(4);
+
+  for(Int_t part=0; part<3; part++)
+    for(Int_t ipt=0; ipt<npT; ipt++)
     {
-      hn_pion->GetAxis(2)->SetRange(secl[part],sech[part]);
-      TH1 *h_pt = hn_pion->Projection(1);
-      for(Int_t ipt=0; ipt<npT-1; ipt++)
+      Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      Double_t ww = cross->Eval(xx);
+
+      TH1 *h_tt = (TH1*)h_total->Clone();
+      h_tt->Scale(1./ww);
+      Double_t nt = h_tt->GetBinContent(ipt+1);
+      Double_t ent = sqrt(nt);
+      delete h_tt;
+
+      Double_t np, enp;
+      mcd(part, ipt+1);
+      //axis_peak->SetRange(3,3);  // Require two peaks
+      axis_sec->SetRange(secl[part],sech[part]);
+      axis_pt->SetRange(ipt+1,ipt+1);
+      TH1 *h_minv = hn_pion->Projection(2);
+      h_minv->Rebin(10);
+      h_minv->Scale(1./ww);
+      h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
+      FitMinv(h_minv, np, enp);
+      // Do not use fit result, use all invariant mass instead
+      np = h_minv->Integral(0,-1);
+      enp = sqrt(np);
+      delete h_minv;
+
+      Double_t yy, eyyl, eyyh;
+      if( !GetEfficiency(nt,np, yy,eyyl,eyyh) )
       {
-        //hn_pion->GetAxis(1)->SetRange(ipt+1, ipt+1);
-        //TH1 *h_minv = hn_pion->Projection(2);
-        //Double_t npion = h_minv->Integral(112,162) - ( h_minv->Integral(47,97) + h_minv->Integral(177,227) ) / 2.;
-        Double_t npion = h_pt->Integral(ipt+1,ipt+1);
-        h_sig[part]->SetBinContent(ipt+1, npion);
-        h_sig[part]->SetBinError( ipt+1, sqrt(npion) * cross->Eval(vpT[ipt]) );
-        //delete h_minv;
+        eyyl = yy * sqrt( pow(ent/nt,2.) + pow(enp/np,2.) );
+        eyyh = 0.;
       }
-      delete h_pt;
+      if( yy >= 0. && eyyl >= 0. && eyyl < TMath::Infinity() )
+      {
+        gr[part]->SetPoint(igp[part], xx, yy);
+        gr[part]->SetPointError(igp[part], 0.,0., eyyl,eyyh);
+        igp[part]++;
+      }
     }
-    h_tot = (TH1*)ftot->Get("h_pion");
-  }
 
-  mc();
-  mcd();
+
+  mc(3);
+  mcd(3);
   legi(0, 0.2,0.8,0.9,0.9);
   leg0->SetNColumns(3);
 
   for(Int_t part=0; part<3; part++)
   {
-    TGraphErrors *gr = DivideHisto(h_sig[part], h_tot);
-    //TGraphAsymmErrors *gr = new TGraphAsymmErrors(h_sig[part], h_tot, "n");
-    Glist->Add(gr);
-    gr->SetName(Form("gr_%d",3*ispion+part));
-    if(ispion == 0)
-      gr->SetTitle("Photon acceptance");
-    else if(ispion == 1)
-      gr->SetTitle("#pi^{0} acceptance");
-    aset(gr, "p_{T} [GeV]", "acceptance", 0.,30., 0.,0.12);
-    style(gr, 20+part, 1+part);
+    gr[part]->Set(igp[part]);
+    gr[part]->SetTitle("#pi^{0} acceptance");
+    aset(gr[part], "p_{T} [GeV]","acceptance", 0.,30., 0.,0.12);
+    style(gr[part], part+20, part+1);
     if(part==0)
-      gr->Draw("AP");
+      gr[part]->Draw("AP");
     else
-      gr->Draw("P");
-    leg0->AddEntry(gr, pname[part], "P");
-    leg0->Draw();
+      gr[part]->Draw("P");
+    leg0->AddEntry(gr[part], pname[part], "P");
+    TGraph *gr_sasha =  new TGraph( Form("data/sasha-acc-part%d.txt",part) );
+    gr_sasha->Draw("C");
   }
 
-  if(ispion == 0)
-  {
-    c0->Print("Acceptance-photon.pdf");
-    delete c0;
-  }
-  else if(ispion == 1)
-  {
-    c0->Print("Acceptance-pion.pdf");
-    delete c0;
-  }
+  leg0->Draw();
+  c3->Print("plots/Acceptance.pdf");
 
+  TFile *f_out = new TFile("data/Acceptance.root", "RECREATE");
   for(Int_t part=0; part<3; part++)
-    delete h_sig[part];
-  delete h_tot;
-
-  return;
-}
-
-void draw_Acceptance()
-{
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-warn-histo.root");
-  TObjArray *Glist = new TObjArray();
-
-  for(Int_t ispion=1; ispion<2; ispion++)
   {
-    cout << "\nispion " << ispion << endl;
-    GenerateAcceptance(f, f, Glist, ispion);
+    mcw( part, Form("part%d",part) );
+    gr[part]->Write();
   }
-
-  TFile *fout = new TFile("Acceptance.root", "RECREATE");
-  Glist->Write();
-  fout->Close();
+  f_out->Close();
 }

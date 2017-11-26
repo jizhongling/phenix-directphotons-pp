@@ -45,5 +45,5 @@ void draw_YieldCmp()
   }
   leg0->Draw();
 
-  c0->Print("YieldCmp.pdf");
+  c0->Print("plots/YieldCmp.pdf");
 }

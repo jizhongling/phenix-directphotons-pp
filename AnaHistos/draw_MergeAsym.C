@@ -80,5 +80,5 @@ void draw_MergeAsym()
     delete h_pt_data;
   }
 
-  c0->Print("MergeAsym.pdf");
+  c0->Print("plots/MergeAsym.pdf");
 }

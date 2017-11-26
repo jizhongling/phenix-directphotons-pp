@@ -36,13 +36,23 @@ Photon::Photon(short a_towerid, float a_x, float a_y, float a_z, float a_E, floa
 
 void Photon::set_trig(ErtOut *ertout, emcClusterContent *cluster)
 {
-  trig = 0;
+  trig &= 0x8888;
   if( anatools::PassERT(ertout, cluster, anatools::ERT_4x4a) )
-    trig += 0x1;
+    trig |= 0x0001;
   if( anatools::PassERT(ertout, cluster, anatools::ERT_4x4b) )
-    trig += 0x2;
+    trig |= 0x0002;
   if( anatools::PassERT(ertout, cluster, anatools::ERT_4x4c) )
-    trig += 0x4;
+    trig |= 0x0004;
+
+  return;
+}
+
+void Photon::set_prob(bool is_prob)
+{
+  if( is_prob )
+    trig |= 0x0008;
+  else
+    trig &= 0xFFF7;
 
   return;
 }

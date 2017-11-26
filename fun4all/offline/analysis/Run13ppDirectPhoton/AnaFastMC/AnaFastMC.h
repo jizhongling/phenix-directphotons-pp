@@ -15,10 +15,9 @@ class PHPythiaContainer;
 class Fun4AllHistoManager;
 
 class TFile;
-class TF1;
 class TH1;
-class TH2;
 class THnSparse;
+class TF1;
 
 enum MCMethod {PHParticleGen, FastMC};
 enum WarnMap {None, Nils, Sasha};
@@ -60,7 +59,7 @@ class AnaFastMC: public SubsysReco
     MCMethod mcmethod;
     WarnMap warnmap;
 
-    static const int MAXPEAK = 2;
+    static const int MAXPEAK = 10;
 
     static const int NSEC = 8;
     static const int NY = 48;
@@ -72,10 +71,10 @@ class AnaFastMC: public SubsysReco
     static const int nZ_gl = 96;
 
     // number of pT bins
-    static const int npT = 31;
+    static const int npT = 30;
 
     // pT bins
-    static double vpT[npT]; 
+    static double vpT[npT+1]; 
 
     // tower status for warnmap
     int tower_status[NSEC][NY][NZ];
@@ -92,25 +91,8 @@ class AnaFastMC: public SubsysReco
     Fun4AllHistoManager *hm;
     TH1 *h_photon;
     TH1 *h_pion;
-    TH2 *h2_missing;
-    TH2 *h2_nomissing;
-    TH2 *h2_missing_pion;
-    TH2 *h2_nomissing_pion;
-    TH2 *h2_incident;
-    TH2 *h2_measured;
-    TH2 *h2_incident_pion;
-    TH2 *h2_measured_pion;
-    THnSparse* hn_pion_input;
-    THnSparse* hn_pion_geom;
-    THnSparse* hn_pion_goodtower;
-    THnSparse* hn_pion_cut;
     THnSparse *hn_photon;
     THnSparse* hn_pion;
-    THnSparse* hn_pion0;
-    THnSparse *hn_separate;
-    THnSparse *hn_total;
-    THnSparse *hn_deposit;
-    THnSparse *hn_distance;
 
     TF1 *cross;
 };

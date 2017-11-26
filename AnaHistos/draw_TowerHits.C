@@ -62,7 +62,7 @@ void draw_TowerHits()
     h2_map[i]->Draw("colz");
   }
 
-  c->Print("TowerHits.pdf");
+  c->Print("plots/TowerHits.pdf");
 
   TCanvas *c0 = new TCanvas("c0", "Canvas", 600, 600);
   gStyle->SetOptStat(0);
@@ -71,5 +71,5 @@ void draw_TowerHits()
   c0->cd();
   h_hits->Fit("gaus", "Q", "", 0., 10000.);
 
-  c0->Print("HitsDistribution.pdf");
+  c0->Print("plots/HitsDistribution.pdf");
 }

@@ -28,12 +28,12 @@ void draw_pTWeight()
   THnSparse *hn_2photon = (THnSparse*)f->Get("hn_2photon");
   TH1 *h_pt = hn_2photon->Projection(2);
 
-  //TFile *f = new TFile("AnaPHPythia-histo.root");
+  //TFile *f = new TFile("data/AnaPHPythia-histo.root");
   //TH2 *h2_pion = (TH2*)f->Get("h2_measured_pion");
   //h2_pion->GetYaxis()->SetRange(24,24);
   //TH1 *h_pt = h2_pion->ProjectionX();
 
-  //TFile *f = new TFile("AnaPHPythia-histo-noweight.root");
+  //TFile *f = new TFile("data/AnaPHPythia-histo-noweight.root");
   //THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
   //TH1 *h_pt = hn_pion->Projection(0);
 
@@ -90,5 +90,5 @@ void draw_pTWeight()
   gr_gy->SetMarkerStyle(23);
   gr_gy->Draw("PSAME");
 
-  c->Print("pTWeight-ertc.pdf");
+  c->Print("plots/pTWeight-ertc.pdf");
 }

@@ -40,5 +40,5 @@ void draw_Theta_CV_Graph()
   gr3->SetFillColor(kBlue);
   gr3->Draw("F");
 
-  c->Print("Theta_CV_PbSc_Graph.pdf");
+  c->Print("plots/Theta_CV_PbSc_Graph.pdf");
 }

@@ -1,7 +1,7 @@
 void draw_SimCmpAsym()
 {
-  TFile *f_pisa = new TFile("MissingRatio-histo.root");
-  TFile *f_fastmc = new TFile("AnaPHPythia-histo.root");
+  TFile *f_pisa = new TFile("data/MissingRatio-histo.root");
+  TFile *f_fastmc = new TFile("data/AnaPHPythia-histo.root");
 
   THnSparse *hn_total_pisa = (THnSparse*)f_pisa->Get("hn_total");
   THnSparse *hn_total_fastmc = (THnSparse*)f_fastmc->Get("hn_total");
@@ -21,7 +21,7 @@ void draw_SimCmpAsym()
     TH1 *h_asym_fastmc = hn_total_fastmc->Projection(3);
     Double_t ss = h_asym_fastmc->GetEntries();
     aset(h_asym_fastmc, "Asym", "Yield");
-    h_asym_fastmc->SetTitle(Form("p_{T}: %4.2f-%4.2f",pt_low,pt_up));
+    h_asym_fastmc->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",pt_low,pt_up));
     h_asym_fastmc->GetXaxis()->SetRangeUser(0.,1.);
     h_asym_fastmc->GetYaxis()->SetRangeUser(0.,ss/70.);
     h_asym_fastmc->SetLineColor(kRed);
@@ -35,5 +35,5 @@ void draw_SimCmpAsym()
     delete h_asym_pisa;
   }
 
-  c0->Print("SimCmpAsym.pdf");
+  c0->Print("plots/SimCmpAsym.pdf");
 }

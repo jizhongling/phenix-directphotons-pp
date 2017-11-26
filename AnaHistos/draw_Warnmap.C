@@ -1,6 +1,6 @@
 void draw_Warnmap()
 {
-  TFile *f = new TFile("Warnmap.root", "recreate");
+  TFile *f = new TFile("data/Warnmap.root", "recreate");
   TTree *T1 = new TTree("T1", "Our warnmap");
   TTree *T2 = new TTree("T2", "Inseok warnmap");
 

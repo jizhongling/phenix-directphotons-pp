@@ -31,5 +31,5 @@ void draw_Energy()
   }
   leg->Draw();
 
-  c->Print("Energy.pdf");
+  c->Print("plots/Energy.pdf");
 }

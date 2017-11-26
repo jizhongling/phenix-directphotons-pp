@@ -96,12 +96,12 @@ void GenerateSmear(TFile *f, TObjArray *Glist, Int_t ispion)
 
   if(ispion==0)
   {
-    c->Print("Smear-photon.pdf");
+    c->Print("plots/Smear-photon.pdf");
     delete c;
   }
   else if(ispion==1)
   {
-    c->Print("Smear-pion.pdf");
+    c->Print("plots/Smear-pion.pdf");
     delete c;
   }
 
@@ -110,8 +110,8 @@ void GenerateSmear(TFile *f, TObjArray *Glist, Int_t ispion)
 
 void draw_Smear()
 {
-  //TFile *f = new TFile("MissingRatio-histo.root");
-  TFile *f = new TFile("AnaPHPythia-histo.root");
+  //TFile *f = new TFile("data/MissingRatio-histo.root");
+  TFile *f = new TFile("data/AnaPHPythia-histo.root");
   TObjArray *Glist = new TObjArray();
 
   for(Int_t ispion=0; ispion<2; ispion++)
@@ -120,7 +120,7 @@ void draw_Smear()
     GenerateSmear(f, Glist, ispion);
   }
 
-  TFile *fout = new TFile("Smear.root", "RECREATE");
+  TFile *fout = new TFile("data/Smear.root", "RECREATE");
   Glist->Write();
   fout->Close();
 }

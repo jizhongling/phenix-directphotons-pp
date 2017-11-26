@@ -3,7 +3,7 @@ void draw_Eta_Phi()
   gROOT->ProcessLine(".L ReadGraph.C");
   TH1::SetDefaultSumw2();
 
-  TFile *f_sim = new TFile("MissingRatio-histo.root");
+  TFile *f_sim = new TFile("data/MissingRatio-histo.root");
   THnSparse *hn_photon = (THnSparse*)f_sim->Get("hn_photon");
   TAxis *axis_pt_hn_photon = hn_photon->GetAxis(1);
 
@@ -89,8 +89,8 @@ void draw_Eta_Phi()
       hv_1phi[part]->SetMarkerSize(2.);
       hv_1phi[part]->SetMarkerStyle(2);
       hv_1phi[part]->SetMarkerColor(2);
-      hv_1phi[part]->SetTitle(Form("p_{T}: %4.2f-%4.2f",low,high));
-      hv_phi[part]->SetTitle(Form("p_{T}: %4.2f-%4.2f",low,high));
+      hv_1phi[part]->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
+      hv_phi[part]->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
     }
 
     Double_t scale = h_1eta->GetEntries() / h_eta->GetEntries();
@@ -99,7 +99,7 @@ void draw_Eta_Phi()
     h2_eta_phi->Scale(scale);
 
     c1->cd(ipad);
-    h_1eta->SetTitle(Form("p_{T}: %4.2f-%4.2f",low,high));
+    h_1eta->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
     h_1eta->SetMarkerSize(2.);
     h_1eta->SetMarkerStyle(2);
     h_1eta->SetMarkerColor(2);
@@ -114,9 +114,9 @@ void draw_Eta_Phi()
     //  hv_1phi[part]->SetMarkerSize(2.);
     //  hv_1phi[part]->SetMarkerStyle(2);
     //  hv_1phi[part]->SetMarkerColor(2);
-    //  hv_1phi[part]->SetTitle(Form("p_{T}: %4.2f-%4.2f",low,high));
+    //  hv_1phi[part]->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
     //}
-    //h_phi->SetTitle(Form("p_{T}: %4.2f-%4.2f",low,high));
+    //h_phi->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
 
     //h_phi->Scale( nh1/(nh/scale) );
 
@@ -161,19 +161,19 @@ void draw_Eta_Phi()
       hv_phi[part]->DrawCopy("SAME");
 
     c3->cd(ipad);
-    h2_eta_phi->SetTitle(Form("p_{T}: %4.2f-%4.2f",low,high));
+    h2_eta_phi->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
     h2_eta_phi->Draw("COLZ");
 
     c4->cd(ipad);
-    h2_1eta_phi->SetTitle(Form("p_{T}: %4.2f-%4.2f",low,high));
+    h2_1eta_phi->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
     h2_1eta_phi->Draw("COLZ");
 
     ipad++;
   }
 
-  c1->Print("Eta.pdf");
-  c2_1->Print("Phi-1.pdf");
-  c2_2->Print("Phi-2.pdf");
-  c3->Print("Eta-Phi-sim.pdf");
-  c4->Print("Eta-Phi-data.pdf");
+  c1->Print("plots/Eta.pdf");
+  c2_1->Print("plots/Phi-1.pdf");
+  c2_2->Print("plots/Phi-2.pdf");
+  c3->Print("plots/Eta-Phi-sim.pdf");
+  c4->Print("plots/Eta-Phi-data.pdf");
 }

@@ -75,7 +75,7 @@ void draw_InvMass_Check()
     Tl.SetTextSize(0.066);
     Tl.DrawLatex(0.2, 0.5, "m_{inv} = #sqrt{2E_{1}E_{2}(1-cos#theta)}");
 
-    c->Print(Form("InvMass-Check-part%d.pdf",part));
+    c->Print(Form("plots/InvMass-Check-part%d.pdf",part));
     delete c;
   }
 }

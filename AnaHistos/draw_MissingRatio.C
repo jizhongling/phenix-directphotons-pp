@@ -96,12 +96,12 @@ void GenerateMissingRatio(TFile *f, TObjArray *Glist, Int_t ispion)
 
   if(ispion == 0)
   {
-    c->Print("MissingRatio-photon.pdf");
+    c->Print("plots/MissingRatio-photon.pdf");
     delete c;
   }
   else if(ispion == 1)
   {
-    c->Print("MissingRatio-pion.pdf");
+    c->Print("plots/MissingRatio-pion.pdf");
     delete c;
   }
 
@@ -110,9 +110,9 @@ void GenerateMissingRatio(TFile *f, TObjArray *Glist, Int_t ispion)
 
 void draw_MissingRatio()
 {
-  TFile *f = new TFile("MissingRatio-histo.root");
-  //TFile *f = new TFile("Acceptance-histo.root");
-  //TFile *f = new TFile("AnaPHPythia-histo.root");
+  TFile *f = new TFile("data/MissingRatio-histo.root");
+  //TFile *f = new TFile("data/Acceptance-histo.root");
+  //TFile *f = new TFile("data/AnaPHPythia-histo.root");
   TObjArray *Glist = new TObjArray();
 
   for(Int_t ispion=0; ispion<2; ispion++)
@@ -121,7 +121,7 @@ void draw_MissingRatio()
     GenerateMissingRatio(f, Glist, ispion);
   }
 
-  TFile *fout = new TFile("MissingRatio.root", "RECREATE");
+  TFile *fout = new TFile("data/MissingRatio.root", "RECREATE");
   Glist->Write();
   fout->Close();
 }

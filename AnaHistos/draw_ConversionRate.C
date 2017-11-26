@@ -189,11 +189,11 @@ void draw_ConversionRate()
   leg2->AddEntry(gr3[1], "east large opening angle", "P");
   leg2->Draw();
 
-  c0->Print("ConversionRate.pdf");
-  c1->Print("ConversionRate-total.pdf");
-  c2->Print("ConversionRate-allconv.pdf");
+  c0->Print("plots/ConversionRate.pdf");
+  c1->Print("plots/ConversionRate-total.pdf");
+  c2->Print("plots/ConversionRate-allconv.pdf");
 
-  TFile *fout = new TFile("ConversionRate.root", "RECREATE");
+  TFile *fout = new TFile("data/ConversionRate.root", "RECREATE");
   Glist->Write();
   fout->Close();
 }

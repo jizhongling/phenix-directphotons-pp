@@ -142,5 +142,5 @@ void draw_Scaledown()
   leg->AddEntry(h_sum_mb[0], "MB", "L");
   leg->Draw();
 
-  c->Print("Scaledown.pdf");
+  c->Print("plots/Scaledown.pdf");
 }

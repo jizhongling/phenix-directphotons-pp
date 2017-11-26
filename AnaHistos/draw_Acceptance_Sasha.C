@@ -119,8 +119,8 @@ void draw_Acceptance_Sasha()
       }
     }
 
-    c0->Print(Form("AcceptanceRatio-%s.pdf",suffix[ic]));
-    c1->Print(Form("Acceptance-%s.pdf",suffix[ic]));
+    c0->Print(Form("plots/AcceptanceRatio-%s.pdf",suffix[ic]));
+    c1->Print(Form("plots/Acceptance-%s.pdf",suffix[ic]));
 
     delete leg0;
     delete leg1;

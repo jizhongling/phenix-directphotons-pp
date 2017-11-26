@@ -7,7 +7,7 @@ void draw_Pileup()
   const char *mname[2] = {"pol1", "log"};
   const char *cname[4] = {"PbSc without ToF", "PbGl without ToF", "PbSc with ToF", "PbGl with ToF"};
 
-  TFile *f_out = new TFile("Pileup-fit.root", "RECREATE");
+  TFile *f_out = new TFile("data/Pileup-fit.root", "RECREATE");
 
   TMultiGraph *mg[npT*8];
   for(Int_t ipt=0; ipt<npT; ipt++)
@@ -147,8 +147,8 @@ void draw_Pileup()
       }
 
   f_out->Close();
-  c1->Print("Pileup-ratio-ERT.pdf");
-  c2->Print("Pileup-ratio-MB.pdf");
-  c3->Print("ToFEff-ERT.pdf");
-  c4->Print("ToFEff-MB.pdf");
+  c1->Print("plots/Pileup-ratio-ERT.pdf");
+  c2->Print("plots/Pileup-ratio-MB.pdf");
+  c3->Print("plots/ToFEff-ERT.pdf");
+  c4->Print("plots/ToFEff-MB.pdf");
 }

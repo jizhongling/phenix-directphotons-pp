@@ -35,7 +35,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t calib)
       TH1 *h_tof = (TH1*)h3_tof->ProjectionZ("h_tof", 7,8, ipt+1,ipt+1)->Clone();
     Double_t low = axis_pt->GetBinLowEdge(ipt+1);
     Double_t high = axis_pt->GetBinUpEdge(ipt+1);
-    h_tof->SetTitle(Form("pT: %4.2f-%4.2f",low, high));
+    h_tof->SetTitle(Form("pT: %3.1f-%3.1f GeV",low, high));
 
     TF1 *fn2 = new TF1("fn2", "gaus", -30., 30.);
 
@@ -62,7 +62,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t calib)
     delete h_tof;
   }
 
-  c1->Print(Form("ToF_Calib-part%d-calib%d.pdf",part,calib));
+  c1->Print(Form("plots/ToF_Calib-part%d-calib%d.pdf",part,calib));
   delete c1;
 
   TGraphErrors **graph = new TGraphErrors*[2];
@@ -104,5 +104,5 @@ void draw_ToF_Calib_pT()
   //TF1 *f1 = new TF1("f1", "[0]*sqrt(x-[1])+pol2(2)", 0.5,30.);
   //gr_calib[0][0]->Fit(f1, "R");
 
-  c0->Print("ToF_Calib.pdf");
+  c0->Print("plots/ToF_Calib.pdf");
 }

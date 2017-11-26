@@ -24,8 +24,8 @@ void draw_PileupCmp()
     delete f_mine;
   }
 
-  TFile *f_sasha = new TFile("Pileup-Sasha-CVS.root");
-  TFile *f_sasha0 = new TFile("Pileup-Sasha-TAXI.root");
+  TFile *f_sasha = new TFile("data/Pileup-Sasha-CVS.root");
+  TFile *f_sasha0 = new TFile("data/Pileup-Sasha-TAXI.root");
 
   for(Int_t igr=0; igr<2; igr++)
   {
@@ -49,7 +49,7 @@ void draw_PileupCmp()
     {
       bool matched = false;
       for(Int_t i=0; i<gn_mine[igr]; i++)
-        if( abs(runno_mine[igr][i]-runno_sasha[igr][j]) < 0.1 )
+        if( TMath::Abs(runno_mine[igr][i]-runno_sasha[igr][j]) < 0.1 )
           matched = true;
       if(!matched)
         cout << "Part " << igr << " Runnumber = " << runno_sasha[igr][j] << " not matched!!!" << endl;
@@ -66,7 +66,7 @@ void draw_PileupCmp()
     Int_t igp1 = 0;
     for(Int_t i=0; i<gn_mine[igr]; i++)
       for(Int_t j=0; j<gn_sasha[igr]; j++)
-        if( abs(runno_mine[igr][i]-runno_sasha[igr][j]) < 0.1 )
+        if( TMath::Abs(runno_mine[igr][i]-runno_sasha[igr][j]) < 0.1 )
         {
           Double_t xx = runno_mine[igr][i];
           Double_t yy = npi0_mine[igr][i] / npi0_sasha[igr][j];
@@ -83,5 +83,5 @@ void draw_PileupCmp()
   gr_ratio[0]->Draw("AP");
   gr_ratio[1]->Draw("P");
 
-  c0->Print("PileupCmp.pdf");
+  c0->Print("plots/PileupCmp.pdf");
 }

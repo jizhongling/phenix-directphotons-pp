@@ -7,6 +7,12 @@ void anaPileup(const Int_t process = 0)
   const Int_t secl[2] = {1, 7};
   const Int_t sech[2] = {6, 8};
 
+  const Int_t nThread = 20;
+  Int_t thread = -1;
+  Int_t irun =0;
+  Int_t runnumber;
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
+
   TGraphErrors *gr[npT*8];
   TGraphErrors *gr_run[npT*8];
   Int_t igp[npT*8] = {};
@@ -17,17 +23,11 @@ void anaPileup(const Int_t process = 0)
         {
           Int_t ig = ipt*8+id*4+ic*2+is;
           mc(ig, 5,4);
-          gr[ig] = new TGraphErrors(20);
-          gr_run[ig] = new TGraphErrors(20);
+          gr[ig] = new TGraphErrors(nThread);
+          gr_run[ig] = new TGraphErrors(nThread);
           gr[ig]->SetName(Form("gr_%d",ig));
           gr_run[ig]->SetName(Form("gr_run_%d",ig));
         }
-
-  const Int_t nThread = 20;
-  Int_t thread = -1;
-  Int_t irun =0;
-  Int_t runnumber;
-  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
   ReadClockCounts();
 

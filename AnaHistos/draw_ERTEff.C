@@ -1,92 +1,100 @@
-void GenerateERTEff(TFile *f, TObjArray *Glist, Int_t ispion, Int_t trig)
+#include "GlobalVars.h"
+#include "FitMinv.h"
+#include "GetEfficiency.h"
+
+void draw_ERTEff()
 {
-  TH3 *h3_trig;
-  if(ispion == 0)
-    h3_trig = (TH3*)f->Get("h3_ert");
-  else if(ispion == 1)
-    h3_trig = (TH3*)f->Get("h3_ert_pion");
+  const Int_t secl[2] = {1, 7};
+  const Int_t sech[2] = {6, 8};
 
-  mc();
-  mcd();
-
-  TGraphAsymmErrors *gr[2], *grc[2];
-  Int_t sec_low[2] = {1, 7};
-  Int_t sec_high[2] = {6, 8};
+  TGraphAsymmErrors *gr[2];
+  Int_t igp[2] = {};
   for(Int_t part=0; part<2; part++)
   {
-    TH1 *h_trig = h3_trig->ProjectionX("h_trig", sec_low[part],sec_high[part], 2+trig,2+trig);
-    TH1 *h_total = h3_trig->ProjectionX("h_total", sec_low[part],sec_high[part], 1,1);
-    gr[part] = new TGraphAsymmErrors(h_trig, h_total);
-    if(ispion == 0)
-      gr[part]->SetTitle(Form("ERT_4x4%c trigger efficiency for photon",97+trig));
-    else if(ispion == 1)
-      gr[part]->SetTitle(Form("ERT_4x4%c trigger efficeincy for #pi^{0}",97+trig));
-    aset(gr[part], "p_{T} [GeV]", "efficiency", 0.,30., 0.,1.1);
-    style(gr[part], 20+part, 1+part);
+    gr[part] = new TGraphAsymmErrors(npT);
+    gr[part]->SetName(Form("gr_%d",part));
+    for(Int_t ic=0; ic<2; ic++)
+      mc(part*2+ic, 6,5);
+  }
+
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+
+  THnSparse *hn_trig = (THnSparse*)f->Get("hn_ert_pion");
+  TAxis *axis_sec = hn_trig->GetAxis(0);
+  TAxis *axis_pt = hn_trig->GetAxis(1);
+  TAxis *axis_minv = hn_trig->GetAxis(2);
+  TAxis *axis_cond = hn_trig->GetAxis(3);
+
+  for(Int_t part=0; part<2; part++)
+    for(Int_t ipt=0; ipt<npT; ipt++)
+    {
+      axis_sec->SetRange(secl[part],sech[part]);
+      axis_pt->SetRange(ipt+1,ipt+1);
+      TH1 *h_minv;
+
+      Double_t nt, ent;
+      mcd(part*2, ipt+1);
+      axis_cond->SetRange(1,1);
+      h_minv = hn_trig->Projection(2);
+      h_minv->Rebin(10);
+      h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
+      FitMinv(h_minv, nt, ent);
+      delete h_minv;
+
+      Double_t np, enp;
+      mcd(part*2+1, ipt+1);
+      axis_cond->SetRange(2,2);
+      h_minv = hn_trig->Projection(2);
+      h_minv->Rebin(10);
+      h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
+      FitMinv(h_minv, np, enp);
+      delete h_minv;
+
+      Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      Double_t yy, eyyl, eyyh;
+      if( !GetEfficiency(nt,np, yy,eyyl,eyyh) )
+      {
+        eyyl = yy * sqrt( pow(ent/nt,2.) + pow(enp/np,2.) );
+        eyyh = 0.;
+      }
+      if( yy >= 0. && eyyl >= 0. && eyyl < TMath::Infinity() )
+      {
+        gr[part]->SetPoint(igp[part], xx, yy);
+        gr[part]->SetPointError(igp[part], 0.,0., eyyl,eyyh);
+        igp[part]++;
+      }
+    }
+
+  mc(4);
+  mcd(4);
+
+  for(Int_t part=0; part<2; part++)
+  {
+    gr[part]->SetName(Form("gr_%d",part));
+    gr[part]->SetTitle("ERT_4x4c trigger efficeincy for #pi^{0}");
+    aset(gr[part], "p_{T} [GeV]","Eff", 0.,30., 0.,1.1);
+    style(gr[part], part+20, part+1);
     if(part==0)
       gr[part]->Draw("APE");
     else
       gr[part]->Draw("PE");
-
-    //gr[part]->SetName(Form("gr_%d",9*ispion+3*trig+part));
-    //Glist->Add(gr[part]);
-    grc[part] = (TGraphAsymmErrors*)gr[part]->Clone(Form("gr_%d",9*ispion+3*trig+part));
-    Glist->Add(grc[part]);
-
-    gr[part]->Fit("pol0", "QR", "", 12., 100.);
-    TF1 *f_pol0 = (TF1*)gr[part]->GetListOfFunctions()->FindObject("pol0");
-    f_pol0->SetLineColor(3+part);
-    Double_t EffBar = f_pol0->GetParameter(0);
-    Double_t eEffBar = f_pol0->GetParError(0);
-    for(Int_t ipt=21; ipt<31; ipt++)
-    {
-      Double_t xx, yy;
-      gr[part]->GetPoint(ipt, xx, yy);
-      grc[part]->SetPoint(ipt, xx, EffBar);
-      Double_t exxl = gr[part]->GetErrorXlow(ipt);
-      Double_t exxh = gr[part]->GetErrorXhigh(ipt);
-      grc[part]->SetPointError(ipt, exxl, exxh, eEffBar/2., eEffBar/2.);
-    }
-    gPad->Update();
-    TPaveStats *st = (TPaveStats*)gr[part]->FindObject("stats");
-    st->SetX1NDC(0.5+0.2*part);
-    st->SetY1NDC(0.4);
-    st->SetX2NDC(0.7+0.2*part);
-    st->SetY2NDC(0.6);
+    TGraph *gr_sasha =  new TGraph( Form("data/sasha-trig-part%d.txt",part) );
+    gr_sasha->Draw("C");
   }
 
-  if( ispion == 1 && trig == 2 )
-  {
-    TGraph *gr_Sasha_PbSc = new TGraph("Sasha_PbSc_trig.txt");
-    gr_Sasha_PbSc->Draw("C");
-    TGraph *gr_Sasha_PbGl = new TGraph("Sasha_PbGl_trig.txt");
-    gr_Sasha_PbGl->Draw("C");
-  }
-
-  legi(0, 0.7, 0.2, 0.9, 0.4);
+  legi(0, 0.7,0.2,0.9,0.4);
   leg0->AddEntry(gr[0], "PbSc", "LPE");
   leg0->AddEntry(gr[1], "PbGl", "LPE");
   leg0->Draw();
 
-  c0->Print(Form("TriggerEfficiency-pion%d-ert%c.pdf",ispion,97+trig));
-  delete c0;
+  c4->Print("plots/ERTEff.pdf");
 
-  return;
-}
-
-void draw_ERTEff()
-{
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
-  TObjArray *Glist = new TObjArray();
-
-  for(Int_t ispion=0; ispion<2; ispion++)
-    for(Int_t trig=0; trig<3; trig++)
-    {
-      cout << "\nispion " << ispion << endl;
-      GenerateERTEff(f, Glist, ispion, trig);
-    }
-
-  TFile *fout = new TFile("ERTEff.root", "RECREATE");
-  Glist->Write();
-  fout->Close();
+  TFile *f_out = new TFile("data/ERTEff.root", "RECREATE");
+  for(Int_t part=0; part<2; part++)
+  {
+    mcw( part*2, Form("part%d-total",part) );
+    mcw( part*2+1, Form("part%d-passed",part) );
+    gr[part]->Write();
+  }
+  f_out->Close();
 }

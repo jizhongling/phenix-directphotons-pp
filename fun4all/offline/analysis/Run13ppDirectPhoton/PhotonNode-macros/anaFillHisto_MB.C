@@ -22,7 +22,7 @@ void anaFillHisto_MB(const int process=64)
   se->Verbosity(0);
 
   // Reconstruction Module
-  FillHisto *my1 = new FillHisto("FILLHISTO", Form("histo%d.root",process));
+  FillHisto *my1 = new FillHisto("FillHisto", Form("histo%d.root",process));
   my1->SelectMB();
   se->registerSubsystem(my1);
 

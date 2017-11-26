@@ -65,6 +65,6 @@ void draw_ToF_Calib_Tower() {
   cout << "peakX=" << peakX << endl;
   cout << "ToF mean=" << mean_hitmap_tof_tower << endl;
 
-  c->Print("ToF_Calib_Tower.pdf");
+  c->Print("plots/ToF_Calib_Tower.pdf");
 
 }

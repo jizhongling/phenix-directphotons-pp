@@ -15,7 +15,7 @@ void draw_Smear_pT()
   for(Int_t i=0; i<2; i++)
   {
     hn_pion[i] = (THnSparse*)f[i]->Get("hn_pion");
-    //mc(i, 5,6);
+    //mc(i, 6,5);
     for(Int_t part=0; part<1; part++)
     {
       hn_pion[i]->GetAxis(3)->SetRange(secl[part],sech[part]);
@@ -29,7 +29,7 @@ void draw_Smear_pT()
         //mcd(i, ipad++);
         Double_t pTlow = h_pt1->GetXaxis()->GetBinLowEdge(ipt+1);
         Double_t pTup = h_pt1->GetXaxis()->GetBinUpEdge(ipt+2);
-        h_pt1->SetTitle(Form("pT: %4.2f-%4.2f",pTlow,pTup));
+        h_pt1->SetTitle(Form("pT: %3.1f-%3.1f GeV",pTlow,pTup));
         //aset(h_pt1);
         h_pt1->SetLineColor(i+1);
         //if(part==0)
@@ -50,7 +50,7 @@ void draw_Smear_pT()
   }
 
   leg0->Draw();
-  c0->Print("Smear-pT.pdf");
-  //c0->Print("Smear-pT-Mine.pdf");
-  //c1->Print("Smear-pT-Sasha.pdf");
+  c0->Print("plots/Smear-pT.pdf");
+  //c0->Print("plots/Smear-pT-Mine.pdf");
+  //c1->Print("plots/Smear-pT-Sasha.pdf");
 }

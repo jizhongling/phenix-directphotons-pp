@@ -231,7 +231,7 @@ int PhotonNode::process_event(PHCompositeNode *topNode)
   {
     emcClusterContent *emccluster_raw = data_emccontainer_raw->getCluster(iclus);
     emcClusterContent *emccluster = data_emccontainer->getCluster(iclus);
-    if( TestPhoton(emccluster,bbc_t0) &&
+    if( emccluster->ecore() > 0.3 &&
         ( GetStatus(emccluster) <= 10 ||
           GetStatusSasha(emccluster) == 0 )
       )
@@ -255,6 +255,8 @@ int PhotonNode::process_event(PHCompositeNode *topNode)
       Photon *photon = new Photon(towerid, x, y, z, ecore_raw, ecore, tofcorr_raw);
       //PhotonERT *photonERT = new PhotonERT(towerid, x, y, z, ecore_raw, theta_cv, cone_energy);
       photon->set_trig(data_ert, emccluster);
+      if( emccluster->prob_photon() > 0.02 )
+        photon->set_prob();
       if(photon)
       {
         photoncont->AddPhoton(*photon);
@@ -395,7 +397,7 @@ void PhotonNode::ReadSashaWarnmap(const string &filename)
 bool PhotonNode::TestPhoton(const emcClusterContent *emccluster, float bbc_t0)
 {
   if( emccluster->ecore() > 0.3 &&
-      //abs( emccluster->tofcorr() - bbc_t0 ) < 10. &&
+      abs( emccluster->tofcorr() - bbc_t0 ) < 10. &&
       emccluster->prob_photon() > 0.02 )
     return true;
   else
