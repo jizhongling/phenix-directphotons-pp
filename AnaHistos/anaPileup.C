@@ -45,6 +45,8 @@ void anaPileup(const Int_t process = 0)
     THnSparse *hn_pion[2];
     hn_pion[0] = (THnSparse*)f_ert->Get("hn_pion");
     hn_pion[1] = (THnSparse*)f_mb->Get("hn_pion");
+    hn_pion[0]->GetAxis(4)->SetRange(3,3);
+    hn_pion[1]->GetAxis(4)->SetRange(1,1);
 
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
@@ -68,7 +70,7 @@ void anaPileup(const Int_t process = 0)
             
             Double_t npion, enpion;
 
-            hn_pion[id]->GetAxis(3)->SetRange(ic+1,ic+1);
+            hn_pion[id]->GetAxis(3)->SetRange(ic+3,ic+3);
             hn_pion[id]->GetAxis(0)->SetRange(secl[is],sech[is]);
             hn_pion[id]->GetAxis(1)->SetRange(pTlow[id][ipt], pThigh[id][ipt]);
 

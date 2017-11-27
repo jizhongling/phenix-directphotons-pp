@@ -25,7 +25,8 @@ void draw_CrossSection_Pion()
   TAxis *axis_sec = hn_pion->GetAxis(0);
   TAxis *axis_pt = hn_pion->GetAxis(1);
   TAxis *axis_minv = hn_pion->GetAxis(2);
-  TAxis *axis_cond = hn_pion->GetAxis(3);
+  TAxis *axis_cut = hn_pion->GetAxis(3);
+  TAxis *axis_type = hn_pion->GetAxis(4);
 
   const Double_t DeltaEta = 1.0;
   const Double_t NBBC =  3.62e11;
@@ -36,8 +37,8 @@ void draw_CrossSection_Pion()
   const Double_t TrigBBC = 0.91;
   const Double_t eTrigBBC = 0.01;
   const Double_t ToF[3] = {0.984, 0.984, 0.997};
-  const Double_t eToF[3] = {0.003, 0.003, 0.007};
-  const Double_t Conv[3] = {0.760, 1., 1.};
+  const Double_t eToF[3] = {0.003, 0.003, 0.003};
+  const Double_t Conv[3] = {0.784, 0.983, 0.983};
   const Double_t eConv[3] = {0.033, 0., 0.};
 
   Double_t xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
@@ -60,7 +61,8 @@ void draw_CrossSection_Pion()
 
     for(Int_t part=0; part<3; part++)
     {
-      axis_cond->SetRange(2,2);
+      axis_type->SetRange(3,3);
+      axis_cut->SetRange(4,4);
       axis_sec->SetRange(secl[part],sech[part]);
       axis_pt->SetRange(ipt+1,ipt+1);
 

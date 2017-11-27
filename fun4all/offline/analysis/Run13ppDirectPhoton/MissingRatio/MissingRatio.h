@@ -9,7 +9,6 @@ class Fun4AllHistoManager;
 
 class TF1;
 class TFile;
-class TH1;
 class TH2;
 class THnSparse;
 
@@ -41,10 +40,6 @@ class MissingRatio: public SubsysReco
     Fun4AllHistoManager *hm;
 
     // 2D histograms for west and east arms with different criterias
-    TH1 *h_photon;
-    TH1 *h_pion;
-    THnSparse *hn_photon;
-    THnSparse *hn_pion;
     THnSparse *hn_conversion_position;
     TH2 *h2_radius;
     TH2 *h2_angle;
@@ -53,6 +48,8 @@ class MissingRatio: public SubsysReco
     TH2 *h2_vtxconv;
     TH2 *h2_eeinconv;
     TH2 *h2_eeoutconv;
+    THnSparse *hn_photon;
+    THnSparse *hn_pion;
 
     TF1 *cross;
 };

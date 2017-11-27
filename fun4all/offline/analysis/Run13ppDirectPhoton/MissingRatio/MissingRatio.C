@@ -55,10 +55,6 @@ const double merge_radius = 50.;
 MissingRatio::MissingRatio(const string &name, const char *filename):
   SubsysReco(name),
   hm(NULL),
-  h_photon(NULL),
-  h_pion(NULL),
-  hn_photon(NULL),
-  hn_pion(NULL),
   hn_conversion_position(NULL),
   h2_radius(NULL),
   h2_angle(NULL),
@@ -66,7 +62,9 @@ MissingRatio::MissingRatio(const string &name, const char *filename):
   h2_noconv(NULL),
   h2_vtxconv(NULL),
   h2_eeinconv(NULL),
-  h2_eeoutconv(NULL)
+  h2_eeoutconv(NULL),
+  hn_photon(NULL),
+  hn_pion(NULL)
 {
   // construct output file names
   outFileName = "histos/MissingRatio-";
@@ -169,8 +167,6 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
         weight = cross->Eval(pionpt);
       else
         weight = cross->Eval(1.);
-      // count input pi0s for acceptance
-      h_pion->Fill(pionpt, weight);
 
       emc_tracklist_t pion_daughter = lvl0_trk->daughter_list;
       BOOST_FOREACH( const emc_trkno_t &lvl1_trkno, pion_daughter )
@@ -179,8 +175,6 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
         lvl1_trk->parent_trk = lvl0_trk;  // fill parent_trkpt
         if( lvl1_trk->pid == PHOTON_PID && lvl1_trk->anclvl == 1 )
         {// photon
-          // count input photons for acceptance
-          h_photon->Fill(lvl1_trk->trkpt, weight);
           // count photons for photon conversion
           h2_photon->Fill(lvl1_trk->trkpt, (double)lvl1_trk->arm);
           if( lvl1_trk->decayed == false )
@@ -223,9 +217,12 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
   vector<emc_trkno_t> used;
   BOOST_FOREACH( AnaTrk *pos, positron )
     BOOST_FOREACH( AnaTrk *ele, electron )
-    if( find(used.begin(), used.end(), ele->trkno) == used.end() &&
-        pos->parent_trkno == ele->parent_trkno )
+    if( pos->parent_trkno == ele->parent_trkno &&
+        find(used.begin(), used.end(), pos->trkno) == used.end() )
     {
+      // consider one parent photon only once
+      used.push_back( pos->parent_trkno );
+
       // get parent photon pT
       double photonpt = pos->parent_trk->trkpt;
 
@@ -272,11 +269,10 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
       {// photon conversion outside magnetic field
         // store photon info for missing ratio
         photon.push_back(pos->parent_trk);
-        h2_eeinconv->Fill(photonpt, (double)pos->arm);
+        h2_eeoutconv->Fill(photonpt, (double)pos->arm);
       }
 
-      // already matched, do not consider this electron again
-      used.push_back(ele->trkno);
+      // already matched, no need to consider other electrons
       break;
     }
 
@@ -340,34 +336,6 @@ int MissingRatio::End(PHCompositeNode *topNode)
 
 void MissingRatio::BookHistograms()
 {
-  h_photon = new TH1F("h_photon", "Total photon count;p_{T} [GeV];", npT, vpT);
-  h_photon->Sumw2();
-  hm->registerHisto(h_photon);
-
-  h_pion = new TH1F("h_pion", "Total pion count;p_{T} [GeV];", npT, vpT);
-  h_pion->Sumw2();
-  hm->registerHisto(h_pion);
-
-  int nbins_hn_photon[] = {npT, npT, 8, 4};
-  double xmin_hn_photon[] = {0., 0., -0.5, -0.5};
-  double xmax_hn_photon[] = {0., 0., 7.5, 3.5};
-  hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV/c];p_{T} reco [GeV];sector;nphoton;",
-      4, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
-  hn_photon->SetBinEdges(0, vpT);
-  hn_photon->SetBinEdges(1, vpT);
-  hn_photon->Sumw2();
-  hm->registerHisto(hn_photon);
-
-  int nbins_hn_pion[] = {npT, npT, 300, 8, 4};
-  double xmin_hn_pion[] = {0., 0., 0., -0.5, -0.5};
-  double xmax_hn_pion[] = {0., 0., 0.3, 7.5, 3.5};
-  hn_pion = new THnSparseF("hn_pion", "EMCal pion count;Truth p_{T} truth [GeV];p_{T} reco [GeV];m_{inv} [GeV];sector;npeak;",
-      5, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
-  hn_pion->SetBinEdges(0, vpT);
-  hn_pion->SetBinEdges(1, vpT);
-  hn_pion->Sumw2();
-  hm->registerHisto(hn_pion);
-
   // photon conversion XY position
   int nbins_hn_conversion_position[] = {npT, 300, 300};
   double xmin_hn_conversion_position[] = {0., -300., -300.};
@@ -391,13 +359,35 @@ void MissingRatio::BookHistograms()
   h2_photon = new TH2F("h2_photon", "EMCal photon count;p_{T} [GeV/c];arm;", npT,vpT, 2,-0.5,1.5);
   h2_noconv = new TH2F("h2_noconv", "No converted photon count;p_{T} [GeV/c];arm;", npT,vpT, 2,-0.5,1.5);
   h2_vtxconv = new TH2F("h2_vtxconv", "VTX Converted photon count;p_{T} [GeV/c];arm;", npT,vpT, 2,-0.5,1.5);
-  h2_eeinconv = new TH2F("h2_eeinconversion", "EMCal converstion inside magnetic field count;p_{T} [GeV/c];arm;", npT,vpT, 2,-0.5,1.5);
-  h2_eeoutconv = new TH2F("h2_eeoutconversion", "EMCal converstion outside magnetic field count;p_{T} [GeV/c];arm;", npT,vpT, 2,-0.5,1.5);
+  h2_eeinconv = new TH2F("h2_eeinconv", "EMCal converstion inside magnetic field count;p_{T} [GeV/c];arm;", npT,vpT, 2,-0.5,1.5);
+  h2_eeoutconv = new TH2F("h2_eeoutconv", "EMCal converstion outside magnetic field count;p_{T} [GeV/c];arm;", npT,vpT, 2,-0.5,1.5);
   hm->registerHisto(h2_photon);
   hm->registerHisto(h2_noconv);
   hm->registerHisto(h2_vtxconv);
   hm->registerHisto(h2_eeinconv);
   hm->registerHisto(h2_eeoutconv);
+
+  int nbins_hn_photon[] = {npT, npT, 8, 4};
+  double xmin_hn_photon[] = {0., 0., -0.5, -0.5};
+  double xmax_hn_photon[] = {0., 0., 7.5, 3.5};
+  hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV/c];p_{T} reco [GeV];sector;nphoton;",
+      4, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
+  hn_photon->SetBinEdges(0, vpT);
+  hn_photon->SetBinEdges(1, vpT);
+  hn_photon->Sumw2();
+  hm->registerHisto(hn_photon);
+
+  int nbins_hn_pion[] = {npT, npT, 300, 8, 4};
+  double xmin_hn_pion[] = {0., 0., 0., -0.5, -0.5};
+  double xmax_hn_pion[] = {0., 0., 0.3, 7.5, 3.5};
+  hn_pion = new THnSparseF("hn_pion", "EMCal pion count;Truth p_{T} truth [GeV];p_{T} reco [GeV];m_{inv} [GeV];sector;npeak;",
+      5, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
+  hn_pion->SetBinEdges(0, vpT);
+  hn_pion->SetBinEdges(1, vpT);
+  hn_pion->Sumw2();
+  hm->registerHisto(hn_pion);
+
+  return;
 }
 
 void MissingRatio::ReadTowerStatus(const string& filename)

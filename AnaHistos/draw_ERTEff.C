@@ -34,7 +34,7 @@ void draw_ERTEff()
 
       Double_t nt, ent;
       mcd(part*2, ipt+1);
-      axis_cond->SetRange(1,1);
+      axis_cond->SetRange(3,3);
       h_minv = hn_trig->Projection(2);
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
@@ -43,7 +43,7 @@ void draw_ERTEff()
 
       Double_t np, enp;
       mcd(part*2+1, ipt+1);
-      axis_cond->SetRange(2,2);
+      axis_cond->SetRange(6,6);
       h_minv = hn_trig->Projection(2);
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
