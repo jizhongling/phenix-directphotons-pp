@@ -1,11 +1,11 @@
-void anaRawYieldCmp(const Int_t process = 0)
+void anaYieldCmpByRun(const Int_t process = 0)
 {
   const Int_t secl[3] = {1, 5, 7};
   const Int_t sech[3] = {4, 6, 8};
 
   const Int_t nThread = 20;
   Int_t thread = -1;
-  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510ERT/runnumber.txt");
 
   TTree *t1 = new TTree("t1", "Raw yield");
   Int_t runnumber;
@@ -29,8 +29,7 @@ void anaRawYieldCmp(const Int_t process = 0)
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
     TFile *f_mine = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
-    //TFile *f_sasha = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510ERT/12232/data/Pi0PP-%d.root",runnumber));
-    TFile *f_sasha = new TFile(Form("/phenix/spin/phnxsp01/shura/taxi/Run13pp510ERT/5094/data/%d.root",runnumber));
+    TFile *f_sasha = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510ERT/12232/data/Pi0PP-%d.root",runnumber));
     if( f_mine->IsZombie() || f_sasha->IsZombie() ) continue;
 
     for(Int_t part=0; part<3; part++)
@@ -40,11 +39,18 @@ void anaRawYieldCmp(const Int_t process = 0)
     }
 
     THnSparse *hn_pion = (THnSparse*)f_mine->Get("hn_pion");
+    TAxis *axis_sec = hn_pion->GetAxis(0);
+    TAxis *axis_pt = hn_pion->GetAxis(1);
+    TAxis *axis_minv = hn_pion->GetAxis(2);
+    TAxis *axis_cut = hn_pion->GetAxis(3);
+    TAxis *axis_type = hn_pion->GetAxis(4);
+
     for(Int_t part=0; part<3; part++)
     {
-      hn_pion->GetAxis(3)->SetRange(2,2);
-      hn_pion->GetAxis(0)->SetRange(secl[part],sech[part]);
-      hn_pion->GetAxis(1)->SetRange(5,25);
+      axis_type->SetRange(3,3);
+      axis_cut->SetRange(4,4);
+      axis_sec->SetRange(secl[part],sech[part]);
+      axis_pt->SetRange(5,25);
       TH1 *h_minv = hn_pion->Projection(2);
       npion_mine[part] = h_minv->Integral(113,162);
       delete h_minv;
@@ -70,7 +76,7 @@ void anaRawYieldCmp(const Int_t process = 0)
     delete f_sasha;
   }
 
-  TFile *f_out = new TFile(Form("histos/RawYieldCmp-%d.root",process), "RECREATE");
+  TFile *f_out = new TFile(Form("histos/YieldCmpByRun-%d.root",process), "RECREATE");
   t1->Write();
   for(Int_t part=0; part<3; part++)
   {

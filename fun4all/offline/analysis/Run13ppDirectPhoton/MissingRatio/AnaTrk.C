@@ -9,12 +9,10 @@
 #include <boost/foreach.hpp>
 
 AnaTrk::AnaTrk(emcGeaTrackContent *trk, emcGeaClusterContainer *cluscont, int *vstatus):
-  trkno(-9999), pid(-9999), anclvl(-9999), parent_trkno(-9999),
-  decayed(false), trkpt(-9999.), parent_trkpt(-9999.), trkedep(-9999.), trkrbirth(-9999.),
-  cid(-9999), arm(-9999), part(-9999), sector(-9999), status(-9999),
-  ecore(-9999), cluspt(-9999.), prob_photon(-9999.),
-  emctrk(trk), emccluscont(cluscont), emcclus(NULL),
-  vtower_status(vstatus)
+  trkno(-9999), pid(-9999), anclvl(-9999), parent_trkno(-9999), parent_trk(NULL),
+  decayed(false), trkpt(-9999.), trkedep(-9999.), trkrbirth(-9999.),
+  cid(-9999), arm(-9999), sector(-9999), ecore(-9999), cluspt(-9999.),
+  emctrk(trk), emccluscont(cluscont), emcclus(NULL), vtower_status(vstatus)
 {
   daughter_list.clear();
   trkvp.SetXYZ(-9999., -9999., -9999.);
@@ -46,26 +44,24 @@ AnaTrk::~AnaTrk()
 
 void AnaTrk::FillCluster()
 {
-  // find the cluster which has closest energy to edep
-  //FindCluster(edep);
-
   // find the cluster which has highest energy deposit
   FindCluster();
 
   // fill cluster info by this cluster
   if( emcclus )
   {
-    cid = emcclus->id();
-    //arm = emcclus->arm();
-    sector = arm==0 ? emcclus->sector() : 7-emcclus->sector();
-    part = arm==0 ? 0 : ( (sector-4)/2 + 1 );
     int iypos = emcclus->iypos();
     int izpos = emcclus->izpos();
-    status = vtower_status[48*96*sector + 96*iypos + izpos];
-    ecore = emcclus->ecore();
-    TVector3 vx( emcclus->x(), emcclus->y(), emcclus->z() );
-    cluspt = ecore * ( vx.Perp() / vx.Mag() );
-    prob_photon = emcclus->prob_photon();
+    if( vtower_status[48*96*sector + 96*iypos + izpos] == 0 &&
+        emcclus->prob_photon() > 0.02 )
+    {
+      cid = emcclus->id();
+      //arm = emcclus->arm();
+      sector = arm==0 ? emcclus->sector() : 7-emcclus->sector();
+      ecore = emcclus->ecore();
+      TVector3 vx( emcclus->x(), emcclus->y(), emcclus->z() );
+      cluspt = ecore * ( vx.Perp() / vx.Mag() );
+    }
   }
 
   return;
@@ -84,32 +80,6 @@ void AnaTrk::FindCluster()
     {
       emcclus = emccluscont->find(iclus);  // use find(clusterID)
       edepMax = edep;
-    }
-  }
-
-  return;
-}
-
-void AnaTrk::FindCluster(float edep)
-{
-  // if this track has no energy deposit, no cluster associated to it
-  if( trkedep <= 0. )
-  {
-    emcclus = NULL;
-    return;
-  }
-
-  // associate a cluster which has closest energy to edep
-  float diffEmin = 9999.;
-  emc_clusterlist_t cluster_list = emctrk->get_cluster_list();
-  for(emc_clusterlist_t::iterator it = cluster_list.begin(); it != cluster_list.end(); it++)
-  {
-    emcGeaClusterContent *tmp_clus = emccluscont->find(*it);  // use find(clusterID)
-    float diffE = fabs( tmp_clus->ecore() - edep );
-    if( diffE < diffEmin )
-    {
-      emcclus = tmp_clus;
-      diffEmin = diffE;
     }
   }
 

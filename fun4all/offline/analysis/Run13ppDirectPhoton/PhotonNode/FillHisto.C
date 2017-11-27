@@ -849,9 +849,9 @@ bool FillHisto::IsEventType(const int evtype, const PhotonContainer *photoncont)
   {
     if( evtype == 0 && photoncont->get_ert_a_scaled() && photoncont->get_bbcnarrow_live() )
       return true;
-    else if( evtype == 1 && photoncont->get_ert_a_scaled() && photoncont->get_bbcnarrow_live() )
+    else if( evtype == 1 && photoncont->get_ert_b_scaled() && photoncont->get_bbcnarrow_live() )
       return true;
-    else if( evtype == 2 && photoncont->get_ert_a_scaled() && photoncont->get_bbcnarrow_live() )
+    else if( evtype == 2 && photoncont->get_ert_c_scaled() && photoncont->get_bbcnarrow_live() )
       return true;
   }
   else if( datatype == MB )
@@ -865,10 +865,12 @@ bool FillHisto::IsEventType(const int evtype, const PhotonContainer *photoncont)
 
 bool FillHisto::CheckGammaTrigger(const int evtype, const bool trig1, const bool trig2, const bool trig3)
 {
-  if( ( evtype == 0 && trig1 ) ||
-      ( evtype == 1 && trig2 ) ||
-      ( evtype == 2 && trig3 ) )
-    return true;
+  if( evtype == 0 )
+    return trig1;
+  else if( evtype == 1 )
+    return trig2;
+  else if( evtype == 2 )
+    return trig3;
 
   return false;
 }

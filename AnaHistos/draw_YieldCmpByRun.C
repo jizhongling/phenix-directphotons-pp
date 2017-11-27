@@ -1,8 +1,8 @@
-void draw_RawYieldCmp()
+void draw_YieldCmpByRun()
 {
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
 
-  TFile *f = new TFile("data/RawYieldCmp.root");
+  TFile *f = new TFile("data/YieldCmpByRun.root");
   TGraph *gr[3];
   for(Int_t part=0; part<3; part++)
     gr[part] = (TGraph*)f->Get(Form("gr_%d",part));
@@ -14,7 +14,7 @@ void draw_RawYieldCmp()
   for(Int_t part=0; part<3; part++)
   {
     gr[part]->SetTitle("Raw yield ratio");
-    aset(gr[part], "Runnumber","#frac{Mine}{Sasha}", 387000,398200, 0.49,0.51);
+    aset(gr[part], "Runnumber","#frac{Mine}{Sasha}", 387000,398200, 0.4999,0.5001);
     style(gr[part], part+24, part+1);
     if(part==0)
       gr[part]->Draw("AP");
@@ -24,5 +24,5 @@ void draw_RawYieldCmp()
   }
   leg0->Draw();
 
-  c0->Print("plots/RawYieldCmp.pdf");
+  c0->Print("plots/YieldCmpByRun.pdf");
 }

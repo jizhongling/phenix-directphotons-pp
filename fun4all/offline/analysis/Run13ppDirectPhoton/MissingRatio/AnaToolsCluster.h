@@ -4,6 +4,7 @@
 #include <emcClusterContent.h>
 #include <emcGeaTrackContent.h>
 
+#include <TMath.h>
 #include <TLorentzVector.h>
 
 namespace anatools
