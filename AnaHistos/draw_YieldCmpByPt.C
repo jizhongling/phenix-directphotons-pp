@@ -35,6 +35,7 @@ void draw_YieldCmpByPt()
 
       TH1 *mchist = (TH1*)f_sasha->Get(Form("mchist_s%d_pt%02d_tp",part,ipt));
       Double_t npion_sasha = mchist->Integral(113,162);
+      delete mchist;
 
       Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
       Double_t ratio = npion_mine / npion_sasha;

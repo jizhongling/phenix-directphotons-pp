@@ -1,172 +1,113 @@
-TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
-{
-  const Int_t gn = 30;
-  Double_t *gx[2];
-  Double_t *gy[2];
-  Double_t *egy[2];
-  for(Int_t i=0; i<2; i++)
-  {
-    gx[i] = new Double_t[gn];
-    gy[i] = new Double_t[gn];
-    egy[i] = new Double_t[gn];
-    for(Int_t j=0; j<gn; j++)
-    {
-      gx[i][j] = 0.;
-      gy[i][j] = 0.;
-      egy[i][j] = 0.;
-    }
-  }
-
-  Int_t olddata = data;
-  data = 0;
-
-  if(data == 0)
-  {
-    THnSparse *hn_minv = (THnSparse*)f->Get("hn_pion");
-    TAxis *axis_pt = hn_minv->GetAxis(1);
-    if(part == 0)
-      hn_minv->GetAxis(3)->SetRange(1,6);
-    else if(part == 1)
-      hn_minv->GetAxis(3)->SetRange(7,8);
-  }
-  else if(data == 1)
-  {
-    TH3 *h3_minv = (TH3*)f->Get("h3_inv_mass_pi0calib");
-    TAxis *axis_pt = h3_minv->GetYaxis();
-  }
-
-  mc(1, 6,5);
-  mc(2, 6,5);
-
-  Int_t ipad = 1;
-  for(Int_t ipt=1; ipt<gn; ipt++)
-  {
-    mcd(1, ipad);
-
-    axis_pt->SetRange(ipt+1, ipt+1);
-    if(data == 0)
-      TH1 *h_minv = hn_minv->Projection(2);
-    else if(data == 1)
-    {
-      if(part ==  0)
-        TH1 *h_minv = (TH1*)h3_minv->ProjectionZ("h_minv", 1,6, ipt+1,ipt+1)->Clone();
-      else if(part ==  1)
-        TH1 *h_minv = (TH1*)h3_minv->ProjectionZ("h_minv", 7,8, ipt+1,ipt+1)->Clone();
-    }
-    aset(h_minv);
-    Double_t low = axis_pt->GetBinLowEdge(ipt+1);
-    Double_t high = axis_pt->GetBinUpEdge(ipt+1);
-    h_minv->SetTitle(Form("pT: %3.1f-%3.1f GeV",low, high));
-
-    TF1 *fn1 = new TF1("fn1", "gaus", 0., 0.5);
-    TF1 *fn2 = new TF1("fn2", "gaus(0)+pol1(3)", 0., 0.5);
-
-    if(olddata==0)
-    {
-      h_minv->Fit(fn1, "WLQ0", "", 0.112, 0.162);
-      fn2->SetParameters( fn1->GetParameters() );
-      h_minv->Fit(fn2, "WLQ0", "", 0.047, 0.227);
-      h_minv->Fit(fn2, "WLQE", "", 0.047, 0.227);
-    }
-    else if(olddata==1)
-    {
-      h_minv->Fit(fn1, "Q0", "", 0.112, 0.162);
-      fn2->SetParameters( fn1->GetParameters() );
-      h_minv->Fit(fn2, "Q0", "", 0.047, 0.227);
-      h_minv->Fit(fn2, "QE", "", 0.047, 0.227);
-    }
-    h_minv->DrawCopy("E");
-
-    TH1 *h_pull = new TH1F("h_pull", "Pull statistics for fitting", 180,0.047,0.227);
-    for(Int_t i=1; i<=180; i++)
-    {
-      Double_t meas = h_minv->GetBinContent(47+i);
-      Double_t emeas = h_minv->GetBinError(47+i);
-      Double_t est = fn2->Eval(0.047+0.001*i);
-      if(emeas>0.)
-        Double_t pull = (meas - est) / emeas;
-      h_pull->SetBinContent(i, pull);
-    }
-
-    mcd(2, ipad);
-    aset(h_pull);
-    h_pull->SetTitle(Form("pT: %3.1f-%3.1f GeV",low, high));
-    h_pull->GetYaxis()->SetRangeUser(-10.,10.);
-    h_pull->DrawCopy();
-    delete h_pull;
-
-    Double_t scale = 1.;
-    if( fn2->GetNDF() > 0 )
-      scale = sqrt( fn2->GetChisquare() / fn2->GetNDF() );
-
-    gx[0][ipt] = axis_pt->GetBinCenter(ipt+1);
-    gy[0][ipt] = fn2->GetParameter(1);
-    egy[0][ipt] = fn2->GetParError(1) * scale;
-
-    gx[1][ipt] = axis_pt->GetBinCenter(ipt+1);
-    gy[1][ipt] = fn2->GetParameter(2);
-    egy[1][ipt] = fn2->GetParError(2) * scale;
-
-    ipad++;
-    delete h_minv;
-  }
-
-  c1->Print(Form("plots/Pi0Peak-part%d-data%d.pdf",part,olddata));
-  delete c1;
-
-  c2->Print(Form("plots/Pi0Peak-part%d-data%d-pull.pdf",part,olddata));
-  delete c2;
-
-  if(data == 0)
-    delete hn_minv;
-  else if(data == 1)
-    delete h3_minv;
-
-  TGraphErrors **graph = new TGraphErrors*[2];
-  for(Int_t i=0; i<2; i++)
-    graph[i] = new TGraphErrors(gn, gx[i], gy[i], 0, egy[i]);
-  return graph;
-}
+#include "GlobalVars.h"
+#include "GetMassWidth.h"
 
 void draw_Pi0Peak()
 {
-  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
-  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  const Int_t secl[2] = {1, 7};
+  const Int_t sech[2] = {6, 8};
 
-  mc(0, 2,2);
-
-  TGraphErrors **gr_sim[2];
-  TGraphErrors **gr_data[2];
+  TGraphErrors *gr_data_mass[2], *gr_data_width[2];
+  TGraphErrors *gr_sim_mass[2], *gr_sim_width[2];
+  Int_t igp_data[2] = {};
+  Int_t igp_sim[2] = {};
   for(Int_t part=0; part<2; part++)
   {
-    gr_sim[part] = CreateGraph(f_sim, part, 0);
-    gr_data[part] = CreateGraph(f_data, part, 1);
-    for(Int_t i=0; i<2; i++)
-    {
-      mcd(0, 2*i+part+1);
-      aset(gr_sim[part][i]);
-      gr_sim[part][i]->GetXaxis()->SetTitle("p_{T} [GeV]");
-      gr_sim[part][i]->GetXaxis()->SetRangeUser(0., 20.);
-      if(i == 0)
-      {
-        gr_sim[part][i]->GetYaxis()->SetTitle("m_{#gamma#gamma} [GeV]");
-        gr_sim[part][i]->GetYaxis()->SetRangeUser(0.13, 0.145);
-      }
-      else if(i == 1)
-      {
-        gr_sim[part][i]->GetYaxis()->SetTitle("#sigma_{#gamma#gamma} [GeV]");
-        gr_sim[part][i]->GetYaxis()->SetRangeUser(0., 0.015);
-      }
-      style(gr_sim[part][i], 4, kBlue);
-      style(gr_data[part][i], 4, kRed);
-      gr_sim[part][i]->Draw("AP");
-      gr_data[part][i]->Draw("P");
-    }
+    gr_data_mass[part] =  new TGraphErrors(npT);
+    gr_data_width[part] =  new TGraphErrors(npT);
+    gr_sim_mass[part] =  new TGraphErrors(npT);
+    gr_sim_width[part] =  new TGraphErrors(npT);
+    for(Int_t id=0; id<2; id++)
+      mc(part*2+id, 6,5);
   }
-  gr_sim[0][0]->SetTitle("PbSc m_{#gamma#gamma}");
-  gr_sim[1][0]->SetTitle("PbGl m_{#gamma#gamma}");
-  gr_sim[0][1]->SetTitle("PbSc #sigma_{#gamma#gamma}");
-  gr_sim[1][1]->SetTitle("PbGl #sigma_{#gamma#gamma}");
 
-  c0->Print("plots/Pi0Peak.pdf");
+  SetWeight();
+
+  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-warn-histo.root");
+  //TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
+
+  THnSparse *hn_data = (THnSparse*)f_data->Get("hn_pion");
+  THnSparse *hn_sim = (THnSparse*)f_sim->Get("hn_pion");
+
+  mc(4, 2,2);
+
+  for(Int_t part=0; part<2; part++)
+  {
+    for(Int_t ipt=0; ipt<npT; ipt++)
+    {
+      Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      Double_t ww = cross->Eval(xx);
+      Double_t mass, emass, width, ewidth;
+      TH1 *h_minv;
+
+      mcd(part*2, ipt+1);
+      hn_data->GetAxis(4)->SetRange(3,3);
+      hn_data->GetAxis(3)->SetRange(4,4);
+      hn_data->GetAxis(0)->SetRange(secl[part],sech[part]);
+      hn_data->GetAxis(1)->SetRange(ipt+1,ipt+1);
+      h_minv = hn_data->Projection(2);
+      h_minv->Rebin(10);
+      if( GetMassWidth(h_minv, mass, emass, width, ewidth) )
+      {
+        gr_data_mass[part]->SetPoint(igp_data[part], xx, mass);
+        gr_data_mass[part]->SetPointError(igp_data[part], 0., emass);
+        gr_data_width[part]->SetPoint(igp_data[part], xx, width);
+        gr_data_width[part]->SetPointError(igp_data[part], 0., ewidth);
+        igp_data[part]++;
+      }
+      delete h_minv;
+
+      mcd(part*2+1, ipt+1);
+      hn_sim->GetAxis(3)->SetRange(secl[part],sech[part]);
+      hn_sim->GetAxis(1)->SetRange(ipt+1,ipt+1);
+      h_minv = hn_sim->Projection(2);
+      h_minv->Scale(1./ww);
+      h_minv->Rebin(10);
+      if( GetMassWidth(h_minv, mass, emass, width, ewidth) )
+      {
+        gr_sim_mass[part]->SetPoint(igp_sim[part], xx, mass);
+        gr_sim_mass[part]->SetPointError(igp_sim[part], 0., emass);
+        gr_sim_width[part]->SetPoint(igp_sim[part], xx, width);
+        gr_sim_width[part]->SetPointError(igp_sim[part], 0., ewidth);
+        igp_sim[part]++;
+      }
+      delete h_minv;
+    }
+
+    gr_data_mass[part]->Set(igp_data[part]);
+    gr_data_width[part]->Set(igp_data[part]);
+    gr_sim_mass[part]->Set(igp_sim[part]);
+    gr_sim_width[part]->Set(igp_sim[part]);
+
+    aset(gr_data_mass[part], "p_{T} [GeV]","mass [GeV]", 0.,20., 0.13,0.145);
+    aset(gr_data_width[part], "p_{T} [GeV]","width [GeV]", 0.,20., 0.007,0.015);
+    style(gr_data_mass[part], 24, kRed);
+    style(gr_data_width[part], 24, kRed);
+    style(gr_sim_mass[part], 24, kBlue);
+    style(gr_sim_width[part], 24, kBlue);
+
+    mcd(4, part+1);
+    gr_data_mass[part]->Draw("AP");
+    gr_sim_mass[part]->Draw("P");
+
+    mcd(4, part+3);
+    gr_data_width[part]->Draw("AP");
+    gr_sim_width[part]->Draw("P");
+  }
+
+  gr_data_mass[0]->SetTitle("PbSc m_{#gamma#gamma}");
+  gr_data_mass[1]->SetTitle("PbGl m_{#gamma#gamma}");
+  gr_data_width[0]->SetTitle("PbSc #sigma_{#gamma#gamma}");
+  gr_data_width[1]->SetTitle("PbGl #sigma_{#gamma#gamma}");
+
+  TFile *f_out = new TFile("data/Pi0Peak.root", "RECREATE");
+  for(Int_t part=0; part<2; part++)
+  {
+    mcw( part*2, Form("part%d-data",part) );
+    mcw( part*2+1, Form("part%d-sim",part) );
+  }
+  f_out->Write();
+  f_out->Close();
+
+  c4->Print("plots/Pi0Peak.pdf");
 }

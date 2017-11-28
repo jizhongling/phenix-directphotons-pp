@@ -41,6 +41,11 @@ void draw_ConversionRate()
       } // ic == 0
     }
 
+  mcd(0, 1);
+  TLine *line = new TLine();
+  line->DrawLine(0.,0.099,30.,0.099);
+  line->DrawLine(0.,0.147,30.,0.147);
+
   gr[0][0]->SetTitle("All conversion inside magnetic field");
   gr[1][0]->SetTitle("e^{+}e^{-} conversion inside magnetic field");
   gr[2][0]->SetTitle("e^{+}e^{-} conversion outside magnetic field");

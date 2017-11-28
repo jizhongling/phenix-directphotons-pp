@@ -20,6 +20,7 @@ void draw_CrossSection_Pion()
   }
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  TFile *f_sasha = new TFile("data/Pi0PP-sasha-histo.root");
 
   THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
   TAxis *axis_sec = hn_pion->GetAxis(0);
@@ -29,7 +30,7 @@ void draw_CrossSection_Pion()
   TAxis *axis_type = hn_pion->GetAxis(4);
 
   const Double_t DeltaEta = 1.0;
-  const Double_t NBBC =  3.62e11;
+  const Double_t NBBC =  3.61833e11;
   const Double_t XBBC = 32.51e9;
   const Double_t eXBBC = 3.24e9;
   const Double_t Pile = 0.94;
@@ -39,7 +40,7 @@ void draw_CrossSection_Pion()
   const Double_t ToF[3] = {0.984, 0.984, 0.997};
   const Double_t eToF[3] = {0.003, 0.003, 0.003};
   const Double_t Conv[3] = {0.784, 0.983, 0.983};
-  const Double_t eConv[3] = {0.033, 0., 0.};
+  const Double_t eConv[3] = {0.033, 0.017, 0.017};
 
   Double_t xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
   Double_t xMerge[3][npT] = {}, Merge[3][npT] = {}, eMerge[3][npT] = {};
@@ -69,6 +70,8 @@ void draw_CrossSection_Pion()
       mcd(part, ipt+1);
       Double_t npion = 1., enpion = 1.;
       TH1 *h_minv = hn_pion->Projection(2);
+      //TH1 *h_minv = (TH1*)f_sasha->Get( Form("mchist_s%d_pt%02d_tp",part,ipt) );
+      //h_minv->Scale(0.5);
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T} %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
       FitMinv(h_minv, npion, enpion);

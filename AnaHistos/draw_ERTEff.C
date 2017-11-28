@@ -72,7 +72,7 @@ void draw_ERTEff()
   {
     gr[part]->SetName(Form("gr_%d",part));
     gr[part]->SetTitle("ERT_4x4c trigger efficeincy for #pi^{0}");
-    aset(gr[part], "p_{T} [GeV]","Eff", 0.,30., 0.,1.1);
+    aset(gr[part], "p_{T} [GeV]","Eff", 1.,30., 0.,1.1);
     style(gr[part], part+20, part+1);
     if(part==0)
       gr[part]->Draw("APE");
