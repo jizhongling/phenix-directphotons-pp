@@ -1,4 +1,4 @@
-void anaMissingRatio(const int process=0)
+void anaMissingRatio(const int process = 0)
 {
   // Set up Fun4All libraries
   gSystem->Load("libfun4all.so");
@@ -40,7 +40,7 @@ void anaMissingRatio(const int process=0)
 
   // Reconstruction Module
   //se->registerSubsystem( new EmcGeaContainerImporter() );
-  SubsysReco *my1 = new MissingRatio(Form("histo%d.root",process));
+  SubsysReco *my1 = new MissingRatio("MissingRatio", Form("histo%d.root",process));
   se->registerSubsystem(my1);
 
   // Input Manager

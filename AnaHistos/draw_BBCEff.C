@@ -75,13 +75,11 @@ void draw_BBCEff()
     aset(gr[part], "p_{T} [GeV]","Eff", 0.,20., 0.,1.);
     style(gr[part], part+20, part+1);
     gr[part]->Draw("APE");
-    gr[part]->Fit("pol0", "Q","", 3.,20.);
+    gr[part]->Fit("pol0", "Q","", 2.,20.);
 
     gPad->Update();
     TPaveStats *st = (TPaveStats*)gr[part]->FindObject("stats");
-    st->SetX1NDC(0.7);
     st->SetY1NDC(0.6);
-    st->SetX2NDC(1.0);
     st->SetY2NDC(0.8);
   }
 

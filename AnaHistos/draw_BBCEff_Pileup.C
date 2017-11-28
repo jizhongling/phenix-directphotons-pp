@@ -71,9 +71,7 @@ void draw_BBCEff_Pileup()
 
     gPad->Update();
     TPaveStats *st = (TPaveStats*)gr_trig[part]->FindObject("stats");
-    st->SetX1NDC(0.7);
     st->SetY1NDC(0.6);
-    st->SetX2NDC(1.0);
     st->SetY2NDC(0.8);
   }
 

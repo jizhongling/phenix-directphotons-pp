@@ -14,12 +14,13 @@ void draw_ToFEff()
   TAxis *axis_sec = hn_pion->GetAxis(0);
   TAxis *axis_pt = hn_pion->GetAxis(1);
   TAxis *axis_minv = hn_pion->GetAxis(2);
-  TAxis *axis_cond = hn_pion->GetAxis(3);
+  TAxis *axis_cut = hn_pion->GetAxis(3);
+  TAxis *axis_type = hn_pion->GetAxis(4);
 
-  TGraphAsymmErrors *gr_tof[2];
+  TGraphAsymmErrors *gr[2];
   Int_t igr[2] = {};
   for(Int_t part=0; part<2; part++)
-    gr_tof[part] =  new TGraphAsymmErrors(npT);
+    gr[part] =  new TGraphAsymmErrors(npT);
 
   mc(0, 6,5);
   mc(1, 6,5);
@@ -28,13 +29,14 @@ void draw_ToFEff()
   for(Int_t part=0; part<2; part++)
     for(Int_t ipt=0; ipt<npT; ipt++)
     {
+      axis_type->SetRange(3,3);
       axis_sec->SetRange(secl[part],sech[part]);
       axis_pt->SetRange(ipt+1,ipt+1);
       TH1 *h_minv;
 
       mcd(0, ipt+1);
       Double_t nt, ent;
-      axis_cond->SetRange(1,1);
+      axis_cut->SetRange(3,3);
       h_minv = hn_pion->Projection(2); 
       h_minv->Rebin(10);
       h_minv->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]));
@@ -43,7 +45,7 @@ void draw_ToFEff()
 
       mcd(1, ipt+1);
       Double_t np, enp;
-      axis_cond->SetRange(2,2);
+      axis_cut->SetRange(4,4);
       h_minv = hn_pion->Projection(2); 
       h_minv->Rebin(10);
       h_minv->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]));
@@ -59,8 +61,8 @@ void draw_ToFEff()
       }
       if( yy >= 0. && eyyl >= 0. && eyyl < TMath::Infinity() )
       {
-        gr_tof[part]->SetPoint(igr[part], xx, yy);
-        gr_tof[part]->SetPointError(igr[part], 0.,0., eyyl,eyyh);
+        gr[part]->SetPoint(igr[part], xx, yy);
+        gr[part]->SetPointError(igr[part], 0.,0., eyyl,eyyh);
         igr[part]++;
       }
     }
@@ -68,17 +70,15 @@ void draw_ToFEff()
   for(Int_t part=0; part<2; part++)
   {
     mcd(2, part+1);
-    gr_tof[part]->SetTitle( Form("ToF efficeincy for %s", name[part]) );
-    aset(gr_tof[part], "p_{T} [GeV]", "Eff", 0.,30., 0.,1.1);
-    style(gr_tof[part], 24, kRed);
-    gr_tof[part]->Draw("APE");
-    gr_tof[part]->Fit("pol0", "Q","", 9.,30.);
+    gr[part]->SetTitle( Form("ToF efficeincy for %s", name[part]) );
+    aset(gr[part], "p_{T} [GeV]", "Eff", 0.,30., 0.,1.1);
+    style(gr[part], 24, kRed);
+    gr[part]->Draw("APE");
+    gr[part]->Fit("pol0", "Q","", 9.,30.);
 
     gPad->Update();
-    TPaveStats *st = (TPaveStats*)gr_tof[part]->FindObject("stats");
-    st->SetX1NDC(0.7);
+    TPaveStats *st = (TPaveStats*)gr[part]->FindObject("stats");
     st->SetY1NDC(0.6);
-    st->SetX2NDC(1.0);
     st->SetY2NDC(0.8);
   }
 

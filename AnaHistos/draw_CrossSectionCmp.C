@@ -19,13 +19,23 @@ void draw_CrossSectionCmp()
   {
     gr_ratio[part] = new TGraphErrors(npT);
 
-    for(Int_t ipt=0; ipt<npT; ipt++)
+    for(Int_t ipt=2; ipt<npT; ipt++)
     {
       Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
       Double_t yy, eyy;
 
       Int_t ip1 = Get_ipt(gx[part], xx);
       Int_t ip2 = Get_ipt(gx[3], xx);
+
+      Double_t sasha_pT, sasha;
+      gr_sasha->GetPoint(ipt-2, sasha_pT, sasha);
+      sasha *= scale_sasha * sasha_pT / xx;
+
+      if( TMath::Abs(sasha_pT - xx) > 0.2 )
+      {
+        cout << "Wrong pT matching!!!" << endl;
+        return;
+      }
 
       if(part < 3)
       {
@@ -34,9 +44,8 @@ void draw_CrossSectionCmp()
       }
       else
       {
-        Double_t Sasha = gr_sasha->Eval(xx) * scale_sasha;
-        yy = ( gy[3][ip2] - Sasha ) / Sasha;
-        eyy = egy[3][ip2] / Sasha;
+        yy = ( gy[3][ip2] - sasha ) / sasha;
+        eyy = egy[3][ip2] / sasha;
       }
 
       if( eyy > 0. && eyy < TMath::Infinity() )

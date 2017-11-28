@@ -34,7 +34,7 @@ void draw_ERTEff()
 
       Double_t nt, ent;
       mcd(part*2, ipt+1);
-      axis_cond->SetRange(1,1);
+      axis_cond->SetRange(3,3);
       h_minv = hn_trig->Projection(2);
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
@@ -43,7 +43,7 @@ void draw_ERTEff()
 
       Double_t np, enp;
       mcd(part*2+1, ipt+1);
-      axis_cond->SetRange(2,2);
+      axis_cond->SetRange(6,6);
       h_minv = hn_trig->Projection(2);
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
@@ -72,7 +72,7 @@ void draw_ERTEff()
   {
     gr[part]->SetName(Form("gr_%d",part));
     gr[part]->SetTitle("ERT_4x4c trigger efficeincy for #pi^{0}");
-    aset(gr[part], "p_{T} [GeV]","Eff", 0.,30., 0.,1.1);
+    aset(gr[part], "p_{T} [GeV]","Eff", 1.,30., 0.,1.1);
     style(gr[part], part+20, part+1);
     if(part==0)
       gr[part]->Draw("APE");
