@@ -20,7 +20,6 @@ void draw_CrossSection_Pion()
   }
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
-  TFile *f_sasha = new TFile("data/Pi0PP-sasha-histo.root");
 
   THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
   TAxis *axis_sec = hn_pion->GetAxis(0);
@@ -30,9 +29,11 @@ void draw_CrossSection_Pion()
   TAxis *axis_type = hn_pion->GetAxis(4);
 
   const Double_t DeltaEta = 1.0;
-  const Double_t NBBC =  3.61833e11;
+  //const Double_t NBBC =  3.59e11;  // from DAQ
+  const Double_t NBBC =  3.54e11;  // from rejection power
   const Double_t XBBC = 32.51e9;
   const Double_t eXBBC = 3.24e9;
+  const Double_t BR = 0.988;
   const Double_t Pile = 0.94;
   const Double_t ePile = 0.01;
   const Double_t TrigBBC = 0.91;
@@ -70,11 +71,12 @@ void draw_CrossSection_Pion()
       mcd(part, ipt+1);
       Double_t npion = 1., enpion = 1.;
       TH1 *h_minv = hn_pion->Projection(2);
-      //TH1 *h_minv = (TH1*)f_sasha->Get( Form("mchist_s%d_pt%02d_tp",part,ipt) );
-      //h_minv->Scale(0.5);
-      h_minv->Rebin(10);
+      //h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T} %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
-      FitMinv(h_minv, npion, enpion);
+      if( ipt < 20 )
+        FitMinv(h_minv, npion, enpion, kTRUE);
+      else
+        FitMinv(h_minv, npion, enpion, kTRUE);
       delete h_minv;
 
       xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
@@ -82,7 +84,7 @@ void draw_CrossSection_Pion()
       Int_t ipMerge = Get_ipt(xMerge[part], xx);
       Int_t ipTrigERT = Get_ipt(xTrigERT[part], xx);
       Int_t ipProb = Get_ipt(xProb[part], xx);
-      yy[part] = npion * (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
+      yy[part] = npion / BR * (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
         / Acc[part][ipAcc] / Merge[part][ipMerge]
         / TrigERT[part][ipTrigERT] / Prob[part][ipProb]
         / ToF[part] / Conv[part] / TrigBBC * Pile;

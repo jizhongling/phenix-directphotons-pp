@@ -75,7 +75,7 @@ void draw_CrossSectionCmp()
     else
     {
       gr_ratio[part]->SetTitle("Diff with Sasha;p_{T} [GeV];Diff;");
-      aset(gr_ratio[part], "","", 6.,20., -0.2,0.);
+      aset(gr_ratio[part], "","", 6.,20., -0.1,0.1);
     }
     style(gr_ratio[part], part+20, part+1);
     if(part%3 == 0)

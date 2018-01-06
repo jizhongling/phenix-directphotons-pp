@@ -146,8 +146,10 @@ void draw_NBBC()
     Double_t N_r_bbc = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow") );
     Double_t N_r_10cm = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm") );
     Double_t r10cm = N_r_10cm / N_r_bbc;
-    Double_t N_db = (Double_t)N_bbc_live * r10cm;
-    Double_t re2N_db = 1./N_bbc_live + 1./N_r_bbc + 1./N_r_10cm;
+    //Double_t N_db = (Double_t)N_bbc_live * r10cm;
+    //Double_t re2N_db = 1./N_bbc_live + 1./N_r_bbc + 1./N_r_10cm;
+    Double_t N_db = N_r_10cm * ( GetBBCNarrowScaledown(runnumber) + 1 ) / ( GetERT4x4cScaledown(runnumber) + 1 );
+    Double_t re2N_db = 1./N_r_10cm;
     sum_db += N_db;
 
     Double_t N_ert_scaled = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );
