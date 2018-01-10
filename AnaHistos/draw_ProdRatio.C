@@ -60,6 +60,30 @@ void draw_ProdRatio()
     for(Int_t iv=0; iv<3; iv++)
       fn_ratio[id][iv] = new TF1(Form("fn_ratio%d_%d",id,iv), Form("fn_prod%d_%d/fn_prod0_%d",id+1,iv,iv), 2.,20.);
 
+  // convert Tsallis ratio functios to TGraphErrors to draw areas for uncertainties
+  TGraphAsymmErrors *g_fn_ratio[3];  // g_fn_ratio[meson]
+  for(Int_t id=0; id<3; id++)
+    {
+      float xmin = 2;
+      float xmax = 20;
+      int xsteps = 100;
+
+      g_fn_ratio[id] = new TGraphAsymmErrors( xsteps );
+
+      for ( int step = 0; step < xsteps; step++ )
+	{
+	  float x = xmin + step * (xmax-xmin)/((float)xsteps);
+	  float y = fn_ratio[id][0]->Eval(x);
+	  float exh = 0;
+	  float exl = 0;
+	  float eyh = fn_ratio[id][1]->Eval(x) - y;
+	  float eyl = y - fn_ratio[id][2]->Eval(x);
+
+	  g_fn_ratio[id]->SetPoint( step+1 , x , y );
+	  g_fn_ratio[id]->SetPointError( step+1 , exl, exh, eyl, eyh );
+	}
+    }
+
   // gSystem->ProcessLine(".L /phenix/u/zji/.rootrc.d/rootalias.C") to use this
   // create canvas
   mc(0, 2,1);
@@ -71,17 +95,30 @@ void draw_ProdRatio()
     // set axis and line stype
     aset(gr_ratio1[0][id], "pT [GeV]","Prod. Ratio", 2.,20., 0.,2.);
     style(gr_ratio1[0][id], id+20, id+1);
-    if(id==0)
-      gr_ratio1[0][id]->Draw("AP");
-    else
-      gr_ratio1[0][id]->Draw("P");
+    gr_ratio1[0][id]->SetFillColor( gr_ratio1[0][id]->GetMarkerColor() );
+    gr_ratio1[0][id]->SetFillStyle(3002);
+    gr_ratio1[0][id]->SetLineColor( gr_ratio1[0][id]->GetMarkerColor() );
+    gr_ratio1[0][id]->SetLineStyle(1);
+    gr_ratio1[0][id]->SetLineWidth(2);
+    gr_ratio1[0][id]->SetMarkerStyle(1);
 
-    for(Int_t iv=0; iv<3; iv++)
-    {
-      fn_ratio[id][iv]->SetLineColor(id+1);
-      fn_ratio[id][iv]->SetLineStyle(iv+1);
-      fn_ratio[id][iv]->Draw("SAME");
-    }
+    if(id==0)
+      {
+	//gr_ratio1[0][id]->Draw("A3");
+	gr_ratio1[0][id]->Draw("AL");
+      }
+    else
+      {
+	//gr_ratio1[0][id]->Draw("3");
+	gr_ratio1[0][id]->Draw("L");
+      }
+
+    g_fn_ratio[id]->SetLineColor(id+1);
+    g_fn_ratio[id]->SetLineWidth(3);
+    g_fn_ratio[id]->SetFillColor(id+1);
+    g_fn_ratio[id]->SetFillStyle(3002);
+    g_fn_ratio[id]->Draw("3");
+    g_fn_ratio[id]->Draw("XL");
 
     mcd(0, 2);
     aset(gr_ratio2[id], "pT [GeV]","#frac{r_{510gev}}{r_{200gev}}", 2.,20., 0.5,2.);
@@ -100,7 +137,10 @@ void draw_ProdRatio()
 
   mcd(0, 1);
   gr_eta->SetLineColor(4);
-  gr_eta->Draw();
+  gr_eta->SetMarkerColor(4);
+  gr_eta->SetMarkerSize(1.5);
+  gr_eta->SetMarkerStyle(20);
+  gr_eta->Draw("P");
   leg0->Draw();
 
   mcd(0, 2);
