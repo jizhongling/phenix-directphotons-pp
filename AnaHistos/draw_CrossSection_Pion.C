@@ -34,26 +34,47 @@ void draw_CrossSection_Pion()
   const Double_t XBBC = 32.51e9;
   const Double_t eXBBC = 3.24e9;
   const Double_t BR = 0.988;
-  const Double_t Pile = 0.94;
+  //const Double_t Pile = 0.94;
+  const Double_t Pile[3] = {0.905, 0.905, 0.865};
   const Double_t ePile = 0.01;
   const Double_t TrigBBC = 0.91;
   const Double_t eTrigBBC = 0.01;
   const Double_t ToF[3] = {0.984, 0.984, 0.997};
   const Double_t eToF[3] = {0.003, 0.003, 0.003};
-  const Double_t Conv[3] = {0.784, 0.983, 0.983};
-  const Double_t eConv[3] = {0.033, 0.017, 0.017};
+  //const Double_t Conv[3] = {0.784, 0.983, 0.983};
+  //const Double_t eConv[3] = {0.033, 0.017, 0.017};
+  const Double_t Conv[3] = {0.720, 0.919, 0.919};
+  const Double_t eConv[3] = {0.046, 0.044, 0.044};
 
   Double_t xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
   Double_t xMerge[3][npT] = {}, Merge[3][npT] = {}, eMerge[3][npT] = {};
   Double_t xTrigERT[3][npT] = {}, TrigERT[3][npT] = {}, eTrigERT[3][npT] = {};
-  Double_t xProb[3][npT] = {}, Prob[3][npT] = {}, eProb[3][npT] = {};
+  //Double_t xProb[3][npT] = {}, Prob[3][npT] = {}, eProb[3][npT] = {};
+
+  Double_t xpt[npT] =  { 0.25,0.75, 1.215, 1.719, 2.223, 2.725, 3.228, 3.730, 4.231, 4.732, 5.234, 5.735, 6.237, 6.738, 7.238, 7.739, 8.240, 8.740, 9.241, 9.741, 10.88, 12.90, 14.91, 16.92, 18.93, 20.94, 22.94, 24.95, 27, 29 };
+
+  Double_t bck[2][npT] = {
+    { 1,1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.10, 1.15, 1.20, 1.30,  1, 1, 1 },
+    { 1,1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.08, 1.08, 1.11, 1.11, 1.11, 1.11, 1.11 }
+  };
+
+  Double_t meff[2][npT] = {
+    { 1,1, 0.96, 0.97, 0.98, 0.985, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.985, 0.995, 0.995, 0.99, 0.98, 0.95, 1,1,1,1,1, },
+    { 1,1, 0.95, 0.97, 0.975, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.995, 0.995, 0.99, 0.99, 0.98, 0.98, 0.98, 0.98, 1, 1 }
+  };
+
+  Double_t Prob[2][npT] = {
+    { 1,1, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92 },
+    { 1,1, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.93, 0.94, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95 }
+  };
+  Double_t eProb = 0.02;
 
   for(Int_t part=0; part<3; part++)
   {
     ReadGraph<TGraphAsymmErrors>("data/Acceptance.root", part, xAcc[part], Acc[part], eAcc[part]);
     ReadGraph<TGraphAsymmErrors>("data/Merge.root", part/2, xMerge[part], Merge[part], eMerge[part]);
     ReadGraph<TGraphAsymmErrors>("data/ERTEff.root", part/2, xTrigERT[part], TrigERT[part], eTrigERT[part]);
-    ReadGraph<TGraphAsymmErrors>("data/ProbEff.root", part/2, xProb[part], Prob[part], eProb[part]);
+    //ReadGraph<TGraphAsymmErrors>("data/ProbEff.root", part/2, xProb[part], Prob[part], eProb[part]);
     mc(part, 6,5);
   }
 
@@ -71,28 +92,33 @@ void draw_CrossSection_Pion()
       mcd(part, ipt+1);
       Double_t npion = 1., enpion = 1.;
       TH1 *h_minv = hn_pion->Projection(2);
-      //h_minv->Rebin(10);
+      h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T} %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
-      if( ipt < 20 )
-        FitMinv(h_minv, npion, enpion, kTRUE);
+      if(ipt < 20)
+        FitMinv(h_minv, npion, enpion, kTRUE, 0.112,0.162);
+      else if(ipt < 23)
+        FitMinv(h_minv, npion, enpion, kTRUE, 0.102,0.172);
       else
-        FitMinv(h_minv, npion, enpion, kTRUE);
+        FitMinv(h_minv, npion, enpion, kFALSE, 0.102,0.172);
       delete h_minv;
 
-      xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      //xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      xx = xpt[ipt];
       Int_t ipAcc = Get_ipt(xAcc[part], xx);
       Int_t ipMerge = Get_ipt(xMerge[part], xx);
       Int_t ipTrigERT = Get_ipt(xTrigERT[part], xx);
-      Int_t ipProb = Get_ipt(xProb[part], xx);
-      yy[part] = npion / BR * (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
+      //Int_t ipProb = Get_ipt(xProb[part], xx);
+      yy[part] = (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
+        * npion / BR / bck[part/2][ipt] / meff[part/2][ipt]
         / Acc[part][ipAcc] / Merge[part][ipMerge]
-        / TrigERT[part][ipTrigERT] / Prob[part][ipProb]
-        / ToF[part] / Conv[part] / TrigBBC * Pile;
+        / TrigERT[part][ipTrigERT] / Prob[part/2][ipt]
+        / ToF[part] / Conv[part] / TrigBBC * Pile[part];
       eyy[part] = yy[part] * sqrt( pow(enpion/npion,2.)
           + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2.)
           + pow(eMerge[part][ipMerge]/Merge[part][ipMerge],2.)
           + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2.)
-          + pow(eProb[part][ipProb]/Prob[part][ipProb],2.)
+          //+ pow(eProb[part][ipProb]/Prob[part][ipProb],2.)
+          + pow(eProb/Prob[part/2][ipt],2.)
           + pow(eToF[part]/ToF[part],2.) + pow(eConv[part]/Conv[part],2.)
           //+ pow(eTrigBBC/TrigBBC,2.) + pow(ePile/Pile,2.) + pow(eXBBC/XBBC,2.)
           );

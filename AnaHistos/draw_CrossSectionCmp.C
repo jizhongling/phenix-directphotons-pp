@@ -29,7 +29,8 @@ void draw_CrossSectionCmp()
 
       Double_t sasha_pT, sasha;
       gr_sasha->GetPoint(ipt-2, sasha_pT, sasha);
-      sasha *= scale_sasha * sasha_pT / xx;
+      //sasha *= scale_sasha * sasha_pT / xx;
+      sasha *= scale_sasha;
 
       if( TMath::Abs(sasha_pT - xx) > 0.2 )
       {
