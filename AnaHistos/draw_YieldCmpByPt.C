@@ -12,7 +12,8 @@ void draw_YieldCmpByPt()
     gr[part] =  new TGraph(25);
 
   TFile *f_mine = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
-  TFile *f_sasha = new TFile("data/Pi0PP-histo.root");
+  //TFile *f_sasha = new TFile("data/Pi0PP-histo.root");
+  TFile *f_sasha = new TFile("/phenix/spin/phnxsp01/shura/taxi/Run13pp510ERT/5116/data/nt_merged_ert.root");
 
   THnSparse *hn_pion = (THnSparse*)f_mine->Get("hn_pion");
   TAxis *axis_sec = hn_pion->GetAxis(0);
@@ -30,11 +31,12 @@ void draw_YieldCmpByPt()
       axis_pt->SetRange(ipt+1,ipt+1);
 
       TH1 *h_minv = hn_pion->Projection(2);
-      Double_t npion_mine = h_minv->Integral(113,162);
+      Double_t npion_mine = h_minv->Integral(120,160);
       delete h_minv;
 
-      TH1 *mchist = (TH1*)f_sasha->Get(Form("mchist_s%d_pt%02d_tp",part,ipt));
-      Double_t npion_sasha = mchist->Integral(113,162);
+      //TH1 *mchist = (TH1*)f_sasha->Get(Form("mchist_s%d_pt%02d_tp",part,ipt));
+      TH1 *mchist = (TH1*)f_sasha->Get(Form("mc_s%d_bcc0_pt_%03d_tp",part,5*ipt));
+      Double_t npion_sasha = mchist->Integral(120,160);
       delete mchist;
 
       Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
@@ -50,7 +52,7 @@ void draw_YieldCmpByPt()
   for(Int_t part=0; part<3; part++)
   {
     gr[part]->Set(igp[part]);
-    aset(gr[part], "p_{T} [GeV]","#frac{Mine}{Sasha}", 0.,20., 0.49999,0.50001);
+    aset(gr[part], "p_{T} [GeV]","#frac{Mine}{Sasha}", 0.,20., 0.49,0.51);
     style(gr[part], part+24, part+1);
     if(part == 0)
       gr[part]->Draw("AP");

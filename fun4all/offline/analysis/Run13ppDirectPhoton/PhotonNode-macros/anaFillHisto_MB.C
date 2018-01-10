@@ -1,4 +1,4 @@
-void anaFillHisto_MB(const int process=64)
+void anaFillHisto_MB(const int process = 64)
 {
   // Set up Fun4All libraries
   gSystem->Load("libfun4all.so");

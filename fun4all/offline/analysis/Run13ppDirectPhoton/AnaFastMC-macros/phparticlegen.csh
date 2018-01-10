@@ -9,5 +9,5 @@ end
 source $HOME/.login
 
 cd $1
-if(! -e phparticlegen) then mkdir phparticlegen
+if(! -e phparticlegen) mkdir phparticlegen
 root -l -b -q $2\(20000,\"/phenix/plhf/zji/sources/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/phparticlegen/phparticlegen$3.root\"\)
