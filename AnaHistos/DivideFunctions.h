@@ -1,15 +1,14 @@
 TGraphErrors *DivideHisto(TH1 *h1, TH1 *h2, Double_t kh1 = 1., Double_t kh2 = 1.)
 {
   Int_t gn = h1->GetXaxis()->GetNbins();
-  Double_t *gx = new Double_t[gn];
-  Double_t *gy = new Double_t[gn];
-  Double_t *egx = new Double_t[gn];
-  Double_t *egy = new Double_t[gn];
+
+  vector< Double_t > gx;
+  vector< Double_t > gy;
+  vector< Double_t > egx;
+  vector< Double_t > egy;
 
   for(Int_t i=0; i<gn; i++)
   {
-    gx[i] = gy[i] = egx[i] = egy[i] = 0.;
-
     Double_t h1x = h1->GetXaxis()->GetBinCenter(i+1);
     Double_t h1y = h1->GetBinContent(i+1) * kh1; 
     Double_t h2y = h2->GetBinContent(i+1) * kh2; 
@@ -19,14 +18,15 @@ TGraphErrors *DivideHisto(TH1 *h1, TH1 *h2, Double_t kh1 = 1., Double_t kh2 = 1.
 
     if( h1y > 0. && h2y > 0. )
     {
-      gx[i] = h1x;
-      gy[i] = h1y / h2y;
-      egx[i] = eh1x;
-      egy[i] = gy[i] * sqrt( pow(eh1y/h1y,2.) + pow(eh2y/h2y,2.) );
+      gx.push_back( h1x );
+      gy.push_back( h1y / h2y );
+      egx.push_back( eh1x );
+      egy.push_back( gy[i] * sqrt( pow(eh1y/h1y,2.) + pow(eh2y/h2y,2.) ) );
     }
   }
 
-  TGraphErrors *graph = new TGraphErrors(gn, gx, gy, egx, egy);
+  TGraphErrors *graph = new TGraphErrors(gx.size(), &(gx[0]), &(gy[0]), &(egx[0]), &(egy[0]));
+
   return graph;
 }
 
