@@ -11,6 +11,8 @@ void draw_CrossSection_Pion()
   const Int_t secl[3] = {1, 5, 7};
   const Int_t sech[3] = {4, 6, 8};
 
+  TGraph *gr_sasha = new TGraph("data/sasha-cross.txt");
+
   TGraphErrors *gr[4];  // PbScW, PbScE, PbGl, Combined
   Int_t igp[4] = {};
   for(Int_t part=0; part<4; part++)
@@ -93,7 +95,7 @@ void draw_CrossSection_Pion()
       Double_t npion = 1., enpion = 1.;
       TH1 *h_minv = hn_pion->Projection(2);
       h_minv->Rebin(10);
-      h_minv->SetTitle( Form("p_{T} %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
+      h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
       if(ipt < 20)
         FitMinv(h_minv, npion, enpion, kTRUE, 0.112,0.162);
       else if(ipt < 23)
@@ -162,6 +164,8 @@ void draw_CrossSection_Pion()
   gr[3]->SetTitle("Combined");
   mcd(3, 1);
   leg0->Draw();
+  mcd(3, 2);
+  gr_sasha->Draw("L");
   c3->Print("plots/CrossSection-pion.pdf");
 
   TFile *f_out = new TFile("data/CrossSection-pion.root", "RECREATE");

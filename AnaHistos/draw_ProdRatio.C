@@ -63,26 +63,26 @@ void draw_ProdRatio()
   // convert Tsallis ratio functios to TGraphErrors to draw areas for uncertainties
   TGraphAsymmErrors *g_fn_ratio[3];  // g_fn_ratio[meson]
   for(Int_t id=0; id<3; id++)
+  {
+    float xmin = 2;
+    float xmax = 20;
+    int xsteps = 100;
+
+    g_fn_ratio[id] = new TGraphAsymmErrors( xsteps );
+
+    for ( int step = 0; step < xsteps; step++ )
     {
-      float xmin = 2;
-      float xmax = 20;
-      int xsteps = 100;
+      float x = xmin + step * (xmax-xmin)/((float)xsteps);
+      float y = fn_ratio[id][0]->Eval(x);
+      float exh = 0;
+      float exl = 0;
+      float eyh = fn_ratio[id][1]->Eval(x) - y;
+      float eyl = y - fn_ratio[id][2]->Eval(x);
 
-      g_fn_ratio[id] = new TGraphAsymmErrors( xsteps );
-
-      for ( int step = 0; step < xsteps; step++ )
-	{
-	  float x = xmin + step * (xmax-xmin)/((float)xsteps);
-	  float y = fn_ratio[id][0]->Eval(x);
-	  float exh = 0;
-	  float exl = 0;
-	  float eyh = fn_ratio[id][1]->Eval(x) - y;
-	  float eyl = y - fn_ratio[id][2]->Eval(x);
-
-	  g_fn_ratio[id]->SetPoint( step+1 , x , y );
-	  g_fn_ratio[id]->SetPointError( step+1 , exl, exh, eyl, eyh );
-	}
+      g_fn_ratio[id]->SetPoint( step+1 , x , y );
+      g_fn_ratio[id]->SetPointError( step+1 , exl, exh, eyl, eyh );
     }
+  }
 
   // gSystem->ProcessLine(".L /phenix/u/zji/.rootrc.d/rootalias.C") to use this
   // create canvas
@@ -93,25 +93,26 @@ void draw_ProdRatio()
     // cd to pad 1
     mcd(0, 1);
     // set axis and line stype
-    aset(gr_ratio1[0][id], "pT [GeV]","Prod. Ratio", 2.,20., 0.,2.);
+    gr_ratio1[0][id]->SetTitle("Prod. ratio for 200 GeV");
+    aset(gr_ratio1[0][id], "pT [GeV]","r_{200gev}", 2.,20., 0.,2.);
     style(gr_ratio1[0][id], id+20, id+1);
     gr_ratio1[0][id]->SetFillColor( gr_ratio1[0][id]->GetMarkerColor() );
     gr_ratio1[0][id]->SetFillStyle(3002);
     gr_ratio1[0][id]->SetLineColor( gr_ratio1[0][id]->GetMarkerColor() );
-    gr_ratio1[0][id]->SetLineStyle(1);
+    gr_ratio1[0][id]->SetLineStyle(2);
     gr_ratio1[0][id]->SetLineWidth(2);
-    gr_ratio1[0][id]->SetMarkerStyle(1);
+    //gr_ratio1[0][id]->SetMarkerStyle(1);
 
     if(id==0)
-      {
-	//gr_ratio1[0][id]->Draw("A3");
-	gr_ratio1[0][id]->Draw("AL");
-      }
+    {
+      //gr_ratio1[0][id]->Draw("A3");
+      gr_ratio1[0][id]->Draw("AXL");
+    }
     else
-      {
-	//gr_ratio1[0][id]->Draw("3");
-	gr_ratio1[0][id]->Draw("L");
-      }
+    {
+      //gr_ratio1[0][id]->Draw("3");
+      gr_ratio1[0][id]->Draw("XL");
+    }
 
     g_fn_ratio[id]->SetLineColor(id+1);
     g_fn_ratio[id]->SetLineWidth(3);
@@ -121,6 +122,7 @@ void draw_ProdRatio()
     g_fn_ratio[id]->Draw("XL");
 
     mcd(0, 2);
+    gr_ratio2[id]->SetTitle("Ratio of prod. ratio for 510 to 200 GeV");
     aset(gr_ratio2[id], "pT [GeV]","#frac{r_{510gev}}{r_{200gev}}", 2.,20., 0.5,2.);
     style(gr_ratio2[id], id+20, id+1);
     if(id==0)
@@ -129,22 +131,30 @@ void draw_ProdRatio()
       gr_ratio2[id]->Draw("P");
   }
 
-  legi(0, 0.2,0.8,0.5,0.9);
-  leg0->SetNColumns(3);
-  leg0->AddEntry(gr_ratio1[0][0], "#frac{#eta}{#pi^{0}}", "P");
-  leg0->AddEntry(gr_ratio1[0][1], "#frac{#omega}{#pi^{0}}", "P");
-  leg0->AddEntry(gr_ratio1[0][2], "#frac{#eta'}{#pi^{0}}", "P");
-
   mcd(0, 1);
-  gr_eta->SetLineColor(4);
-  gr_eta->SetMarkerColor(4);
-  gr_eta->SetMarkerSize(1.5);
-  gr_eta->SetMarkerStyle(20);
+  style(gr_eta, 20, 4);
   gr_eta->Draw("P");
+
+  legi(0, 0.2,0.7,0.8,0.9);
+  leg0->SetTextSize(0.03);
+  leg0->SetNColumns(3);
+  leg0->AddEntry(gr_ratio1[0][0], "Pythia #frac{#eta}{#pi^{0}}", "L");
+  leg0->AddEntry(gr_ratio1[0][1], "Pythia #frac{#omega}{#pi^{0}}", "L");
+  leg0->AddEntry(gr_ratio1[0][2], "Pythia #frac{#eta'}{#pi^{0}}", "L");
+  leg0->AddEntry(g_fn_ratio[0], "Tsallis #frac{#eta}{#pi^{0}}", "L");
+  leg0->AddEntry(g_fn_ratio[1], "Tsallis #frac{#omega}{#pi^{0}}", "L");
+  leg0->AddEntry(g_fn_ratio[2], "Tsallis #frac{#eta'}{#pi^{0}}", "L");
+  leg0->AddEntry(gr_eta, "Data #frac{#eta}{#pi^{0}}", "P");
   leg0->Draw();
 
   mcd(0, 2);
-  leg0->Draw();
+  legi(1, 0.2,0.8,0.9,0.9);
+  leg0->SetTextSize(0.03);
+  leg1->SetNColumns(3);
+  leg1->AddEntry(gr_ratio2[0], "Pythia #frac{#eta}{#pi^{0}}", "P");
+  leg1->AddEntry(gr_ratio2[1], "Pythia #frac{#omega}{#pi^{0}}", "P");
+  leg1->AddEntry(gr_ratio2[2], "Pythia #frac{#eta'}{#pi^{0}}", "P");
+  leg1->Draw();
 
   c0->Print("plots/ProdRatio.pdf");
 }
