@@ -63,6 +63,7 @@ MissingRatio::MissingRatio(const string &name, const char *filename):
   h2_vtxconv(NULL),
   h2_eeinconv(NULL),
   h2_eeoutconv(NULL),
+  hn_merge(NULL),
   hn_photon(NULL),
   hn_pion(NULL)
 {
@@ -278,16 +279,29 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
 
   /* BEGIN photon merging and missing ratio evaluation */
 
-  /* Get number of photons and number of separated peaks */
+  /* Get number of photons and number of separated peaks 
+   * nphoton=2: No missing partner for pi0
+   * nphoton=1: Missing partner fro pi0
+   * npeak=2: No merging for two photons
+   * npeak=1: Merging for two photons */
   int nphoton = photon.size();
   int npeak = nphoton;
+
+  /* Two photons merged */
+  if( nphoton == 2 && photon.at(0)->cid >= 0 && photon.at(0)->cid == photon.at(1)->cid )
+  {
+    npeak = 1;
+    int sector = photon.at(0)->sector;
+    int passed = photon.at(0)->prob_photon > 0.02 ? 1 : 0;
+    double eta = abs( photon.at(0)->trkvp.Eta() );
+    double fill_hn_merge[] = {pionpt, sector, passed, eta};
+    hn_merge->Fill(fill_hn_merge);
+  }
 
   /* Loop over all clusters in calorimeter */
   BOOST_FOREACH( const AnaTrk *trk, photon )
   {
-    /* Fill photon histogram
-     * nphoton=2: No missing partner for pi0
-     * nphoton=1: Missing partner fro pi0 */
+    /* Fill photon histogram */
     double pt_truth = trk->trkpt;
     double pt_reco = trk->cluspt;
     int sector = trk->sector;
@@ -308,9 +322,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
     if( anatools::SectorCheck(sec1,sec2) &&
         e1 > eMin && e2 > eMin && abs(e1-e2)/(e1+e2) < AsymCut )
     {
-      /* Fill pi0 histogram
-       * npeak=2: No merging for two photons
-       * npeak=1: Merging for two photons */
+      /* Fill pi0 histogram */
       double ptsim = anatools::GetTot_pT( photon.at(0)->emcclus, photon.at(1)->emcclus );
       double minv = anatools::GetInvMass( photon.at(0)->emcclus, photon.at(1)->emcclus );
       double fill_hn_pion[] = {pionpt, ptsim, minv, sec1, npeak};
@@ -367,10 +379,18 @@ void MissingRatio::BookHistograms()
   hm->registerHisto(h2_eeinconv);
   hm->registerHisto(h2_eeoutconv);
 
+  int nbins_hn_merge[] = {npT, 8, 2, 7};
+  double xmin_hn_merge[] = {0., -0.5, -0.5, 0.};
+  double xmax_hn_merge[] = {0., 7.5, 1.5, 0.35};
+  hn_merge = new THnSparseF("hn_merge", "Merged photon count;p_{T} truth [GeV];sector;passed;eta;",
+      4, nbins_hn_merge, xmin_hn_merge, xmax_hn_merge);
+  hn_merge->SetBinEdges(0, vpT);
+  hm->registerHisto(hn_merge);
+
   int nbins_hn_photon[] = {npT, npT, 8, 4};
   double xmin_hn_photon[] = {0., 0., -0.5, -0.5};
   double xmax_hn_photon[] = {0., 0., 7.5, 3.5};
-  hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV/c];p_{T} reco [GeV];sector;nphoton;",
+  hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;nphoton;",
       4, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
   hn_photon->SetBinEdges(0, vpT);
   hn_photon->SetBinEdges(1, vpT);

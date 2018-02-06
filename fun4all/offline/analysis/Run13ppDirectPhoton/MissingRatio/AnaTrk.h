@@ -35,6 +35,7 @@ class AnaTrk
     int sector;
     float ecore;
     float cluspt;
+    float prob_photon;
 
     emcGeaTrackContent *emctrk;
     emcGeaClusterContainer *emccluscont;

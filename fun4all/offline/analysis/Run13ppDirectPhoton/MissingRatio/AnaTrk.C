@@ -11,7 +11,7 @@
 AnaTrk::AnaTrk(emcGeaTrackContent *trk, emcGeaClusterContainer *cluscont, int *vstatus):
   trkno(-9999), pid(-9999), anclvl(-9999), parent_trkno(-9999), parent_trk(NULL),
   decayed(false), trkpt(-9999.), trkedep(-9999.), trkrbirth(-9999.),
-  cid(-9999), arm(-9999), sector(-9999), ecore(-9999), cluspt(-9999.),
+  cid(-9999), arm(-9999), sector(-9999), ecore(-9999), cluspt(-9999.), prob_photon(-9999.),
   emctrk(trk), emccluscont(cluscont), emcclus(NULL), vtower_status(vstatus)
 {
   daughter_list.clear();
@@ -52,15 +52,15 @@ void AnaTrk::FillCluster()
   {
     int iypos = emcclus->iypos();
     int izpos = emcclus->izpos();
-    if( vtower_status[48*96*sector + 96*iypos + izpos] == 0 &&
-        emcclus->prob_photon() > 0.02 )
+    //arm = emcclus->arm();
+    sector = arm==0 ? emcclus->sector() : 7-emcclus->sector();
+    if( vtower_status[48*96*sector + 96*iypos + izpos] == 0 )
     {
       cid = emcclus->id();
-      //arm = emcclus->arm();
-      sector = arm==0 ? emcclus->sector() : 7-emcclus->sector();
       ecore = emcclus->ecore();
       TVector3 vx( emcclus->x(), emcclus->y(), emcclus->z() );
       cluspt = ecore * ( vx.Perp() / vx.Mag() );
+      prob_photon = emcclus->prob_photon();
     }
   }
 

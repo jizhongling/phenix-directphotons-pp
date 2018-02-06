@@ -28,6 +28,8 @@ Bool_t FitMinv(TH1 *h_minv, Double_t &npion, Double_t &enpion,
 
   fn_fit->SetLineColor(kRed);
   fn_bg->SetLineColor(kGreen);
+  fn_fit->SetLineWidth(1);
+  fn_bg->SetLineWidth(1);
   h_minv->DrawCopy();
   fn_fit->DrawCopy("SAME");
   fn_bg->DrawCopy("SAME");
