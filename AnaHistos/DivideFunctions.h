@@ -2,10 +2,10 @@ TGraphErrors *DivideHisto(TH1 *h1, TH1 *h2, Double_t kh1 = 1., Double_t kh2 = 1.
 {
   Int_t gn = h1->GetXaxis()->GetNbins();
 
-  vector< Double_t > gx;
-  vector< Double_t > gy;
-  vector< Double_t > egx;
-  vector< Double_t > egy;
+  vector<Double_t> gx;
+  vector<Double_t> gy;
+  vector<Double_t> egx;
+  vector<Double_t> egy;
 
   for(Int_t i=0; i<gn; i++)
   {
@@ -25,8 +25,7 @@ TGraphErrors *DivideHisto(TH1 *h1, TH1 *h2, Double_t kh1 = 1., Double_t kh2 = 1.
     }
   }
 
-  TGraphErrors *graph = new TGraphErrors(gx.size(), &(gx[0]), &(gy[0]), &(egx[0]), &(egy[0]));
-
+  TGraphErrors *graph = new TGraphErrors( gx.size(), &(gx[0]), &(gy[0]), &(egx[0]), &(egy[0]) );
   return graph;
 }
 
@@ -62,7 +61,7 @@ TGraphErrors *DivideGraph(TGraphErrors *gr1, TGraphErrors *gr2)
   return graph;
 }
 
-template <class GraphType>
+  template <class GraphType>
 void InvertGraph(GraphType *gr)
 {
   Int_t gn = gr->GetN();

@@ -48,6 +48,7 @@ class MissingRatio: public SubsysReco
     TH2 *h2_vtxconv;
     TH2 *h2_eeinconv;
     TH2 *h2_eeoutconv;
+    THnSparse *hn_merge;
     THnSparse *hn_photon;
     THnSparse *hn_pion;
 
