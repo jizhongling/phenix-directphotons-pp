@@ -12,17 +12,21 @@ include_HEADERS =
 
 noinst_HEADERS = \
   MissingRatio.h \
+  IsolationCut.h \
   AnaTrk.h \
   AnaToolsTowerID.h \
   AnaToolsCluster.h \
-  MissingRatioLinkDef.h
+  MissingRatioLinkDef.h \
+  IsolationCutLinkDef.h
 
 libMissingRatio_la_SOURCES = \
-  MissingRatio.C
+  MissingRatio.C \
+  IsolationCut.C
 
 nodist_libMissingRatio_la_SOURCES = \
   AnaTrk.C \
-  MissingRatio_Dict.C
+  MissingRatio_Dict.C \
+  IsolationCut_Dict.C
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -58,6 +62,11 @@ testexternals.C:
 MissingRatio_Dict.C: \
   MissingRatio.h \
   MissingRatioLinkDef.h
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+
+IsolationCut_Dict.C: \
+  IsolationCut.h \
+  IsolationCutLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 CLEANFILES = *Dict* testexternals*
