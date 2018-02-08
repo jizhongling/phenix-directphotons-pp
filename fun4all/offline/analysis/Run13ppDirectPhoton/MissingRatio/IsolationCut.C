@@ -63,11 +63,11 @@ IsolationCut::IsolationCut(const char *filename) : _ievent(0),
                                                    _hn_energy_cone( NULL ),
                                                    _file_output( NULL )
 {
-  // construct output file names
+  /* construct output file names */
   _output_file_name = "histos/IsolationCut-";
   _output_file_name.append(filename);
 
-  // initialize array for tower status
+  /* initialize array for tower status */
   for(int isector=0; isector<8; isector++)
     for(int ibiny=0; ibiny<48; ibiny++)
       for(int ibinz=0; ibinz<96; ibinz++)
@@ -119,7 +119,7 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
   v_pid_neutral.push_back( ANTISIGMA_0 );
   v_pid_neutral.push_back( ANITXI_0 );
 
-  // global info
+  /* global event info */
   PHGlobal *data_global = findNode::getClass<PHGlobal>(topNode, "PHGlobal");
   if(!data_global)
     {
@@ -127,7 +127,7 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       return DISCARDEVENT;
     }
 
-  // track info
+  /* TRUTH track info */
   emcGeaTrackContainer *emctrkcont = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
   if(!emctrkcont)
     {
@@ -135,7 +135,7 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       return DISCARDEVENT;
     }
 
-  // cluster info
+  /* EMC cluster info */
   emcGeaClusterContainer *emccluscont = emctrkcont->GetClusters();
   if(!emccluscont)
     {
@@ -143,28 +143,46 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       return DISCARDEVENT;
     }
 
-  // associate cluster with track
-  // map key is trkno
-  typedef map<int,AnaTrk*> map_Ana_t;
-  map_Ana_t track_list;
-
-  // store photon clusters
+  /* store photon candidate clusters */
   vector<emcGeaClusterContent*> cluster_photons;
 
-  // store direct photons
-  vector<AnaTrk*> photons_direct;
-
-  // store photons from pi0 (and other hadrons) decay
-  vector<AnaTrk*> photons_decay;
-
-  // store other photons
-  vector<AnaTrk*> photons_other;
-
-  // number of tracks and clusters
+  /* number of tracks and clusters */
   unsigned nemctrk = emctrkcont->size();
   unsigned nemcclus = emccluscont->size();
 
-  // cuts for photon candidate selection
+  /* associate cluster with track
+   * map key is cluster id */
+  typedef map<int,AnaTrk*> map_Ana_t;
+  map_Ana_t map_cluster_track_charged;
+  map_Ana_t map_cluster_track_neutral;
+
+  for(unsigned itrk=0; itrk<nemctrk; itrk++)
+    {
+      emcGeaTrackContent *emctrk = emctrkcont->get(itrk);
+      AnaTrk *track = new AnaTrk(emctrk, emccluscont, (int*)_tower_status);
+
+      if(track)
+	{
+	  /* only keep track if it's associated with a cluster in the EMCAL */
+	  if( track->emcclus )
+	    {
+	      /* charged truth particle? */
+	      if ( find( v_pid_neutral.begin(), v_pid_neutral.end(), track->pid ) == v_pid_neutral.end() )
+		{
+		  //cout << "Found a charged track from a track with PID " << track->pid << endl;
+		  map_cluster_track_charged.insert( make_pair( track->cid, track ) );
+		}
+	      /* neutral truth particle? */
+	      else
+		{
+		  //cout << "Found a neutral track from a track with PID " << track->pid << endl;
+		  map_cluster_track_neutral.insert( make_pair( track->cid, track ) );
+		}
+	    }
+	}
+    }
+
+  /* cuts for photon candidate selection */
   float cluster_ecore_min = 0.3; //GeV
   float photon_ecore_min = 1; //GeV
   float photon_prob_min = 0.02;
@@ -180,13 +198,14 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
            emc_cluster->prob_photon() < photon_prob_min )
 	continue;
 
-      /* charged track veto? */
-      //track matching parameters not set, see cout statement below to test
-      //cout << "Track dz: " << emc_cluster->emctrkdz() << " , dphi: " << emc_cluster->emctrkdphi() << " , quality: " << emc_cluster->emctrkquality() << endl;
-      /* use truth info here to identify photon */
-      //cout << "Cluster pid: " << emc_cluster->pid() << endl;
-      //if ( emc_cluster->pid() != PHOTON_PID )
-      //continue;
+      /* use truth info here to identify neutral particles (i.e. 'charge veto' substitute) */
+      map_Ana_t::iterator track_cluster = map_cluster_track_charged.find( emc_cluster->id() );
+      if( track_cluster != map_cluster_track_charged.end() )
+	{
+	  //cout << "Charged truth track found associated with this cluster. Skip cluster." << endl;
+	  continue;
+	}
+      //cout << "Add cluster to photon candidates." << endl;
 
       /* append to photon candiadte collection */
       cluster_photons.push_back( emc_cluster );
@@ -238,26 +257,16 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
                 }
             }
 
-          /* loop over all tracks - ideally would use DC tracks but not available  */
+	  /* cut for track selection */
 	  float track_pmin = 0.2; //GeV
 	  float track_pmax = 15; //GeV
-	  for(unsigned itrk=0; itrk<nemctrk; itrk++)
+
+          /* loop over all charged tracks that could be associated with a cluster in EMCAL- ideally would use DC tracks but not available  */
+	  map_Ana_t::iterator it_tracks;
+
+	  for ( it_tracks = map_cluster_track_charged.begin(); it_tracks != map_cluster_track_charged.end(); it_tracks++ )
 	    {
-	      emcGeaTrackContent *emctrk = emctrkcont->get(itrk);
-
-	      /* Check if particle is charged */
-	      if ( find( v_pid_neutral.begin(), v_pid_neutral.end(), emctrk->get_pid() ) != v_pid_neutral.end() )
-		{
-		  //cout << "impz(neutral): " << emctrk->get_impz() << " , pid = " << emctrk->get_pid() << endl;
-		  continue;
-		}
-	      //cout << "impz(charged): " << emctrk->get_impz() << " , pid = " << emctrk->get_pid() << endl;
-
-	      /* track NOT hitting EMCAL? (substitute to test if track is outside of drift chamber acceptance) */
-	      if ( ( emctrk->get_impx() == 0 ) &&
-		   ( emctrk->get_impy() == 0 ) &&
-		   ( emctrk->get_impz() == 0 ) )
-		continue;
+	      emcGeaTrackContent *emctrk = ( it_tracks->second )->emctrk;
 
 	      /* track momentum below threshold? */
 	      if ( ( emctrk->get_ptot() < track_pmin ) ||
