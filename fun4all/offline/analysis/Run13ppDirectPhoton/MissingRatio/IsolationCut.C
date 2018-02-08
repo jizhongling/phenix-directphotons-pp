@@ -40,27 +40,10 @@
 
 using namespace std;
 
-// global constants
-const int PHOTON_PID = 1;
-const int POSITRON_PID = 2;
-const int ELECTRON_PID = 3;
-const int NEUTRINO_PID = 4;
-const int PIZERO_PID = 7;
-const int KAON_0_LONG = 10;
-const int NEUTRON = 13;
-const int KAON_0_SHORT = 16;
-const int ETA = 17;
-const int LAMBDA = 18;
-const int SIGMA_0 = 20;
-const int XI_0 = 22;
-const int ANTINEUTRON = 25;
-const int ANTILAMBDA = 26;
-const int ANTISIGMA_0 = 28;
-const int ANITXI_0 = 30;
-
 IsolationCut::IsolationCut(const char *filename) : _ievent(0),
                                                    _events_photon(0),
                                                    _hn_energy_cone( NULL ),
+						   _output_file_name("IsolationCut_output.root"),
                                                    _file_output( NULL )
 {
   /* construct output file names */
@@ -81,8 +64,10 @@ IsolationCut::~IsolationCut()
 
 int IsolationCut::Init(PHCompositeNode *topNode)
 {
+  /* create output file */
   _file_output = new TFile( _output_file_name.c_str(), "RECREATE" );
 
+  /* create output histogram */
   int ndim_hn_photon = 5;
   int nbins_hn_photon[] =   {100 , 100 ,  10000 ,   11  ,  2  };
   double xmin_hn_photon[] = {  0.,   0.,      0.,  -0.05, -0.5};
@@ -95,29 +80,30 @@ int IsolationCut::Init(PHCompositeNode *topNode)
                                    xmin_hn_photon,
                                    xmax_hn_photon );
 
+  /* create vector with neutral paerticle PID's */
+  /* create vector of PID's of neutral particles */
+  _v_pid_neutral.push_back( PHOTON );
+  _v_pid_neutral.push_back( NEUTRINO );
+  _v_pid_neutral.push_back( PIZERO );
+  _v_pid_neutral.push_back( KAON_0_LONG );
+  _v_pid_neutral.push_back( NEUTRON );
+  _v_pid_neutral.push_back( KAON_0_SHORT );
+  _v_pid_neutral.push_back( ETA );
+  _v_pid_neutral.push_back( LAMBDA );
+  _v_pid_neutral.push_back( SIGMA_0 );
+  _v_pid_neutral.push_back( XI_0 );
+  _v_pid_neutral.push_back( ANTINEUTRON );
+  _v_pid_neutral.push_back( ANTILAMBDA );
+  _v_pid_neutral.push_back( ANTISIGMA_0 );
+  _v_pid_neutral.push_back( ANITXI_0 );
+
   return EVENT_OK;
 }
 
 int IsolationCut::process_event(PHCompositeNode *topNode)
 {
   _ievent++;
-
-  /* create vector of PID's of neutral particles */
-  vector< int > v_pid_neutral;
-  v_pid_neutral.push_back( PHOTON_PID );
-  v_pid_neutral.push_back( NEUTRINO_PID );
-  v_pid_neutral.push_back( PIZERO_PID );
-  v_pid_neutral.push_back( KAON_0_LONG );
-  v_pid_neutral.push_back( NEUTRON );
-  v_pid_neutral.push_back( KAON_0_SHORT );
-  v_pid_neutral.push_back( ETA );
-  v_pid_neutral.push_back( LAMBDA );
-  v_pid_neutral.push_back( SIGMA_0 );
-  v_pid_neutral.push_back( XI_0 );
-  v_pid_neutral.push_back( ANTINEUTRON );
-  v_pid_neutral.push_back( ANTILAMBDA );
-  v_pid_neutral.push_back( ANTISIGMA_0 );
-  v_pid_neutral.push_back( ANITXI_0 );
+  unsigned nphotons = 0;
 
   /* global event info */
   PHGlobal *data_global = findNode::getClass<PHGlobal>(topNode, "PHGlobal");
@@ -143,9 +129,6 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       return DISCARDEVENT;
     }
 
-  /* store photon candidate clusters */
-  vector<emcGeaClusterContent*> cluster_photons;
-
   /* number of tracks and clusters */
   unsigned nemctrk = emctrkcont->size();
   unsigned nemcclus = emccluscont->size();
@@ -167,9 +150,9 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
 	  if( track->emcclus )
 	    {
 	      /* charged truth particle? */
-	      if ( find( v_pid_neutral.begin(), v_pid_neutral.end(), track->pid ) == v_pid_neutral.end() )
+	      if ( find( _v_pid_neutral.begin(), _v_pid_neutral.end(), track->pid ) == _v_pid_neutral.end() )
 		{
-		  //cout << "Found a charged track from a track with PID " << track->pid << endl;
+		  cout << "Found a charged track from a track with PID " << track->pid << endl;
 		  map_cluster_track_charged.insert( make_pair( track->cid, track ) );
 		}
 	      /* neutral truth particle? */
@@ -182,13 +165,15 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
 	}
     }
 
+  /* store photon candidate clusters */
+  vector<emcGeaClusterContent*> cluster_photons;
+
   /* cuts for photon candidate selection */
   float cluster_ecore_min = 0.3; //GeV
   float photon_ecore_min = 1; //GeV
   float photon_prob_min = 0.02;
 
-  /* loop over all cluster in EMCAL - add to AnaTrk collection if it meets photon criteria */
-  unsigned nphotons = 0;
+  /* loop over all cluster in EMCAL - add to photon candidate collection if it meets photon criteria */
   for( unsigned icluster=0; icluster < nemcclus; icluster++ )
     {
       emcGeaClusterContent *emc_cluster = emccluscont->get( icluster );
@@ -212,7 +197,7 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       nphotons++;
     }
 
-  /* loop only over photon candidate clusters */
+  /* loop over photon candidate clusters */
   for( unsigned icluster=0; icluster < cluster_photons.size(); icluster++ )
     {
       emcGeaClusterContent *emc_cluster = cluster_photons.at( icluster );
@@ -305,116 +290,6 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
 
   if ( nphotons > 0 )
     _events_photon++;
-
-  /////// old code below
-  //  for(unsigned itrk=0; itrk<nemctrk; itrk++)
-  //    {
-  //      emcGeaTrackContent *emctrk = emctrkcont->get(itrk);
-  //      AnaTrk *track = new AnaTrk(emctrk, emccluscont, (int*)_tower_status);
-  //      if(track)
-  //        track_list.insert( make_pair(track->trkno,track) );
-  //    }
-  //
-  //  // analyze tracks
-  //  map_Ana_t::iterator it_track_ref;
-  //  map_Ana_t::iterator it_track_comp;
-  //
-  //  for ( it_track_ref = track_list.begin(); it_track_ref != track_list.end(); it_track_ref++ )
-  //    {
-  //      AnaTrk *lvl0_trk = it_track_ref->second;
-  //
-  //      /* track is photon */
-  //      if( lvl0_trk->pid == PHOTON_PID )
-  //        {
-  //
-  //          /* test if particle passes energy threshold */
-  //          double photon_minEnergy = 1.0;
-  //          if ( lvl0_trk->ecore < photon_minEnergy )
-  //            continue;
-  //
-  //          /* test if particle is prompt photon */
-  //          bool isPromptPhoton = false;
-  //          if ( lvl0_trk->anclvl == 0 )
-  //            isPromptPhoton = true;
-  //          //      if ( parent )
-  //          //        {
-  //          //          if ( part->GetKF() == 22 &&
-  //          //               parent->GetKF() == 22 &&
-  //          //               parent->GetKS() == 21 &&
-  //          //               !(parent->GetParent()) )
-  //          //            {
-  //          //              isPromptPhoton = true;
-  //          //            }
-  //          //        }
-  //
-  //          /* Convert particle into TLorentzVector */
-  //          Float_t px = lvl0_trk->emctrk->get_px();
-  //          Float_t py = lvl0_trk->emctrk->get_py();
-  //          Float_t pz = lvl0_trk->emctrk->get_pz();
-  //          Float_t energy = lvl0_trk->ecore;
-  //          TLorentzVector v_part(px,py,pz,energy);
-  //
-  //          /* loop over different cone radii */
-  //          for ( int round = 0; round < 10; round ++ )
-  //            {
-  //              double rcone = 0.1 + round * 0.1;
-  //
-  //              /* sum up all energy in cone around particle */
-  //              double econe = 0;
-  //              TVector3 v3_gamma(lvl0_trk->emctrk->get_px(), lvl0_trk->emctrk->get_py(), lvl0_trk->emctrk->get_pz());
-  //
-  //              for ( it_track_comp = track_list.begin(); it_track_comp != track_list.end(); it_track_comp++ )
-  //                {
-  //                  AnaTrk *lvl0_trk2 = it_track_comp->second;
-  //
-  //                  /* only consider stable particles, skip if pointer identical to 'reference' particle */
-  //                  if ( lvl0_trk != lvl0_trk2 )
-  //                    {
-  //                      TVector3 v3_part2(lvl0_trk2->emctrk->get_px(), lvl0_trk2->emctrk->get_py(), lvl0_trk2->emctrk->get_pz());
-  //
-  //                      /* test if particle is in Central Arm acceptance */
-  //                      //Float_t px = part2->get_px();
-  //                      //Float_t py = part2->get_py();
-  //                      //Float_t pz = part2->get_pz();
-  //                      //Float_t energy = part2->GetEnergy();
-  //                      //TLorentzVector v_part2(px,py,pz,energy);
-  //
-  //                      if ( v3_gamma.Angle( v3_part2 ) < rcone )
-  //                      {
-  //                        //cout << "ecore: " << lvl0_trk2->ecore << endl;
-  //                        econe += lvl0_trk2->ecore;
-  //                      }
-  //                    }
-  //                }
-  //              double econe_frac = econe / lvl0_trk->ecore;
-  //              //cout << "Energy in cone, fraction: " << econe << ", " << econe_frac << endl;
-  //
-  //              double fill[] = {lvl0_trk->ecore, econe, econe_frac, rcone, (double)isPromptPhoton};
-  //
-  //              _hn_energy_cone->Fill( fill );
-  //            }
-  //
-  //          /* photon is direct photon */
-  //          if ( lvl0_trk->anclvl == 0 )
-  //            {
-  //              photons_direct.push_back(lvl0_trk);
-  //            }
-  //          /* photon is from pi0 decay */
-  //          if ( lvl0_trk->anclvl == 1 )
-  //            {
-  //              photons_decay.push_back(lvl0_trk);
-  //            }
-  //          /* photon is from other source */
-  //          else
-  //            {
-  //              photons_other.push_back(lvl0_trk);
-  //            }
-  //        } // end: track is photon
-  //    } // end: track lvl0 loop
-
-  //cout << "Direct photons: " << photons_direct.size() << endl;
-  //cout << "Decay  photons: " << photons_decay.size() << endl;
-  //cout << "Other  photons: " << photons_other.size() << endl;
 
   return EVENT_OK;
 }
