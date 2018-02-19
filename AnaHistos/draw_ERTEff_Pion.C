@@ -2,7 +2,7 @@
 #include "FitMinv.h"
 #include "GetEfficiency.h"
 
-void draw_ERTEff()
+void draw_ERTEff_Pion()
 {
   const Int_t secl[2] = {1, 7};
   const Int_t sech[2] = {6, 8};
@@ -78,6 +78,13 @@ void draw_ERTEff()
       gr[part]->Draw("APE");
     else
       gr[part]->Draw("PE");
+
+    gr[part]->Fit("pol0", "Q","", 10.,20.);
+    gPad->Update();
+    TPaveStats *st = (TPaveStats*)gr[part]->FindObject("stats");
+    st->SetY1NDC(0.3-part*0.2);
+    st->SetY2NDC(0.5-part*0.2);
+
     TGraph *gr_sasha =  new TGraph( Form("data/sasha-trig-part%d.txt",part) );
     gr_sasha->Draw("C");
   }
@@ -85,11 +92,11 @@ void draw_ERTEff()
   legi(0, 0.7,0.2,0.9,0.4);
   leg0->AddEntry(gr[0], "PbSc", "LPE");
   leg0->AddEntry(gr[1], "PbGl", "LPE");
-  leg0->Draw();
+  //leg0->Draw();
 
-  c4->Print("plots/ERTEff.pdf");
+  c4->Print("plots/ERTEff-pion.pdf");
 
-  TFile *f_out = new TFile("data/ERTEff.root", "RECREATE");
+  TFile *f_out = new TFile("data/ERTEff-pion.root", "RECREATE");
   for(Int_t part=0; part<2; part++)
   {
     mcw( part*2, Form("part%d-total",part) );

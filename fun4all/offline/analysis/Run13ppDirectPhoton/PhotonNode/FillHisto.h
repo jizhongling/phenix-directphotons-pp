@@ -14,6 +14,7 @@ class PHCompositeNode;
 class Fun4AllHistoManager;
 
 class TH1;
+class TH2;
 class TH3;
 class THnSparse;
 
@@ -37,8 +38,8 @@ class FillHisto: public SubsysReco
     int FillPi0InvariantMass( const PhotonContainer *photoncont, const std::string &quali = "" );
     int FillBBCEfficiency(const PhotonContainer *photoncont);
     int FillERTEfficiency(const PhotonContainer *photoncont, const int evtype);
-    int FillPhotonSpectrum(const PhotonContainer *photoncont, const int evtype);
     int FillPi0Spectrum(const PhotonContainer *photoncont, const int evtype);
+    int FillPhotonSpectrum(const PhotonContainer *photoncont, const int evtype);
 
     void BookHistograms();
     void EMCRecalibSetup();
@@ -70,9 +71,10 @@ class FillHisto: public SubsysReco
     THnSparse *hn_bbc_pion;
     TH3 *h3_ert;
     THnSparse *hn_ert_pion;
+    TH2 *h2_photon_eta_phi[3];
+    THnSparse *hn_pion;
     THnSparse *hn_1photon;
     THnSparse *hn_2photon;
-    THnSparse *hn_pion;
 
     // tower status for warnmap
     int tower_status[8][48][96];

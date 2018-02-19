@@ -2,7 +2,7 @@
 #include "FitMinv.h"
 #include "GetEfficiency.h"
 
-void draw_ProbEff()
+void draw_ProbEff_Pion()
 {
   const Int_t secl[2] = {1, 7};
   const Int_t sech[2] = {6, 8};
@@ -89,7 +89,7 @@ void draw_ProbEff()
     gr_sasha->Draw("C");
   }
 
-  TFile *f_out = new TFile("data/ProbEff.root", "RECREATE");
+  TFile *f_out = new TFile("data/ProbEff-pion.root", "RECREATE");
   for(Int_t part=0; part<2; part++)
   {
     gr[part]->Write();
@@ -98,5 +98,5 @@ void draw_ProbEff()
   }
   f_out->Close();
 
-  c5->Print("plots/ProbEff.pdf");
+  c5->Print("plots/ProbEff-pion.pdf");
 }

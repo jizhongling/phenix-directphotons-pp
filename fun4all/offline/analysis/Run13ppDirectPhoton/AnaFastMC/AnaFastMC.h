@@ -16,6 +16,7 @@ class Fun4AllHistoManager;
 
 class TFile;
 class TH1;
+class TH2;
 class THnSparse;
 class TF1;
 
@@ -43,6 +44,7 @@ class AnaFastMC: public SubsysReco
     void ReadSashaWarnmap(const std::string &filename);
 
     bool pi0_sim(TLorentzVector *pG1, TLorentzVector *pG2, float& ptsim, float& mm, float& dist);
+    bool photon_sim(TLorentzVector *pG1, float& ptsim);
     void ResetTowerEnergy();
     void FillTowerEnergy( int sec, int iy, int iz, float e );
     float GetETwr( int sec, int iy, int iz );
@@ -70,12 +72,6 @@ class AnaFastMC: public SubsysReco
     static const int nY_gl = 48;
     static const int nZ_gl = 96;
 
-    // number of pT bins
-    static const int npT = 30;
-
-    // pT bins
-    static double vpT[npT+1]; 
-
     // tower status for warnmap
     int tower_status[NSEC][NY][NZ];
 
@@ -89,12 +85,16 @@ class AnaFastMC: public SubsysReco
     PHPythiaContainer *phpythia;
 
     Fun4AllHistoManager *hm;
-    TH1 *h_photon;
     TH1 *h_pion;
-    THnSparse *hn_photon;
+    TH1 *h_photon;
+    TH2 *h2_pion_eta_phi[3];
+    TH2 *h2_photon_eta_phi[3];
+    THnSparse* hn_missing;
     THnSparse* hn_pion;
+    THnSparse *hn_photon;
 
-    TF1 *cross;
+    TF1 *cross_pi0;
+    TF1 *cross_ph;
 };
 
 #endif	/* __ANAFASTMC_H__ */

@@ -22,6 +22,7 @@
 
 #include <TMath.h>
 #include <TH1.h>
+#include <TH2.h>
 #include <TH3.h>
 #include <THnSparse.h>
 
@@ -51,9 +52,9 @@ FillHisto::FillHisto(const string &name, const char *filename) :
   hn_bbc_pion(NULL),
   h3_ert(NULL),
   hn_ert_pion(NULL),
+  hn_pion(NULL),
   hn_1photon(NULL),
-  hn_2photon(NULL),
-  hn_pion(NULL)
+  hn_2photon(NULL)
 {
   datatype = ERT;
 
@@ -70,6 +71,9 @@ FillHisto::FillHisto(const string &name, const char *filename) :
     spinpattern_blue[i] = 0;
     spinpattern_yellow[i] = 0;
   }
+
+  for(Int_t part=0; part<3; part++)
+    h2_photon_eta_phi[part] = NULL;
 }
 
 FillHisto::~FillHisto()
@@ -214,11 +218,11 @@ int FillHisto::process_event(PHCompositeNode *topNode)
     // Count events to calculate ERT efficiency
     FillERTEfficiency( photoncont, itype );
 
-    // Analyze photon for direct photon event
-    FillPhotonSpectrum( photoncont, itype );
-
     // Analyze photon for pi0 event
     FillPi0Spectrum( photoncont, itype );
+
+    // Analyze photon for direct photon event
+    FillPhotonSpectrum( photoncont, itype );
   }
 
   delete photoncont_raw;
@@ -440,77 +444,6 @@ int FillHisto::FillERTEfficiency(const PhotonContainer *photoncont, const int ev
   return EVENT_OK;
 }
 
-int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int evtype)
-{
-  if( datatype == MB && evtype != 0 )
-    return DISCARDEVENT;
-
-  /* Check trigger */
-  if( !IsEventType(evtype, photoncont) )
-    return DISCARDEVENT;
-
-  /* Get event global parameters */
-  double bbc_z = photoncont->get_bbc_z();
-  double bbc_t0 = photoncont->get_bbc_t0();
-  int pattern = GetPattern(photoncont);
-  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
-
-  unsigned nphotons = photoncont->Size();
-
-  for(unsigned i=0; i<nphotons; i++)
-  {
-    Photon *photon1 = photoncont->GetPhoton(i);
-    if( GetStatus(photon1) == 0 )
-    {
-      int sector = anatools::GetSector(photon1);
-      double pT = anatools::Get_pT(photon1);
-
-      bool trig1 = photon1->get_trg1();
-      bool trig2 = photon1->get_trg2();
-      bool trig3 = photon1->get_trg3();
-
-      if( datatype == ERT && !CheckGammaTrigger(evtype, trig1, trig2, trig3) )
-        continue;
-
-      double fill_hn_1photon[] = {sector, pT, pattern, 0., evtype};
-      hn_1photon->Fill(fill_hn_1photon);
-      if( abs( photon1->get_tof() - bbc_t0 ) < 10. )
-      {
-        fill_hn_1photon[3] = 1.;
-        hn_1photon->Fill(fill_hn_1photon);
-      }
-      if( photon1->get_prob() )
-      {
-        fill_hn_1photon[3] = 2.;
-        hn_1photon->Fill(fill_hn_1photon);
-      }
-      if( TestPhoton(photon1, bbc_t0) )
-      {
-        fill_hn_1photon[3] = 3.;
-        hn_1photon->Fill(fill_hn_1photon);
-      }
-
-      for(unsigned j=0; j<nphotons; j++)
-        if(j != i)
-        {
-          Photon *photon2 = photoncont->GetPhoton(j);
-          if( GetStatus(photon2) == 0 &&
-              TestPhoton(photon1, bbc_t0) &&
-              TestPhoton(photon2, bbc_t0) &&
-              anatools::GetAsymmetry_E(photon1, photon2) < AsymCut )
-          {
-            double minv = anatools::GetInvMass(photon1, photon2);
-
-            double fill_hn_2photon[] = {sector, pT, minv, pattern, evtype};
-            hn_2photon->Fill(fill_hn_2photon);
-          } // check photon2
-        } // j loop
-    } // check photon1
-  } // i loop
-
-  return EVENT_OK;
-}
-
 int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont, const int evtype)
 {
   if( datatype == MB && evtype != 0 )
@@ -589,6 +522,95 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont, const int evty
   return EVENT_OK;
 }
 
+int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int evtype)
+{
+  if( datatype == MB && evtype != 0 )
+    return DISCARDEVENT;
+
+  /* Check trigger */
+  if( !IsEventType(evtype, photoncont) )
+    return DISCARDEVENT;
+
+  /* Get event global parameters */
+  double bbc_z = photoncont->get_bbc_z();
+  double bbc_t0 = photoncont->get_bbc_t0();
+  int pattern = GetPattern(photoncont);
+  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
+
+  unsigned nphotons = photoncont->Size();
+
+  for(unsigned i=0; i<nphotons; i++)
+  {
+    Photon *photon1 = photoncont->GetPhoton(i);
+    if( GetStatus(photon1) == 0 )
+    {
+      int sector = anatools::GetSector(photon1);
+      TLorentzVector pE = anatools::Get_pE(photon1);
+      double pT = pE.Pt();
+
+      bool trig1 = photon1->get_trg1();
+      bool trig2 = photon1->get_trg2();
+      bool trig3 = photon1->get_trg3();
+
+      if( datatype == ERT && !CheckGammaTrigger(evtype, trig1, trig2, trig3) )
+        continue;
+
+      double fill_hn_1photon[] = {sector, pT, pattern, 0., evtype};
+      hn_1photon->Fill(fill_hn_1photon);
+      if( abs( photon1->get_tof() - bbc_t0 ) < 10. )
+      {
+        fill_hn_1photon[3] = 1.;
+        hn_1photon->Fill(fill_hn_1photon);
+      }
+      if( photon1->get_prob() )
+      {
+        fill_hn_1photon[3] = 2.;
+        hn_1photon->Fill(fill_hn_1photon);
+      }
+      if( TestPhoton(photon1, bbc_t0) )
+      {
+        int part = -1;
+        if(sector < 0) part = -1;
+        else if(sector < 4) part = 0;
+        else if(sector < 6) part = 1;
+        else if(sector < 8) part = 2;
+        if( evtype == 2 && part >= 0 &&
+            pT > 5. && pT < 10. )
+        {
+          double eta = pE.Eta();
+          double phi = pE.Phi();
+          if(sector >= 4)
+          {
+            pE.RotateZ(-PI);
+            phi = pE.Phi() + PI;
+          }
+          h2_photon_eta_phi[part]->Fill(eta, phi);
+        }
+
+        fill_hn_1photon[3] = 3.;
+        hn_1photon->Fill(fill_hn_1photon);
+      }
+
+      for(unsigned j=0; j<nphotons; j++)
+        if(j != i)
+        {
+          Photon *photon2 = photoncont->GetPhoton(j);
+          if( GetStatus(photon2) == 0 &&
+              TestPhoton(photon1, bbc_t0) &&
+              TestPhoton(photon2, bbc_t0) )
+          {
+            double minv = anatools::GetInvMass(photon1, photon2);
+
+            double fill_hn_2photon[] = {sector, pT, minv, pattern, evtype};
+            hn_2photon->Fill(fill_hn_2photon);
+          } // check photon2
+        } // j loop
+    } // check photon1
+  } // i loop
+
+  return EVENT_OK;
+}
+
 int FillHisto::EndRun(const int runnumber)
 {
   // Write histograms to file for this run
@@ -637,6 +659,36 @@ void FillHisto::BookHistograms()
     5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
     12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
 
+  /* eta and phi bins step size */
+  const double step[2] = {0.011, 0.008};
+
+  /* eta bins */
+  const int neta = 100;
+  double etabin[2][neta+1];
+  for(int part=0; part<2; part++)
+    for(int it=0; it<=neta; it++)
+      etabin[part][it] = step[part] * ( it - neta/2 );
+
+  /* phi sector */
+  const double phi_sec[8] = {
+    -PI/8, 0, PI/8, 2*PI/8,
+    PI-2*PI/8, PI-PI/8, PI, PI+PI/8
+  };
+
+  /* phi bins */
+  const int nphi_sec[2] = {36, 48};
+  const int nphi = (nphi_sec[0]/2+1)*6 + (nphi_sec[1]/2+1)*2 + 4 - 1;
+  double phibin[nphi+1];
+  int iphi = 0;
+  for(int is=0; is<8; is++)
+    for(int it=0; it<=nphi_sec[is/6]/2; it++)
+      phibin[iphi++] = phi_sec[is] + step[is/6] * 2 * ( it - nphi_sec[is/6]/4 );
+  phibin[iphi++] = -PI*3/16 - 0.02;
+  phibin[iphi++] = PI*5/16 + 0.02;
+  phibin[iphi++] = PI*11/16 - 0.02;
+  phibin[iphi++] = PI*19/16 + 0.02;
+  sort(phibin, phibin+nphi);
+  
   /* Events counter */
   if( datatype == ERT )
   {
@@ -705,6 +757,21 @@ void FillHisto::BookHistograms()
   hn_ert_pion->GetAxis(3)->Set(6, -0.5, 5.5);
   hm->registerHisto(hn_ert_pion);
 
+  for(Int_t part=0; part<3; part++)
+  {
+    h2_photon_eta_phi[part] = new TH2F(Form("h2_photon_eta_phi_part%d",part), "Photon #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
+    hm->registerHisto(h2_photon_eta_phi[part]);
+  }
+
+  /* Store pion information */
+  const int nbins_hn_pion[] = {8, npT, 300, 4, 3};
+  const double xmin_hn_pion[] = {-0.5, 0., 0., -0.5, -0.5};
+  const double xmax_hn_pion[] = {7.5, 0., 0.3, 3.5, 2.5};
+  hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p_{T} [GeV];m_{inv} [GeV];cut;evtype;",
+      5, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
+  hn_pion->SetBinEdges(1, pTbin);
+  hm->registerHisto(hn_pion);
+
   /* Store single photon information */
   const int nbins_hn_1photon[] = {8, npT, 3, 4, 3};
   const double xmin_hn_1photon[] = {-0.5, 0., -1.5, -0.5, -0.5};
@@ -722,15 +789,6 @@ void FillHisto::BookHistograms()
       5, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon);
   hn_2photon->SetBinEdges(1, pTbin);
   hm->registerHisto(hn_2photon);
-
-  /* Store pion information */
-  const int nbins_hn_pion[] = {8, npT, 300, 4, 3};
-  const double xmin_hn_pion[] = {-0.5, 0., 0., -0.5, -0.5};
-  const double xmax_hn_pion[] = {7.5, 0., 0.3, 3.5, 2.5};
-  hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p_{T} [GeV];m_{inv} [GeV];cut;evtype;",
-      5, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
-  hn_pion->SetBinEdges(1, pTbin);
-  hm->registerHisto(hn_pion);
 
   return;
 }

@@ -1,17 +1,12 @@
 Bool_t FitMinv(TH1 *h_minv, Double_t &npion, Double_t &enpion,
     const Bool_t bsub = kTRUE,
-    const Double_t c1 = 0.112, const Double_t c2 = 0.162,
-    const Double_t l1 = 0.047, const Double_t l2 = 0.097,
-    const Double_t r1 = 0.177, const Double_t r2 = 0.227)
+    const Double_t c1 = 0.11, const Double_t c2 = 0.16,
+    const Double_t l1 = 0.06, const Double_t r2 = 0.25)
 {
-  const Int_t binL1 = h_minv->GetXaxis()->FindBin(l1);
-  const Int_t binL2 = h_minv->GetXaxis()->FindBin(l2);
   const Int_t binC1 = h_minv->GetXaxis()->FindBin(c1);
   const Int_t binC2 = h_minv->GetXaxis()->FindBin(c2);
-  const Int_t binR1 = h_minv->GetXaxis()->FindBin(r1);
-  const Int_t binR2 = h_minv->GetXaxis()->FindBin(r2);
 
-  Double_t max = h_minv->GetMaximum();
+  const Double_t max = h_minv->GetMaximum();
   if( max <= 0. )
     return kFALSE;
 
@@ -42,8 +37,6 @@ Bool_t FitMinv(TH1 *h_minv, Double_t &npion, Double_t &enpion,
     Double_t bincenter = h_minv->GetXaxis()->GetBinCenter(ib);
     nbg += fn_bg->Eval(bincenter);
   }
-  if( fn_fit->GetNDF() < binR2-binL1-10 ) 
-    nbg = ( h_minv->Integral(binL1,binL2-1) + h_minv->Integral(binR1,binR2-1) ) / 2.;
 
   Double_t ensig = sqrt(nsig);
   Double_t rbg = nbg / nsig;

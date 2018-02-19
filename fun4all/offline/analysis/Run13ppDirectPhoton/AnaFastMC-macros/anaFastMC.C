@@ -16,7 +16,7 @@ void anaFastMC(const int process = 0)
 
   // Setup recoConsts
   recoConsts *rc = recoConsts::instance();
-  rc->set_IntFlag("RUNNUMBER", 390039);
+  rc->set_IntFlag("RUNNUMBER",0);
 
   // Fun4All server
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -64,7 +64,7 @@ void anaFastMC(const int process = 0)
   se->unregisterSubsystem(reco_fast_warn);
 
   // If out of PHParticleGen files range
-  if(process >= nProcess)
+  //if(process >= nProcess)
   {
     delete se;
     return;
