@@ -18,8 +18,8 @@ void draw_ERTEff_Photon()
 
   for(Int_t part=0; part<2; part++)
   {
-    TH1 *h_total = h3_ert->ProjectionY("_py", secl[part],sech[part], 3,3)->Clone("h_total");
-    TH1 *h_passed = h3_ert->ProjectionY("_py", secl[part],sech[part], 6,6)->Clone("h_passed");
+    TH1 *h_total = (TH1*)h3_ert->ProjectionY("_py", secl[part],sech[part], 3,3)->Clone("h_total");
+    TH1 *h_passed = (TH1*)h3_ert->ProjectionY("_py", secl[part],sech[part], 6,6)->Clone("h_passed");
     gr[part]->Divide(h_passed, h_total);
   }
 

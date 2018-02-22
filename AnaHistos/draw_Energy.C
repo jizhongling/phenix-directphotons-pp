@@ -17,7 +17,7 @@ void draw_Energy()
   {
     axis_e->SetRange(i+1, 30);
     Double_t E = axis_e->GetBinLowEdge(i+1);
-    TH1 *h_1photon = hn_1photon->Projection(1)->Clone(Form("h_%d",i));
+    TH1 *h_1photon = (TH1*)hn_1photon->Projection(1)->Clone(Form("h_%d",i));
     h_1photon->GetXaxis()->SetRangeUser(0., 10.);
     h_1photon->GetYaxis()->SetRangeUser(1e4, 1e7);
     h_1photon->SetMarkerColor(icon);

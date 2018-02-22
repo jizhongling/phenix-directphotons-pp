@@ -1,6 +1,6 @@
 #include "GlobalVars.h"
 
-void draw_BBCEff_Pileup()
+void draw_BBCEff_Pion_Pileup()
 {
   const char *pname[2] = {"PbSc", "PbGl"};
   const Int_t secl[2] = {1, 7};
@@ -16,7 +16,7 @@ void draw_BBCEff_Pileup()
 
   for(Int_t i=0; i<44; i++)
   {
-    TFile *f = new TFile(Form("pileup/BBCEff-%d.root",i));
+    TFile *f = new TFile(Form("pileup/BBCEff-pion-%d.root",i));
     if( f->IsZombie() ) continue;
 
     for(Int_t part=0; part<2; part++)
@@ -75,10 +75,10 @@ void draw_BBCEff_Pileup()
     st->SetY2NDC(0.8);
   }
 
-  TFile *f_out = new TFile("data/BBCEff-pileup.root", "RECREATE");
+  TFile *f_out = new TFile("data/BBCEff-pion-pileup.root", "RECREATE");
   mcw(0, "PbSc");
   mcw(1, "PbGl");
   f_out->Close();
 
-  c2->Print("plots/BBCEff-pileup.pdf");
+  c2->Print("plots/BBCEff-pion-pileup.pdf");
 }

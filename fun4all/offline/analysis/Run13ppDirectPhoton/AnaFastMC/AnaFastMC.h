@@ -21,7 +21,7 @@ class THnSparse;
 class TF1;
 
 enum MCMethod {PHParticleGen, FastMC};
-enum WarnMap {None, Nils, Sasha};
+enum WarnMap {None, Nils, Sasha, Sim};
 
 class AnaFastMC: public SubsysReco
 {
@@ -42,6 +42,7 @@ class AnaFastMC: public SubsysReco
     void BookHistograms();
     void ReadTowerStatus(const std::string &filename);
     void ReadSashaWarnmap(const std::string &filename);
+    void ReadSimWarnmap(const std::string &filename);
 
     bool pi0_sim(TLorentzVector *pG1, TLorentzVector *pG2, float& ptsim, float& mm, float& dist);
     bool photon_sim(TLorentzVector *pG1, float& ptsim);

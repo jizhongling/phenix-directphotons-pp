@@ -108,6 +108,8 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
     ReadTowerStatus("Warnmap_Run13pp510.txt");
   else if( warnmap == Sasha )
     ReadSashaWarnmap("warn_all_run13pp500gev.dat");
+  else if( warnmap == Sim )
+    ReadSimWarnmap("dead_eff_run13pp500gev.dat");
 
   return EVENT_OK;
 }
@@ -313,7 +315,7 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
         }
 
         if( part >= 0 && pt_reco > 5. && pt_reco < 10. )
-          h2_pion_eta_phi[part]->Fill(eta, phi, weight_ph);
+          h2_pion_eta_phi[part]->Fill(-eta, phi, weight_ph);
       }
 
       /* Fill pi0 histogram
@@ -379,7 +381,7 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
       }
 
       if( part >= 0 && pt_reco > 5. && pt_reco < 10. )
-        h2_photon_eta_phi[part]->Fill(eta, phi, weight_ph);
+        h2_photon_eta_phi[part]->Fill(-eta, phi, weight_ph);
 
       double fill_hn_photon[] = {pt_truth, pt_reco, sec1};
       hn_photon->Fill(fill_hn_photon, weight_ph);
@@ -567,6 +569,36 @@ void AnaFastMC::ReadSashaWarnmap(const string &filename)
     // mark edge towers
     if( anatools::Edge_cg(sector, biny, binz) )
       tower_status[sector][biny][binz] = 20;
+  }
+
+  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
+  fin.close();
+  delete toad_loader;
+
+  return;
+}
+
+void AnaFastMC::ReadSimWarnmap(const string &filename)
+{
+  unsigned int nBadSc = 0;
+  unsigned int nBadGl = 0;
+
+  unsigned int sector = 0;
+  unsigned int biny = 0;
+  unsigned int binz = 0;
+
+  TOAD *toad_loader = new TOAD("AnaFastMC");
+  string file_location = toad_loader->location(filename);
+  cout << "TOAD file location: " << file_location << endl;
+  ifstream fin( file_location.c_str() );
+
+  while( fin >> sector >> binz >> biny )
+  {
+    // count tower with bad status for PbSc and PbGl
+    if( sector < 6 ) nBadSc++;
+    else nBadGl++;
+
+    tower_status[sector][biny][binz] = 1;
   }
 
   cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;

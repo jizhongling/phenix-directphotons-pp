@@ -2,7 +2,7 @@
 #include "FitMinv.h"
 #include "GetEfficiency.h"
 
-void draw_BBCEff()
+void draw_BBCEff_Pion()
 {
   const char *pname[2] = {"PbSc", "PbGl"};
   const Int_t secl[2] = {1, 7};
@@ -83,7 +83,7 @@ void draw_BBCEff()
     st->SetY2NDC(0.8);
   }
 
-  TFile *f_out = new TFile("data/BBCEff.root", "RECREATE");
+  TFile *f_out = new TFile("data/BBCEff-pion.root", "RECREATE");
   for(Int_t part=0; part<2; part++)
   {
     mcw(part, Form("part%d",part) );
@@ -91,5 +91,5 @@ void draw_BBCEff()
   }
   f_out->Close();
 
-  c2->Print("plots/BBCEff.pdf");
+  c2->Print("plots/BBCEff-pion.pdf");
 }
