@@ -10,6 +10,10 @@
 #include <emcGeaClusterContainer.h>
 #include <emcGeaClusterContent.h>
 
+#include <emcClusterContainer.h>
+
+#include <PHCentralTrack.h>
+
 #include <TOAD.h>
 #include <phool.h>
 #include <PHCompositeNode.h>
@@ -43,6 +47,7 @@ using namespace std;
 IsolationCut::IsolationCut(const char *filename) : _ievent(0),
                                                    _events_photon(0),
                                                    _hn_energy_cone( NULL ),
+                                                   _hn_energy_cone_reco( NULL ),
 						   _output_file_name("IsolationCut_output.root"),
                                                    _file_output( NULL )
 {
@@ -80,7 +85,9 @@ int IsolationCut::Init(PHCompositeNode *topNode)
                                    xmin_hn_photon,
                                    xmax_hn_photon );
 
-  /* create vector with neutral paerticle PID's */
+  _hn_energy_cone_reco = (THnSparseF*)_hn_energy_cone->Clone("hn_energy_cone_reco");
+
+  /* create vector with neutral particle PID's */
   /* create vector of PID's of neutral particles */
   _v_pid_neutral.push_back( PHOTON );
   _v_pid_neutral.push_back( NEUTRINO );
@@ -114,35 +121,65 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
     }
 
   /* TRUTH track info */
-  emcGeaTrackContainer *emctrkcont = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
-  if(!emctrkcont)
+  emcGeaTrackContainer *truth_particles = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
+  if(!truth_particles)
     {
       cout << "Cannot find emcGeaTrackContainer" << endl;
       return DISCARDEVENT;
     }
 
-  /* EMC cluster info */
-  emcGeaClusterContainer *emccluscont = emctrkcont->GetClusters();
-  if(!emccluscont)
+  /* TRUTH EMC cluster info */
+  emcGeaClusterContainer *truth_emcclusters = truth_particles->GetClusters();
+  if(!truth_emcclusters)
     {
       cout << "Cannot find emcGeaClusterContainer" << endl;
       return DISCARDEVENT;
     }
 
-  /* number of tracks and clusters */
-  unsigned nemctrk = emctrkcont->size();
-  unsigned nemcclus = emccluscont->size();
+  /* Reco tracks */
+  PHCentralTrack *reco_tracks = findNode::getClass<PHCentralTrack>(topNode, "PHCentralTrack");
+  if(!reco_tracks)
+    {
+      cout << "Cannot find PHCentralTrack" << endl;
+      return DISCARDEVENT;
+    }
 
-  /* associate cluster with track
-   * map key is cluster id */
+  /* Reco cluster */
+  emcClusterContainer* reco_emcclusters = findNode::getClass<emcClusterContainer> (topNode, "emcClusterContainer");
+  if(!reco_emcclusters)
+    {
+      cout << "Cannot find emcClusterContainer" << endl;
+      return DISCARDEVENT;
+    }
+
+  /* number of tracks and clusters */
+  unsigned n_truth_particles = truth_particles->size();
+  unsigned n_truth_emcclusters = truth_emcclusters->size();
+  unsigned n_reco_tracks = reco_tracks->get_npart();
+  unsigned n_reco_emcclusters = reco_emcclusters->size();
+
+  cout << "Truth particles  found in event:   " << n_truth_particles << endl;
+  cout << "Truth EMC  cluster found in event: " << n_truth_emcclusters << endl;
+  cout << "Reco tracks  found in event:       " << n_reco_tracks << endl;
+  cout << "Reco cluster found in event:       " << n_reco_emcclusters << endl;
+
+  ///* loop over all reconstructed tracks */
+  //for ( unsigned i = 0; i < n_reco_tracks; i++ )
+  //  {
+  //    cout << "Track: p = " << reco_tracks->get_mom(i) << endl;
+  //  }
+
+  /* Associate truth ECMal cluster with truth particles for easy lookup between the two.
+   * Use separate maps for charged and neutral particles.
+   * Map key is cluster id. */
   typedef map<int,AnaTrk*> map_Ana_t;
   map_Ana_t map_cluster_track_charged;
   map_Ana_t map_cluster_track_neutral;
 
-  for(unsigned itrk=0; itrk<nemctrk; itrk++)
+  for(unsigned itrk=0; itrk<n_truth_particles; itrk++)
     {
-      emcGeaTrackContent *emctrk = emctrkcont->get(itrk);
-      AnaTrk *track = new AnaTrk(emctrk, emccluscont, (int*)_tower_status);
+      emcGeaTrackContent *emctrk = truth_particles->get(itrk);
+      AnaTrk *track = new AnaTrk(emctrk, truth_emcclusters, (int*)_tower_status);
 
       if(track)
 	{
@@ -152,7 +189,7 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
 	      /* charged truth particle? */
 	      if ( find( _v_pid_neutral.begin(), _v_pid_neutral.end(), track->pid ) == _v_pid_neutral.end() )
 		{
-		  cout << "Found a charged track from a track with PID " << track->pid << endl;
+		  //cout << "Found a charged track from a track with PID " << track->pid << endl;
 		  map_cluster_track_charged.insert( make_pair( track->cid, track ) );
 		}
 	      /* neutral truth particle? */
@@ -165,6 +202,50 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
 	}
     }
 
+  /* loop over all reconstructed cluster */
+  for ( unsigned i = 0; i < n_reco_emcclusters; i++ )
+    {
+      emcClusterContent *reco_emc_cluster_i = reco_emcclusters->getCluster( i );
+      emcGeaClusterContent *truth_emc_cluster_i = truth_emcclusters->getCluster( i );
+
+      //      emcGeaTrackContainer *particles = truth_emc_cluster_i->get_trackcontainer();
+
+      emcGeaTrackContent *truth_particle_i = FindTruthParticle( truth_emc_cluster_i );
+
+      unsigned pid_i = 0;
+      unsigned parent_i = 0;
+
+      if ( truth_particle_i )
+	{
+	  pid_i = truth_particle_i->get_pid();
+
+	  emcGeaTrackContent *truth_parent_i = truth_particle_i->get_trackcontainer()->find( truth_particle_i->get_parent_trkno() );
+
+	  if ( truth_parent_i )
+	    {
+	      parent_i = truth_parent_i->get_pid();
+	    }
+	}
+
+////      /* access truth info here */
+////      map_Ana_t::iterator track_cluster_i = map_cluster_track_charged.find( emc_cluster_i->id() );
+////      if( track_cluster_i != map_cluster_track_charged.end() )
+////	{
+////	  pid_i = track_cluster_i->get_pid();
+////	}
+////      else
+////	{
+////	  track_cluster_i = map_cluster_track_neutral.find( emc_cluster_i->id() );
+////
+////	  if( track_cluster_i != map_cluster_track_neutral.end() )
+////	    {
+////	      pid_i = track_cluster_i->get_pid();
+////	    }
+////	}
+
+      cout << "Cluster: E = " << reco_emc_cluster_i->ecore() << ", truth PID: " << pid_i << " , truth Parent: " << parent_i << " trkno = " << truth_particle_i->get_trkno() << endl;
+    }
+
   /* store photon candidate clusters */
   vector<emcGeaClusterContent*> cluster_photons;
 
@@ -174,9 +255,13 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
   float photon_prob_min = 0.02;
 
   /* loop over all cluster in EMCAL - add to photon candidate collection if it meets photon criteria */
-  for( unsigned icluster=0; icluster < nemcclus; icluster++ )
+  for( unsigned icluster=0; icluster < n_truth_emcclusters; icluster++ )
     {
-      emcGeaClusterContent *emc_cluster = emccluscont->get( icluster );
+      emcGeaClusterContent *emc_cluster = truth_emcclusters->get( icluster );
+
+      emcClusterContent *emc_cluster_reco = reco_emcclusters->getCluster( icluster );
+
+      cout << "cluster " << icluster << " ... " << emc_cluster->ecore() << " ... " << emc_cluster_reco->ecore() << endl;
 
       /* is photon candidate? */
       if ( emc_cluster->ecore() < cluster_ecore_min ||
@@ -301,6 +386,9 @@ int IsolationCut::End(PHCompositeNode *topNode)
   if ( _hn_energy_cone )
     _hn_energy_cone->Write();
 
+  if ( _hn_energy_cone_reco )
+    _hn_energy_cone_reco->Write();
+
   _file_output->Close();
 
   cout << "---------------------------------------------------" << endl;
@@ -310,4 +398,25 @@ int IsolationCut::End(PHCompositeNode *topNode)
   cout << "---------------------------------------------------" << endl;
 
   return EVENT_OK;
+}
+
+
+
+emcGeaTrackContent* IsolationCut::FindTruthParticle( emcGeaClusterContent* cluster )
+{
+  emcGeaTrackContent* truthparticle = NULL;
+
+  float edepMax = 0.;
+  emc_tracklist_t particles_list = cluster->get_track_list();
+  BOOST_FOREACH(const emc_trkno_t &ipart, particles_list)
+  {
+    float edep = cluster->get_edep_bytrack(ipart);
+    if( edep > edepMax )
+      {
+	truthparticle = cluster->get_trackcontainer()->find(ipart);
+	edepMax = edep;
+      }
+  }
+
+  return truthparticle;
 }

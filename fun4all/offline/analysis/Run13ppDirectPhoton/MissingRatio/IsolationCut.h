@@ -8,6 +8,8 @@
 
 class TFile;
 class THnSparse;
+class emcGeaTrackContent;
+class emcGeaClusterContent;
 
 class IsolationCut: public SubsysReco
 {
@@ -20,6 +22,9 @@ public:
   int End(PHCompositeNode *topNode);
 
 protected:
+
+  /** Find truth particle with maximum deposited energy contribution to given cluster */
+  emcGeaTrackContent* FindTruthParticle( emcGeaClusterContent* cluster );
 
   /** event counter */
   unsigned _ievent;
@@ -35,6 +40,9 @@ protected:
 
   /** histogram storing cone energy information */
   THnSparse*  _hn_energy_cone;
+
+  /** histogram storing cone energy information */
+  THnSparse*  _hn_energy_cone_reco;
 
   /** output file name */
   std::string _output_file_name;
