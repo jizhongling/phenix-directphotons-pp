@@ -10,6 +10,9 @@ class TFile;
 class THnSparse;
 class emcGeaTrackContent;
 class emcGeaClusterContent;
+class emcClusterContent;
+class emcClusterContainer;
+class PHCentralTrack;
 
 class IsolationCut: public SubsysReco
 {
@@ -25,6 +28,21 @@ protected:
 
   /** Find truth particle with maximum deposited energy contribution to given cluster */
   emcGeaTrackContent* FindTruthParticle( emcGeaClusterContent* cluster );
+
+  /** Sum and return all the energies of clusters found inside of cone of given radius around
+      a photon candidate */
+  float SumEmcalEnergyInCone( emcClusterContent*,
+			      emcClusterContainer*,
+			      double, double );
+
+  /** Sum and return all the energies (momenta) of charged tracks found inside of cone of given radius around
+      a photon candidate */
+  float SumTrackEnergyInCone( emcClusterContent*,
+			      PHCentralTrack*,
+			      double, double, double );
+
+  /** Reset global variables that store cluster information for filling output tree */
+  void ResetClusterTreeVariables();
 
   /** event counter */
   unsigned _ievent;

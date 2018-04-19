@@ -48,7 +48,7 @@ IsolationCut::IsolationCut(const char *filename) : _ievent(0),
                                                    _events_photon(0),
                                                    _hn_energy_cone( NULL ),
                                                    _hn_energy_cone_reco( NULL ),
-						   _output_file_name("IsolationCut_output.root"),
+                                                   _output_file_name("IsolationCut_output.root"),
                                                    _file_output( NULL )
 {
   /* construct output file names */
@@ -73,19 +73,19 @@ int IsolationCut::Init(PHCompositeNode *topNode)
   _file_output = new TFile( _output_file_name.c_str(), "RECREATE" );
 
   /* create output histogram */
-  int ndim_hn_photon = 5;
-  int nbins_hn_photon[] =   {100 , 100 ,  10000 ,   11  ,  2  };
-  double xmin_hn_photon[] = {  0.,   0.,      0.,  -0.05, -0.5};
-  double xmax_hn_photon[] = {100., 100.,    100.,   1.05,  1.5};
-
-  _hn_energy_cone = new THnSparseF("hn_energy_cone",
-                                   "Energy in cone around Photon; E [GeV]; E_cone [GeV]; f_cone; r_cone [rad]; isPromptPhoton;",
-                                   ndim_hn_photon,
-                                   nbins_hn_photon,
-                                   xmin_hn_photon,
-                                   xmax_hn_photon );
-
-  _hn_energy_cone_reco = (THnSparseF*)_hn_energy_cone->Clone("hn_energy_cone_reco");
+  //int ndim_hn_photon = 5;
+  //int nbins_hn_photon[] =   {100 , 100 ,  10000 ,   11  ,  2  };
+  //double xmin_hn_photon[] = {  0.,   0.,      0.,  -0.05, -0.5};
+  //double xmax_hn_photon[] = {100., 100.,    100.,   1.05,  1.5};
+  //
+  //_hn_energy_cone = new THnSparseF("hn_energy_cone",
+  //                                 "Energy in cone around Photon; E [GeV]; E_cone [GeV]; f_cone; r_cone [rad]; isPromptPhoton;",
+  //                                 ndim_hn_photon,
+  //                                 nbins_hn_photon,
+  //                                 xmin_hn_photon,
+  //                                 xmax_hn_photon );
+  //
+  //_hn_energy_cone_reco = (THnSparseF*)_hn_energy_cone->Clone("hn_energy_cone_reco");
 
   /* create vector with neutral particle PID's */
   /* create vector of PID's of neutral particles */
@@ -120,7 +120,7 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       return DISCARDEVENT;
     }
 
-  /* TRUTH track info */
+  /* TRUTH track info (truth particles container) */
   emcGeaTrackContainer *truth_particles = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
   if(!truth_particles)
     {
@@ -136,7 +136,7 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       return DISCARDEVENT;
     }
 
-  /* Reco tracks */
+  /* Reco tracks from Drift Chamber */
   PHCentralTrack *reco_tracks = findNode::getClass<PHCentralTrack>(topNode, "PHCentralTrack");
   if(!reco_tracks)
     {
@@ -144,7 +144,7 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       return DISCARDEVENT;
     }
 
-  /* Reco cluster */
+  /* Reco cluster from Electromagnetic Calorimeter */
   emcClusterContainer* reco_emcclusters = findNode::getClass<emcClusterContainer> (topNode, "emcClusterContainer");
   if(!reco_emcclusters)
     {
@@ -153,15 +153,15 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
     }
 
   /* number of tracks and clusters */
-  unsigned n_truth_particles = truth_particles->size();
-  unsigned n_truth_emcclusters = truth_emcclusters->size();
-  unsigned n_reco_tracks = reco_tracks->get_npart();
+  //unsigned n_truth_particles = truth_particles->size();
+  //unsigned n_truth_emcclusters = truth_emcclusters->size();
+  //unsigned n_reco_tracks = reco_tracks->get_npart();
   unsigned n_reco_emcclusters = reco_emcclusters->size();
-
-  cout << "Truth particles  found in event:   " << n_truth_particles << endl;
-  cout << "Truth EMC  cluster found in event: " << n_truth_emcclusters << endl;
-  cout << "Reco tracks  found in event:       " << n_reco_tracks << endl;
-  cout << "Reco cluster found in event:       " << n_reco_emcclusters << endl;
+  //
+  //cout << "Truth particles  found in event:   " << n_truth_particles << endl;
+  //cout << "Truth EMC  cluster found in event: " << n_truth_emcclusters << endl;
+  //cout << "Reco tracks  found in event:       " << n_reco_tracks << endl;
+  //cout << "Reco cluster found in event:       " << n_reco_emcclusters << endl;
 
   ///* loop over all reconstructed tracks */
   //for ( unsigned i = 0; i < n_reco_tracks; i++ )
@@ -172,82 +172,38 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
   /* Associate truth ECMal cluster with truth particles for easy lookup between the two.
    * Use separate maps for charged and neutral particles.
    * Map key is cluster id. */
-  typedef map<int,AnaTrk*> map_Ana_t;
-  map_Ana_t map_cluster_track_charged;
-  map_Ana_t map_cluster_track_neutral;
+  //typedef map<int,AnaTrk*> map_Ana_t;
+  //map_Ana_t map_cluster_track_charged;
+  //map_Ana_t map_cluster_track_neutral;
+  //
+  //for(unsigned itrk=0; itrk<n_truth_particles; itrk++)
+  //  {
+  //    emcGeaTrackContent *emctrk = truth_particles->get(itrk);
+  //    AnaTrk *track = new AnaTrk(emctrk, truth_emcclusters, (int*)_tower_status);
+  //
+  //    if(track)
+  //    {
+  //      /* only keep track if it's associated with a cluster in the EMCAL */
+  //      if( track->emcclus )
+  //        {
+  //          /* charged truth particle? */
+  //          if ( find( _v_pid_neutral.begin(), _v_pid_neutral.end(), track->pid ) == _v_pid_neutral.end() )
+  //            {
+  //              //cout << "Found a charged track from a track with PID " << track->pid << endl;
+  //              map_cluster_track_charged.insert( make_pair( track->cid, track ) );
+  //            }
+  //          /* neutral truth particle? */
+  //          else
+  //            {
+  //              //cout << "Found a neutral track from a track with PID " << track->pid << endl;
+  //              map_cluster_track_neutral.insert( make_pair( track->cid, track ) );
+  //            }
+  //        }
+  //    }
+  //  }
 
-  for(unsigned itrk=0; itrk<n_truth_particles; itrk++)
-    {
-      emcGeaTrackContent *emctrk = truth_particles->get(itrk);
-      AnaTrk *track = new AnaTrk(emctrk, truth_emcclusters, (int*)_tower_status);
-
-      if(track)
-	{
-	  /* only keep track if it's associated with a cluster in the EMCAL */
-	  if( track->emcclus )
-	    {
-	      /* charged truth particle? */
-	      if ( find( _v_pid_neutral.begin(), _v_pid_neutral.end(), track->pid ) == _v_pid_neutral.end() )
-		{
-		  //cout << "Found a charged track from a track with PID " << track->pid << endl;
-		  map_cluster_track_charged.insert( make_pair( track->cid, track ) );
-		}
-	      /* neutral truth particle? */
-	      else
-		{
-		  //cout << "Found a neutral track from a track with PID " << track->pid << endl;
-		  map_cluster_track_neutral.insert( make_pair( track->cid, track ) );
-		}
-	    }
-	}
-    }
-
-  /* loop over all reconstructed cluster */
-  for ( unsigned i = 0; i < n_reco_emcclusters; i++ )
-    {
-      emcClusterContent *reco_emc_cluster_i = reco_emcclusters->getCluster( i );
-      emcGeaClusterContent *truth_emc_cluster_i = truth_emcclusters->getCluster( i );
-
-      //      emcGeaTrackContainer *particles = truth_emc_cluster_i->get_trackcontainer();
-
-      emcGeaTrackContent *truth_particle_i = FindTruthParticle( truth_emc_cluster_i );
-
-      unsigned pid_i = 0;
-      unsigned parent_i = 0;
-
-      if ( truth_particle_i )
-	{
-	  pid_i = truth_particle_i->get_pid();
-
-	  emcGeaTrackContent *truth_parent_i = truth_particle_i->get_trackcontainer()->find( truth_particle_i->get_parent_trkno() );
-
-	  if ( truth_parent_i )
-	    {
-	      parent_i = truth_parent_i->get_pid();
-	    }
-	}
-
-////      /* access truth info here */
-////      map_Ana_t::iterator track_cluster_i = map_cluster_track_charged.find( emc_cluster_i->id() );
-////      if( track_cluster_i != map_cluster_track_charged.end() )
-////	{
-////	  pid_i = track_cluster_i->get_pid();
-////	}
-////      else
-////	{
-////	  track_cluster_i = map_cluster_track_neutral.find( emc_cluster_i->id() );
-////
-////	  if( track_cluster_i != map_cluster_track_neutral.end() )
-////	    {
-////	      pid_i = track_cluster_i->get_pid();
-////	    }
-////	}
-
-      cout << "Cluster: E = " << reco_emc_cluster_i->ecore() << ", truth PID: " << pid_i << " , truth Parent: " << parent_i << " trkno = " << truth_particle_i->get_trkno() << endl;
-    }
-
-  /* store photon candidate clusters */
-  vector<emcGeaClusterContent*> cluster_photons;
+  /* store id's of photon candidate clusters */
+  vector<unsigned> cluster_photons;
 
   /* cuts for photon candidate selection */
   float cluster_ecore_min = 0.3; //GeV
@@ -255,125 +211,116 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
   float photon_prob_min = 0.02;
 
   /* loop over all cluster in EMCAL - add to photon candidate collection if it meets photon criteria */
-  for( unsigned icluster=0; icluster < n_truth_emcclusters; icluster++ )
+  for( unsigned icluster=0; icluster < n_reco_emcclusters; icluster++ )
     {
-      emcGeaClusterContent *emc_cluster = truth_emcclusters->get( icluster );
-
-      emcClusterContent *emc_cluster_reco = reco_emcclusters->getCluster( icluster );
-
-      cout << "cluster " << icluster << " ... " << emc_cluster->ecore() << " ... " << emc_cluster_reco->ecore() << endl;
+      /* get pointer to reco cluster */
+      emcClusterContent *reco_emc_cluster_i = reco_emcclusters->getCluster( icluster );
 
       /* is photon candidate? */
-      if ( emc_cluster->ecore() < cluster_ecore_min ||
-           emc_cluster->prob_photon() < photon_prob_min )
-	continue;
+      if ( reco_emc_cluster_i->ecore() < cluster_ecore_min ||
+           reco_emc_cluster_i->ecore() < photon_ecore_min ||
+           reco_emc_cluster_i->prob_photon() < photon_prob_min )
+        continue;
 
-      /* use truth info here to identify neutral particles (i.e. 'charge veto' substitute) */
-      map_Ana_t::iterator track_cluster = map_cluster_track_charged.find( emc_cluster->id() );
-      if( track_cluster != map_cluster_track_charged.end() )
-	{
-	  //cout << "Charged truth track found associated with this cluster. Skip cluster." << endl;
-	  continue;
-	}
-      //cout << "Add cluster to photon candidates." << endl;
-
-      /* append to photon candiadte collection */
-      cluster_photons.push_back( emc_cluster );
-      nphotons++;
-    }
-
-  /* loop over photon candidate clusters */
-  for( unsigned icluster=0; icluster < cluster_photons.size(); icluster++ )
-    {
-      emcGeaClusterContent *emc_cluster = cluster_photons.at( icluster );
-
-      /* is cluster energy below threshold for DIRECT photon candidate? */
-      if ( emc_cluster->ecore() < photon_ecore_min )
-	continue;
+      /* charge veto? use truth information for charge veto? */
+      //map_Ana_t::iterator track_cluster = map_cluster_track_charged.find( emc_cluster->id() );
+      //if( track_cluster != map_cluster_track_charged.end() )
+      //        {
+      //          continue;
+      //        }
 
       /* check tower- is in guard ring of 10(12) towers ob PbSc(PbGl)? */
       // ...
 
-      /* what's the origin of this cluster- direct photon, pi0 photon, something else? */
-      bool isPromptPhoton = true;
-      //if ( lvl0_trk->anclvl == 0 )
-      //  isPromptPhoton = true;
+      /* append cluster id to photon candiadte collection */
+      cluster_photons.push_back( icluster );
+      nphotons++;
+    }
 
-      /* loop over different cone radii */
+  /* loop over photon candidate clusters */
+  for( unsigned i=0; i < cluster_photons.size(); i++ )
+    {
+      /* reset variables that store cluster properties */
+      ResetClusterTreeVariables();
+
+      /* get cluster id from photons vector */
+      unsigned icluster = cluster_photons.at( i );
+
+      /* get pointer to reco cluster corresponding to this reco cluster */
+      emcClusterContent *reco_emc_cluster_i = reco_emcclusters->getCluster( icluster );
+
+      /* get pointer to truth cluster corresponding to this reco cluster */
+      emcGeaClusterContent *truth_emc_cluster_i = truth_emcclusters->getCluster( icluster );
+
+      /* get truth particle associated with this cluster */
+      emcGeaTrackContent *truth_particle_i = FindTruthParticle( truth_emc_cluster_i );
+
+      /* get particle ID of truth particle */
+      unsigned pid_i = 0;
+
+      if ( truth_particle_i )
+        {
+          pid_i = truth_particle_i->get_pid();
+        }
+      else
+        {
+          cerr << "ERROR: Truth particle not found for this cluster" << endl;
+        }
+
+      /* get particle ID of parent of truth particle (if any) */
+      unsigned parent_i = 0;
+      emcGeaTrackContent *truth_parent_i = NULL;
+
+      if ( truth_particle_i )
+        {
+          truth_parent_i = truth_particle_i->get_trackcontainer()->find( truth_particle_i->get_parent_trkno() );
+        }
+
+      if ( truth_parent_i )
+        {
+          parent_i = truth_parent_i->get_pid();
+        }
+
+      /* what's the origin of this cluster- direct photon, pi0 photon, something else? */
+      //      bool isPromptPhoton = true;
+      //      if ( lvl0_trk->anclvl == 0 )
+      //        isPromptPhoton = true;
+
+      /* loop over different isolation cone radii */
       for ( int round = 0; round < 10; round ++ )
         {
           double rcone = 0.1 + round * 0.1;
 
-          /* add up energy in cone around cluster */
-          double econe = 0;
+          /* add up calorimeter energy in cone around cluster */
+          double econe_emcal = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, 0.3, rcone);
 
-          /* loop over all cluster in EMCAL */
-	  for( unsigned icluster2=0; icluster < cluster_photons.size(); icluster++ )
-	    {
-              if ( icluster2 == icluster )
-                continue;
+          /* cut for track selection */
+          float track_pmin = 0.2; //GeV
+          float track_pmax = 15; //GeV
 
-	      emcGeaClusterContent *emc_cluster2 = cluster_photons.at( icluster2 );
+          /* add up tracking energy in cone around cluster */
+          double econe_track = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone);
 
-              if ( emc_cluster2->ecore() < cluster_ecore_min )
-                continue;
+          cout << "econe EMCal: " << econe_emcal << " , econe Track: " << econe_track << endl;
+        }
 
-              float dr = ( sqrt( pow( emc_cluster->theta() - emc_cluster2->theta() , 2 ) +
-                                 pow( emc_cluster->phi() - emc_cluster2->phi() , 2 ) ) );
+      cout << "Cluster: E = " << truth_emc_cluster_i->ecore() << ", truth PID: " << pid_i << " , truth Parent: " << parent_i << " trkno = " << truth_particle_i->get_trkno() << endl;
+    }
 
-              if ( dr < rcone )
-                {
-                  econe += emc_cluster2->ecore();
-                }
-            }
+  //
+  //
+  //      /* determine energy fraction of cone */
+  //          double econe_frac = econe / emc_cluster->ecore();
+  //          //cout << "Energy in cone, fraction: " << econe << ", " << econe_frac << endl;
+  //
+  //          /* fill histogram */
+  //          double fill[] = {(double)emc_cluster->ecore(), econe, econe_frac, rcone, (double)isPromptPhoton};
+  //          _hn_energy_cone->Fill( fill );
+  //
+  //        } // END: loop over isolation cone radius
+  //    } // END: loop over all cluster in EMCAL
 
-	  /* cut for track selection */
-	  float track_pmin = 0.2; //GeV
-	  float track_pmax = 15; //GeV
-
-          /* loop over all charged tracks that could be associated with a cluster in EMCAL- ideally would use DC tracks but not available  */
-	  map_Ana_t::iterator it_tracks;
-
-	  for ( it_tracks = map_cluster_track_charged.begin(); it_tracks != map_cluster_track_charged.end(); it_tracks++ )
-	    {
-	      emcGeaTrackContent *emctrk = ( it_tracks->second )->emctrk;
-
-	      /* track momentum below threshold? */
-	      if ( ( emctrk->get_ptot() < track_pmin ) ||
-		   ( emctrk->get_ptot() > track_pmax ) )
-		continue;
-
-	      /* determine track theta and phi directions */
-	      float track_theta = atan2( emctrk->get_pt() , emctrk->get_ptot() );
-	      float track_phi = atan2( emctrk->get_py() , emctrk->get_px() );
-
-	      /* check if track within cone */
-              float dr = ( sqrt( pow( track_theta - emc_cluster->theta() , 2 ) +
-                                 pow( track_phi   - emc_cluster->phi()   , 2 ) ) );
-
-              if ( dr < rcone )
-                {
-                  econe += emctrk->get_ptot();
-		  //cout << "Add track with pid " << pdg_p->GetName() << " and momentum " << emctrk->get_ptot() << " to cone." << endl;
-                }
-	      else
-		{
-		  //cout << "Track outside of cone." << endl;
-		}
-	    }
-
-	  /* determine energy fraction of cone */
-          double econe_frac = econe / emc_cluster->ecore();
-          //cout << "Energy in cone, fraction: " << econe << ", " << econe_frac << endl;
-
-          /* fill histogram */
-          double fill[] = {(double)emc_cluster->ecore(), econe, econe_frac, rcone, (double)isPromptPhoton};
-          _hn_energy_cone->Fill( fill );
-
-        } // END: loop over isolation cone radius
-    } // END: loop over all cluster in EMCAL
-
-  if ( nphotons > 0 )
+  if ( cluster_photons.size() > 0 )
     _events_photon++;
 
   return EVENT_OK;
@@ -401,22 +348,100 @@ int IsolationCut::End(PHCompositeNode *topNode)
 }
 
 
-
 emcGeaTrackContent* IsolationCut::FindTruthParticle( emcGeaClusterContent* cluster )
 {
+  /* pointer to truth particle associated with cluster */
   emcGeaTrackContent* truthparticle = NULL;
 
+  /* loop over all truth particle and pick the one with maximum deposited energy in this cluster */
   float edepMax = 0.;
   emc_tracklist_t particles_list = cluster->get_track_list();
   BOOST_FOREACH(const emc_trkno_t &ipart, particles_list)
-  {
-    float edep = cluster->get_edep_bytrack(ipart);
-    if( edep > edepMax )
-      {
-	truthparticle = cluster->get_trackcontainer()->find(ipart);
-	edepMax = edep;
-      }
-  }
+    {
+      float edep = cluster->get_edep_bytrack(ipart);
+      if( edep > edepMax )
+        {
+          truthparticle = cluster->get_trackcontainer()->find(ipart);
+          edepMax = edep;
+        }
+    }
 
   return truthparticle;
+}
+
+
+float IsolationCut::SumEmcalEnergyInCone( emcClusterContent* emccluster_ref,
+                                          emcClusterContainer* emcclusters,
+                                          double cluster_emin,
+                                          double rcone )
+{
+  float econe = 0;
+
+  /* loop over all cluster in EMCAL */
+  for( unsigned icluster=0; icluster < emcclusters->size(); icluster++ )
+    {
+      /* Get cluster */
+      emcClusterContent *emccluster_check = emcclusters->getCluster( icluster );
+
+      /* avoid double counting cluster with same id as reference cluster */
+      if ( emccluster_check->id() == emccluster_ref->id() )
+        continue;
+
+      /* skip cluster below energy threshold */
+      if ( emccluster_check->ecore() < cluster_emin )
+        continue;
+
+      /* check if cluster is within cone around reference cluster */
+      float dr = ( sqrt( pow( emccluster_ref->theta() - emccluster_check->theta() , 2 ) +
+                         pow( emccluster_ref->phi()   - emccluster_check->phi()   , 2 ) ) );
+
+      if ( dr < rcone )
+        {
+          /* Still here? Add cluster energy to energy in cone. */
+          econe += emccluster_check->ecore();
+        }
+    }
+
+  return econe;
+}
+
+
+float IsolationCut::SumTrackEnergyInCone( emcClusterContent* emccluster_ref,
+                                          PHCentralTrack* tracks,
+                                          double track_pmin,
+                                          double track_pmax,
+                                          double rcone )
+{
+  float econe = 0;
+
+  /* loop over all charged tracks that could be associated with a cluster in EMCAL */
+  for ( unsigned itrack = 0; itrack < tracks->get_npart(); itrack++ )
+    {
+      /* track momentum below threshold? */
+      if ( ( tracks->get_mom( itrack ) < track_pmin ) ||
+           ( tracks->get_mom( itrack ) > track_pmax ) )
+        continue;
+
+      /* determine track theta and phi directions */
+      float track_theta = tracks->get_the0( itrack ); //atan2( emctrk->get_pt() , emctrk->get_ptot() );
+      float track_phi = tracks->get_phi0( itrack ); //atan2( emctrk->get_py() , emctrk->get_px() );
+
+      /* check if track within cone */
+      float dr = ( sqrt( pow( track_theta - emccluster_ref->theta() , 2 ) +
+                         pow( track_phi   - emccluster_ref->phi()   , 2 ) ) );
+
+      if ( dr < rcone )
+        {
+          /* Still here? Add track momentum to energy in cone. */
+          econe += tracks->get_mom( itrack );
+        }
+    }
+
+  return econe;
+}
+
+
+void IsolationCut::ResetClusterTreeVariables( )
+{
+  return;
 }
