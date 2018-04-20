@@ -7,7 +7,9 @@
 #include <vector>
 
 class TFile;
+class TTree;
 class THnSparse;
+
 class emcGeaTrackContent;
 class emcGeaClusterContent;
 class emcClusterContent;
@@ -42,13 +44,13 @@ protected:
 			      double, double, double );
 
   /** Reset global variables that store cluster information for filling output tree */
-  void ResetClusterTreeVariables();
+  void ResetBranchVariables();
 
   /** event counter */
   unsigned _ievent;
 
   /** count events with 1+ photon candidate cluster */
-  unsigned _events_photon;
+  unsigned _event_nphotons;
 
   /** tower status for warnmap */
   int _tower_status[8][48][96];
@@ -61,6 +63,12 @@ protected:
 
   /** histogram storing cone energy information */
   THnSparse*  _hn_energy_cone_reco;
+
+  /** output tree with cluster information */
+  TTree* _tree_event_cluster;
+
+  /** map with cluster variables */
+  std::map< std::string , float > _map_cluster_branches;
 
   /** output file name */
   std::string _output_file_name;

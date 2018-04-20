@@ -1,6 +1,6 @@
 #include "IsolationCut.h"
 
-#include <AnaTrk.h>
+//#include <AnaTrk.h>
 
 #include <PHGlobal.h>
 
@@ -23,12 +23,13 @@
 
 /* ROOT includes */
 #include <TFile.h>
+#include <TTree.h>
 #include <TF1.h>
 #include <TH2.h>
 #include <THnSparse.h>
 #include <TVector3.h>
-#include <TLorentzVector.h>
-#include <TDatabasePDG.h>
+//#include <TLorentzVector.h>
+//#include <TDatabasePDG.h>
 
 /* STL includes */
 #include <cstdlib>
@@ -45,9 +46,10 @@
 using namespace std;
 
 IsolationCut::IsolationCut(const char *filename) : _ievent(0),
-                                                   _events_photon(0),
+                                                   _event_nphotons(0),
                                                    _hn_energy_cone( NULL ),
                                                    _hn_energy_cone_reco( NULL ),
+                                                   _tree_event_cluster(nullptr),
                                                    _output_file_name("IsolationCut_output.root"),
                                                    _file_output( NULL )
 {
@@ -72,6 +74,47 @@ int IsolationCut::Init(PHCompositeNode *topNode)
   /* create output file */
   _file_output = new TFile( _output_file_name.c_str(), "RECREATE" );
 
+  /* Add cluster properties to map that defines output tree */
+  float dummy = 0;
+
+  _map_cluster_branches.insert( make_pair( "cluster_ecore" , dummy ) ); // cluster energy
+  _map_cluster_branches.insert( make_pair( "cluster_pt" , dummy ) ); // cluster transverse momentum
+  _map_cluster_branches.insert( make_pair( "cluster_rcone_r01" , dummy ) ); // cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_rcone_r02" , dummy ) ); // cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_rcone_r03" , dummy ) ); // cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_rcone_r04" , dummy ) ); // cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_rcone_r05" , dummy ) ); // cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r01" , dummy ) ); // energy in EMCal clusters within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r02" , dummy ) ); // energy in EMCal clusters within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r03" , dummy ) ); // energy in EMCal clusters within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r04" , dummy ) ); // energy in EMCal clusters within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r05" , dummy ) ); // energy in EMCal clusters within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r01" , dummy ) ); // charged tracks momenta within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r02" , dummy ) ); // charged tracks momenta within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r03" , dummy ) ); // charged tracks momenta within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r04" , dummy ) ); // charged tracks momenta within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r05" , dummy ) ); // charged tracks momenta within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_truth_pid" , dummy ) ); // pid of associated truth particle
+  _map_cluster_branches.insert( make_pair( "cluster_truth_parentid" , dummy ) ); // parent id of associated truth particle
+  _map_cluster_branches.insert( make_pair( "cluster_truth_anclvl" , dummy ) ); // ancestry level of associated truth particle
+
+  /* Create tree for information about full event */
+  _tree_event_cluster = new TTree("event_cluster", "a Tree with global event information and EM cluster");
+  _tree_event_cluster->Branch("event", &_ievent, "event/I");
+
+  /* Add event branches */
+  _tree_event_cluster->Branch( "event", &_ievent );
+  _tree_event_cluster->Branch( "event_nphotons", &_event_nphotons );
+
+  /* Add cluster branches */
+  for ( map< string , float >::iterator iter = _map_cluster_branches.begin();
+        iter != _map_cluster_branches.end();
+        ++iter )
+    {
+      _tree_event_cluster->Branch( (iter->first).c_str(),
+                                   &(iter->second) );
+    }
+
   /* create output histogram */
   //int ndim_hn_photon = 5;
   //int nbins_hn_photon[] =   {100 , 100 ,  10000 ,   11  ,  2  };
@@ -89,20 +132,20 @@ int IsolationCut::Init(PHCompositeNode *topNode)
 
   /* create vector with neutral particle PID's */
   /* create vector of PID's of neutral particles */
-  _v_pid_neutral.push_back( PHOTON );
-  _v_pid_neutral.push_back( NEUTRINO );
-  _v_pid_neutral.push_back( PIZERO );
-  _v_pid_neutral.push_back( KAON_0_LONG );
-  _v_pid_neutral.push_back( NEUTRON );
-  _v_pid_neutral.push_back( KAON_0_SHORT );
-  _v_pid_neutral.push_back( ETA );
-  _v_pid_neutral.push_back( LAMBDA );
-  _v_pid_neutral.push_back( SIGMA_0 );
-  _v_pid_neutral.push_back( XI_0 );
-  _v_pid_neutral.push_back( ANTINEUTRON );
-  _v_pid_neutral.push_back( ANTILAMBDA );
-  _v_pid_neutral.push_back( ANTISIGMA_0 );
-  _v_pid_neutral.push_back( ANITXI_0 );
+  //_v_pid_neutral.push_back( PHOTON );
+  //_v_pid_neutral.push_back( NEUTRINO );
+  //_v_pid_neutral.push_back( PIZERO );
+  //_v_pid_neutral.push_back( KAON_0_LONG );
+  //_v_pid_neutral.push_back( NEUTRON );
+  //_v_pid_neutral.push_back( KAON_0_SHORT );
+  //_v_pid_neutral.push_back( ETA );
+  //_v_pid_neutral.push_back( LAMBDA );
+  //_v_pid_neutral.push_back( SIGMA_0 );
+  //_v_pid_neutral.push_back( XI_0 );
+  //_v_pid_neutral.push_back( ANTINEUTRON );
+  //_v_pid_neutral.push_back( ANTILAMBDA );
+  //_v_pid_neutral.push_back( ANTISIGMA_0 );
+  //_v_pid_neutral.push_back( ANITXI_0 );
 
   return EVENT_OK;
 }
@@ -110,7 +153,7 @@ int IsolationCut::Init(PHCompositeNode *topNode)
 int IsolationCut::process_event(PHCompositeNode *topNode)
 {
   _ievent++;
-  unsigned nphotons = 0;
+  _event_nphotons = 0;
 
   /* global event info */
   PHGlobal *data_global = findNode::getClass<PHGlobal>(topNode, "PHGlobal");
@@ -152,56 +195,6 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       return DISCARDEVENT;
     }
 
-  /* number of tracks and clusters */
-  //unsigned n_truth_particles = truth_particles->size();
-  //unsigned n_truth_emcclusters = truth_emcclusters->size();
-  //unsigned n_reco_tracks = reco_tracks->get_npart();
-  unsigned n_reco_emcclusters = reco_emcclusters->size();
-  //
-  //cout << "Truth particles  found in event:   " << n_truth_particles << endl;
-  //cout << "Truth EMC  cluster found in event: " << n_truth_emcclusters << endl;
-  //cout << "Reco tracks  found in event:       " << n_reco_tracks << endl;
-  //cout << "Reco cluster found in event:       " << n_reco_emcclusters << endl;
-
-  ///* loop over all reconstructed tracks */
-  //for ( unsigned i = 0; i < n_reco_tracks; i++ )
-  //  {
-  //    cout << "Track: p = " << reco_tracks->get_mom(i) << endl;
-  //  }
-
-  /* Associate truth ECMal cluster with truth particles for easy lookup between the two.
-   * Use separate maps for charged and neutral particles.
-   * Map key is cluster id. */
-  //typedef map<int,AnaTrk*> map_Ana_t;
-  //map_Ana_t map_cluster_track_charged;
-  //map_Ana_t map_cluster_track_neutral;
-  //
-  //for(unsigned itrk=0; itrk<n_truth_particles; itrk++)
-  //  {
-  //    emcGeaTrackContent *emctrk = truth_particles->get(itrk);
-  //    AnaTrk *track = new AnaTrk(emctrk, truth_emcclusters, (int*)_tower_status);
-  //
-  //    if(track)
-  //    {
-  //      /* only keep track if it's associated with a cluster in the EMCAL */
-  //      if( track->emcclus )
-  //        {
-  //          /* charged truth particle? */
-  //          if ( find( _v_pid_neutral.begin(), _v_pid_neutral.end(), track->pid ) == _v_pid_neutral.end() )
-  //            {
-  //              //cout << "Found a charged track from a track with PID " << track->pid << endl;
-  //              map_cluster_track_charged.insert( make_pair( track->cid, track ) );
-  //            }
-  //          /* neutral truth particle? */
-  //          else
-  //            {
-  //              //cout << "Found a neutral track from a track with PID " << track->pid << endl;
-  //              map_cluster_track_neutral.insert( make_pair( track->cid, track ) );
-  //            }
-  //        }
-  //    }
-  //  }
-
   /* store id's of photon candidate clusters */
   vector<unsigned> cluster_photons;
 
@@ -211,7 +204,7 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
   float photon_prob_min = 0.02;
 
   /* loop over all cluster in EMCAL - add to photon candidate collection if it meets photon criteria */
-  for( unsigned icluster=0; icluster < n_reco_emcclusters; icluster++ )
+  for( unsigned icluster=0; icluster < reco_emcclusters->size(); icluster++ )
     {
       /* get pointer to reco cluster */
       emcClusterContent *reco_emc_cluster_i = reco_emcclusters->getCluster( icluster );
@@ -223,31 +216,32 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
         continue;
 
       /* charge veto? use truth information for charge veto? */
-      //map_Ana_t::iterator track_cluster = map_cluster_track_charged.find( emc_cluster->id() );
-      //if( track_cluster != map_cluster_track_charged.end() )
-      //        {
-      //          continue;
-      //        }
+      // ...
 
       /* check tower- is in guard ring of 10(12) towers ob PbSc(PbGl)? */
       // ...
 
       /* append cluster id to photon candiadte collection */
       cluster_photons.push_back( icluster );
-      nphotons++;
+      _event_nphotons++;
     }
 
   /* loop over photon candidate clusters */
   for( unsigned i=0; i < cluster_photons.size(); i++ )
     {
       /* reset variables that store cluster properties */
-      ResetClusterTreeVariables();
+      ResetBranchVariables();
 
       /* get cluster id from photons vector */
       unsigned icluster = cluster_photons.at( i );
 
       /* get pointer to reco cluster corresponding to this reco cluster */
       emcClusterContent *reco_emc_cluster_i = reco_emcclusters->getCluster( icluster );
+
+      /* calculate cluster transverse momentum */
+      float cluster_ecore = reco_emc_cluster_i->ecore();
+      TVector3 cluster_pos( reco_emc_cluster_i->x(), reco_emc_cluster_i->y(), reco_emc_cluster_i->z() );
+      float cluster_pt = cluster_ecore * ( cluster_pos.Perp() / cluster_pos.Mag() );
 
       /* get pointer to truth cluster corresponding to this reco cluster */
       emcGeaClusterContent *truth_emc_cluster_i = truth_emcclusters->getCluster( icluster );
@@ -257,10 +251,12 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
 
       /* get particle ID of truth particle */
       unsigned pid_i = 0;
+      unsigned anclvl_i = 0;
 
       if ( truth_particle_i )
         {
           pid_i = truth_particle_i->get_pid();
+          anclvl_i = truth_particle_i->get_anclvl();
         }
       else
         {
@@ -268,7 +264,7 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
         }
 
       /* get particle ID of parent of truth particle (if any) */
-      unsigned parent_i = 0;
+      unsigned parent_id = 0;
       emcGeaTrackContent *truth_parent_i = NULL;
 
       if ( truth_particle_i )
@@ -278,50 +274,63 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
 
       if ( truth_parent_i )
         {
-          parent_i = truth_parent_i->get_pid();
+          parent_id = truth_parent_i->get_pid();
         }
 
-      /* what's the origin of this cluster- direct photon, pi0 photon, something else? */
-      //      bool isPromptPhoton = true;
-      //      if ( lvl0_trk->anclvl == 0 )
-      //        isPromptPhoton = true;
+      /* cut for calorimter cluster in cone */
+      float cluster_emin = 0.3;
 
-      /* loop over different isolation cone radii */
-      for ( int round = 0; round < 10; round ++ )
-        {
-          double rcone = 0.1 + round * 0.1;
+      /* cut for track selection in cone */
+      float track_pmin = 0.2; //GeV
+      float track_pmax = 15; //GeV
 
-          /* add up calorimeter energy in cone around cluster */
-          double econe_emcal = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, 0.3, rcone);
+      /* cone radius definitions */
+      float rcone_r01 = 0.1;
+      float rcone_r02 = 0.2;
+      float rcone_r03 = 0.3;
+      float rcone_r04 = 0.4;
+      float rcone_r05 = 0.5;
 
-          /* cut for track selection */
-          float track_pmin = 0.2; //GeV
-          float track_pmax = 15; //GeV
+      /* add up calorimeter energy in cone around cluster */
+      double econe_emcal_r01 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r01 );
+      double econe_emcal_r02 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r02 );
+      double econe_emcal_r03 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r03 );
+      double econe_emcal_r04 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r04 );
+      double econe_emcal_r05 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r05 );
 
-          /* add up tracking energy in cone around cluster */
-          double econe_track = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone);
+      /* add up tracking energy in cone around cluster */
+      double econe_track_r01 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r01 );
+      double econe_track_r02 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r02 );
+      double econe_track_r03 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r03 );
+      double econe_track_r04 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r04 );
+      double econe_track_r05 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r05 );
 
-          cout << "econe EMCal: " << econe_emcal << " , econe Track: " << econe_track << endl;
-        }
+      /* Update tree branch variables */
+      _map_cluster_branches.find( "cluster_ecore" )->second = cluster_ecore;
+      _map_cluster_branches.find( "cluster_pt" )->second = cluster_pt;
+      _map_cluster_branches.find( "cluster_rcone_r01" )->second = rcone_r01;
+      _map_cluster_branches.find( "cluster_rcone_r02" )->second = rcone_r02;
+      _map_cluster_branches.find( "cluster_rcone_r03" )->second = rcone_r03;
+      _map_cluster_branches.find( "cluster_rcone_r04" )->second = rcone_r04;
+      _map_cluster_branches.find( "cluster_rcone_r05" )->second = rcone_r05;
+      _map_cluster_branches.find( "cluster_econe_emcal_r01" )->second = econe_emcal_r01;
+      _map_cluster_branches.find( "cluster_econe_emcal_r02" )->second = econe_emcal_r02;
+      _map_cluster_branches.find( "cluster_econe_emcal_r03" )->second = econe_emcal_r03;
+      _map_cluster_branches.find( "cluster_econe_emcal_r04" )->second = econe_emcal_r04;
+      _map_cluster_branches.find( "cluster_econe_emcal_r05" )->second = econe_emcal_r05;
+      _map_cluster_branches.find( "cluster_econe_tracks_r01" )->second = econe_track_r01;
+      _map_cluster_branches.find( "cluster_econe_tracks_r02" )->second = econe_track_r02;
+      _map_cluster_branches.find( "cluster_econe_tracks_r03" )->second = econe_track_r03;
+      _map_cluster_branches.find( "cluster_econe_tracks_r04" )->second = econe_track_r04;
+      _map_cluster_branches.find( "cluster_econe_tracks_r05" )->second = econe_track_r05;
+      _map_cluster_branches.find( "cluster_truth_pid" )->second = pid_i;
+      _map_cluster_branches.find( "cluster_truth_parentid" )->second = parent_id;
+      _map_cluster_branches.find( "cluster_truth_anclvl" )->second = anclvl_i;
 
-      cout << "Cluster: E = " << truth_emc_cluster_i->ecore() << ", truth PID: " << pid_i << " , truth Parent: " << parent_i << " trkno = " << truth_particle_i->get_trkno() << endl;
+      /* Fill tree */
+      _tree_event_cluster->Fill();
+
     }
-
-  //
-  //
-  //      /* determine energy fraction of cone */
-  //          double econe_frac = econe / emc_cluster->ecore();
-  //          //cout << "Energy in cone, fraction: " << econe << ", " << econe_frac << endl;
-  //
-  //          /* fill histogram */
-  //          double fill[] = {(double)emc_cluster->ecore(), econe, econe_frac, rcone, (double)isPromptPhoton};
-  //          _hn_energy_cone->Fill( fill );
-  //
-  //        } // END: loop over isolation cone radius
-  //    } // END: loop over all cluster in EMCAL
-
-  if ( cluster_photons.size() > 0 )
-    _events_photon++;
 
   return EVENT_OK;
 }
@@ -329,6 +338,9 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
 int IsolationCut::End(PHCompositeNode *topNode)
 {
   _file_output->cd();
+
+  if ( _tree_event_cluster )
+    _tree_event_cluster->Write();
 
   if ( _hn_energy_cone )
     _hn_energy_cone->Write();
@@ -341,7 +353,7 @@ int IsolationCut::End(PHCompositeNode *topNode)
   cout << "---------------------------------------------------" << endl;
   cout << "IsolationCut module:" << endl;
   cout << "Number of events processed:            " << _ievent << endl;
-  cout << "Number of events with photon in EMCAL: " << _events_photon << endl;
+  cout << "Number of events with photon in EMCAL: " << _event_nphotons << endl;
   cout << "---------------------------------------------------" << endl;
 
   return EVENT_OK;
@@ -441,7 +453,15 @@ float IsolationCut::SumTrackEnergyInCone( emcClusterContent* emccluster_ref,
 }
 
 
-void IsolationCut::ResetClusterTreeVariables( )
+void IsolationCut::ResetBranchVariables( )
 {
+  /* Cluster branches */
+  for ( map< string , float >::iterator iter = _map_cluster_branches.begin();
+        iter != _map_cluster_branches.end();
+        ++iter)
+    {
+      (iter->second) = NAN;
+    }
+
   return;
 }
