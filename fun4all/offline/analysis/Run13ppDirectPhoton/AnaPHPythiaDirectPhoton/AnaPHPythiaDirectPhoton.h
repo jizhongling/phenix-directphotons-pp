@@ -8,7 +8,7 @@ class PHPythiaHeader;
 class PHPythiaContainer;
 
 class TFile;
-class THnSparse;
+class TTree;
 
 class AnaPHPythiaDirectPhoton: public SubsysReco
 {
@@ -17,7 +17,7 @@ public:
   virtual ~AnaPHPythiaDirectPhoton();
 
   // Methods Derived from SubsysReco
-  int InitRun(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
@@ -26,8 +26,24 @@ protected:
   PHPythiaHeader *phpythiaheader;
   PHPythiaContainer *phpythia;
 
+  /** output tree with truth information */
+  TTree* _tree_event_truth;
+
+  /** truth tree variables */
+  unsigned int _ievent;
+  float _truth_pid;
+  float _truth_parentid;
+  float _truth_anclvl;
+  float _truth_ptot;
+  float _truth_pt;
+  float _truth_eta;
+  float _truth_phi;
+
+  /** output file name */
+  std::string _output_file_name;
+
+  /** output file */
   TFile *_fout;
-  THnSparse*  _hECone;
 
 };
 
