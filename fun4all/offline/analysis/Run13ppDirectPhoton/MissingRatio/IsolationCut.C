@@ -1,7 +1,5 @@
 #include "IsolationCut.h"
 
-//#include <AnaTrk.h>
-
 #include <PHGlobal.h>
 
 #include <emcNodeHelper.h>
@@ -50,6 +48,14 @@ IsolationCut::IsolationCut(const char *filename) : _ievent(0),
                                                    _hn_energy_cone( NULL ),
                                                    _hn_energy_cone_reco( NULL ),
                                                    _tree_event_cluster(nullptr),
+                                                   _tree_event_truth(nullptr),
+						   _truth_pid(0),
+						   _truth_parentid(0),
+						   _truth_anclvl(0),
+						   _truth_ptot(0),
+						   _truth_pt(0),
+						   _truth_eta(0),
+						   _truth_phi(0),
                                                    _output_file_name("IsolationCut_output.root"),
                                                    _file_output( NULL )
 {
@@ -100,7 +106,6 @@ int IsolationCut::Init(PHCompositeNode *topNode)
 
   /* Create tree for information about full event */
   _tree_event_cluster = new TTree("event_cluster", "a Tree with global event information and EM cluster");
-  _tree_event_cluster->Branch("event", &_ievent, "event/I");
 
   /* Add event branches */
   _tree_event_cluster->Branch( "event", &_ievent );
@@ -114,6 +119,19 @@ int IsolationCut::Init(PHCompositeNode *topNode)
       _tree_event_cluster->Branch( (iter->first).c_str(),
                                    &(iter->second) );
     }
+
+  /* Create tree for information about full event truth */
+  _tree_event_truth = new TTree("event_truth", "a Tree with global event information and EM truth");
+
+  /* Add event branches */
+  _tree_event_truth->Branch( "event", &_ievent );
+  _tree_event_truth->Branch( "pid", &_truth_pid );
+  _tree_event_truth->Branch( "parentid", &_truth_parentid );
+  _tree_event_truth->Branch( "anclvl", &_truth_anclvl );
+  _tree_event_truth->Branch( "ptot", &_truth_ptot );
+  _tree_event_truth->Branch( "pt", &_truth_pt );
+  _tree_event_truth->Branch( "eta", &_truth_eta );
+  _tree_event_truth->Branch( "phi", &_truth_phi );
 
   /* create output histogram */
   //int ndim_hn_photon = 5;
@@ -193,6 +211,33 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
     {
       cout << "Cannot find emcClusterContainer" << endl;
       return DISCARDEVENT;
+    }
+
+  /* Loop over all turth tracks and store photon information */
+  for( unsigned iparticle=0; iparticle < truth_particles->size(); iparticle++ )
+    {
+      /* get pointer to reco cluster */
+      emcGeaTrackContent *truth_particle_i = truth_particles->get( iparticle );
+      //      emcGeaTrackContent *truth_parent_i = truth_particles->get_common_parent( truth_particle_i, truth_particle_i );
+
+      /* fill tree variables */
+      _truth_pid = truth_particle_i->get_pid();
+      _truth_parentid = 0;
+      //      if ( truth_parent_i )
+      //	_truth_parentid = truth_parent_i->get_pid();
+      if ( truth_particle_i->get_parent_trkno() != 0 )
+	_truth_parentid = truth_particles->find( truth_particle_i->get_parent_trkno() )->get_pid();
+      _truth_anclvl = truth_particle_i->get_anclvl();
+      _truth_ptot = truth_particle_i->get_ptot();
+      _truth_pt = truth_particle_i->get_pt();
+
+      TVector3 v( truth_particle_i->get_px(), truth_particle_i->get_py(), truth_particle_i->get_pz() );//, truth_particle_i->get_ekin() );
+
+      _truth_eta = v.Eta(); // -2 * log( atan2( truth_particle_i->get_pt() , truth_particle_i->get_ptot() ) / 2.0 );
+      _truth_phi = v.Phi(); // atan2( truth_particle_i->get_py() , truth_particle_i->get_px() );
+
+      /* fill tree */
+      _tree_event_truth->Fill();
     }
 
   /* store id's of photon candidate clusters */
@@ -341,6 +386,9 @@ int IsolationCut::End(PHCompositeNode *topNode)
 
   if ( _tree_event_cluster )
     _tree_event_cluster->Write();
+
+  if ( _tree_event_truth )
+    _tree_event_truth->Write();
 
   if ( _hn_energy_cone )
     _hn_energy_cone->Write();

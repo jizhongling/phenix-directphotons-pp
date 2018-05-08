@@ -67,8 +67,20 @@ protected:
   /** output tree with cluster information */
   TTree* _tree_event_cluster;
 
+  /** output tree with truth information */
+  TTree* _tree_event_truth;
+
   /** map with cluster variables */
   std::map< std::string , float > _map_cluster_branches;
+
+  /** truth tree variables */
+  float _truth_pid;
+  float _truth_parentid;
+  float _truth_anclvl;
+  float _truth_ptot;
+  float _truth_pt;
+  float _truth_eta;
+  float _truth_phi;
 
   /** output file name */
   std::string _output_file_name;
