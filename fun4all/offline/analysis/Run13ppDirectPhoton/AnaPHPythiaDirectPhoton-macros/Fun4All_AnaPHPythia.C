@@ -1,8 +1,10 @@
 //#include <libgen.h>
 
-void anaphpythia(const int nevents = 100000,
+void Fun4All_AnaPHPythia(const int nevents = 100000,
                  const int runnumber = 0,
-                 const char *pyfname = "keep/phpythia_directphoton.root")
+                 //const char *pyfname = "keep/phpythia_directphoton.root")
+		 const char *pyfname = "data_phpythia/phpythia_pp_510_all_seed1.root")
+//const char *pyfname = "data_phpythia/phpythia_pp_510_dirphoton_seed1.root")
 {
   gSystem->Load("libfun4allfuncs.so");	// framework + reco modules
   gSystem->Load("libAnaPHPythiaDirectPhoton.so");
