@@ -31,24 +31,45 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
+#include "TDatabasePDG.h"
+#include "TParticlePDG.h"
 
 using namespace std;
 
 AnaPHPythiaDirectPhoton::AnaPHPythiaDirectPhoton(const std::string &name): SubsysReco(name),
-									   phpythiaheader(0),
-									   phpythia(0),
-									   _tree_event_truth(nullptr),
-									   _ievent(0),
-									   _truth_pid(0),
-									   _truth_parentid(0),
-									   _truth_anclvl(0),
-									   _truth_ptot(0),
-									   _truth_pt(0),
-									   _truth_eta(0),
-									   _truth_phi(0),
-									   _output_file_name("test.root"),
-									   _fout(NULL)
+									   _pdg_db(nullptr),
+                                                                           phpythiaheader(0),
+                                                                           phpythia(0),
+                                                                           _tree_event_truth(nullptr),
+                                                                           _ievent(0),
+                                                                           _pythia_event(0),
+                                                                           _pythia_processid(0),
+                                                                           _truth_pid(0),
+                                                                           _truth_parentid(0),
+                                                                           _truth_ispromptphoton(0),
+                                                                           _truth_ptot(0),
+                                                                           _truth_pt(0),
+                                                                           _truth_etot(0),
+                                                                           _truth_eta(0),
+                                                                           _truth_phi(0),
+                                                                           _output_file_name("test.root"),
+                                                                           _fout(NULL)
 {
+  /* define set of isolation cone sizes */
+  _v_iso_conesize.push_back( 0.1 );
+  _v_iso_conesize.push_back( 0.3 );
+  _v_iso_conesize.push_back( 0.5 );
+  _v_iso_conesize.push_back( 1.0 );
+
+  /* set 0 as initial values for cone sums */
+  for ( unsigned i = 0; i < _v_iso_conesize.size(); i++ )
+    {
+      _v_iso_eemcal.push_back( 0.0 );
+      _v_iso_ptrack.push_back( 0.0 );
+    }
+
+  /* get PDGDatabase object */
+  _pdg_db = new TDatabasePDG();
 }
 
 AnaPHPythiaDirectPhoton::~AnaPHPythiaDirectPhoton()
@@ -65,27 +86,24 @@ int AnaPHPythiaDirectPhoton::Init(PHCompositeNode *topNode)
 
   /* Add event branches */
   _tree_event_truth->Branch( "event", &_ievent );
+  _tree_event_truth->Branch( "pythia_event", &_pythia_event );
+  _tree_event_truth->Branch( "pythia_processid", &_pythia_processid );
+
+  /* Add particle branches */
   _tree_event_truth->Branch( "pid", &_truth_pid );
   _tree_event_truth->Branch( "parentid", &_truth_parentid );
-  _tree_event_truth->Branch( "anclvl", &_truth_anclvl );
+  _tree_event_truth->Branch( "ispromptphoton", &_truth_ispromptphoton );
   _tree_event_truth->Branch( "ptot", &_truth_ptot );
   _tree_event_truth->Branch( "pt", &_truth_pt );
+  _tree_event_truth->Branch( "etot", &_truth_etot );
   _tree_event_truth->Branch( "eta", &_truth_eta );
   _tree_event_truth->Branch( "phi", &_truth_phi );
 
+  /* Add islolation cut branches */
+  _tree_event_truth->Branch( "iso_conesize", &_v_iso_conesize );
+  _tree_event_truth->Branch( "iso_eemcal", &_v_iso_eemcal );
+  _tree_event_truth->Branch( "iso_ptrack", &_v_iso_ptrack );
 
-//  int ndim_hn_photon = 5;
-//  int nbins_hn_photon[] =   {100 , 100 ,  10000 ,   11  ,  2  };
-//  double xmin_hn_photon[] = {  0.,   0.,      0.,  -0.05, -0.5};
-//  double xmax_hn_photon[] = {100., 100.,    100.,   1.05,  1.5};
-//
-//  _hECone = new THnSparseF("hn_EConePhoton",
-//                           "Energy in cone around Photon; E [GeV]; E_cone [GeV]; f_cone; r_cone [rad]; isPromptPhoton;",
-//                           ndim_hn_photon,
-//                           nbins_hn_photon,
-//                           xmin_hn_photon,
-//                           xmax_hn_photon );
-//
   return EVENT_OK;
 }
 
@@ -126,8 +144,12 @@ int AnaPHPythiaDirectPhoton::process_event(PHCompositeNode *topNode)
 
   // Print some header information
   //  cout << "Event: " << phpythiaheader->GetEvt() << "\t" << phpythiaheader->GetNpart() << endl;
-
+  //  cout << "Process: " << phpythiaheader->GetProcessid() << endl;
   //  cout << "KS\tKF\tpid\tname\thistory" << endl;
+
+  /* Update event parameter information */
+  _pythia_event = phpythiaheader->GetEvt();
+  _pythia_processid = phpythiaheader->GetProcessid();
 
   /* Loop over all particles & Fill output tree */
   int npart = phpythia->size();
@@ -139,11 +161,6 @@ int AnaPHPythiaDirectPhoton::process_event(PHCompositeNode *topNode)
       /* test if particle is stable photon */
       if ( part->GetKF() != 22 ||
            part->GetKS() != 1 )
-        continue;
-
-      /* test if particle passed energy threshold */
-      double photon_minEnergy = 1.0;
-      if ( part->GetEnergy() < photon_minEnergy )
         continue;
 
       /* test if particle is prompt photon */
@@ -171,116 +188,34 @@ int AnaPHPythiaDirectPhoton::process_event(PHCompositeNode *topNode)
       if ( fabs(Eta)<0.35 )
         continue;
 
+      /* test if photon passes energy threshold */
+      double photon_minEnergy = 1.0;
+      if ( part->GetEnergy() < photon_minEnergy )
+	continue;
+
       /* Set tree varables to store particle information */
       _truth_pid = part->GetKF();
       _truth_parentid = 0;
       if ( parent )
-	_truth_parentid = parent->GetKF();
-      _truth_anclvl = (!isPromptPhoton);
+        _truth_parentid = parent->GetKF();
+      _truth_ispromptphoton = isPromptPhoton;
       _truth_ptot = v_part.P();
       _truth_pt = v_part.Perp();
+      _truth_etot = part->GetEnergy();
       _truth_eta = v_part.Eta();
       _truth_phi = v_part.Phi();
 
+      /* Get eneries and momenta in different size isolation cones */
+      for ( unsigned icone = 0; icone < _v_iso_conesize.size(); icone++ )
+        {
+          _v_iso_eemcal.at( icone ) = SumEEmcal( part , _v_iso_conesize.at( icone ) );
+          _v_iso_ptrack.at( icone ) = SumPTrack( part , _v_iso_conesize.at( icone ) );
+        }
+
+      /* Fill tree */
       _tree_event_truth->Fill();
 
-      //      cout << InCentralArmAcceptance(v_part) << endl;
-
-      //        {
-      //          cout << setw(4) << phpythia->getLineNumber(part)
-      //               << "\t" << part->GetKS()
-      //               << setw(8)  <<  part->GetKF() // << "\t" << part->GetEnergy()
-      //               << setw(12) << part->GetName()
-      //               << "\t" << part->GetEnergy()
-      //            //<< "\t" << ipart
-      //            //<< "\t" << part->GetParent()
-      //            //<< "\t" << part->GetFirstChild()
-      //            //<< "\t" << part->GetLastChild()
-      //            //<< "\t" << phpythia->getChildNumber(part)
-      //               << "\t" << phpythia->getHistoryString(part)
-      //               << endl;
-
-
-      /* loop over different cone radii */
-//      for ( int round = 0; round < 10; round ++ )
-//        {
-//          double rcone = 0.1 + round * 0.1;
-//
-//          /* sum up all energy in cone around particle */
-//          double econe = 0;
-//          TVector3 v3_gamma(part->GetPx(), part->GetPy(), part->GetPz());
-//
-//          for (int ipart2=0; ipart2<npart; ipart2++)
-//            {
-//              TMCParticle *part2 = phpythia->getParticle(ipart2);
-//
-//              /* only consider stable particles, skip if pointer identical to 'reference' particle */
-//              if ( part2->GetKS() == 1 && part2 != part )
-//                {
-//                  TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
-//
-//                  /* test if particle is in Central Arm acceptance */
-//                  Float_t px = part2->GetPx();
-//                  Float_t py = part2->GetPy();
-//                  Float_t pz = part2->GetPz();
-//                  Float_t energy = part2->GetEnergy();
-//                  TLorentzVector v_part2(px,py,pz,energy);
-//
-//                  //Double_t Eta = v_part2.Eta();
-//                  //if ( fabs(Eta)<0.35 )
-//                  //  continue;
-//                  //
-//                  //if ( part2->GetEnergy() < otherParticle_minEnergy )
-//                  //  continue;
-//
-//                  if ( v3_gamma.Angle( v3_part2 ) < rcone )
-//                    econe += part2->GetEnergy();
-//                }
-//            }
-//          double econe_frac = econe / part->GetEnergy();
-//          //cout << "Energy in cone, fraction: " << econe << ", " << econe_frac << endl;
-//
-//          double fill[] = {part->GetEnergy(), econe, econe_frac, rcone, (double)isPromptPhoton};
-//
-//          _hECone->Fill( fill );
-//        }
-//    }
-
-
-  //  cout << endl << "Example 1 : Get ancestor Ks0(pid=310)'s energy" << endl;
-  //  for (int ipart=0; ipart<npart; ipart++)  {
-  //    TMCParticle *part = phpythia->getParticle(ipart);
-  //    if (part->GetKS() != 1) continue;
-  //
-  //    TMCParticle *anc = phpythia->hasAncestor(part, 310);
-  //    float energy = 0.0;
-  //    if (anc) {
-  //      energy = anc->GetEnergy();
-  //      cout << setw(12) << phpythia->getLineNumber(part)
-  //           << setw(12) << part->GetName()
-  //           << " 's anc "
-  //           << setw(12) << anc->GetName() << setw(12) << energy << endl;
-  //    }
     }
-  //
-  //  cout << endl << "Example 2 : Get stable particle pi-, which has ancestor K0(311) and Ks0(pid=310),  get K0's energy" << endl;
-  //  for (int ipart=0; ipart<npart; ipart++)  {
-  //    TMCParticle *part = phpythia->getParticle(ipart);
-  //    if (part->GetKF() != -211) continue;
-  //
-  //    if (phpythia->hasAncestor(part, 311, 310)) {
-  //      TMCParticle *anc = phpythia->hasAncestor(part, 311);
-  //      float energy = 0.0;
-  //      if (anc) {
-  //        energy = anc->GetEnergy();
-  //        cout << setw(12) << phpythia->getLineNumber(part)
-  //             << setw(12) << part->GetName()
-  //             << " 's anc "
-  //             << setw(12) << anc->GetName() << setw(12) << energy << endl;
-  //      }
-  //    }
-  //  }
-  //  cout << endl;
 
   // some useful functions
   // phpythia->getHistoryString(part)               // return a TString with part's all ancestor
@@ -293,4 +228,69 @@ int AnaPHPythiaDirectPhoton::process_event(PHCompositeNode *topNode)
 
 
   return EVENT_OK;
+}
+
+
+float AnaPHPythiaDirectPhoton::SumEEmcal( TMCParticle* pref, float rcone )
+{
+  /* sum up all energy in cone around particle */
+  double econe = 0;
+
+  TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
+
+  int npart = phpythia->size();
+  for (int ipart2=0; ipart2<npart; ipart2++)
+    {
+      TMCParticle *part2 = phpythia->getParticle(ipart2);
+
+      /* only consider stable particles, skip if pointer identical to 'reference' particle */
+      if ( part2->GetKS() == 1 && part2 != pref )
+        {
+          /* skip particles that are not photons and not electrons because they'll give
+	   * lower signal in EMCal */
+          if ( ( part2->GetKF() != 22 ) &&
+	       ( part2->GetKF() != 11 ) )
+	    continue;
+
+          TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
+
+          /* check if energy within cone */
+          if ( v3_pref.Angle( v3_part2 ) < rcone )
+            econe += part2->GetEnergy();
+        }
+    }
+
+  return econe;
+}
+
+
+float AnaPHPythiaDirectPhoton::SumPTrack( TMCParticle* pref, float rcone )
+{
+  /* sum up all energy in cone around particle */
+  double pcone = 0;
+
+  TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
+
+  int npart = phpythia->size();
+  for (int ipart2=0; ipart2<npart; ipart2++)
+    {
+      TMCParticle *part2 = phpythia->getParticle(ipart2);
+
+      /* only consider stable particles, skip if pointer identical to 'reference' particle */
+      if ( part2->GetKS() == 1 && part2 != pref )
+        {
+          /* skip particles that do not have an electric charge */
+	  TParticlePDG* part2_pdg = _pdg_db->GetParticle( part2->GetKF() );
+          if ( part2_pdg->Charge() == 0 )
+	    continue;
+
+          TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
+
+          /* check if particle within cone */
+          if ( v3_pref.Angle( v3_part2 ) < rcone )
+            pcone += part2->GetEnergy();
+        }
+    }
+
+  return pcone;
 }
