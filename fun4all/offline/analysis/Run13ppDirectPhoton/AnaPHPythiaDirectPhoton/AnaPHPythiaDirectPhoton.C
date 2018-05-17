@@ -55,7 +55,7 @@ AnaPHPythiaDirectPhoton::AnaPHPythiaDirectPhoton(const std::string &name): Subsy
                                                                            _output_file_name("test.root"),
                                                                            _fout(NULL)
 {
-  /* define set of isolation cone sizes */
+  /* define set of isolation cone sizes in mrad */
   _v_iso_conesize.push_back( 0.1 );
   _v_iso_conesize.push_back( 0.3 );
   _v_iso_conesize.push_back( 0.5 );
@@ -183,14 +183,14 @@ int AnaPHPythiaDirectPhoton::process_event(PHCompositeNode *topNode)
       Float_t energy = part->GetEnergy();
       TLorentzVector v_part(px,py,pz,energy);
 
-      /* test if particle is in Central Arm acceptance */
+      /* test if particle is in Central Arm acceptance- continue if not */
       Double_t Eta = v_part.Eta();
-      if ( fabs(Eta)<0.35 )
+      if ( ! ( fabs(Eta)<0.35 ) )
         continue;
 
-      /* test if photon passes energy threshold */
+      /* test if photon passes energy threshold- continue of not */
       double photon_minEnergy = 1.0;
-      if ( part->GetEnergy() < photon_minEnergy )
+      if ( ! ( part->GetEnergy() > photon_minEnergy ) )
 	continue;
 
       /* Set tree varables to store particle information */
@@ -246,10 +246,8 @@ float AnaPHPythiaDirectPhoton::SumEEmcal( TMCParticle* pref, float rcone )
       /* only consider stable particles, skip if pointer identical to 'reference' particle */
       if ( part2->GetKS() == 1 && part2 != pref )
         {
-          /* skip particles that are not photons and not electrons because they'll give
-	   * lower signal in EMCal */
-          if ( ( part2->GetKF() != 22 ) &&
-	       ( part2->GetKF() != 11 ) )
+          /* skip particles that are not photons - they'll be accounted for in momentum */
+          if ( ( part2->GetKF() != 22 ) )
 	    continue;
 
           TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
