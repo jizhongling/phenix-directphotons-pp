@@ -8,81 +8,122 @@ int draw_photons()
    * Isolated / all ratio vs pT_gamma All photons, Direct photon, fragment photon (parent is quark)
    */
 
-  TFile *fin_all = TFile::Open("anaphpythia_all.root");
+  /* Open input file(s) */
+  TChain* event_truth = new TChain("event_truth");
+  //  event_truth->AddFile("anaphpythia_510GeV_mb.root");
+  event_truth->AddFile("anaphpythia_200GeV_mb.root");
+
+  gStyle->SetOptStat(0);
+
+  /* Print isolation cut cone sizes */
+  cout << "Isolation cut cone sizes: " << endl;
+  event_truth->Scan("iso_conesize", "Entry$ ==0");
 
   /* Define cuts */
   {
     TCut cut_acceptance("abs(eta) < 0.35 && pt > 1");
 
-    TCut cut_isolation_c1("etot < 3");
+    TCut cut_pizerophoton("ispromptphoton==0&&parentid==111");
+
+    TCut cut_promptphoton("ispromptphoton==1");
+
+    /* select arrray of 'isolation cut settings' */
+    TObjArray arr_cut_isolation;
+    arr_cut_isolation.Add( new TCut("1") );
+    arr_cut_isolation.Add( new TCut("(iso_eemcal[0]+iso_ptrack[0]) < 0.1 * etot") );
+    arr_cut_isolation.Add( new TCut("(iso_eemcal[1]+iso_ptrack[1]) < 0.1 * etot") );
+    arr_cut_isolation.Add( new TCut("(iso_eemcal[2]+iso_ptrack[2]) < 0.1 * etot") );
+    arr_cut_isolation.Add( new TCut("(iso_eemcal[3]+iso_ptrack[3]) < 0.1 * etot") );
+    arr_cut_isolation.Add( new TCut("(iso_eemcal[4]+iso_ptrack[4]) < 0.1 * etot") );
   }
 
-  /* Define histograms */
+  /* Define and fill histograms */
   {
-    TH1F* h_pt_all = new TH1F("h_pt_all", ";p_{T}^{#gamma} (GeV/c); # entries", 25, 0.5, 25.5);
-    TH1F* h_pt_pi0 = (TH1F*)h_pt_all->Clone("h_pt_pi0");
-    TH1F* h_pt_dir = (TH1F*)h_pt_all->Clone("h_pt_dir");
+    TObjArray arr_hist_pt_all;
+    TObjArray arr_hist_pt_pi0;
+    TObjArray arr_hist_pt_dir;
 
-    h_pt_all->Sumw2();
-    h_pt_pi0->Sumw2();
-    h_pt_dir->Sumw2();
+    TH1F* h_pt = new TH1F("h_pt", ";p_{T}^{#gamma} (GeV/c); # entries", 25, 0.5, 25.5);
+    h_pt->Sumw2();
 
-    h_pt_all->SetLineColor(kBlue);
-    h_pt_pi0->SetLineColor(kRed);
-    h_pt_dir->SetLineColor(kGreen);
+    /* loop over isolation cut settings */
+    for ( unsigned i = 0; i < arr_cut_isolation.GetEntries(); i++ )
+      {
+	cout << "Use Isolation Cut: " << arr_cut_isolation.At(i)->GetTitle() << endl;
 
-    TH1F* h_pt_all_pass_c1 = (TH1F*)h_pt_all->Clone("h_pt_all_pass_c1");
-    TH1F* h_pt_pi0_pass_c1 = (TH1F*)h_pt_pi0->Clone("h_pt_pi0_pass_c1");
-    TH1F* h_pt_dir_pass_c1 = (TH1F*)h_pt_dir->Clone("h_pt_dir_pass_c1");
+        TH1F* h_pt_all = (TH1F*)h_pt->Clone( ( TString("h_pt_all_") += i ) );
+        TH1F* h_pt_pi0 = (TH1F*)h_pt->Clone( ( TString("h_pt_pi0_") += i ) );
+        TH1F* h_pt_dir = (TH1F*)h_pt->Clone( ( TString("h_pt_dir_") += i ) );
+
+        h_pt_all->SetTitle( TString("Cut: ") + arr_cut_isolation.At(i)->GetTitle() );
+        h_pt_pi0->SetTitle( TString("Cut: ") + arr_cut_isolation.At(i)->GetTitle() );
+        h_pt_dir->SetTitle( TString("Cut: ") + arr_cut_isolation.At(i)->GetTitle() );
+
+        h_pt_all->SetLineColor(kBlue);
+        h_pt_pi0->SetLineColor(kRed);
+        h_pt_dir->SetLineColor(kGreen);
+
+        event_truth->Draw(( TString("pt >> h_pt_all_") += i ), cut_acceptance && arr_cut_isolation.At(i)->GetTitle() );
+        event_truth->Draw(( TString("pt >> h_pt_pi0_") += i ), cut_acceptance && cut_pizerophoton && arr_cut_isolation.At(i)->GetTitle() );
+        event_truth->Draw(( TString("pt >> h_pt_dir_") += i ), cut_acceptance && cut_promptphoton && arr_cut_isolation.At(i)->GetTitle() );
+
+        cout << "Entries (All)   : " << h_pt_all->GetEntries() << endl;
+        cout << "Entries (Pi0)   : " << h_pt_pi0->GetEntries() << endl;
+        cout << "Entries (Prompt): " << h_pt_dir->GetEntries() << endl;
+
+        arr_hist_pt_all.Add( h_pt_all );
+        arr_hist_pt_pi0.Add( h_pt_pi0 );
+        arr_hist_pt_dir.Add( h_pt_dir );
+      }
   }
 
-  TCanvas *ctemp = new TCanvas();
+  /* Create legend (use same for all plots) */
+  {
+    TLegend* legend_c0 = new TLegend(0.7,0.7,0.89,0.89);
+    legend_c0->SetFillColor(0);
+    legend_c0->SetLineColor(0);
+    legend_c0->AddEntry(h_pt_all,"All photons","lep");
+    legend_c0->AddEntry(h_pt_pi0,"#pi^{0} photons","lep");
+    legend_c0->AddEntry(h_pt_dir,"Promtp photons","lep");
+  }
 
   /* PLOT: pT_gamma spectrum for Direct Photons and Pi0 Decay Photons and All Photons */
   {
-    ctemp->cd();
-
-    TLegend* legend_c1 = new TLegend(0.5,0.7,0.9,0.9);
-    legend_c1->AddEntry(h_pt_all,"All","l");
-    legend_c1->AddEntry(h_pt_pi0,"Pi0","l");
-    legend_c1->AddEntry(h_pt_dir,"Direct photon","lep");
-
-    // all
-    event_truth->Draw("pt >> h_pt_all",cut_acceptance);
-
-    // pi0's
-    event_truth->Draw("pt >> h_pt_pi0",cut_acceptance && "ispromptphoton==0&&parentid==111");
-
-    // prompt
-    event_truth->Draw("pt >> h_pt_dir",cut_acceptance && "ispromptphoton==1");
-
-    TCanvas *c1 = new TCanvas();
-    c1->SetLogy();
-    h_pt_all->Draw();
-    h_pt_pi0->Draw("sames");
-    h_pt_dir->Draw("sames");
-    legend_c1->Draw();
-    gPad->RedrawAxis();
+    for ( unsigned i = 0; i < arr_cut_isolation.GetEntries(); i++ )
+      {
+        TCanvas *c0 = new TCanvas();
+        c0->SetLogy();
+        arr_hist_pt_all.At(i)->DrawClone();
+        arr_hist_pt_pi0.At(i)->DrawClone("sames");
+        arr_hist_pt_dir.At(i)->DrawClone("sames");
+        legend_c0->Draw();
+        gPad->RedrawAxis();
+      }
   }
 
-  /* PLOT: */
+  /* Plot: ratios pass cut / total */
   {
-    ctemp->cd();
+    for ( unsigned i = 0; i < arr_cut_isolation.GetEntries(); i++ )
+      {
+        TH1F* h_pt_all_pass_c1 = (TH1F*) arr_hist_pt_all.At(i)->Clone("h_pt_all_pass_c1");
+        TH1F* h_pt_pi0_pass_c1 = (TH1F*) arr_hist_pt_pi0.At(i)->Clone("h_pt_pi0_pass_c1");
+        TH1F* h_pt_dir_pass_c1 = (TH1F*) arr_hist_pt_dir.At(i)->Clone("h_pt_dir_pass_c1");
 
-    event_truth->Draw("pt >> h_pt_all_pass_c1",cut_acceptance && cut_isolation_c1);
-    event_truth->Draw("pt >> h_pt_pi0_pass_c1",cut_acceptance && cut_isolation_c1 && "ispromptphoton==0&&parentid==111");
-    event_truth->Draw("pt >> h_pt_dir_pass_c1",cut_acceptance && cut_isolation_c1 && "ispromptphoton==1");
+        h_pt_all_pass_c1->Divide( (TH1*)( arr_hist_pt_all.At(0) ) );
+        h_pt_pi0_pass_c1->Divide( (TH1*)( arr_hist_pt_pi0.At(0) ) );
+        h_pt_dir_pass_c1->Divide( (TH1*)( arr_hist_pt_dir.At(0) ) );
 
-    h_pt_all_pass_c1->Divide(h_pt_all);
-    h_pt_pi0_pass_c1->Divide(h_pt_pi0);
-    h_pt_dir_pass_c1->Divide(h_pt_dir);
+        h_pt_all_pass_c1->GetYaxis()->SetTitle("fraction passed cut");
+        h_pt_pi0_pass_c1->GetYaxis()->SetTitle("fraction passed cut");
+        h_pt_dir_pass_c1->GetYaxis()->SetTitle("fraction passed cut");
 
-    TCanvas *c2 = new TCanvas();
-    h_pt_all_pass_c1->Draw("");
-    h_pt_pi0_pass_c1->Draw("sames");
-    h_pt_dir_pass_c1->Draw("sames");
-    legend_c1->Draw();
-    gPad->RedrawAxis();
+        TCanvas *c2 = new TCanvas();
+        h_pt_all_pass_c1->DrawClone("");
+        h_pt_pi0_pass_c1->DrawClone("sames");
+        h_pt_dir_pass_c1->DrawClone("sames");
+        legend_c0->Draw();
+        gPad->RedrawAxis();
+      }
   }
 
   return 0;
