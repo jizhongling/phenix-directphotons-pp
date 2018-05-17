@@ -1,4 +1,4 @@
-int draw_photons()
+int draw_isolation_efficiency()
 {
 
   /* Plots to make at sqrt(s) = 200 GeV and sqrt(s) = 510 GeV:
