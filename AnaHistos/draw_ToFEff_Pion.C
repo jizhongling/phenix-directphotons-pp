@@ -2,7 +2,7 @@
 #include "FitMinv.h"
 #include "GetEfficiency.h"
 
-void draw_ToFEff()
+void draw_ToFEff_Pion()
 {
   const Int_t secl[2] = {1, 7};
   const Int_t sech[2] = {6, 8};
@@ -87,5 +87,5 @@ void draw_ToFEff()
   mcw(1, "PbGl.pdf");
   f_out->Close();
 
-  c2->Print("plots/ToFEff.pdf");
+  c2->Print("plots/ToFEff-pion.pdf");
 }

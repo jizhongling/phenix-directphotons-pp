@@ -5,6 +5,7 @@
 
 #pragma link C++ class DirectPhotonPP-!;
 #pragma link C++ class PhotonNode-!;
+#pragma link C++ class PhotonHistos-!;
 #pragma link C++ class EmcLocalRecalibrator-!;
 #pragma link C++ class EmcLocalRecalibratorSasha-!;
 #pragma link C++ class PhotonContainer+;

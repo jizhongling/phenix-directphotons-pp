@@ -4,7 +4,7 @@
 cd "histos"
 rm -f total.root tmp.root
 
-prename="MissingRatio-"
+prename="PhotonEff-"
 files=""
 count=0
 

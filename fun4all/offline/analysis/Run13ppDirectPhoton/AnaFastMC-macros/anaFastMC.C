@@ -6,7 +6,7 @@ void anaFastMC(const int process = 0)
 
   // Switches for MCMethod and WarnMap
   enum MCMethod {PHParticleGen, FastMC};
-  enum WarnMap {None, Nils, Sasha};
+  enum WarnMap {None, Nils, Sasha, Sim};
 
   // Used for input DST files and output files
   const int nThread = 20;
@@ -16,7 +16,7 @@ void anaFastMC(const int process = 0)
 
   // Setup recoConsts
   recoConsts *rc = recoConsts::instance();
-  rc->set_IntFlag("RUNNUMBER", 390039);
+  rc->set_IntFlag("RUNNUMBER",0);
 
   // Fun4All server
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -33,7 +33,7 @@ void anaFastMC(const int process = 0)
   AnaFastMC *reco_ph_warn = new AnaFastMC();
   reco_ph_warn->set_outfile(outFileName);
   reco_ph_warn->set_mcmethod(PHParticleGen);
-  reco_ph_warn->set_warnmap(Sasha);
+  reco_ph_warn->set_warnmap(Sim);
 
   sprintf(outFileName, "histos/AnaFastMC-Fast-nowarn-histo%d.root", process);
   AnaFastMC *reco_fast_nowarn = new AnaFastMC();
@@ -45,7 +45,7 @@ void anaFastMC(const int process = 0)
   AnaFastMC *reco_fast_warn = new AnaFastMC();
   reco_fast_warn->set_outfile(outFileName);
   reco_fast_warn->set_mcmethod(FastMC);
-  reco_fast_warn->set_warnmap(Sasha);
+  reco_fast_warn->set_warnmap(Sim);
 
   // Register reconstruction modules for FastMC generater
   //se->registerSubsystem(reco_fast_nowarn);
@@ -64,7 +64,7 @@ void anaFastMC(const int process = 0)
   se->unregisterSubsystem(reco_fast_warn);
 
   // If out of PHParticleGen files range
-  if(process >= nProcess)
+  //if(process >= nProcess)
   {
     delete se;
     return;

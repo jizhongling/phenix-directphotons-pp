@@ -22,7 +22,7 @@ void draw_Disp()
       c->cd(ipad++);
       Int_t bin_i = i + 1;
       axis_i->SetRange(bin_i,bin_i);
-      TH1 *h_disp = hn_dispProb->Projection(4)->Clone();
+      TH1 *h_disp = (TH1*)hn_dispProb->Projection(4)->Clone();
       Float_t low_i = axis_i->GetBinLowEdge(bin_i);
       Float_t high_i = low_i + axis_i->GetBinWidth(bin_i);
       h_disp->SetTitle(Form("%s: %3.1f-%3.1f GeV",title_i,low_i,high_i));

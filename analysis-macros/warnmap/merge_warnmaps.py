@@ -100,5 +100,5 @@ for sector in np.arange(0,8):
 print 'Calorimeter live fraction: %.3f' % ( float(nlive_detector) / float(ntotal_detector) )
 
 # save warnmap to txt file
-np.savetxt( 'warnmap_merged_python.txt', warnmap_merged, delimiter=' ', fmt='%1.1d' )
+np.savetxt( 'warnmap-final/warnmap_merged_python.txt', warnmap_merged, delimiter=' ', fmt='%1.1d' )
 

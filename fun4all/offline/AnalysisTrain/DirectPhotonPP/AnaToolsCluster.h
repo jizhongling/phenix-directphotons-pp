@@ -24,6 +24,19 @@
 namespace anatools
 {
   /*!
+   * Get the cluster sector
+   */
+  inline int GetSector(const emcClusterContent* cluster)
+  {
+    int arm = cluster->arm();
+    int sector = cluster->sector();
+    if( arm == 1 )
+      sector = 7 - sector;
+
+    return sector;
+  }
+
+  /*!
    * Calculate momentum and energy of single cluster (=photon)
    */
   inline TLorentzVector Get_pE(const emcClusterContent* cluster)
@@ -87,20 +100,20 @@ namespace anatools
   /*!
    * Calculate angle between EMC cluster and PC3 track
    */
-  inline double GetTheta_CV(const emcClusterContent *emccluster)
+  inline double GetTheta_CV(const emcClusterContent *cluster)
   {
     //coordinate of emc hit
-    double emc_phi = emccluster->phi();
-    double emc_z = emccluster->z();
+    double emc_phi = cluster->phi();
+    double emc_z = cluster->z();
 
-    int sector = anatools::CorrectClusterSector( emccluster->arm() , emccluster->sector() );
+    int sector = anatools::CorrectClusterSector( cluster->arm() , cluster->sector() );
     double emc_r;
     if(sector>5) emc_r = 527.7;
     else emc_r = 507.7;
 
     //coodinate of pc3 hit                                           
-    double pc3_dphi = emccluster->emcpc3dphi();
-    double pc3_dz = emccluster->emcpc3dphi();
+    double pc3_dphi = cluster->emcpc3dphi();
+    double pc3_dz = cluster->emcpc3dphi();
 
     //can't find nearest pc3 hit                                     
     if(pc3_dphi > 9990) return -9999.;

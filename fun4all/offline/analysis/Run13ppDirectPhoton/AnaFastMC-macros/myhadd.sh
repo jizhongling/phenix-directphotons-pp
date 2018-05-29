@@ -4,7 +4,8 @@
 cd "histos"
 rm -f total.root tmp.root
 
-for prename in "AnaFastMC-PH-nowarn-" "AnaFastMC-PH-warn-" "AnaFastMC-Fast-nowarn-" "AnaFastMC-Fast-warn-" ; do
+#for prename in "AnaFastMC-PH-nowarn-" "AnaFastMC-PH-warn-" "AnaFastMC-Fast-nowarn-" "AnaFastMC-Fast-warn-" ; do
+for prename in "AnaFastMC-Fast-warn-" ; do
     files=""
     count=0
 

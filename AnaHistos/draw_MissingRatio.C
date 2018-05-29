@@ -1,127 +1,74 @@
-void GetCriteria(Int_t criteria, Int_t &merge, Int_t &part, Int_t &prob, Int_t &warnmap)
-{
-  merge = criteria / 12;
-  part = criteria % 12 / 4;
-  prob = criteria % 4 / 2;
-  warnmap = criteria % 2;
-
-  return;
-}
-
-TGraphErrors* CreateGraph(TFile *f, const Int_t criteria, Int_t ispion)
-{
-  TH1::SetDefaultSumw2();
-
-  if(ispion == 0)
-  {
-    h2_missing = (TH2*)f->Get("h2_missing");
-    h2_nomissing = (TH2*)f->Get("h2_nomissing");
-  }
-  else if(ispion == 1)
-  {
-    h2_missing = (TH2*)f->Get("h2_missing_pion");
-    h2_nomissing = (TH2*)f->Get("h2_nomissing_pion");
-  }
-
-  const Int_t n = h2_missing->GetNbinsX();
-  Double_t *x = new Double_t[n];
-  Double_t *y = new Double_t[n];
-  Double_t *ey = new Double_t[n];
-  for(Int_t i=0; i<n; i++)
-    x[i] = y[i] = ey[i] = 0.;
-
-  Int_t merge, part, prob, warnmap;
-  GetCriteria(criteria, merge, part, prob, warnmap);
-
-  for(Int_t i=0; i<n; i++)
-  {
-    x[i] = h2_missing->GetXaxis()->GetBinCenter(i+1);
-    Double_t missing = h2_missing->GetBinContent(i+1, criteria+1);
-    Double_t emissing = h2_missing->GetBinError(i+1, criteria+1);
-    Double_t nomissing = h2_nomissing->GetBinContent(i+1, criteria+1);
-    Double_t enomissing = h2_nomissing->GetBinError(i+1, criteria+1);
-    if( missing > 0. && nomissing > 0. )
-    {
-      y[i] = missing / nomissing;
-      ey[i] = y[i] * sqrt( pow(emissing/missing,2.) + pow(enomissing/nomissing,2.) );
-    }
-  }
-
-  TGraphErrors *graph = new TGraphErrors(n, x, y, 0, ey);
-  return graph;
-}
-
-void GenerateMissingRatio(TFile *f, TObjArray *Glist, Int_t ispion)
-{
-  TCanvas *c = new TCanvas("c", "Canvas", 1800, 1200);
-  gStyle->SetOptStat(0);
-  c->Divide(3,2);
-
-  TGraphErrors *gr[24];
-  TLegend *leg = new TLegend(0.6, 0.7, 0.9, 0.9);
-
-  for(Int_t icr=0; icr<24; icr++)
-  {
-    c->cd( icr/4 + 1 );
-
-    char buf[100];
-    Int_t merge, part, prob, warnmap;
-    GetCriteria(icr, merge, part, prob, warnmap);
-
-    gr[icr] = CreateGraph(f, icr, ispion);
-    Glist->Add(gr[icr]);
-    gr[icr]->SetName(Form("gr_%d",24*ispion+icr));
-    sprintf(buf, "Missing ratio for merge %d part %d", merge, part);
-    gr[icr]->SetTitle(buf);
-    gr[icr]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
-    gr[icr]->GetYaxis()->SetTitle("ratio");
-    gr[icr]->GetXaxis()->SetRangeUser(0., 30.);
-    gr[icr]->GetYaxis()->SetRangeUser(0., 2.);
-    gr[icr]->SetMarkerColor( icr%4 + 1 );
-    gr[icr]->SetMarkerStyle( icr%4 + 20 );
-    gr[icr]->SetMarkerSize(1.5);
-    if( icr%4 == 0 )
-      gr[icr]->Draw("AP");
-    else
-      gr[icr]->Draw("P");
-
-    sprintf(buf, "prob %d warnmap %d", prob, warnmap);
-    leg->AddEntry(gr[icr], buf, "P");
-    if( icr%4 == 3 )
-    {
-      leg->DrawClone();
-      leg->Clear();
-    }
-  }
-
-  if(ispion == 0)
-  {
-    c->Print("plots/MissingRatio-photon.pdf");
-    delete c;
-  }
-  else if(ispion == 1)
-  {
-    c->Print("plots/MissingRatio-pion.pdf");
-    delete c;
-  }
-
-  return;
-}
+#include "DivideFunctions.h"
 
 void draw_MissingRatio()
 {
-  TFile *f = new TFile("data/MissingRatio-histo.root");
-  //TFile *f = new TFile("data/Acceptance-histo.root");
-  //TFile *f = new TFile("data/AnaPHPythia-histo.root");
-  TObjArray *Glist = new TObjArray();
+  const Int_t secl[3] = {1, 5, 7};
+  const Int_t sech[3] = {4, 6, 8};
 
-  for(Int_t ispion=0; ispion<2; ispion++)
+  TFile *f_miss = new TFile("data/MissingRatio.root", "RECREATE");
+  TFile *f_merge = new TFile("data/Merge-photon.root", "RECREATE");
+  TGraphErrors *gr_miss[3];
+  TGraphErrors *gr_merge[3];
+
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-warn-histo.root");
+  THnSparse *hn_missing = (THnSparse*)f->Get("hn_missing");
+
+  mc(0);
+  mc(1);
+
+  for(Int_t part=0; part<3; part++)
   {
-    cout << "\nispion " << ispion << endl;
-    GenerateMissingRatio(f, Glist, ispion);
+    mcd(0);
+
+    hn_missing->GetAxis(2)->SetRange(secl[part],sech[part]);
+    hn_missing->GetAxis(3)->SetRange(3,3);
+    hn_missing->GetAxis(4)->SetRange(3,3);
+    TH1 *h_2photon = hn_missing->Projection(1);
+    hn_missing->GetAxis(3)->SetRange(2,2);
+    hn_missing->GetAxis(4)->SetRange(2,2);
+    TH1 *h_1photon = hn_missing->Projection(1);
+
+    gr_miss[part] = DivideHisto(h_1photon, h_2photon);
+    gr_miss[part]->SetNameTitle(Form("gr_%d",part), "Missing Ratio");
+    aset(gr_miss[part], "p_{T} [GeV]","R", 0.,30., 0.,2.);
+    style(gr_miss[part], 20+part, 1+part);
+    if(part==0)
+      gr_miss[part]->Draw("AP");
+    else
+      gr_miss[part]->Draw("P");
+
+    f_miss->cd();
+    gr_miss[part]->Write();
+    delete h_2photon;
+    delete h_1photon;
+
+    mcd(1);
+    gPad->SetLogy();
+
+    hn_missing->GetAxis(2)->SetRange(secl[part],sech[part]);
+    hn_missing->GetAxis(3)->SetRange(3,3);
+    hn_missing->GetAxis(4)->SetRange(3,3);
+    TH1 *h_separated = hn_missing->Projection(1);
+    hn_missing->GetAxis(4)->SetRange(2,2);
+    TH1 *h_merged = hn_missing->Projection(1);
+
+    gr_merge[part] = DivideHisto(h_merged, h_separated);
+    gr_merge[part]->SetNameTitle(Form("gr_%d",part), "Merging Ratio");
+    aset(gr_merge[part], "p_{T} [GeV]","Merging Ratio", 0.,30., 0.01,15.);
+    style(gr_merge[part], 20+part, 1+part);
+    if(part==0)
+      gr_merge[part]->Draw("AP");
+    else
+      gr_merge[part]->Draw("P");
+
+    f_merge->cd();
+    gr_merge[part]->Write();
+    delete h_separated;
+    delete h_merged;
   }
 
-  TFile *fout = new TFile("data/MissingRatio.root", "RECREATE");
-  Glist->Write();
-  fout->Close();
+  c0->Print("plots/MissingRatio.pdf");
+  c1->Print("plots/Merge-photon.pdf");
+  f_miss->Close();
+  f_merge->Close();
 }

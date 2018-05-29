@@ -1,179 +1,91 @@
 void draw_Eta_Phi()
 {
-  gROOT->ProcessLine(".L ReadGraph.C");
-  TH1::SetDefaultSumw2();
+  const Int_t secl[3] = {1, 5, 7};
+  const Int_t sech[3] = {4, 6, 8};
 
-  TFile *f_sim = new TFile("data/MissingRatio-histo.root");
-  THnSparse *hn_photon = (THnSparse*)f_sim->Get("hn_photon");
-  TAxis *axis_pt_hn_photon = hn_photon->GetAxis(1);
+  const Int_t phibin[9] = {2, 2+19, 2+19*2, 2+19*3, 4+19*4, 4+19*5, 4+19*6, 4+19*6+25, 4+19*6+25*2};
 
-  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ertc-cv/total.root");
-  THnSparse *hn_1photon = (THnSparse*)f_data->Get("hn_1photon");
-  TAxis *axis_pt_hn_1photon = hn_1photon->GetAxis(1);
+  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-warn-histo.root");
 
-  Double_t gx[30], TrigE[2][30], eTrigE[2][30];
-  Int_t ispion = 1;
-  Int_t trig = 2;
-  for(part=0; part<2; part++)
-    ReadGraphAsymmErrors("TriggerEfficiency.root", 9*ispion+3*trig+part, gx, (Double_t*)TrigE[part], (Double_t*)eTrigE[part]);
+  mc(0, 4,5);
 
-  TCanvas *c1 = new TCanvas("c1", "#eta distribution", 2400, 2400);
-  gStyle->SetOptStat(0);
-  c1->Divide(4,4);
-
-  TCanvas *c2_1 = new TCanvas("c2_1", "#phi distribution", 2400, 2400);
-  gStyle->SetOptStat(0);
-  c2_1->Divide(4,4);
-
-  TCanvas *c2_2 = new TCanvas("c2_2", "#phi distribution", 2400, 2400);
-  gStyle->SetOptStat(0);
-  c2_2->Divide(4,4);
-
-  TCanvas *c3 = new TCanvas("c3", "#eta and #phi distribution", 2400, 2400);
-  gStyle->SetOptStat(0);
-  c3->Divide(4,4);
-
-  TCanvas *c4 = new TCanvas("c4", "#eta and #phi distribution", 2400, 2400);
-  gStyle->SetOptStat(0);
-  c4->Divide(4,4);
-
-  Int_t secl[3] = {1, 5, 7};
-  Int_t sech[3] = {4, 8, 8};
-
-  //Double_t n_1phi = 0.;
-  //for(Int_t ipt=11; ipt<30; ipt++)
-  //{
-  //  axis_pt_hn_1photon->SetRange(ipt,ipt);
-  //  for(Int_t part=0; part<2; part++)
-  //  {
-  //    hn_1photon->GetAxis(0)->SetRange(secl[part],sech[part]);
-  //    TH1 *h_1phi = (TH1*)hn_1photon->Projection(4)->Clone("h_1phi");
-  //    if( TrigE[part][ipt] > 0. )
-  //      n_1phi += h_1phi->GetEntries() / TrigE[part][ipt];
-  //  }
-  //}
-  
-  axis_pt_hn_photon->SetRange(11,29);
-  TH1 *h_phi = (TH1*)hn_photon->Projection(4)->Clone("h_phi");
-  Double_t scale = n_1phi / h_phi->GetEntries();
-
-  Int_t ipad = 1;
-  for(Int_t ipt=11; ipt<27; ipt++)
-  //for(Int_t ipt=11; ipt<12; ipt++)
+  TH2 *h2_eta_phi_data[3];
+  TH2 *h2_eta_phi_sim[3];
+  for(Int_t part=0; part<3; part++)
   {
-    Double_t low = axis_pt_hn_photon->GetBinLowEdge(ipt);
-    Double_t high = axis_pt_hn_photon->GetBinUpEdge(ipt);
+    h2_eta_phi_data[part] = (TH2*)f_data->Get( Form("h2_photon_eta_phi_part%d",part) );
+    h2_eta_phi_sim[part] = (TH2*)f_sim->Get( Form("h2_photon_eta_phi_part%d",part) );
 
-    axis_pt_hn_photon->SetRange(ipt,ipt);
-    TH1 *h_eta = (TH1*)hn_photon->Projection(3)->Clone("h_eta");
-    TH1 *h_phi = (TH1*)hn_photon->Projection(4)->Clone("h_phi");
-    TH2 *h2_eta_phi = (TH2*)hn_photon->Projection(3,4)->Clone("h2_eta_phi");
-
-    axis_pt_hn_1photon->SetRange(ipt,ipt);
-    TH1 *h_1eta = (TH1*)hn_1photon->Projection(3)->Clone("h_1eta");
-    TH1 *h_1phi = (TH1*)hn_1photon->Projection(4)->Clone("h_1phi");
-    TH2 *h2_1eta_phi = (TH2*)hn_1photon->Projection(3,4)->Clone("h2_1eta_phi");
-
-    TH1 *hv_1phi[3];
-    TH1 *hv_phi[3];
-    for(Int_t part=0; part<3; part++)
-    {
-      hn_1photon->GetAxis(0)->SetRange(secl[part],sech[part]);
-      hv_1phi[part] = (TH1*)hn_1photon->Projection(4)->Clone("h_1phi");
-      hn_photon->GetAxis(2)->SetRange(secl[part],sech[part]);
-      hv_phi[part] = (TH1*)hn_photon->Projection(4)->Clone("h_phi");
-      Double_t scale = hv_1phi[part]->GetEntries() / hv_phi[part]->GetEntries();
-      hv_phi[part]->Scale(scale);
-      //if( TrigE[part][ipt] > 0. )
-      //  hv_1phi[part]->Scale(1./TrigE[part][ipt]);
-      hv_1phi[part]->SetMarkerSize(2.);
-      hv_1phi[part]->SetMarkerStyle(2);
-      hv_1phi[part]->SetMarkerColor(2);
-      hv_1phi[part]->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
-      hv_phi[part]->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
-    }
-
-    Double_t scale = h_1eta->GetEntries() / h_eta->GetEntries();
-    h_eta->Scale(scale);
-    h_phi->Scale(scale);
-    h2_eta_phi->Scale(scale);
-
-    c1->cd(ipad);
-    h_1eta->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
-    h_1eta->SetMarkerSize(2.);
-    h_1eta->SetMarkerStyle(2);
-    h_1eta->SetMarkerColor(2);
-    h_1eta->Draw("P");
-    h_eta->Draw("SAME");
-
-    //Double_t nh = h_phi->GetEntries() * scale;
-    //Double_t nh1 = 0.;
-    //for(Int_t part=0; part<2; part++)
-    //{
-    //  nh1 += hv_1phi[part]->GetEntries();
-    //  hv_1phi[part]->SetMarkerSize(2.);
-    //  hv_1phi[part]->SetMarkerStyle(2);
-    //  hv_1phi[part]->SetMarkerColor(2);
-    //  hv_1phi[part]->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
-    //}
-    //h_phi->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
-
-    //h_phi->Scale( nh1/(nh/scale) );
-
-    c2_1->cd(ipad);
-    hv_1phi[0]->GetXaxis()->SetRangeUser(-0.6,0.95);
-    hv_phi[0]->GetXaxis()->SetRangeUser(-0.6,0.95);
-    //if(nh1 > nh)
-    //{
-    //  hv_1phi[0]->DrawCopy("P");
-    //  hv_1phi[1]->DrawCopy("PSAME");
-    //  h_phi->DrawCopy("SAME");
-    //}
-    //else
-    //{
-    //  h_phi->DrawCopy();
-    //  hv_1phi[0]->DrawCopy("PSAME");
-    //  hv_1phi[1]->DrawCopy("PSAME");
-    //}
-    hv_phi[0]->DrawCopy();
-    hv_1phi[0]->DrawCopy("PSAME");
-
-    c2_2->cd(ipad);
-    hv_1phi[1]->GetXaxis()->SetRangeUser(2.2,4.);
-    hv_phi[1]->GetXaxis()->SetRangeUser(2.2,4.);
-    hv_1phi[2]->GetXaxis()->SetRangeUser(2.2,4.);
-    hv_phi[2]->GetXaxis()->SetRangeUser(2.2,4.);
-    //if(nh1 > nh)
-    //{
-    //  hv_1phi[0]->DrawCopy("P");
-    //  hv_1phi[1]->DrawCopy("PSAME");
-    //  h_phi->DrawCopy("SAME");
-    //}
-    //else
-    //{
-    //  h_phi->DrawCopy();
-    //  hv_1phi[0]->DrawCopy("PSAME");
-    //  hv_1phi[1]->DrawCopy("PSAME");
-    //}
-    hv_1phi[1]->DrawCopy("P");
-    //hv_phi[2]->DrawCopy("SAME");
-    for(Int_t part=1; part<2; part++)
-      hv_phi[part]->DrawCopy("SAME");
-
-    c3->cd(ipad);
-    h2_eta_phi->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
-    h2_eta_phi->Draw("COLZ");
-
-    c4->cd(ipad);
-    h2_1eta_phi->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",low,high));
-    h2_1eta_phi->Draw("COLZ");
-
-    ipad++;
+    for(Int_t binx=1; binx<=h2_eta_phi_data[part]->GetNbinsX(); binx++)
+      for(Int_t biny=1; biny<=h2_eta_phi_data[part]->GetNbinsY(); biny++)
+        if( h2_eta_phi_data[part]->GetBinContent(binx,biny) <= 0. )
+          h2_eta_phi_sim[part]->SetBinContent(binx,biny,0.);
   }
 
-  c1->Print("plots/Eta.pdf");
-  c2_1->Print("plots/Phi-1.pdf");
-  c2_2->Print("plots/Phi-2.pdf");
-  c3->Print("plots/Eta-Phi-sim.pdf");
-  c4->Print("plots/Eta-Phi-data.pdf");
+
+  for(Int_t sec=0; sec<8; sec++)
+  {
+    Int_t part;
+    if(sec < 4) part = 0;
+    else if(sec < 6) part = 1;
+    else part = 2;
+
+    mcd(0, sec+1);
+    TH1 *h_eta_data =(TH1*)h2_eta_phi_data[part]->ProjectionX("_px",phibin[sec],phibin[sec+1])->Clone("h_eta_data");
+    TH1 *h_eta_sim = (TH1*)h2_eta_phi_sim[part]->ProjectionX("_px",phibin[sec],phibin[sec+1])->Clone("h_eta_sim");
+    Double_t scale = h_eta_data->Integral(0,-1) / h_eta_sim->Integral(0,-1);
+    h_eta_sim->Scale(scale);
+    h_eta_data->SetTitle( Form("#eta dist., sector %d",sec) );
+    aset(h_eta_data);
+    style(h_eta_data);
+    h_eta_data->Draw("E");
+    h_eta_sim->Draw("HIST SAME");
+  }
+
+  for(Int_t part=0; part<3; part++)
+  {
+    mcd(0, part+9);
+    TH1 *h_eta_data =(TH1*)h2_eta_phi_data[part]->ProjectionX()->Clone("h_eta_data");
+    TH1 *h_eta_sim = (TH1*)h2_eta_phi_sim[part]->ProjectionX()->Clone("h_eta_sim");
+    scale = h_eta_data->Integral(0,-1) / h_eta_sim->Integral(0,-1);
+    h_eta_sim->Scale(scale);
+    h_eta_data->SetTitle( Form("#eta dist., part %d",part) );
+    style(h_eta_data);
+    Double_t max_eta = h_eta_data->GetMaximum();
+    h_eta_data->SetMaximum(1.1*max_eta);
+    h_eta_data->Draw("E");
+    h_eta_sim->Draw("HIST SAME");
+
+    mcd(0, (part+1)/2+13);
+    TH1 *h_phi_data =(TH1*)h2_eta_phi_data[part]->ProjectionY()->Clone("h_phi_data");
+    TH1 *h_phi_sim = (TH1*)h2_eta_phi_sim[part]->ProjectionY()->Clone("h_phi_sim");
+    Double_t scale = h_phi_data->Integral(0,-1) / h_phi_sim->Integral(0,-1);
+    h_phi_sim->Scale(scale);
+    h_phi_data->SetTitle( Form("#phi dist., part %d",part) );
+    if(part == 0)
+      aset(h_phi_data, "","", -0.6,1.);
+    else
+      aset(h_phi_data, "","", 2.14,3.8);
+    style(h_phi_data);
+    Double_t max_phi = h_phi_data->GetMaximum();
+    h_phi_data->SetMaximum(1.1*max_phi);
+    if(part < 2)
+      h_phi_data->Draw("E");
+    else
+      h_phi_data->Draw("E SAME");
+    h_phi_sim->Draw("HIST SAME");
+
+    mcd(0, part*2+15);
+    h2_eta_phi_data[part]->SetTitle( Form("#eta and #phi from data for part %d",part) );
+    h2_eta_phi_data[part]->GetYaxis()->SetRange(phibin[secl[part]-1], phibin[sech[part]]-3);
+    h2_eta_phi_data[part]->Draw("COLZ");
+
+    mcd(0, part*2+16);
+    h2_eta_phi_sim[part]->SetTitle( Form("#eta and #phi from FastMC for part %d",part) );
+    h2_eta_phi_sim[part]->GetYaxis()->SetRange(phibin[secl[part]-1], phibin[sech[part]]-3);
+    h2_eta_phi_sim[part]->Draw("COLZ");
+  }
+
+  c0->Print("plots/DirphEtaPhi-masked.pdf");
 }

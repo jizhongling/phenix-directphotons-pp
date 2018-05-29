@@ -32,6 +32,7 @@ noinst_HEADERS = \
   EmcLocalRecalibratorSasha.h \
   DirectPhotonPP.h \
   PhotonNode.h \
+  PhotonHistos.h \
   DirectPhotonPPLinkDef.h
 
 libDirectPhotonPP_la_LIBADD = \
@@ -54,6 +55,7 @@ libDirectPhotonPP_la_SOURCES = \
   Photon.cc \
   PhotonERT.cc \
   PhotonNode.cc \
+  PhotonHistos.cc \
   SpinPattern.cc \
   DirectPhotonPP_Dict.C
 
@@ -68,6 +70,7 @@ DirectPhotonPP_Dict.C: \
   Photon.h \
   PhotonERT.h \
   PhotonNode.h \
+  PhotonHistos.h \
   SpinPattern.h \
   DirectPhotonPPLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^

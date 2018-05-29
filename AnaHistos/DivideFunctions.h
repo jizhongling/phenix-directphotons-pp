@@ -61,7 +61,7 @@ TGraphErrors *DivideGraph(TGraphErrors *gr1, TGraphErrors *gr2)
   return graph;
 }
 
-  template <class GraphType>
+template <class GraphType>
 void InvertGraph(GraphType *gr)
 {
   Int_t gn = gr->GetN();

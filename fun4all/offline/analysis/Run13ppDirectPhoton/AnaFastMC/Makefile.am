@@ -5,6 +5,10 @@ INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include -I$(ROOTSYS)/include
 
 lib_LTLIBRARIES = libAnaFastMC.la
 
+mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
+dist_mydata_DATA = \
+  dead_eff_run13pp500gev.dat
+
 include_HEADERS =
 
 noinst_HEADERS = \

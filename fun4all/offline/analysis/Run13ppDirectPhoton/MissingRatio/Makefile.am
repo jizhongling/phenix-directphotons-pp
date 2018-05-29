@@ -12,6 +12,7 @@ include_HEADERS =
 
 noinst_HEADERS = \
   MissingRatio.h \
+  PhotonEff.h \
   IsolationCut.h \
   AnaTrk.h \
   AnaToolsTowerID.h \
@@ -21,6 +22,7 @@ noinst_HEADERS = \
 
 libMissingRatio_la_SOURCES = \
   MissingRatio.C \
+  PhotonEff.C \
   IsolationCut.C
 
 nodist_libMissingRatio_la_SOURCES = \
@@ -61,6 +63,7 @@ testexternals.C:
 
 MissingRatio_Dict.C: \
   MissingRatio.h \
+  PhotonEff.h \
   MissingRatioLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 

@@ -51,7 +51,7 @@ namespace anatools
    *
    * (copied from /offline/AnalysisTrain/Run13_Pi0Ana_YIS)
    */
-  inline Int_t PassERT( ErtOut* ertout, emcClusterContent* cluster, TriggerMode triggermode )
+  inline Int_t PassERT( const ErtOut* ertout, const emcClusterContent* cluster, const TriggerMode triggermode )
   {
     /*
       int ERThit_N Number of ERT hits in a event

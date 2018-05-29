@@ -1,21 +1,18 @@
 #include "GlobalVars.h"
 #include "BBCCounts.h"
-#include "FitMinv.h"
 #include "GetEfficiency.h"
 
-void anaBBCEff(const Int_t process = 0)
+void anaBBCEff_Photon(const Int_t process = 0)
 {
   const Int_t secl[2] = {1, 7};
   const Int_t sech[2] = {6, 8};
 
-  const Int_t nThread = 20;
+  const Int_t nThread = 1000;
   Int_t thread = -1;
   Int_t runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
-  TFile *f_out = new TFile(Form("pileup/BBCEff-%d.root",process), "RECREATE");
-  for(Int_t ic=0; ic<2; ic++)
-    mc(ic, 6,5);
+  TFile *f_out = new TFile(Form("pileup/BBCEff-photon-%d.root",process), "RECREATE");
 
   TGraphAsymmErrors *gr[npT*2];
   Int_t igp[npT*2] = {};
@@ -33,46 +30,23 @@ void anaBBCEff(const Int_t process = 0)
   {
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
+    if( thread%10 == 0 ) cout << "nfile = " << thread << endl;
 
     TFile *f = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
     if( f->IsZombie() ) continue;
 
-    THnSparse *hn_trig = (THnSparse*)f->Get("hn_bbc_pion");
-    TAxis *axis_sec = hn_trig->GetAxis(0);
-    TAxis *axis_pt = hn_trig->GetAxis(1);
-    TAxis *axis_minv = hn_trig->GetAxis(2);
-    TAxis *axis_cond = hn_trig->GetAxis(3);
+    TH3 *h3_trig = (TH3*)f->Get("h3_bbc");
 
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNovtxLive(runnumber);
 
     for(Int_t part=0; part<2; part++)
-    {
       for(Int_t ipt=0; ipt<npT; ipt++)
       {
         Int_t ig = ipt*2+part;
 
-        axis_sec->SetRange(secl[part],sech[part]);
-        axis_pt->SetRange(ipt+1,ipt+1);
-        TH1 *h_minv;
-
-        Double_t nt, ent;
-        mcd(0, ipt+1);
-        axis_cond->SetRange(1,1);
-        h_minv = hn_trig->Projection(2);
-        h_minv->Rebin(10);
-        h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
-        FitMinv(h_minv, nt, ent);
-        delete h_minv;
-
-        Double_t np, enp;
-        mcd(1, ipt+1);
-        axis_cond->SetRange(2,2);
-        h_minv = hn_trig->Projection(2);
-        h_minv->Rebin(10);
-        h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
-        FitMinv(h_minv, np, enp);
-        delete h_minv;
+        Double_t nt = h3_trig->Integral(secl[part],sech[part], ipt+1,ipt+1, 1,1);
+        Double_t np = h3_trig->Integral(secl[part],sech[part], ipt+1,ipt+1, 2,2);
 
         Double_t xx = (Double_t)nmb / (Double_t)nclock;
         Double_t yy, eyyl, eyyh;
@@ -88,13 +62,6 @@ void anaBBCEff(const Int_t process = 0)
           igp[ig]++;
         }
       }
-
-      f_out->cd();
-      mcw( 0, Form("Run%d-part%d-total",runnumber,part) );
-      mcw( 1, Form("Run%d-part%d-passed",runnumber,part) );
-      for(Int_t ic=0; ic<2; ic++)
-        gROOT->ProcessLine( Form("c%d->Clear(\"D\");",ic) );
-    }
 
     delete f;
   }

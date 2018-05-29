@@ -1,7 +1,7 @@
 #!/bin/zsh
 
-root -b -q plot_warnmap2D.C\(\"warnmap-final/warn_all_run13pp500gev.txt\",true\)
-root -b -q plot_warnmap2D.C\(\"warnmap-final/Warnmap_Run13pp510_format.txt\",true\)
+root -b -q plot_warnmap2D.C\(\"warnmap-final/warnmap_merged_python.txt\",true\)
+root -b -q plot_warnmap2D.C\(\"warnmap-final/Warnmap_Run13pp510_Final.txt\",true\)
 
 #root -b -q plot_warnmap2D.C\(\"warnmap-final/Warnmap_Run13pp510_Final.txt\",true\)
 #root -b -q plot_warnmap2D.C\(\"warnmap-final/Warnmap_Run13pp510MinBias_Final.txt\",true\)

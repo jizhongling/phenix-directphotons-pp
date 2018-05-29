@@ -3,5 +3,6 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class MissingRatio-!; 
+#pragma link C++ class MissingRatio-!;
+#pragma link C++ class PhotonEff-!;
 #endif /* __CINT__ */

@@ -30,14 +30,14 @@ void draw_pTSmear()
     hn_pion->GetAxis(3)->SetRange(secl[part],sech[part]);
 
     hn_pi0_separate->GetAxis(1)->SetRange(0,31);
-    TH1 *h_pi0_truth = hn_pi0_separate->Projection(0)->Clone("h_pi0_truth");
+    TH1 *h_pi0_truth = (TH1*)hn_pi0_separate->Projection(0)->Clone("h_pi0_truth");
     hn_pi0_separate->GetAxis(0)->SetRange(0,31);
-    TH1 *h_pi0_reco = hn_pi0_separate->Projection(1)->Clone("h_pi0_reco");
+    TH1 *h_pi0_reco = (TH1*)hn_pi0_separate->Projection(1)->Clone("h_pi0_reco");
 
     hn_pion->GetAxis(1)->SetRange(0,31);
-    TH1 *h_truth = hn_pion->Projection(0)->Clone("h_truth");
+    TH1 *h_truth = (TH1*)hn_pion->Projection(0)->Clone("h_truth");
     hn_pion->GetAxis(0)->SetRange(0,31);
-    TH1 *h_reco = hn_pion->Projection(1)->Clone("h_reco");
+    TH1 *h_reco = (TH1*)hn_pion->Projection(1)->Clone("h_reco");
 
     c->cd(part+1);
 

@@ -1,4 +1,0 @@
-void draw_ERTbRatio()
-{
-  
-}

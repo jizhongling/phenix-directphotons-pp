@@ -2,7 +2,7 @@
 #include "FitMinv.h"
 #include "GetEfficiency.h"
 
-void draw_Acceptance()
+void draw_Acceptance_Pion()
 {
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
   const Int_t secl[3] = {1, 5, 7};
@@ -34,7 +34,7 @@ void draw_Acceptance()
     for(Int_t ipt=0; ipt<npT; ipt++)
     {
       Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Double_t ww = cross->Eval(xx);
+      Double_t ww = cross_pi0->Eval(xx);
 
       TH1 *h_tt = (TH1*)h_total->Clone();
       h_tt->Scale(1./ww);
@@ -93,9 +93,9 @@ void draw_Acceptance()
   }
 
   leg0->Draw();
-  c3->Print("plots/Acceptance.pdf");
+  c3->Print("plots/Acceptance-pion.pdf");
 
-  TFile *f_out = new TFile("data/Acceptance.root", "RECREATE");
+  TFile *f_out = new TFile("data/Acceptance-pion.root", "RECREATE");
   for(Int_t part=0; part<3; part++)
   {
     mcw( part, Form("part%d",part) );

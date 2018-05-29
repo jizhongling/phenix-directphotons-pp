@@ -30,7 +30,7 @@ void draw_Merge()
     for(Int_t ipt=0; ipt<npT; ipt++)
     {
       Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Double_t ww = cross->Eval(xx);
+      Double_t ww = cross_pi0->Eval(xx);
 
       axis_sec->SetRange(secl[part],sech[part]);
       axis_pt->SetRange(ipt+1,ipt+1);
