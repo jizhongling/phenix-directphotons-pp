@@ -1,4 +1,4 @@
-void anaFillHisto_ERT(const int process = 64)
+void anaFillHisto_ERT(const int process = 0)
 {
   // Set up Fun4All libraries
   gSystem->Load("libfun4all.so");
@@ -58,7 +58,6 @@ void anaFillHisto_ERT(const int process = 64)
   // Write out the histogram file
   se->End();
 
-  delete my1;
   delete se;
   inFiles.close();
 }

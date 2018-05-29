@@ -36,6 +36,12 @@ void draw_ERTEff_Photon()
       gr[part]->Draw("APE");
     else
       gr[part]->Draw("PE");
+
+    gr[part]->Fit("pol0", "Q","", 10.,30.);
+    gPad->Update();
+    TPaveStats *st = (TPaveStats*)gr[part]->FindObject("stats");
+    st->SetY1NDC(0.3-part*0.2);
+    st->SetY2NDC(0.5-part*0.2);
   }
 
   legi(0, 0.7,0.2,0.9,0.4);

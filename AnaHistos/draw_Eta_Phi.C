@@ -8,10 +8,20 @@ void draw_Eta_Phi()
   TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
   TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-warn-histo.root");
 
-  mc(0, 2,8);
+  mc(0, 4,5);
 
-  TH2 *h2_eta_phi_data = (TH2*)f_data->Get( Form("h2_photon_eta_phi_part%d",2) );
-  TH2 *h2_eta_phi_sim = (TH2*)f_sim->Get( Form("h2_pion_eta_phi_part%d",2) );
+  TH2 *h2_eta_phi_data[3];
+  TH2 *h2_eta_phi_sim[3];
+  for(Int_t part=0; part<3; part++)
+  {
+    h2_eta_phi_data[part] = (TH2*)f_data->Get( Form("h2_photon_eta_phi_part%d",part) );
+    h2_eta_phi_sim[part] = (TH2*)f_sim->Get( Form("h2_photon_eta_phi_part%d",part) );
+
+    for(Int_t binx=1; binx<=h2_eta_phi_data[part]->GetNbinsX(); binx++)
+      for(Int_t biny=1; biny<=h2_eta_phi_data[part]->GetNbinsY(); biny++)
+        if( h2_eta_phi_data[part]->GetBinContent(binx,biny) <= 0. )
+          h2_eta_phi_sim[part]->SetBinContent(binx,biny,0.);
+  }
 
 
   for(Int_t sec=0; sec<8; sec++)
@@ -21,12 +31,9 @@ void draw_Eta_Phi()
     else if(sec < 6) part = 1;
     else part = 2;
 
-    TH2 *h2_eta_phi_data = (TH2*)f_data->Get( Form("h2_photon_eta_phi_part%d",part) );
-    TH2 *h2_eta_phi_sim = (TH2*)f_sim->Get( Form("h2_pion_eta_phi_part%d",part) );
-
     mcd(0, sec+1);
-    TH1 *h_eta_data =(TH1*)h2_eta_phi_data->ProjectionX("_px",phibin[sec],phibin[sec+1])->Clone("h_eta_data");
-    TH1 *h_eta_sim = (TH1*)h2_eta_phi_sim->ProjectionX("_px",phibin[sec],phibin[sec+1])->Clone("h_eta_sim");
+    TH1 *h_eta_data =(TH1*)h2_eta_phi_data[part]->ProjectionX("_px",phibin[sec],phibin[sec+1])->Clone("h_eta_data");
+    TH1 *h_eta_sim = (TH1*)h2_eta_phi_sim[part]->ProjectionX("_px",phibin[sec],phibin[sec+1])->Clone("h_eta_sim");
     Double_t scale = h_eta_data->Integral(0,-1) / h_eta_sim->Integral(0,-1);
     h_eta_sim->Scale(scale);
     h_eta_data->SetTitle( Form("#eta dist., sector %d",sec) );
@@ -38,13 +45,22 @@ void draw_Eta_Phi()
 
   for(Int_t part=0; part<3; part++)
   {
-    TH2 *h2_eta_phi_data = (TH2*)f_data->Get( Form("h2_photon_eta_phi_part%d",part) );
-    TH2 *h2_eta_phi_sim = (TH2*)f_sim->Get( Form("h2_pion_eta_phi_part%d",part) );
+    mcd(0, part+9);
+    TH1 *h_eta_data =(TH1*)h2_eta_phi_data[part]->ProjectionX()->Clone("h_eta_data");
+    TH1 *h_eta_sim = (TH1*)h2_eta_phi_sim[part]->ProjectionX()->Clone("h_eta_sim");
+    scale = h_eta_data->Integral(0,-1) / h_eta_sim->Integral(0,-1);
+    h_eta_sim->Scale(scale);
+    h_eta_data->SetTitle( Form("#eta dist., part %d",part) );
+    style(h_eta_data);
+    Double_t max_eta = h_eta_data->GetMaximum();
+    h_eta_data->SetMaximum(1.1*max_eta);
+    h_eta_data->Draw("E");
+    h_eta_sim->Draw("HIST SAME");
 
-    mcd(0, (part+1)/2+9);
-    TH1 *h_phi_data =(TH1*)h2_eta_phi_data->ProjectionY()->Clone("h_phi_data");
-    TH1 *h_phi_sim = (TH1*)h2_eta_phi_sim->ProjectionY()->Clone("h_phi_sim");
-    scale = h_phi_data->Integral(0,-1) / h_phi_sim->Integral(0,-1);
+    mcd(0, (part+1)/2+13);
+    TH1 *h_phi_data =(TH1*)h2_eta_phi_data[part]->ProjectionY()->Clone("h_phi_data");
+    TH1 *h_phi_sim = (TH1*)h2_eta_phi_sim[part]->ProjectionY()->Clone("h_phi_sim");
+    Double_t scale = h_phi_data->Integral(0,-1) / h_phi_sim->Integral(0,-1);
     h_phi_sim->Scale(scale);
     h_phi_data->SetTitle( Form("#phi dist., part %d",part) );
     if(part == 0)
@@ -60,16 +76,16 @@ void draw_Eta_Phi()
       h_phi_data->Draw("E SAME");
     h_phi_sim->Draw("HIST SAME");
 
-    mcd(0, 11+part*2);
-    h2_eta_phi_data->SetTitle( Form("#eta and #phi from data for part %d",part) );
-    h2_eta_phi_data->GetYaxis()->SetRange(phibin[secl[part]-1], phibin[sech[part]]-3);
-    h2_eta_phi_data->Draw("COLZ");
+    mcd(0, part*2+15);
+    h2_eta_phi_data[part]->SetTitle( Form("#eta and #phi from data for part %d",part) );
+    h2_eta_phi_data[part]->GetYaxis()->SetRange(phibin[secl[part]-1], phibin[sech[part]]-3);
+    h2_eta_phi_data[part]->Draw("COLZ");
 
-    mcd(0, 12+part*2);
-    h2_eta_phi_sim->SetTitle( Form("#eta and #phi from FastMC for part %d",part) );
-    h2_eta_phi_sim->GetYaxis()->SetRange(phibin[secl[part]-1], phibin[sech[part]]-3);
-    h2_eta_phi_sim->Draw("COLZ");
+    mcd(0, part*2+16);
+    h2_eta_phi_sim[part]->SetTitle( Form("#eta and #phi from FastMC for part %d",part) );
+    h2_eta_phi_sim[part]->GetYaxis()->SetRange(phibin[secl[part]-1], phibin[sech[part]]-3);
+    h2_eta_phi_sim[part]->Draw("COLZ");
   }
 
-  c0->Print("plots/DirphEtaPhi.pdf");
+  c0->Print("plots/DirphEtaPhi-masked.pdf");
 }

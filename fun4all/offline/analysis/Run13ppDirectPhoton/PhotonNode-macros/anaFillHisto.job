@@ -1,13 +1,13 @@
 Universe        = vanilla
 Notification    = Complete
-Executable      = /phenix/u/zji/bin/condor-job.csh
+Executable      = /phenix/u/zji/bin/condor-root.csh
 Arguments       = $(Initialdir) anaFillHisto_ERT.C $(Process)
 Requirements    = (CPU_Speed >= 1 && TotalDisk > 0)
 Rank		= CPU_Speed
 Image_Size      = 32M
 Priority        = +20
 GetEnv          = False
-Initialdir      = /phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros
+Initialdir      = $ENV(PWD)
 Input           = /dev/null
 Output          = /dev/null
 Error           = /dev/null

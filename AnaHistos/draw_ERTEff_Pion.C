@@ -17,7 +17,8 @@ void draw_ERTEff_Pion()
       mc(part*2+ic, 6,5);
   }
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  //TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  TFile *f = new TFile("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13173/data/PhotonHistos-histo.root");
 
   THnSparse *hn_trig = (THnSparse*)f->Get("hn_ert_pion");
   TAxis *axis_sec = hn_trig->GetAxis(0);

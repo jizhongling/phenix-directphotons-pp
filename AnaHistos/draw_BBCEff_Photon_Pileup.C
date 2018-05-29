@@ -64,15 +64,16 @@ void draw_BBCEff_Photon_Pileup()
   {
     mcd(2, part+1);
     gr_trig[part]->Set(igp[part]);
+    gr_trig[part]->SetTitle( Form("BBC trigger efficeincy for %s",pname[part]) );
     aset(gr_trig[part], "pT [GeV]","Eff", 3.,20., 0.,1.);
     style(gr_trig[part], part+20, part+1);
     gr_trig[part]->Draw("AP");
-    gr_trig[part]->Fit("pol0", "Q","", 3.,20.);
+    //gr_trig[part]->Fit("pol0", "Q","", 3.,20.);
 
-    gPad->Update();
-    TPaveStats *st = (TPaveStats*)gr_trig[part]->FindObject("stats");
-    st->SetY1NDC(0.6);
-    st->SetY2NDC(0.8);
+    //gPad->Update();
+    //TPaveStats *st = (TPaveStats*)gr_trig[part]->FindObject("stats");
+    //st->SetY1NDC(0.6);
+    //st->SetY2NDC(0.8);
   }
 
   TFile *f_out = new TFile("data/BBCEff-photon-pileup.root", "RECREATE");

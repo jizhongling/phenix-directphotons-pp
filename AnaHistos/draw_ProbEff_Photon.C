@@ -13,6 +13,7 @@ void draw_ProbEff_Photon()
   }
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  //TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/PhotonEff-histo.root");
 
   THnSparse *hn_1photon = (THnSparse*)f->Get("hn_1photon");
   TAxis *axis_sec = hn_1photon->GetAxis(0);
@@ -25,9 +26,9 @@ void draw_ProbEff_Photon()
   {
     axis_type->SetRange(3,3);
     axis_sec->SetRange(secl[part],sech[part]);
-    axis_cut->SetRange(2,2);
+    axis_cut->SetRange(1,1);
     TH1 *h_total = hn_1photon->Projection(1);
-    axis_cut->SetRange(4,4);
+    axis_cut->SetRange(3,3);
     TH1 *h_passed = hn_1photon->Projection(1);
     gr[part]->Divide(h_passed, h_total);
     delete h_passed;

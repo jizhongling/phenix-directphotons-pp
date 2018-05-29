@@ -263,8 +263,8 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
     if( e1 > eMin )
     {
       double pt_reco = Vpart[0].Pt();
-      double fill_hn_missing[] = {pt_pi0, pt_reco, sec1, 1.};
-      hn_missing->Fill(fill_hn_missing);
+      double fill_hn_missing[] = {pt_pi0, pt_reco, sec1, NPart, 1.};
+      hn_missing->Fill(fill_hn_missing, weight_pi0);
     }
   }
 
@@ -281,15 +281,13 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
     double e2 = Vpart[1].E();
 
     /* for missing ratio */
-    if(NPeak == 2 && e1 > eMin && e2 > eMin)
-    {
+    if(e1 > eMin && e2 > eMin)
       for(int iph=0; iph<2; iph++)
       {
         double pt_reco = Vpart[iph].Pt();
-        double fill_hn_missing[] = {pt_pi0, pt_reco, sector[iph], 2.};
-        hn_missing->Fill(fill_hn_missing);
+        double fill_hn_missing[] = {pt_pi0, pt_reco, sector[iph], NPart, NPeak};
+        hn_missing->Fill(fill_hn_missing, weight_pi0);
       }
-    }
 
     /* Check in the same detector part
      * and pass the energy and asymmetry cuts */
@@ -461,19 +459,19 @@ void AnaFastMC::BookHistograms()
     hm->registerHisto(h2_photon_eta_phi[part]);
   }
 
-  int nbins_hn_missing[] = {npT, npT, 8, 3};
-  double xmin_hn_missing[] = {0., 0., -0.5, -0.5};
-  double xmax_hn_missing[] = {0., 0., 7.5, 2.5};
-  hn_missing = new THnSparseF("hn_missing", "#pi^{0} missing ratio;p^{#pi^{0}}_{T} [GeV];p^{#gamma}_{T} [GeV];sector;NPart;",
-      4, nbins_hn_missing, xmin_hn_missing, xmax_hn_missing);
+  int nbins_hn_missing[] = {npT, npT, 8, 3, 3};
+  double xmin_hn_missing[] = {0., 0., -0.5, -0.5, -0.5};
+  double xmax_hn_missing[] = {0., 0., 7.5, 2.5, 2.5};
+  hn_missing = new THnSparseF("hn_missing", "#pi^{0} missing ratio;p^{#pi^{0}}_{T} [GeV];p^{#gamma}_{T} [GeV];sector;NPart;NPeak;",
+      5, nbins_hn_missing, xmin_hn_missing, xmax_hn_missing);
   hn_missing->SetBinEdges(0, pTbin);
   hn_missing->SetBinEdges(1, pTbin);
   hn_missing->Sumw2();
   hm->registerHisto(hn_missing);
 
-  int nbins_hn_pion[] = {npT, npT, 300, 8, 4};
+  int nbins_hn_pion[] = {npT, npT, 300, 8, 3};
   double xmin_hn_pion[] = {0., 0., 0., -0.5, -0.5};
-  double xmax_hn_pion[] = {0., 0., 0.3, 7.5, 3.5};
+  double xmax_hn_pion[] = {0., 0., 0.3, 7.5, 2.5};
   hn_pion = new THnSparseF("hn_pion", "EMCal pion count;Truth p_{T} truth [GeV];p_{T} reco [GeV];m_{inv} [GeV];sector;NPeak;",
       5, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
   hn_pion->SetBinEdges(0, pTbin);

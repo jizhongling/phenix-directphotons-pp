@@ -6,7 +6,15 @@ void draw_ToFEff_Photon()
   const Int_t sech[2] = {6, 8};
   const char *name[2] = {"PbSc", "PbGl"};
 
+  TFile *f_twr = new TFile("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13173/data/PhotonHistos-histo.root");
+  THnSparse *hn_etwr = (THnSparse*)f_twr->Get("hn_etwr");
+  hn_etwr->GetAxis(7)->SetRange(1,1);
+  hn_etwr->GetAxis(2)->SetRange(4,4);
+  hn_etwr->GetAxis(3)->SetRange(4,4);
+  hn_etwr->GetAxis(1)->SetRange(26,30);
+
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  //TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/PhotonEff-histo.root");
 
   THnSparse *hn_1photon = (THnSparse*)f->Get("hn_1photon");
   TAxis *axis_sec = hn_1photon->GetAxis(0);
@@ -19,15 +27,53 @@ void draw_ToFEff_Photon()
   for(Int_t part=0; part<2; part++)
     gr[part] =  new TGraphAsymmErrors(npT);
 
+  mc(1, 2,1);
+
   for(Int_t part=0; part<2; part++)
   {
-    axis_type->SetRange(3,3);
+    hn_etwr->GetAxis(0)->SetRange(secl[part],sech[part]);
+    TH2 *h2_ct = hn_etwr->Projection(6,5);
+    TH2 *h2_tof = hn_etwr->Projection(6,4);
+    TH1 *h_tof = h2_tof->ProjectionX("h_tof");
+    h_tof->Reset();
+
+    Double_t ngap_bp = 0.;
+    Double_t ngap_bpt = 0.;
+    for(Int_t ic=2; ic<=8; ic+=2)
+    {
+      for(Int_t it=1; it<=16; it++)
+      {
+        ngap_bp += h2_ct->GetBinContent(it,ic);
+        if( (ic==4 || ic==8) )
+          ngap_bpt += h2_ct->GetBinContent(it,ic);
+      }
+
+      TH1 *h_tmp = h2_tof->ProjectionX("h_tmp",ic,ic);
+      h_tof->Add(h_tmp);
+      delete h_tmp;
+    }
+
+    mcd(1, part+1);
+    aset(h_tof);
+    style(h_tof, 20, 2);
+    h_tof->DrawCopy();
+
+    axis_type->SetRange(2,2);
     axis_sec->SetRange(secl[part],sech[part]);
     axis_cut->SetRange(3,3);
     TH1 *h_total = hn_1photon->Projection(1);
     axis_cut->SetRange(4,4);
     TH1 *h_passed = hn_1photon->Projection(1);
     gr[part]->Divide(h_passed, h_total);
+
+    Double_t npassed = h_passed->Integral(26,30);
+    Double_t ntotal = h_total->Integral(26,30);
+    cout << ( npassed - ngap_bpt*120./9. ) / ( ntotal - ngap_bp*120./9. ) << endl;
+    cout << ngap_bpt*120./9. << "\t" << ngap_bp*120./9. << "\t" << ntotal - npassed << endl; 
+    cout << npassed << "\t" << ntotal << endl; 
+    cout << h2_ct->GetEntries() << "\t" << h2_tof->GetEntries() << endl; 
+    delete h2_ct;
+    delete h2_tof;
     delete h_passed;
     delete h_total;
   }
@@ -50,4 +96,5 @@ void draw_ToFEff_Photon()
   }
 
   c0->Print("plots/ToFEff-photon.pdf");
+  c1->Print("plots/ToF-gap.pdf");
 }

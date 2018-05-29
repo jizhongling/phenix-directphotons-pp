@@ -149,7 +149,7 @@ void draw_CrossSection_Pion()
           + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2.)
           + pow(eProb/Prob[part/2][ipt],2.)
           + pow(eToF[part]/ToF[part],2.) + pow(eConv[part]/Conv[part],2.)
-          //+ pow(eTrigBBC/TrigBBC,2.) + pow(ePile/Pile,2.) + pow(eXBBC/XBBC,2.)
+          //+ pow(eTrigBBC/TrigBBC,2.) + pow(ePile/Pile[part],2.) + pow(eXBBC/XBBC,2.)
           );
       if( yy[part] > 0. && eyy[part] > 0. && eyy[part] < TMath::Infinity() )
       {

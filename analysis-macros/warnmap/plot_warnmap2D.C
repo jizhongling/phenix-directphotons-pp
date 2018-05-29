@@ -102,8 +102,8 @@ plot_warnmap2D( string warnmapfile , bool writeplots = true )
 	  filenamep+=sector;
 	  filenamep+=".png";
 
-	  c1->Print( filename );
-	  c1->Print( filenamep );
+	  //c1->Print( filename );
+	  //c1->Print( filenamep );
 	}
 
     }
@@ -127,9 +127,9 @@ plot_warnmap2D( string warnmapfile , bool writeplots = true )
 
   TString filenameAllp("plots-warnmap-2D/warnmap2D_");
   filenameAllp+=filename_cut;
-  filenameAllp+="_sector_all.eps";
+  filenameAllp+="_sector_all.pdf";
 
-  c2->Print( filenameAll );
+  //c2->Print( filenameAll );
   c2->Print( filenameAllp );
 
 

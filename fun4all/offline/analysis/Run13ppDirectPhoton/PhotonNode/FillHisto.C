@@ -28,6 +28,7 @@
 
 #include <ctime>
 #include <cmath>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 
@@ -54,7 +55,8 @@ FillHisto::FillHisto(const string &name, const char *filename) :
   hn_ert_pion(NULL),
   hn_pion(NULL),
   hn_1photon(NULL),
-  hn_2photon(NULL)
+  hn_2photon(NULL),
+  hn_photonbg(NULL)
 {
   datatype = ERT;
 
@@ -73,7 +75,10 @@ FillHisto::FillHisto(const string &name, const char *filename) :
   }
 
   for(Int_t part=0; part<3; part++)
+  {
     h2_photon_eta_phi[part] = NULL;
+    h2_cluster_eta_phi[part] = NULL;
+  }
 }
 
 FillHisto::~FillHisto()
@@ -319,11 +324,21 @@ int FillHisto::FillBBCEfficiency(const PhotonContainer *photoncont)
       v_used.push_back(i);
 
       int sector = anatools::GetSector( photon1 );
-      double photon_pT = anatools::Get_pT( photon1 );
+      TLorentzVector pE = anatools::Get_pE(photon1);
+      double photon_pT = pE.Pt();
+      double ecore = pE.E();
+      double eta = pE.Eta();
+      double bbc_trig = 0.;
 
       h3_bbc->Fill(sector, photon_pT, 0.);
       if( photoncont->get_bbcnovtx_live() )
+      {
+        bbc_trig = 1.;
         h3_bbc->Fill(sector, photon_pT, 1.);
+      }
+
+      double fill_hn_photonbg[] = {sector, photon_pT, ecore, eta, bbc_trig};
+      hn_photonbg->Fill(fill_hn_photonbg);
 
       for(unsigned j=0; j<nphotons; j++)
         if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
@@ -535,7 +550,7 @@ int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int e
   double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
   int pattern = GetPattern(photoncont);
-  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
+  if( abs(bbc_z) > 10. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
 
@@ -545,8 +560,21 @@ int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int e
     if( GetStatus(photon1) == 0 )
     {
       int sector = anatools::GetSector(photon1);
+      int part = -1;
+      if(sector < 0) part = -1;
+      else if(sector < 4) part = 0;
+      else if(sector < 6) part = 1;
+      else if(sector < 8) part = 2;
+
       TLorentzVector pE = anatools::Get_pE(photon1);
       double pT = pE.Pt();
+      double eta = pE.Eta();
+      double phi = pE.Phi();
+      if(sector >= 4)
+      {
+        pE.RotateZ(-PI);
+        phi = pE.Phi() + PI;
+      }
 
       bool trig1 = photon1->get_trg1();
       bool trig2 = photon1->get_trg2();
@@ -554,6 +582,10 @@ int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int e
 
       if( datatype == ERT && !CheckGammaTrigger(evtype, trig1, trig2, trig3) )
         continue;
+
+      if( evtype == 2 && part >= 0 &&
+          pT > 5. && pT < 10. )
+        h2_cluster_eta_phi[part]->Fill(eta, phi);
 
       double fill_hn_1photon[] = {sector, pT, pattern, 0., evtype};
       hn_1photon->Fill(fill_hn_1photon);
@@ -569,23 +601,9 @@ int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int e
       }
       if( TestPhoton(photon1, bbc_t0) )
       {
-        int part = -1;
-        if(sector < 0) part = -1;
-        else if(sector < 4) part = 0;
-        else if(sector < 6) part = 1;
-        else if(sector < 8) part = 2;
         if( evtype == 2 && part >= 0 &&
             pT > 5. && pT < 10. )
-        {
-          double eta = pE.Eta();
-          double phi = pE.Phi();
-          if(sector >= 4)
-          {
-            pE.RotateZ(-PI);
-            phi = pE.Phi() + PI;
-          }
           h2_photon_eta_phi[part]->Fill(eta, phi);
-        }
 
         fill_hn_1photon[3] = 3.;
         hn_1photon->Fill(fill_hn_1photon);
@@ -595,15 +613,29 @@ int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int e
         if(j != i)
         {
           Photon *photon2 = photoncont->GetPhoton(j);
-          if( GetStatus(photon2) == 0 &&
-              TestPhoton(photon1, bbc_t0) &&
+          if( GetStatus(photon2) != 0 ) continue;
+          double minv = anatools::GetInvMass(photon1, photon2);
+
+          double fill_hn_2photon[] = {sector, pT, minv, pattern, 0., evtype};
+          hn_2photon->Fill(fill_hn_2photon);
+          if( abs( photon1->get_tof() - bbc_t0 ) < 10. &&
+              abs( photon2->get_tof() - bbc_t0 ) < 10. )
+          {
+            fill_hn_2photon[4] = 1.;
+            hn_2photon->Fill(fill_hn_2photon);
+          }
+          if( photon1->get_prob() && 
+              photon2->get_prob() )
+          {
+            fill_hn_2photon[4] = 2.;
+            hn_2photon->Fill(fill_hn_2photon);
+          }
+          if( TestPhoton(photon1, bbc_t0) &&
               TestPhoton(photon2, bbc_t0) )
           {
-            double minv = anatools::GetInvMass(photon1, photon2);
-
-            double fill_hn_2photon[] = {sector, pT, minv, pattern, evtype};
+            fill_hn_2photon[4] = 3.;
             hn_2photon->Fill(fill_hn_2photon);
-          } // check photon2
+          }
         } // j loop
     } // check photon1
   } // i loop
@@ -760,7 +792,9 @@ void FillHisto::BookHistograms()
   for(Int_t part=0; part<3; part++)
   {
     h2_photon_eta_phi[part] = new TH2F(Form("h2_photon_eta_phi_part%d",part), "Photon #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
+    h2_cluster_eta_phi[part] = (TH2*)h2_photon_eta_phi[part]->Clone( Form("h2_cluster_eta_phi_part%d",part) );
     hm->registerHisto(h2_photon_eta_phi[part]);
+    hm->registerHisto(h2_cluster_eta_phi[part]);
   }
 
   /* Store pion information */
@@ -782,13 +816,22 @@ void FillHisto::BookHistograms()
   hm->registerHisto(hn_1photon);
 
   /* Store two photons information */
-  const int nbins_hn_2photon[] = {8, npT, 700, 3, 3};
-  const double xmin_hn_2photon[] = {-0.5, 0., 0., -1.5, -0.5};
-  const double xmax_hn_2photon[] = {7.5, 0., 0.7, 1.5, 2.5};
-  hn_2photon = new THnSparseF("hn_2photon", "Two photons spectrum;sector;p_{T} [GeV];m_{inv} [GeV];pattern;evtype;",
-      5, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon);
+  const int nbins_hn_2photon[] = {8, npT, 700, 3, 4, 3};
+  const double xmin_hn_2photon[] = {-0.5, 0., 0., -1.5, -0.5, -0.5};
+  const double xmax_hn_2photon[] = {7.5, 0., 0.7, 1.5, 3.5, 2.5};
+  hn_2photon = new THnSparseF("hn_2photon", "Two photons spectrum;sector;p_{T} [GeV];m_{inv} [GeV];pattern;cut;evtype;",
+      6, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon);
   hn_2photon->SetBinEdges(1, pTbin);
   hm->registerHisto(hn_2photon);
+
+  /* Store photon bg information */
+  const int nbins_hn_photonbg[] = {8, npT, 100, 40, 2};
+  const double xmin_hn_photonbg[] = {-0.5, 0., 0., -0.4, -0.5};
+  const double xmax_hn_photonbg[] = {7.5, 0., 35., 0.4, 1.5};
+  hn_photonbg = new THnSparseF("hn_photonbg", "Photon bg spectrum;sector;p_{T} [GeV];E [GeV];#eta;BBC;",
+      5, nbins_hn_photonbg, xmin_hn_photonbg, xmax_hn_photonbg);
+  hn_photonbg->SetBinEdges(1, pTbin);
+  hm->registerHisto(hn_photonbg);
 
   return;
 }

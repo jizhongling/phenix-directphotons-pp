@@ -72,9 +72,11 @@ class FillHisto: public SubsysReco
     TH3 *h3_ert;
     THnSparse *hn_ert_pion;
     TH2 *h2_photon_eta_phi[3];
+    TH2 *h2_cluster_eta_phi[3];
     THnSparse *hn_pion;
     THnSparse *hn_1photon;
     THnSparse *hn_2photon;
+    THnSparse *hn_photonbg;
 
     // tower status for warnmap
     int tower_status[8][48][96];
