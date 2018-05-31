@@ -8,10 +8,12 @@ lib_LTLIBRARIES = libAnaPHPythiaDirectPhoton.la
 include_HEADERS =
 
 noinst_HEADERS = \
-  AnaPHPythiaDirectPhoton.h
+  AnaPHPythiaDirectPhoton.h \
+  AnaPHPythiaHistos.h
 
 libAnaPHPythiaDirectPhoton_la_SOURCES = \
-  AnaPHPythiaDirectPhoton.C
+  AnaPHPythiaDirectPhoton.C \
+  AnaPHPythiaHistos.C
 
 nodist_libAnaPHPythiaDirectPhoton_la_SOURCES = \
   AnaPHPythiaDirectPhoton_Dict.C
@@ -35,6 +37,7 @@ testexternals.C:
 
 AnaPHPythiaDirectPhoton_Dict.C: \
   AnaPHPythiaDirectPhoton.h \
+  AnaPHPythiaHistos.h \
   AnaPHPythiaDirectPhotonLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 

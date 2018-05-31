@@ -4,4 +4,5 @@
 #pragma link off all functions;
 
 #pragma link C++ class AnaPHPythiaDirectPhoton-!; 
+#pragma link C++ class AnaPHPythiaHistos-!; 
 #endif /* __CINT__ */
