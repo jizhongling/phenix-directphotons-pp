@@ -3,7 +3,7 @@ void anaphpythia(const int process = 0)
   gSystem->Load("libfun4allfuncs.so");	// framework + reco modules
   gSystem->Load("libAnaPHPythiaDirectPhoton.so");
 
-  const int nThread = 100;
+  const int nThread = 20;
   char dstFileName[1000];
 
   recoConsts *rc = recoConsts::instance();
@@ -23,7 +23,7 @@ void anaphpythia(const int process = 0)
   // Loop over input DST files
   for(int thread = process*nThread; thread < (process+1)*nThread; thread++)
   {
-    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/phpythia_isolation/phpythia%d.root", thread);
+    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/phpythia_isodecay/phpythia%d.root", thread);
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DSTin1", dstFileName);
