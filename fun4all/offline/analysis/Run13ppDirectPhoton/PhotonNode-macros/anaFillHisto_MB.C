@@ -18,6 +18,7 @@ void anaFillHisto_MB(const int process = 0)
   }
   cout << "\nUsing input files list..." << endl << endl;
 
+  // Server
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(0);
 
