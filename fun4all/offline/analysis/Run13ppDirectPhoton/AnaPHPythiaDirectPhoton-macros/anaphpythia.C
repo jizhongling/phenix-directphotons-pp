@@ -3,7 +3,7 @@ void anaphpythia(const int process = 0)
   gSystem->Load("libfun4allfuncs.so");	// framework + reco modules
   gSystem->Load("libAnaPHPythiaDirectPhoton.so");
 
-  const int nThread = 20;
+  const int nThread = 10;
   char dstFileName[1000];
 
   recoConsts *rc = recoConsts::instance();

@@ -7,8 +7,9 @@ void draw_Isolation()
   THnSparse *hn_photon = (THnSparse*)f->Get("hn_photon");
   TAxis *axis_pt = hn_photon->GetAxis(0);
   TAxis *axis_cone = hn_photon->GetAxis(1);
-  TAxis *axis_iso = hn_photon->GetAxis(2);
-  TAxis *axis_prompt = hn_photon->GetAxis(3);
+  TAxis *axis_e = hn_photon->GetAxis(2);
+  TAxis *axis_iso = hn_photon->GetAxis(3);
+  TAxis *axis_prompt = hn_photon->GetAxis(4);
 
   mc(0, 3,3);
   mc(1, 3,3);
@@ -22,6 +23,8 @@ void draw_Isolation()
     {
       axis_pt->SetRange(ipt+1,ipt+4);
       axis_iso->SetRange(iso+1,2);
+      //axis_cone->SetRange(5,5);
+      axis_e->SetRange(5,5);
       axis_prompt->SetRange(1,2);
       h_total[iso] = hn_photon->Projection(1);
       axis_prompt->SetRange(2,2);
@@ -57,6 +60,6 @@ void draw_Isolation()
     ipad++;
   }
 
-  c0->Print("plots/Isolation-PromptRatio.pdf");
-  c1->Print("plots/Isolation-IsoRatio.pdf");
+  c0->Print("plots/Isolation-Purity.pdf");
+  c1->Print("plots/Isolation-Efficiency.pdf");
 }
