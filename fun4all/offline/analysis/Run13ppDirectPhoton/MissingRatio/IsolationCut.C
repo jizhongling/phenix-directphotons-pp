@@ -50,7 +50,7 @@ IsolationCut::IsolationCut(const char *filename) : _ievent(0),
                                                    _tree_event_cluster(nullptr),
                                                    _tree_event_truth(nullptr),
 						   _truth_pid(0),
-						   _truth_parentid(0),
+						   _truth_parentpid(0),
 						   _truth_anclvl(0),
 						   _truth_ptot(0),
 						   _truth_pt(0),
@@ -85,23 +85,41 @@ int IsolationCut::Init(PHCompositeNode *topNode)
 
   _map_cluster_branches.insert( make_pair( "cluster_ecore" , dummy ) ); // cluster energy
   _map_cluster_branches.insert( make_pair( "cluster_pt" , dummy ) ); // cluster transverse momentum
+  _map_cluster_branches.insert( make_pair( "cluster_prob" , dummy ) ); // cluster em-like probability
   _map_cluster_branches.insert( make_pair( "cluster_rcone_r01" , dummy ) ); // cone radius
   _map_cluster_branches.insert( make_pair( "cluster_rcone_r02" , dummy ) ); // cone radius
   _map_cluster_branches.insert( make_pair( "cluster_rcone_r03" , dummy ) ); // cone radius
   _map_cluster_branches.insert( make_pair( "cluster_rcone_r04" , dummy ) ); // cone radius
   _map_cluster_branches.insert( make_pair( "cluster_rcone_r05" , dummy ) ); // cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_rcone_r06" , dummy ) ); // cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_rcone_r07" , dummy ) ); // cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_rcone_r08" , dummy ) ); // cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_rcone_r09" , dummy ) ); // cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_rcone_r10" , dummy ) ); // cone radius
   _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r01" , dummy ) ); // energy in EMCal clusters within cone radius
   _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r02" , dummy ) ); // energy in EMCal clusters within cone radius
   _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r03" , dummy ) ); // energy in EMCal clusters within cone radius
   _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r04" , dummy ) ); // energy in EMCal clusters within cone radius
   _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r05" , dummy ) ); // energy in EMCal clusters within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r06" , dummy ) ); // energy in EMCal clusters within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r07" , dummy ) ); // energy in EMCal clusters within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r08" , dummy ) ); // energy in EMCal clusters within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r09" , dummy ) ); // energy in EMCal clusters within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_emcal_r10" , dummy ) ); // energy in EMCal clusters within cone radius
   _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r01" , dummy ) ); // charged tracks momenta within cone radius
   _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r02" , dummy ) ); // charged tracks momenta within cone radius
   _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r03" , dummy ) ); // charged tracks momenta within cone radius
   _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r04" , dummy ) ); // charged tracks momenta within cone radius
   _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r05" , dummy ) ); // charged tracks momenta within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r06" , dummy ) ); // charged tracks momenta within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r07" , dummy ) ); // charged tracks momenta within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r08" , dummy ) ); // charged tracks momenta within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r09" , dummy ) ); // charged tracks momenta within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_econe_tracks_r10" , dummy ) ); // charged tracks momenta within cone radius
+  _map_cluster_branches.insert( make_pair( "cluster_truth_pdgpid" , dummy ) ); // pid of associated truth particle
+  _map_cluster_branches.insert( make_pair( "cluster_truth_pdgparentpid" , dummy ) ); // parent pid of associated truth particle
   _map_cluster_branches.insert( make_pair( "cluster_truth_pid" , dummy ) ); // pid of associated truth particle
-  _map_cluster_branches.insert( make_pair( "cluster_truth_parentid" , dummy ) ); // parent id of associated truth particle
+  _map_cluster_branches.insert( make_pair( "cluster_truth_parentpid" , dummy ) ); // parent pid of associated truth particle
   _map_cluster_branches.insert( make_pair( "cluster_truth_anclvl" , dummy ) ); // ancestry level of associated truth particle
 
   /* Create tree for information about full event */
@@ -126,7 +144,7 @@ int IsolationCut::Init(PHCompositeNode *topNode)
   /* Add event branches */
   _tree_event_truth->Branch( "event", &_ievent );
   _tree_event_truth->Branch( "pid", &_truth_pid );
-  _tree_event_truth->Branch( "parentid", &_truth_parentid );
+  _tree_event_truth->Branch( "parentpid", &_truth_parentpid );
   _tree_event_truth->Branch( "anclvl", &_truth_anclvl );
   _tree_event_truth->Branch( "ptot", &_truth_ptot );
   _tree_event_truth->Branch( "pt", &_truth_pt );
@@ -222,11 +240,11 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
 
       /* fill tree variables */
       _truth_pid = truth_particle_i->get_pid();
-      _truth_parentid = 0;
+      _truth_parentpid = 0;
       //      if ( truth_parent_i )
-      //	_truth_parentid = truth_parent_i->get_pid();
+      //	_truth_parentpid = truth_parent_i->get_pid();
       if ( truth_particle_i->get_parent_trkno() != 0 )
-	_truth_parentid = truth_particles->find( truth_particle_i->get_parent_trkno() )->get_pid();
+	_truth_parentpid = truth_particles->find( truth_particle_i->get_parent_trkno() )->get_pid();
       _truth_anclvl = truth_particle_i->get_anclvl();
       _truth_ptot = truth_particle_i->get_ptot();
       _truth_pt = truth_particle_i->get_pt();
@@ -288,6 +306,9 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       TVector3 cluster_pos( reco_emc_cluster_i->x(), reco_emc_cluster_i->y(), reco_emc_cluster_i->z() );
       float cluster_pt = cluster_ecore * ( cluster_pos.Perp() / cluster_pos.Mag() );
 
+      /* get cluster photon probability */
+      float cluster_prob = reco_emc_cluster_i->prob_photon();
+
       /* get pointer to truth cluster corresponding to this reco cluster */
       emcGeaClusterContent *truth_emc_cluster_i = truth_emcclusters->getCluster( icluster );
 
@@ -335,6 +356,11 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       float rcone_r03 = 0.3;
       float rcone_r04 = 0.4;
       float rcone_r05 = 0.5;
+      float rcone_r06 = 0.6;
+      float rcone_r07 = 0.7;
+      float rcone_r08 = 0.8;
+      float rcone_r09 = 0.9;
+      float rcone_r10 = 1.0;
 
       /* add up calorimeter energy in cone around cluster */
       double econe_emcal_r01 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r01 );
@@ -342,6 +368,11 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       double econe_emcal_r03 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r03 );
       double econe_emcal_r04 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r04 );
       double econe_emcal_r05 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r05 );
+      double econe_emcal_r06 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r06 );
+      double econe_emcal_r07 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r07 );
+      double econe_emcal_r08 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r08 );
+      double econe_emcal_r09 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r09 );
+      double econe_emcal_r10 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r10 );
 
       /* add up tracking energy in cone around cluster */
       double econe_track_r01 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r01 );
@@ -349,27 +380,50 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       double econe_track_r03 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r03 );
       double econe_track_r04 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r04 );
       double econe_track_r05 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r05 );
+      double econe_track_r06 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r06 );
+      double econe_track_r07 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r07 );
+      double econe_track_r08 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r08 );
+      double econe_track_r09 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r09 );
+      double econe_track_r10 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r10 );
 
       /* Update tree branch variables */
       _map_cluster_branches.find( "cluster_ecore" )->second = cluster_ecore;
       _map_cluster_branches.find( "cluster_pt" )->second = cluster_pt;
+      _map_cluster_branches.find( "cluster_prob" )->second = cluster_prob;
       _map_cluster_branches.find( "cluster_rcone_r01" )->second = rcone_r01;
       _map_cluster_branches.find( "cluster_rcone_r02" )->second = rcone_r02;
       _map_cluster_branches.find( "cluster_rcone_r03" )->second = rcone_r03;
       _map_cluster_branches.find( "cluster_rcone_r04" )->second = rcone_r04;
       _map_cluster_branches.find( "cluster_rcone_r05" )->second = rcone_r05;
+      _map_cluster_branches.find( "cluster_rcone_r06" )->second = rcone_r06;
+      _map_cluster_branches.find( "cluster_rcone_r07" )->second = rcone_r07;
+      _map_cluster_branches.find( "cluster_rcone_r08" )->second = rcone_r08;
+      _map_cluster_branches.find( "cluster_rcone_r09" )->second = rcone_r09;
+      _map_cluster_branches.find( "cluster_rcone_r10" )->second = rcone_r10;
       _map_cluster_branches.find( "cluster_econe_emcal_r01" )->second = econe_emcal_r01;
       _map_cluster_branches.find( "cluster_econe_emcal_r02" )->second = econe_emcal_r02;
       _map_cluster_branches.find( "cluster_econe_emcal_r03" )->second = econe_emcal_r03;
       _map_cluster_branches.find( "cluster_econe_emcal_r04" )->second = econe_emcal_r04;
       _map_cluster_branches.find( "cluster_econe_emcal_r05" )->second = econe_emcal_r05;
+      _map_cluster_branches.find( "cluster_econe_emcal_r06" )->second = econe_emcal_r06;
+      _map_cluster_branches.find( "cluster_econe_emcal_r07" )->second = econe_emcal_r07;
+      _map_cluster_branches.find( "cluster_econe_emcal_r08" )->second = econe_emcal_r08;
+      _map_cluster_branches.find( "cluster_econe_emcal_r09" )->second = econe_emcal_r09;
+      _map_cluster_branches.find( "cluster_econe_emcal_r10" )->second = econe_emcal_r10;
       _map_cluster_branches.find( "cluster_econe_tracks_r01" )->second = econe_track_r01;
       _map_cluster_branches.find( "cluster_econe_tracks_r02" )->second = econe_track_r02;
       _map_cluster_branches.find( "cluster_econe_tracks_r03" )->second = econe_track_r03;
       _map_cluster_branches.find( "cluster_econe_tracks_r04" )->second = econe_track_r04;
       _map_cluster_branches.find( "cluster_econe_tracks_r05" )->second = econe_track_r05;
+      _map_cluster_branches.find( "cluster_econe_tracks_r06" )->second = econe_track_r06;
+      _map_cluster_branches.find( "cluster_econe_tracks_r07" )->second = econe_track_r07;
+      _map_cluster_branches.find( "cluster_econe_tracks_r08" )->second = econe_track_r08;
+      _map_cluster_branches.find( "cluster_econe_tracks_r09" )->second = econe_track_r09;
+      _map_cluster_branches.find( "cluster_econe_tracks_r10" )->second = econe_track_r10;
+      _map_cluster_branches.find( "cluster_truth_pdgpid" )->second = 0;
+      _map_cluster_branches.find( "cluster_truth_pdgparentpid" )->second = 0;
       _map_cluster_branches.find( "cluster_truth_pid" )->second = pid_i;
-      _map_cluster_branches.find( "cluster_truth_parentid" )->second = parent_id;
+      _map_cluster_branches.find( "cluster_truth_parentpid" )->second = parent_id;
       _map_cluster_branches.find( "cluster_truth_anclvl" )->second = anclvl_i;
 
       /* Fill tree */
