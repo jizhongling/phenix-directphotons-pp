@@ -10,7 +10,7 @@ void anaMissingRatio(const int process = 0)
   gSystem->Load("libemcEmbed4all.so");
   gSystem->Load("libMissingRatio.so");
 
-  const int nThread = 15;
+  const int nThread = 20;
   char dstFileName[1000];
 
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -41,7 +41,8 @@ void anaMissingRatio(const int process = 0)
   // Reconstruction Module
   //se->registerSubsystem( new EmcGeaContainerImporter() );
   //SubsysReco *my1 = new MissingRatio("MissingRatio", Form("histo%d.root",process));
-  SubsysReco *my1 = new PhotonEff("PhotonEff", Form("histo%d.root",process));
+  //SubsysReco *my1 = new PhotonEff("PhotonEff", Form("histo%d.root",process));
+  SubsysReco *my1 = new Isolation("Isolation", Form("histo%d.root",process));
   se->registerSubsystem(my1);
 
   // Input Manager
@@ -51,8 +52,8 @@ void anaMissingRatio(const int process = 0)
   // Loop over input DST files
   for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
   {
-    //sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST%d.root", thread);
-    sprintf(dstFileName, "/phenix/plhf/zji/data/pisaRun13/simDST/simDST%d.root", thread);
+    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST%d.root", thread);
+    //sprintf(dstFileName, "/phenix/plhf/zji/data/pisaRun13/simDST/simDST%d.root", thread);
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DSTin1", dstFileName);

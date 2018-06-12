@@ -28,6 +28,9 @@ class AnaPHPythiaHistos: public SubsysReco
     // angle rcone around particle with vector vref
     double SumETruth(const TMCParticle* pref, double rcone);
 
+    // Fill two-particle correlation histogram
+    void FillCorrelation(const TMCParticle *pref, int type);
+
     void BookHistograms();
 
     // Some constants
@@ -42,6 +45,7 @@ class AnaPHPythiaHistos: public SubsysReco
     std::string outFileName;
     Fun4AllHistoManager *hm;
     THnSparse *hn_photon;
+    THnSparse *hn_corr;
 };
 
 #endif	/* __ANAPHPYTHIAHISTOS_H__ */

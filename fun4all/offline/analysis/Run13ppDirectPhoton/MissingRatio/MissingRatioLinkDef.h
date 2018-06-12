@@ -5,4 +5,6 @@
 
 #pragma link C++ class MissingRatio-!;
 #pragma link C++ class PhotonEff-!;
+#pragma link C++ class IsolationCut-!;
+#pragma link C++ class Isolation-!;
 #endif /* __CINT__ */
