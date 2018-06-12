@@ -61,8 +61,10 @@ class PhotonHistos: public SubsysReco
     bool TestPhoton(const emcClusterContent *cluster, double bbc_t0);
     bool DispCut(const emcClusterContent *cluster);
 
+    double SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont, double rcone);
+    double SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *tracks, double rcone);
+
     int GetStatus(const emcClusterContent *cluster);
-    double GetTrackConeEnergy(const PHCentralTrack *tracks, const emcClusterContent *cluster, double cone_angle);
     int GetPattern(int crossing);
 
     void UpdateSpinPattern(SpinDBContent &spin_cont);

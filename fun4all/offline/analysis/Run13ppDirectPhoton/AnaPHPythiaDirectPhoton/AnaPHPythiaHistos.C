@@ -111,7 +111,6 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
     // Test if particle is in Central Arm acceptance
     // and passes energy threshold
     if( part->GetEnergy() < 0.3 ||
-        v3_part.Pt() < 0.1 ||
         abs(v3_part.Eta()) > 0.35 ||
         (abs(v3_part.Phi()) > PI/4. &&
          abs(v3_part.Phi()) < PI*3./4.) )
@@ -193,9 +192,12 @@ double AnaPHPythiaHistos::SumETruth(const TMCParticle *pref, double rcone)
   // Sum up all energy in cone around particle
   double econe = 0;
 
+  // Get reference vector
   TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
+  TVector2 v2_pref = v3_pref.EtaPhiVector();
 
   int npart = phpythia->size();
+
   for (int ipart2=0; ipart2<npart; ipart2++)
   {
     TMCParticle *part2 = phpythia->getParticle(ipart2);
@@ -203,19 +205,20 @@ double AnaPHPythiaHistos::SumETruth(const TMCParticle *pref, double rcone)
     // Only consider stable particles, skip if pointer identical to 'reference' particle
     if( part2 != pref && part2->GetKS() == 1 )
     {
+      // Get particle vector
       TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
+      TVector2 v2_part2 = v3_part2.EtaPhiVector();
 
       // Test if particle is in Central Arm acceptance
       // and passes energy threshold
       if( part2->GetEnergy() < 0.3 ||
-          v3_part2.Pt() < 0.1 ||
-          abs(v3_part2.Eta()) > 0.35 ||
-          (abs(v3_part2.Phi()) > PI/4. &&
-           abs(v3_part2.Phi()) < PI*3./4.) )
+          abs(v2_part2.X()) > 0.35 ||
+          (abs(v2_part2.Y()) > PI/4. &&
+           abs(v2_part2.Y()) < PI*3./4.) )
         continue;
 
       // Check if particle within cone
-      if( v3_pref.Angle(v3_part2) < rcone )
+      if( (v2_part2-v2_pref).Mod() < rcone )
         econe += part2->GetEnergy();
     }
   }

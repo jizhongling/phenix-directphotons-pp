@@ -694,6 +694,11 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
           pT > 5. && pT < 10. )
         h2_cluster_eta_phi[part]->Fill(eta, phi);
 
+      double econe = SumEEmcal(cluster1, data_emccontainer, rcone) + SumPTrack(cluster1, data_tracks, rcone);
+      int isolated = 0;
+      if( econe < re * cluster1->ecore() )
+        isolated = 1;
+
       double fill_hn_1photon[] = {sector, pT, pattern, 0., evtype};
       hn_1photon->Fill(fill_hn_1photon);
       if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax )
@@ -1067,6 +1072,74 @@ bool PhotonHistos::TestPhoton(const emcClusterContent *cluster, double bbc_t0)
     return false;
 }
 
+double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont, double rcone)
+{ 
+  // Sum up all energy in cone around particle
+  double econe = 0.;
+
+  // Get reference vector
+  TLorentzVector pE_pref = anatools::Get_pE(cluster);
+  TVector2 v2_pref = pE_pref.EtaPhiVector();
+
+  int nclus = cluscont->size();
+
+  for (int iclus=0; iclus<nclus; iclus++)
+  {
+    emcClusterContent *clus2 = cluscont->getCluster(iclus);
+
+    // Skip if pointer identical to 'reference' particle
+    // or on bad towers or lower than energy threshold
+    if( clus2->id() == cluster->id() ||
+        GetStatus(clus2) > 0 ||
+        clus2->ecore() < 0.3 )
+      continue;
+
+    // Get cluster vector
+    TLorentzVector pE_part2 = anatools::Get_pE(clus2);
+    TVector2 v2_part2 = pE_part2.EtaPhiVector();
+
+    // Check if cluster within cone
+    if( (v2_part2-v2_pref).Mod() < rcone )
+      econe += clus2->ecore();
+  }
+
+  return econe;
+}
+
+double PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *tracks, double rcone)
+{ 
+  // Sum up all energy in cone around particle
+  double econe = 0.;
+
+  // Get reference vector
+  TLorentzVector pE_pref = anatools::Get_pE(cluster);
+  TVector2 v2_pref = pE_pref.EtaPhiVector();
+
+  int npart = tracks->get_npart();
+
+  for(int i=0; i<npart; i++)
+  {
+    double px = tracks->get_mompx(i);
+    double py = tracks->get_mompy(i);
+    double pz = tracks->get_mompz(i);
+    double mom = tracks->get_mom(i);
+
+    // Test if track passes the momentum cuts
+    if( mom < 0.3 || mom > 15. )
+      continue;
+
+    // Get track vector
+    TVector3 v3_track(px, py, pz);
+    TVector2 v2_track = v3_track.EtaPhiVector();
+
+    // Add track energy from clusters within cone range
+    if( (v2_track-v2_pref).Mod() < rcone )
+      econe += mom;
+  }
+
+  return econe;
+}
+
 int PhotonHistos::GetStatus(const emcClusterContent *cluster)
 {
   int arm = cluster->arm();
@@ -1076,38 +1149,6 @@ int PhotonHistos::GetStatus(const emcClusterContent *cluster)
   int izpos = cluster->izpos();
 
   return tower_status_sasha[sector][iypos][izpos];
-}
-
-double PhotonHistos::GetTrackConeEnergy(const PHCentralTrack *tracks, const emcClusterContent *cluster, double cone_angle)
-{ 
-  // get cluster angles in radians
-  double theta_emc = cluster->theta();
-  double phi_emc = cluster->phi();
-
-  // cone energy
-  double cone_energy = 0.;
-
-  int npart = tracks->get_npart();
-  for(int i=0; i<npart; i++)
-  {
-    double px = tracks->get_mompx(i);
-    double py = tracks->get_mompy(i);
-    double pz = tracks->get_mompz(i);
-    double mom = tracks->get_mom(i);
-
-    // get track angles in radians
-    if(px == 0.) continue;
-    double theta = mom > 0. ? acos(pz/mom) : 1.;
-    double phi = px > 0. ? atan(py/px) : PI+atan(py/px);
-
-    // add track energy from clusters within cone range
-    double dtheta = theta - theta_emc;
-    double dphi = phi - phi_emc;
-    if( sqrt(dtheta*dtheta + dphi*dphi) < cone_angle )
-      cone_energy += mom;
-  }
-
-  return cone_energy;
 }
 
 int PhotonHistos::GetPattern(int crossing)

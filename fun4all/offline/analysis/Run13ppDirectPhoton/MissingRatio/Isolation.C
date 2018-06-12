@@ -250,7 +250,10 @@ double Isolation::SumEEmcal(const AnaTrk *anatrk, double rcone)
   if(!emccluscont || !emcclus_pref)
     return 0.;
 
+  // Get reference vector
   TLorentzVector pE_pref = anatools::Get_pE(emcclus_pref);
+  TVector2 v2_pref = pE_pref.EtaPhiVector();
+
   int nemcclus = emccluscont->size();
 
   for (int iclus=0; iclus<nemcclus; iclus++)
@@ -258,19 +261,18 @@ double Isolation::SumEEmcal(const AnaTrk *anatrk, double rcone)
     emcGeaClusterContent *emcclus2 = emccluscont->getCluster(iclus);
 
     // Skip if pointer identical to 'reference' particle
-    // or on bad towers
+    // or on bad towers or lower than energy threshold
     if( emcclus2->id() == anatrk->cid ||
-        anatrk->cid < 0 )
+        anatrk->cid < 0 ||
+        emcclus2->ecore() < 0.3 )
       continue;
 
+    // Get cluster vector
     TLorentzVector pE_part2 = anatools::Get_pE(emcclus2);
+    TVector2 v2_part2 = pE_part2.EtaPhiVector();
 
-    // Test if particle passes energy threshold
-    if( emcclus2->ecore() < 0.3 )
-      continue;
-
-    // Check if particle within cone
-    if( pE_pref.Angle(pE_part2.Vect()) < rcone )
+    // Check if cluster within cone
+    if( (v2_part2-v2_pref).Mod() < rcone )
       econe += emcclus2->ecore();
   }
 
@@ -287,7 +289,10 @@ double Isolation::SumPTrack(const AnaTrk *anatrk, const PHCentralTrack *tracks, 
   if(!emcclus_pref)
     return 0.;
 
+  // Get reference vector
   TLorentzVector pE_pref = anatools::Get_pE(emcclus_pref);
+  TVector2 v2_pref = pE_pref.EtaPhiVector();
+
   int ntrk = tracks->get_npart();
 
   for (int itrk=0; itrk<ntrk; itrk++)
@@ -297,14 +302,16 @@ double Isolation::SumPTrack(const AnaTrk *anatrk, const PHCentralTrack *tracks, 
     double pz = tracks->get_mompz(itrk);
     double mom = tracks->get_mom(itrk);
 
-    TVector3 v3_part2(px, py, pz);
-
-    // Test if particle passes momentum cuts
+    // Test if track passes momentum cuts
     if( mom < 0.3 || mom > 15. )
       continue;
 
+    // Get track vector
+    TVector3 v3_part2(px, py, pz);
+    TVector2 v2_part2 = v3_part2.EtaPhiVector();
+
     // Check if particle within cone
-    if( pE_pref.Angle(v3_part2) < rcone )
+    if( (v2_part2-v2_pref).Mod() < rcone )
       econe += mom;
   }
 
