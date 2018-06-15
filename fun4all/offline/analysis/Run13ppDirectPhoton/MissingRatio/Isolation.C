@@ -265,7 +265,7 @@ double Isolation::SumEEmcal(const AnaTrk *anatrk, double rcone)
     // or on bad towers or lower than energy threshold
     if( emcclus2->id() == anatrk->cid ||
         anatrk->cid < 0 ||
-        emcclus2->ecore() < 0.3 )
+        emcclus2->ecore() < 0.15 )
       continue;
 
     // Get cluster vector
@@ -300,13 +300,14 @@ double Isolation::SumPTrack(const AnaTrk *anatrk, const PHCentralTrack *tracks, 
 
   for (int itrk=0; itrk<ntrk; itrk++)
   {
-    double px = tracks->get_mompx(itrk);
-    double py = tracks->get_mompy(itrk);
-    double pz = tracks->get_mompz(itrk);
+    double px = tracks->get_px(itrk);
+    double py = tracks->get_py(itrk);
+    double pz = tracks->get_pz(itrk);
     double mom = tracks->get_mom(itrk);
+    //cout << px << "\t" << py << "\t" << pz << "\t" << mom << endl;
 
     // Test if track passes momentum cuts
-    if( mom < 0.3 || mom > 15. )
+    if( mom < 0.2 || mom > 15. )
       continue;
 
     // Get track vector
