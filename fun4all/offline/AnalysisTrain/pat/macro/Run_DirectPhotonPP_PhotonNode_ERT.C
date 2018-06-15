@@ -7,7 +7,7 @@ void Run_DirectPhotonPP_PhotonNode_ERT(const char *filename = "num.root")
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(0);
 
-  PhotonNode *my1 = new PhotonNode("PHOTONNODE");
+  PhotonNode *my1 = new PhotonNode("PhotonNode");
   my1->SelectERT();
   se->registerSubsystem(my1);
 

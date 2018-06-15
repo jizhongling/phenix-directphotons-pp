@@ -4,7 +4,7 @@ Executable      = /phenix/u/zji/bin/condor-root.csh
 Arguments       = $(Initialdir) anaMissingRatio.C $(Process)
 Requirements    = (CPU_Speed >= 1 && TotalDisk > 0)
 Rank		= CPU_Speed
-Image_Size      = 48M
+Image_Size      = 32M
 Priority        = +20
 GetEnv          = False
 Initialdir      = $ENV(PWD)

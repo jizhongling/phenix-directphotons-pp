@@ -14,21 +14,21 @@ noinst_HEADERS = \
   MissingRatio.h \
   PhotonEff.h \
   IsolationCut.h \
+  Isolation.h \
   AnaTrk.h \
   AnaToolsTowerID.h \
   AnaToolsCluster.h \
-  MissingRatioLinkDef.h \
-  IsolationCutLinkDef.h
+  MissingRatioLinkDef.h
 
 libMissingRatio_la_SOURCES = \
   MissingRatio.C \
   PhotonEff.C \
-  IsolationCut.C
+  IsolationCut.C \
+  Isolation.C
 
 nodist_libMissingRatio_la_SOURCES = \
   AnaTrk.C \
-  MissingRatio_Dict.C \
-  IsolationCut_Dict.C
+  MissingRatio_Dict.C
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -64,12 +64,9 @@ testexternals.C:
 MissingRatio_Dict.C: \
   MissingRatio.h \
   PhotonEff.h \
-  MissingRatioLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-IsolationCut_Dict.C: \
   IsolationCut.h \
-  IsolationCutLinkDef.h
+  Isolation.h \
+  MissingRatioLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 CLEANFILES = *Dict* testexternals*

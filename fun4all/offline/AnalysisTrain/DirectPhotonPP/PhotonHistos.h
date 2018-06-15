@@ -6,7 +6,6 @@
 class EmcLocalRecalibrator;
 class EmcLocalRecalibratorSasha;
 
-class PhotonContainer;
 class SpinPattern;
 class SpinDBContent;
 
@@ -28,7 +27,7 @@ class THnSparse;
 class PhotonHistos: public SubsysReco
 {
   public:
-    PhotonHistos(const std::string &name = "PHOTONHISTOS", const char *filename = "PhotonHistos.root");
+    PhotonHistos(const std::string &name = "PhotonHistos", const char *filename = "PhotonHistos.root");
     virtual ~PhotonHistos();
 
     int Init(PHCompositeNode *topNode);
@@ -36,66 +35,74 @@ class PhotonHistos: public SubsysReco
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
 
+    /* Select to run on MinBias or ERT sample */
     void SelectMB();
     void SelectERT();
 
   protected:
+    /* ToF and energy calibration */
     int FillClusterTofSpectrum(const emcClusterContainer *data_emccontainer, const PHGlobal *data_global, const std::string &qualii = "");
     int FillPi0InvariantMass(const emcClusterContainer *data_emccontainer, const PHGlobal *data_global, const std::string &quali = "");
+
+    /* BBC and ERT trigger efficiency */
     int FillBBCEfficiency(const emcClusterContainer *data_emccontainer, const TrigLvl1 *data_triggerlvl1);
     int FillERTEfficiency(const emcClusterContainer *data_emccontainer, const PHGlobal *data_global,
         const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, const int evtype);
+
+    /* Check tower energy distribution*/
     int FillTowerEnergy(const emcClusterContainer *data_emccontainer, const emcTowerContainer *data_emctwrcontainer,
         const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
+
+    /* Count pi0 yield */
     int FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
         const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, const int evtype);
-    int FillPhotonSpectrum(const emcClusterContainer *data_emccontainer,
+
+    /* Count direct photon yield */
+    int FillPhotonSpectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
         const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, const int evtype);
 
+    /* Create histograms */
     void BookHistograms();
+
+    /* Sum energy in cone around the reference particle
+     * for isolated photon and isolated pair */
+    double SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont);
+    void SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2,
+        const emcClusterContainer *cluscont, double &econe1, double &econe2);
+    double SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *tracks);
+
+    /* Check event type and photon cuts */
+    bool IsEventType(const int evtype, const TrigLvl1 *data_triggerlvl1);
+    bool TestPhoton(const emcClusterContent *cluster, double bbc_t0);
+
+    /* Get warnmap status and spin pattern */
+    int GetStatus(const emcClusterContent *cluster);
+    int GetPattern(int crossing);
+
+    /* Setup energy and ToF calibrator and read warnmap */
     void EMCRecalibSetup();
     void ReadTowerStatus(const std::string &filename);
     void ReadSashaWarnmap(const std::string &filename);
 
-    bool IsEventType(const int evtype, const TrigLvl1 *data_triggerlvl1);
-    bool TestPhoton(const emcClusterContent *cluster, double bbc_t0);
-    bool DispCut(const emcClusterContent *cluster);
-
-    int GetStatus(const emcClusterContent *cluster);
-    double GetTrackConeEnergy(const PHCentralTrack *tracks, const emcClusterContent *cluster, double cone_angle);
-    int GetPattern(int crossing);
-
+    /* Update spin pattern information and store in class */
     void UpdateSpinPattern(SpinDBContent &spin_cont);
-
-    // some constants
-    static const double PI = 3.14151927;
-    static const int NSEC = 8;
-    static const int NY = 48;
-    static const int NZ = 96;
-
-    // some cuts
-    static const double eMin = 0.3;
-    static const double probMin = 0.02;
-    static const double tofMax = 10.;
-    static const double AsymCut = 0.8;
-
-    // triger bit
-    static const unsigned bit_ppg = 0x70000000;
-    static const unsigned bit_bbcnarrow = 0x00000010;
-    static const unsigned bit_bbcnovtx = 0x00000002;
-    static const unsigned bit_ert4x4[3];  // ert4x4a/b/c
 
     enum DataType {MB, ERT};
     DataType datatype;
 
+    // Tower status for warnmap
+    int tower_status[8][48][96];
+    int tower_status_sasha[8][48][96];
+
+    /* EMCal recalibrator and spin information*/
     EmcLocalRecalibrator *emcrecalib;
     EmcLocalRecalibratorSasha *emcrecalib_sasha;
-    PhotonContainer *photoncont;
     SpinPattern *spinpattern;
 
     int runnumber;
     int fillnumber;
 
+    /* Output histograms */
     std::string outFile;
     Fun4AllHistoManager *hm;
     TH1 *h_events;
@@ -105,7 +112,7 @@ class PhotonHistos: public SubsysReco
     TH3 *h3_minv_raw;
     TH3 *h3_bbc;
     THnSparse *hn_bbc_pion;
-    TH3 *h3_ert;
+    THnSparse *hn_ert;
     THnSparse *hn_ert_pion;
     TH2 *h2_photon_eta_phi[3];
     TH2 *h2_cluster_eta_phi[3];
@@ -114,10 +121,6 @@ class PhotonHistos: public SubsysReco
     THnSparse *hn_1photon;
     THnSparse *hn_2photon;
     THnSparse *hn_photonbg;
-
-    // tower status for warnmap
-    int tower_status[8][48][96];
-    int tower_status_sasha[8][48][96];
 };
 
 #endif /* __PHOTONHISTOS_H__ */
