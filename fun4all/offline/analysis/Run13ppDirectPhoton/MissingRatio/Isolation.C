@@ -135,10 +135,10 @@ int Isolation::process_event(PHCompositeNode *topNode)
       prompt = 1;
 
     // Fill for different cone angle and energy fraction
-    for(int icone=0; icone<10; icone++)
+    for(int icone=0; icone<11; icone++)
       for(int ie=0; ie<20; ie++)
       {
-        double rcone = (icone+1) * 0.1;
+        double rcone = icone * 0.1;
         double econe = SumEEmcal(anatrk, rcone) + SumPTrack(anatrk, data_tracks, rcone);
         double re = (ie+1) * 0.02;
         int isolated = 0;
@@ -177,8 +177,8 @@ void Isolation::BookHistograms()
     5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
     12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
 
-  const int nbins_hn_photon[] = {npT, 10, 20, 2, 2};
-  const double xmin_hn_photon[] = {0., 0.05, 0.01, -0.5, -0.5};
+  const int nbins_hn_photon[] = {npT, 11, 20, 2, 2};
+  const double xmin_hn_photon[] = {0., -0.05, 0.01, -0.5, -0.5};
   const double xmax_hn_photon[] = {0., 1.05, 0.41, 1.5, 1.5};
   hn_photon = new THnSparseF("hn_photon", "Photon counts;p_{T} [GeV];rcone;renergy;isolated;prompt;",
       5, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
