@@ -7,7 +7,7 @@ void Run_DirectPhotonPP_PhotonHistos_ERT(const char *filename = "num.root")
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(0);
 
-  PhotonHistos *my1 = new PhotonHistos("PHOTONHISTOS", filename);
+  PhotonHistos *my1 = new PhotonHistos("PhotonHistos", filename);
   my1->SelectERT();
   se->registerSubsystem(my1);
 }

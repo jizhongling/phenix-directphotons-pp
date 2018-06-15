@@ -15,7 +15,7 @@ class PHCompositeNode;
 class PhotonNode: public SubsysReco
 {
   public:
-    PhotonNode(const std::string &name = "PHOTONNODE");
+    PhotonNode(const std::string &name = "PhotonNode");
     virtual ~PhotonNode();
 
     int Init(PHCompositeNode *topNode);
