@@ -214,7 +214,7 @@ double AnaPHPythiaHistos::SumETruth(const TMCParticle *pref, double rcone)
 
       // Test if particle is in Central Arm acceptance
       // and passes energy threshold
-      if( part2->GetEnergy() < 0.3 ||
+      if( part2->GetEnergy() < 0.15 ||
           abs(v2_part2.X()) > 0.35 ||
           (abs(v2_part2.Y()) > PI/4. &&
            abs(v2_part2.Y()) < PI*3./4.) )

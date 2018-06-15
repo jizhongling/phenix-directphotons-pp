@@ -723,7 +723,9 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
 
       TLorentzVector pE = anatools::Get_pE(cluster1);
       double pT = pE.Pt();
-      double eta = pE.Eta();
+      double eta = 9999.;
+      if( pT > 0.01 )
+        eta = pE.Eta();
       double phi = pE.Phi();
       if(sector >= 4)
       {
@@ -1104,10 +1106,11 @@ double PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentral
 
   for(int i=0; i<npart; i++)
   {
-    double px = tracks->get_mompx(i);
-    double py = tracks->get_mompy(i);
-    double pz = tracks->get_mompz(i);
+    double px = tracks->get_px(i);
+    double py = tracks->get_py(i);
+    double pz = tracks->get_pz(i);
     double mom = tracks->get_mom(i);
+    //cout << px << "\t" << py << "\t" << pz << "\t" << mom << endl;
 
     /* Test if track passes the momentum cuts */
     if( mom < eTrkMin || mom > eTrkMax )
