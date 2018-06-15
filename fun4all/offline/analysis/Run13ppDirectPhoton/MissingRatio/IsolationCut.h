@@ -75,7 +75,7 @@ protected:
 
   /** truth tree variables */
   float _truth_pid;
-  float _truth_parentid;
+  float _truth_parentpid;
   float _truth_anclvl;
   float _truth_ptot;
   float _truth_pt;
