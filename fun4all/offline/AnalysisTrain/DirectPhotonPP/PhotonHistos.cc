@@ -1018,6 +1018,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
 
   /* Get reference vector */
   TLorentzVector pE_pref = anatools::Get_pE(cluster);
+  if( pE_pref.Pt() < 0.01 ) return econe;
   TVector2 v2_pref = pE_pref.EtaPhiVector();
 
   int nclus = cluscont->size();
@@ -1035,6 +1036,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
 
     /* Get cluster vector */
     TLorentzVector pE_part2 = anatools::Get_pE(clus2);
+    if( pE_part2.Pt() < 0.01 ) continue;
     TVector2 v2_part2 = pE_part2.EtaPhiVector();
 
     /* Check if cluster within cone */
@@ -1054,8 +1056,9 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
 
   /* Get reference vector */
   TLorentzVector pE_pref1 = anatools::Get_pE(cluster1);
-  TVector2 v2_pref1 = pE_pref1.EtaPhiVector();
   TLorentzVector pE_pref2 = anatools::Get_pE(cluster2);
+  if( pE_pref1.Pt() < 0.01 || pE_pref2.Pt() < 0.01 ) return;
+  TVector2 v2_pref1 = pE_pref1.EtaPhiVector();
   TVector2 v2_pref2 = pE_pref2.EtaPhiVector();
 
   int nclus = cluscont->size();
@@ -1074,6 +1077,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
 
     /* Get cluster vector */
     TLorentzVector pE_part3 = anatools::Get_pE(clus3);
+    if( pE_part3.Pt() < 0.01 ) continue;
     TVector2 v2_part3 = pE_part3.EtaPhiVector();
 
     /* Check if cluster within cone */
@@ -1093,6 +1097,7 @@ double PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentral
 
   /* Get reference vector */
   TLorentzVector pE_pref = anatools::Get_pE(cluster);
+  if( pE_pref.Pt() < 0.01 ) return econe;
   TVector2 v2_pref = pE_pref.EtaPhiVector();
 
   int npart = tracks->get_npart();
@@ -1110,6 +1115,7 @@ double PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentral
 
     /* Get track vector */
     TVector3 v3_track(px, py, pz);
+    if( v3_track.Pt() < 0.01 ) continue;
     TVector2 v2_track = v3_track.EtaPhiVector();
 
     /* Add track energy from clusters within cone range */

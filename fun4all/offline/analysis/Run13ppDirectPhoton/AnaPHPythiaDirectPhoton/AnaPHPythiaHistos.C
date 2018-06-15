@@ -111,6 +111,7 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
     // Test if particle is in Central Arm acceptance
     // and passes energy threshold
     if( part->GetEnergy() < 0.3 ||
+        v3_part.Pt() < 0.01 ||
         abs(v3_part.Eta()) > 0.35 ||
         (abs(v3_part.Phi()) > PI/4. &&
          abs(v3_part.Phi()) < PI*3./4.) )
@@ -194,6 +195,7 @@ double AnaPHPythiaHistos::SumETruth(const TMCParticle *pref, double rcone)
 
   // Get reference vector
   TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
+  if( v3_pref.Pt() < 0.01 ) return econe;
   TVector2 v2_pref = v3_pref.EtaPhiVector();
 
   int npart = phpythia->size();
@@ -207,6 +209,7 @@ double AnaPHPythiaHistos::SumETruth(const TMCParticle *pref, double rcone)
     {
       // Get particle vector
       TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
+      if( v3_part2.Pt() < 0.01 ) continue;
       TVector2 v2_part2 = v3_part2.EtaPhiVector();
 
       // Test if particle is in Central Arm acceptance
@@ -243,7 +246,7 @@ void AnaPHPythiaHistos::FillCorrelation(const TMCParticle *pref, int type)
       // Test if particle is in Central Arm acceptance
       // and passes energy threshold
       if( part2->GetEnergy() < 0.3 ||
-          v3_part2.Pt() < 0.1 ||
+          v3_part2.Pt() < 0.01 ||
           abs(v3_part2.Eta()) > 0.35 ||
           (abs(v3_part2.Phi()) > PI/4. &&
            abs(v3_part2.Phi()) < PI*3./4.) )

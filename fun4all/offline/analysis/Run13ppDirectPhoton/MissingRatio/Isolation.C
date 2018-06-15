@@ -252,6 +252,7 @@ double Isolation::SumEEmcal(const AnaTrk *anatrk, double rcone)
 
   // Get reference vector
   TLorentzVector pE_pref = anatools::Get_pE(emcclus_pref);
+  if( pE_pref.Pt() < 0.01 ) return econe;
   TVector2 v2_pref = pE_pref.EtaPhiVector();
 
   int nemcclus = emccluscont->size();
@@ -269,6 +270,7 @@ double Isolation::SumEEmcal(const AnaTrk *anatrk, double rcone)
 
     // Get cluster vector
     TLorentzVector pE_part2 = anatools::Get_pE(emcclus2);
+    if( pE_part2.Pt() < 0.01 ) continue;
     TVector2 v2_part2 = pE_part2.EtaPhiVector();
 
     // Check if cluster within cone
@@ -291,6 +293,7 @@ double Isolation::SumPTrack(const AnaTrk *anatrk, const PHCentralTrack *tracks, 
 
   // Get reference vector
   TLorentzVector pE_pref = anatools::Get_pE(emcclus_pref);
+  if( pE_pref.Pt() < 0.01 ) return econe;
   TVector2 v2_pref = pE_pref.EtaPhiVector();
 
   int ntrk = tracks->get_npart();
@@ -308,6 +311,7 @@ double Isolation::SumPTrack(const AnaTrk *anatrk, const PHCentralTrack *tracks, 
 
     // Get track vector
     TVector3 v3_part2(px, py, pz);
+    if( v3_part2.Pt() < 0.01 ) continue;
     TVector2 v2_part2 = v3_part2.EtaPhiVector();
 
     // Check if particle within cone
