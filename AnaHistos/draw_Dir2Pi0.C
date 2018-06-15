@@ -1,6 +1,7 @@
 void draw_Dir2Pi0()
 {
   const Double_t PI = TMath::Pi();
+  const Double_t jetphox_scale = 1./200.;  // combined 200 histograms
   const char *fname[3] = {"halfpt", "onept", "twopt"};
 
   TGraph *gr_sasha = new TGraph("data/sasha-cross.txt");
@@ -15,7 +16,7 @@ void draw_Dir2Pi0()
 
     TFile *f_ph = new TFile( Form("data/isoprompt-%s.root",fname[imu]) );
     TH1 *h_ph = (TH1*)f_ph->Get("hp41");
-    h_ph->Scale(1./200.);
+    h_ph->Scale(jetphox_scale);
 
     for(Int_t ipt=12; ipt<30; ipt++)
     {
