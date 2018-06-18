@@ -250,14 +250,26 @@ int PhotonHistos::process_event(PHCompositeNode *topNode)
   /* Fill BBC and ERT trigger counts */
   if( datatype == ERT )
   {
-    if( (lvl1_live & bit_bbcnarrow) && abs(bbc_z) < 10. )
+    if( (lvl1_live & bit_bbcnarrow) )
     {
-      if( lvl1_scaled & bit_ert4x4[0] )
-        h_events->Fill("ert_a", 1.);
-      if( lvl1_scaled & bit_ert4x4[1] )
-        h_events->Fill("ert_b", 1.);
-      if( lvl1_scaled & bit_ert4x4[2] )
-        h_events->Fill("ert_c", 1.);
+      if( abs(bbc_z) < 10. )
+      {
+        if( lvl1_scaled & bit_ert4x4[0] )
+          h_events->Fill("ert_a_10cm", 1.);
+        if( lvl1_scaled & bit_ert4x4[1] )
+          h_events->Fill("ert_b_10cm", 1.);
+        if( lvl1_scaled & bit_ert4x4[2] )
+          h_events->Fill("ert_c_10cm", 1.);
+      }
+      if( abs(bbc_z) < 30. )
+      {
+        if( lvl1_scaled & bit_ert4x4[0] )
+          h_events->Fill("ert_a_30cm", 1.);
+        if( lvl1_scaled & bit_ert4x4[1] )
+          h_events->Fill("ert_b_30cm", 1.);
+        if( lvl1_scaled & bit_ert4x4[2] )
+          h_events->Fill("ert_c_30cm", 1.);
+      }
     }
   }
   else if( datatype == MB )
@@ -568,8 +580,8 @@ int PhotonHistos::FillTowerEnergy(const emcClusterContainer *data_emccontainer, 
   for(unsigned i=0; i<ncluster; i++)
   {
     emcClusterContent *cluster = data_emccontainer->getCluster(i);
-    if( cluster->ecore() > eMin &&
-        GetStatus(cluster) == 0 )
+    if( GetStatus(cluster) == 0 &&
+        cluster->ecore() > eMin )
     {
       double pT = anatools::Get_pT(cluster);
       double tof = cluster->tofcorr();
@@ -712,7 +724,8 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
   for(unsigned i=0; i<ncluster; i++)
   {
     emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
-    if( GetStatus(cluster1) == 0 )
+    if( GetStatus(cluster1) == 0 &&
+        cluster1->ecore() > eMin )
     {
       int sector = anatools::GetSector(cluster1);
       int part = -1;
@@ -774,7 +787,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
         if(j != i)
         {
           emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
-          if( GetStatus(cluster2) != 0 ) continue;
+          if( GetStatus(cluster2) != 0 || cluster2->ecore() < eMin ) continue;
           double minv = anatools::GetInvMass(cluster1, cluster2);
 
           double econeEM2 = SumEEmcal(cluster2, data_emccontainer);
@@ -888,10 +901,13 @@ void PhotonHistos::BookHistograms()
   /* Events counter */
   if( datatype == ERT )
   {
-    h_events = new TH1F("h_events", "Events counter", 3,-0.5,2.5);
-    h_events->GetXaxis()->SetBinLabel(1, "ert_a");
-    h_events->GetXaxis()->SetBinLabel(2, "ert_b");
-    h_events->GetXaxis()->SetBinLabel(3, "ert_c");
+    h_events = new TH1F("h_events", "Events counter", 6,-0.5,5.5);
+    h_events->GetXaxis()->SetBinLabel(1, "ert_a_10cm");
+    h_events->GetXaxis()->SetBinLabel(2, "ert_b_10cm");
+    h_events->GetXaxis()->SetBinLabel(3, "ert_c_10cm");
+    h_events->GetXaxis()->SetBinLabel(4, "ert_a_30cm");
+    h_events->GetXaxis()->SetBinLabel(5, "ert_b_30cm");
+    h_events->GetXaxis()->SetBinLabel(6, "ert_c_30cm");
   }
   else if( datatype == MB )
   {
@@ -1184,7 +1200,7 @@ int PhotonHistos::GetPattern(int crossing)
 void PhotonHistos::EMCRecalibSetup()
 {
   TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  toad_loader->SetVerbosity(1);
+  toad_loader->SetVerbosity(0);
 
   string file_ecal_run = toad_loader->location("Run13pp_RunbyRun_Calib.dat");
   string file_tofmap = toad_loader->location("Run13pp510_EMC_TOF_Correction.root");
@@ -1215,6 +1231,7 @@ void PhotonHistos::ReadTowerStatus(const string &filename)
   int status = 0;
 
   TOAD *toad_loader = new TOAD("DirectPhotonPP");
+  toad_loader->SetVerbosity(0);
   string file_location = toad_loader->location(filename);
   cout << "TOAD file location: " << file_location << endl;
   ifstream fin( file_location.c_str() );
@@ -1249,6 +1266,7 @@ void PhotonHistos::ReadSashaWarnmap(const string &filename)
   int status = 0;
 
   TOAD *toad_loader = new TOAD("DirectPhotonPP");
+  toad_loader->SetVerbosity(0);
   string file_location = toad_loader->location(filename);
   cout << "TOAD file location: " << file_location << endl;
   ifstream fin( file_location.c_str() );
@@ -1275,6 +1293,10 @@ void PhotonHistos::ReadSashaWarnmap(const string &filename)
       else nBadGl++;
     }
     tower_status_sasha[sector][biny][binz] = status;
+
+    // mark edge towers
+    if( anatools::Edge_cg(sector, biny, binz) )
+      tower_status_sasha[sector][biny][binz] = 20;
   }
 
   //cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;

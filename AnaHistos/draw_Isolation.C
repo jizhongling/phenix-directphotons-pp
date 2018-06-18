@@ -2,8 +2,8 @@
 
 void draw_Isolation()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaPHPythiaDirectPhoton-macros/AnaPHPythia-histo.root");
-  //TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/Isolation-histo.root");
+  //TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaPHPythiaDirectPhoton-macros/AnaPHPythia-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/Isolation-histo.root");
 
   THnSparse *hn_photon = (THnSparse*)f->Get("hn_photon");
   TAxis *axis_pt = hn_photon->GetAxis(0);
@@ -61,6 +61,6 @@ void draw_Isolation()
     ipad++;
   }
 
-  c0->Print("plots/Isolation-Purity.pdf");
-  c1->Print("plots/Isolation-Efficiency.pdf");
+  c0->Print("plots/Isolation-PISA-Purity.pdf");
+  c1->Print("plots/Isolation-PISA-Efficiency.pdf");
 }

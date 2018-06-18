@@ -1,10 +1,10 @@
 Universe        = vanilla
 Notification    = Complete
-Executable      = /phenix/u/zji/bin/condor-root.csh
-Arguments       = $(Initialdir) anaYieldCmpByRun.C $(Process)
-Requirements    = (CPU_Speed >= 1 && TotalDisk > 0)
+Executable      = /phenix/u/zji/bin/condor-bash.csh
+Arguments       = $(Initialdir) myhadd.sh $(Process)
+Requirements    = (CPU_Speed >= 2 && TotalDisk > 0)
 Rank		= CPU_Speed
-Image_Size      = 32M
+Image_Size      = 64M
 Priority        = +20
 GetEnv          = False
 Initialdir      = $ENV(PWD)
@@ -15,4 +15,4 @@ Log             = /dev/null
 Notify_user     = zji@rcf.rhic.bnl.gov
 +Experiment     = "phenix"
 +Job_Type       = "cas"
-Queue 51
+Queue 88

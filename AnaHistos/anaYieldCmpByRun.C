@@ -28,7 +28,8 @@ void anaYieldCmpByRun(const Int_t process = 0)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    TFile *f_mine = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
+    //TFile *f_mine = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
+    TFile *f_mine = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13527/data/PhotonHistos-%d.root",runnumber));
     TFile *f_sasha = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510ERT/12232/data/Pi0PP-%d.root",runnumber));
     if( f_mine->IsZombie() || f_sasha->IsZombie() ) continue;
 
@@ -42,11 +43,14 @@ void anaYieldCmpByRun(const Int_t process = 0)
     TAxis *axis_sec = hn_pion->GetAxis(0);
     TAxis *axis_pt = hn_pion->GetAxis(1);
     TAxis *axis_minv = hn_pion->GetAxis(2);
-    TAxis *axis_cut = hn_pion->GetAxis(3);
-    TAxis *axis_type = hn_pion->GetAxis(4);
+    TAxis *axis_pattern = hn_pion->GetAxis(3);
+    TAxis *axis_cut = hn_pion->GetAxis(4);
+    TAxis *axis_type = hn_pion->GetAxis(5);
+    TAxis *axis_bbc10cm = hn_pion->GetAxis(6);
 
     for(Int_t part=0; part<3; part++)
     {
+      axis_bbc10cm->SetRange(2,2);
       axis_type->SetRange(3,3);
       axis_cut->SetRange(4,4);
       axis_sec->SetRange(secl[part],sech[part]);

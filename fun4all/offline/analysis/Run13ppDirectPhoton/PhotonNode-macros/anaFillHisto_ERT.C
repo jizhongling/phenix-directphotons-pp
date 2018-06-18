@@ -23,7 +23,7 @@ void anaFillHisto_ERT(const int process = 0)
   se->Verbosity(0);
 
   // Reconstruction Module
-  FillHisto *my1 = new FillHisto("FillHisto", Form("histo%d.root",process));
+  FillHisto *my1 = new FillHisto("FillHisto_TAXI");
   my1->SelectERT();
   se->registerSubsystem(my1);
 

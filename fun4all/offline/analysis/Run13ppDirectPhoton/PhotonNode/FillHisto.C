@@ -28,6 +28,7 @@
 
 #include <ctime>
 #include <cmath>
+#include <cstring>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
@@ -39,7 +40,7 @@ const double PI = TMath::Pi();
 const double eMin = 0.3;
 const double AsymCut = 0.8;
 
-FillHisto::FillHisto(const string &name, const char *filename) :
+FillHisto::FillHisto(const string &name) :
   SubsysReco(name),
   hm(NULL),
   emcrecalib(NULL),
@@ -646,13 +647,23 @@ int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int e
 int FillHisto::EndRun(const int runnumber)
 {
   // Write histograms to file for this run
-  // and reset histograms for the next run
   char fname[200];
-  if( datatype == ERT )
-    sprintf(fname, "histos-ERT/PhotonNode-%d.root", runnumber);
-  else if( datatype == MB )
-    sprintf(fname, "histos-MB/PhotonNode-%d.root", runnumber);
-  hm->dumpHistos(fname);
+  strcpy(fname, "");
+  if( strcmp(Name(), "FillHisto_TAXI") == 0 )
+  {
+    if( datatype == ERT )
+      sprintf(fname, "histos-ERT/PhotonNode-%d.root", runnumber);
+    else if( datatype == MB )
+      sprintf(fname, "histos-MB/PhotonNode-%d.root", runnumber);
+  }
+  else if( strcmp(Name(), "FillHisto_Sample") == 0 )
+  {
+    sprintf(fname, "histos-sample/PhotonNode-%d.root", runnumber);
+  }
+  if( strlen(fname) > 0 )
+    hm->dumpHistos(fname);
+
+  // Reset histograms for the next run
   hm->Reset();
 
   return EVENT_OK;
