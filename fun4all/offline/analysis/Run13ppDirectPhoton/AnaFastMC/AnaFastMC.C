@@ -53,8 +53,8 @@ const double AsymCut = 0.8;
 AnaFastMC::AnaFastMC(const string &name):
   SubsysReco(name),
   outFileName("histos/AnaFastMC-"),
-  mcmethod(PHParticleGen),
-  warnmap(Nils),
+  mcmethod(FastMC),
+  warnmap(Sim),
   phpythiaheader(NULL),
   phpythia(NULL),
   hm(NULL),

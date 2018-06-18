@@ -1,20 +1,21 @@
 #!/bin/bash
-# Function: Combine 20 root files.
+# Function: Combine $NFiles root files.
 # Usage: $0 $(Process)
 
 set -o errexit
 set -o nounset
 set -o pipefail
 
-cd "histos-ERT"
+outdir="$(pwd)/histos-TAXI"
+cd "$SPIN/taxi/Run13pp510ERT/13527/data"
 
-prename="PhotonNode-"
+prename="PhotonHistos-"
+NFiles=10
 files=""
 count=0
-start=$(( $1 * 20 ))
-end=$(( ($1+1) * 20 ))
+start=$(( $1 * ${NFiles} ))
+end=$(( ($1+1) * ${NFiles} ))
 
-#for FILE in ${prename}*.root ; do
 while read -d " " runnumber ; do
   if (( "${count}" < "${start}" )) ; then
     (( ++count ))
@@ -24,6 +25,6 @@ while read -d " " runnumber ; do
   fi
   files="${files} ${prename}${runnumber}.root"
   (( ++count ))
-done < "/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt"
+done < "$PLHF/taxi/Run13pp510MinBias/runlist.txt"
 
-hadd -f "tmp-$1.root" ${files}
+hadd -f "${outdir}/${prename}$1.root" ${files}

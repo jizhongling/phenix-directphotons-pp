@@ -1,6 +1,10 @@
 #!/bin/bash
 # Function: Combine root files ten by ten.
 
+set -o errexit
+set -o nounset
+set -o pipefail
+
 cd "histos"
 rm -f total.root tmp.root
 
@@ -11,12 +15,12 @@ for prename in "AnaFastMC-Fast-warn-" ; do
 
     for FILE in ${prename}*.root ; do
 	files="${files} ${FILE}"
-	(( count++ ))
+	(( ++count ))
 	if (( "${count}" > "9" )) ; then
 	    if [[ -f "total.root" ]] ; then
-		hadd tmp.root total.root ${files}
+		    hadd tmp.root total.root ${files}
 	    else
-		hadd tmp.root ${files}
+		    hadd tmp.root ${files}
 	    fi
 	    mv tmp.root total.root
 	    files=""

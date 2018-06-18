@@ -27,6 +27,7 @@ void draw_YieldByRun()
     for(Int_t ic=0; ic<2; ic++)
       for(Int_t is=0; is<3; is++)
       {
+        hn_pion->GetAxis(4)->SetRange(3,3);
         hn_pion->GetAxis(3)->SetRange(ic+1,ic+1);
         hn_pion->GetAxis(0)->SetRange(secl[is],sech[is]);
         hn_pion->GetAxis(1)->SetRange(5,30);

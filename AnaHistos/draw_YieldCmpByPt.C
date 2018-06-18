@@ -11,7 +11,7 @@ void draw_YieldCmpByPt()
   for(Int_t part=0; part<3; part++)
     gr[part] =  new TGraph(25);
 
-  TFile *f_mine = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  TFile *f_mine = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
   //TFile *f_sasha = new TFile("data/Pi0PP-histo.root");
   TFile *f_sasha = new TFile("/phenix/spin/phnxsp01/shura/taxi/Run13pp510ERT/5116/data/nt_merged_ert.root");
 
@@ -19,12 +19,15 @@ void draw_YieldCmpByPt()
   TAxis *axis_sec = hn_pion->GetAxis(0);
   TAxis *axis_pt = hn_pion->GetAxis(1);
   TAxis *axis_minv = hn_pion->GetAxis(2);
-  TAxis *axis_cut = hn_pion->GetAxis(3);
-  TAxis *axis_type = hn_pion->GetAxis(4);
+  TAxis *axis_pattern = hn_pion->GetAxis(3);
+  TAxis *axis_cut = hn_pion->GetAxis(4);
+  TAxis *axis_type = hn_pion->GetAxis(5);
+  TAxis *axis_bbc10cm = hn_pion->GetAxis(6);
 
   for(Int_t part=0; part<3; part++)
     for(Int_t ipt=2; ipt<25; ipt++)
     {
+      axis_bbc10cm->SetRange(2,2);
       axis_type->SetRange(3,3);
       axis_cut->SetRange(4,4);
       axis_sec->SetRange(secl[part],sech[part]);
@@ -52,7 +55,7 @@ void draw_YieldCmpByPt()
   for(Int_t part=0; part<3; part++)
   {
     gr[part]->Set(igp[part]);
-    aset(gr[part], "p_{T} [GeV]","#frac{Mine}{Sasha}", 0.,20., 0.49,0.51);
+    aset(gr[part], "p_{T} [GeV]","#frac{Mine}{Sasha}", 0.,20., 0.3,0.6);
     style(gr[part], part+24, part+1);
     if(part == 0)
       gr[part]->Draw("AP");

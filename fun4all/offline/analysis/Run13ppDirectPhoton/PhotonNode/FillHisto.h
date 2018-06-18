@@ -21,7 +21,7 @@ class THnSparse;
 class FillHisto: public SubsysReco
 {
   public:
-    FillHisto(const std::string &name = "FillHisto", const char *filename = "histo.root");
+    FillHisto(const std::string &name = "FillHisto");
     virtual ~FillHisto();
 
     int Init(PHCompositeNode *topNode);

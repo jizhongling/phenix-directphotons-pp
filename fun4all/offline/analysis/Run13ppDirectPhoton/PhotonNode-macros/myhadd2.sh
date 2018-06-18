@@ -5,10 +5,10 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-cd "histos"
+cd "histos-TAXI"
 rm -f total.root tmp.root
 
-prename="PhotonEff-"
+prename="PhotonHistos-"
 files=""
 count=0
 
@@ -36,4 +36,4 @@ if [[ -n "${files}" ]] ; then
   mv tmp.root total.root
 fi
 
-mv total.root ../${prename}histo.root
+mv total.root ${prename}total.root
