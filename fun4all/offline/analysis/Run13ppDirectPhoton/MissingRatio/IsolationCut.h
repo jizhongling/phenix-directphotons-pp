@@ -77,10 +77,18 @@ protected:
   TTree* _tree_event_cluster;
 
   /** output tree with truth information */
-  TTree* _tree_event_truth;
+  TTree* _tree_event_particles;
 
   /** map with cluster variables */
   std::map< std::string , float > _map_cluster_branches;
+
+  /** Map of Event properties that will be written to
+   * output ROOT Tree */
+  std::map< std::string , float > _map_event_branches;
+
+  /** Map of Particle (or cluster) properties that will be written to
+   * output ROOT Tree */
+  std::map< std::string , std::vector< float > > _map_particle_branches;
 
   /** truth tree variables */
   float _truth_pid;
