@@ -1,5 +1,8 @@
 #include "IsolationCut.h"
 
+#include "AnaToolsTowerID.h"
+#include "AnaToolsCluster.h"
+
 #include <PHGlobal.h>
 
 #include <emcNodeHelper.h>
@@ -79,6 +82,10 @@ int IsolationCut::Init(PHCompositeNode *topNode)
 {
   /* create output file */
   _file_output = new TFile( _output_file_name.c_str(), "RECREATE" );
+
+  /* read warnmap */
+  //ReadTowerStatus("Warnmap_Run13pp510.txt");
+  ReadSashaWarnmap("warn_all_run13pp500gev.dat");
 
   /* Add cluster properties to map that defines output tree */
   float dummy = 0;
@@ -272,16 +279,17 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       /* get pointer to reco cluster */
       emcClusterContent *reco_emc_cluster_i = reco_emcclusters->getCluster( icluster );
 
+      /* check warn map and guard ring - is tower a good tower? */
+      if ( GetStatus( reco_emc_cluster_i ) != 0 )
+	continue;
+
       /* is photon candidate? */
       if ( reco_emc_cluster_i->ecore() < cluster_ecore_min ||
            reco_emc_cluster_i->ecore() < photon_ecore_min ||
            reco_emc_cluster_i->prob_photon() < photon_prob_min )
-        continue;
+	continue;
 
       /* charge veto? use truth information for charge veto? */
-      // ...
-
-      /* check tower- is in guard ring of 10(12) towers ob PbSc(PbGl)? */
       // ...
 
       /* append cluster id to photon candiadte collection */
@@ -505,6 +513,12 @@ float IsolationCut::SumEmcalEnergyInCone( emcClusterContent* emccluster_ref,
       if ( emccluster_check->ecore() < cluster_emin )
         continue;
 
+      /* skip clusters in towers flagged bad by warn map,
+	 but allow for edge towers (status 20) */
+      if ( GetStatus( emccluster_check ) != 0 &&
+	   GetStatus( emccluster_check ) != 20 )
+	continue;
+
       /* check if cluster is within cone around reference cluster */
       float dr = ( sqrt( pow( emccluster_ref->theta() - emccluster_check->theta() , 2 ) +
                          pow( emccluster_ref->phi()   - emccluster_check->phi()   , 2 ) ) );
@@ -566,4 +580,100 @@ void IsolationCut::ResetBranchVariables( )
     }
 
   return;
+}
+
+
+void IsolationCut::ReadTowerStatus(const string& filename)
+{
+  unsigned int nBadSc = 0;
+  unsigned int nBadGl = 0;
+
+  unsigned int sector = 0;
+  unsigned int biny = 0;
+  unsigned int binz = 0;
+  unsigned int status = 0;
+
+  TOAD *toad_loader = new TOAD("DirectPhotonPP");
+  string file_location = toad_loader->location(filename);
+  cout << "TOAD file location: " << file_location << endl;
+  ifstream fin( file_location.c_str() );
+
+  while( fin >> sector >> biny >> binz >> status )
+  {
+    // count tower with bad status for PbSc and PbGl
+    if ( status > 10 )
+    {
+      if( sector < 6 ) nBadSc++;
+      else nBadGl++;
+    }
+    _tower_status[sector][biny][binz] = status;
+  }
+
+  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
+  fin.close();
+  delete toad_loader;
+
+  return;
+}
+
+void IsolationCut::ReadSashaWarnmap(const string &filename)
+{
+  unsigned int nBadSc = 0;
+  unsigned int nBadGl = 0;
+
+  int ich = 0;
+  int sector = 0;
+  int biny = 0;
+  int binz = 0;
+  int status = 0;
+
+  TOAD *toad_loader = new TOAD("DirectPhotonPP");
+  string file_location = toad_loader->location(filename);
+  cout << "TOAD file location: " << file_location << endl;
+  ifstream fin( file_location.c_str() );
+
+  while( fin >> ich >> status )
+  {
+    // Attention!! I use my indexing for warn map in this program!!!
+    if( ich >= 10368 && ich < 15552 ) { // PbSc
+      if( ich < 12960 ) ich += 2592;
+      else              ich -= 2592;
+    }
+    else if( ich >= 15552 )           { // PbGl
+      if( ich < 20160 ) ich += 4608;
+      else              ich -= 4608;
+    }
+
+    // get tower location
+    anatools::TowerLocation(ich, sector, biny, binz);
+
+    // count tower with bad status for PbSc and PbGl
+    if ( status > 0 )
+    {
+      if( sector < 6 ) nBadSc++;
+      else nBadGl++;
+    }
+    _tower_status[sector][biny][binz] = status;
+
+    // mark edge towers
+    if( anatools::Edge_cg(sector, biny, binz) )
+      _tower_status[sector][biny][binz] = 20;
+  }
+
+  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
+  fin.close();
+  delete toad_loader;
+
+  return;
+}
+
+int IsolationCut::GetStatus(const emcClusterContent *emccluster)
+{
+  int arm = emccluster->arm();
+  int rawsector = emccluster->sector();
+  int sector = anatools::CorrectClusterSector(arm, rawsector);
+  int iypos = emccluster->iypos();
+  int izpos = emccluster->izpos();
+
+  return _tower_status[sector][iypos][izpos];
 }

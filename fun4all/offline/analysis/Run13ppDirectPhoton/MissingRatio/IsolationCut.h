@@ -46,6 +46,15 @@ protected:
   /** Reset global variables that store cluster information for filling output tree */
   void ResetBranchVariables();
 
+  /** Read warnmap */
+  void ReadTowerStatus(const std::string& filename);
+
+  /** Read warnmap (Sasha's format) */
+  void ReadSashaWarnmap(const std::string& filename);
+
+  /** Get tower status for cluster from warnmap */
+  int GetStatus(const emcClusterContent *emccluster);
+
   /** event counter */
   unsigned _ievent;
 
