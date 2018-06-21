@@ -3,7 +3,8 @@ AUTOMAKE_OPTIONS = foreign
 AM_CXXFLAGS = -Wall -Werror
 INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include -I$(ROOTSYS)/include
 
-lib_LTLIBRARIES = libPhotonNode.la
+lib_LTLIBRARIES = \
+  libPhotonNode.la
 
 #mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
 #dist_mydata_DATA =
@@ -23,9 +24,7 @@ libPhotonNode_la_SOURCES = \
   FillHisto.C \
   EmcLocalRecalibrator.C \
   EmcLocalRecalibratorSasha.C \
-  PhotonContainerClone.C
-
-nodist_libPhotonNode_la_SOURCES = \
+  PhotonContainerClone.C \
   PhotonNode_Dict.C
 
 AM_LDFLAGS = \
@@ -33,11 +32,11 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libPhotonNode_la_LIBADD = \
+  -lTOAD \
   -lDirectPhotonPP \
   -lfun4all \
   -lfun4allfuncs \
-  -lphool \
-  -lTOAD
+  -lphool
 
 BUILT_SOURCES = testexternals.C
 noinst_PROGRAMS = testexternals

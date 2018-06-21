@@ -3,7 +3,8 @@ AUTOMAKE_OPTIONS = foreign
 AM_CXXFLAGS = -Wall -Werror
 INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include -I$(ROOTSYS)/include
 
-lib_LTLIBRARIES = libAnaFastMC.la
+lib_LTLIBRARIES = \
+  libAnaFastMC.la
 
 mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
 dist_mydata_DATA = \
@@ -16,9 +17,7 @@ noinst_HEADERS = \
   AnaToolsTowerID.h
 
 libAnaFastMC_la_SOURCES = \
-  AnaFastMC.C
-
-nodist_libAnaFastMC_la_SOURCES = \
+  AnaFastMC.C \
   AnaFastMC_Dict.C
 
 AM_LDFLAGS = \
@@ -26,10 +25,10 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libAnaFastMC_la_LIBADD = \
-  -lphool \
-  -lSubsysReco \
+  -lTOAD \
   -lPHPythia \
-  -lTOAD
+  -lphool \
+  -lSubsysReco
 
 BUILT_SOURCES = testexternals.C
 noinst_PROGRAMS = testexternals

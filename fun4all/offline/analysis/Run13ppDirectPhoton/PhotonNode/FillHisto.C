@@ -256,9 +256,9 @@ int FillHisto::FillClusterTofSpectrum(const PhotonContainer *photoncont, const s
       double pT = anatools::Get_pT(photon);
 
       if( quali == "raw" )
-        h3_tof_raw->Fill(sector, pT, tof);
+        h3_tof_raw->Fill((double)sector, pT, tof);
       else
-        h3_tof->Fill(sector, pT, tof);
+        h3_tof->Fill((double)sector, pT, tof);
     }
   }
 
@@ -297,9 +297,9 @@ int FillHisto::FillPi0InvariantMass(const PhotonContainer *photoncont, const str
           double minv = anatools::GetInvMass(photon1, photon2);
 
           if( quali == "raw" )
-            h3_minv_raw->Fill(sector1, tot_pT, minv);
+            h3_minv_raw->Fill((double)sector1, tot_pT, minv);
           else
-            h3_minv->Fill(sector1, tot_pT, minv);
+            h3_minv->Fill((double)sector1, tot_pT, minv);
         }
       }
   }
@@ -331,14 +331,14 @@ int FillHisto::FillBBCEfficiency(const PhotonContainer *photoncont)
       double eta = pE.Eta();
       double bbc_trig = 0.;
 
-      h3_bbc->Fill(sector, photon_pT, 0.);
+      h3_bbc->Fill((double)sector, photon_pT, 0.);
       if( photoncont->get_bbcnovtx_live() )
       {
         bbc_trig = 1.;
-        h3_bbc->Fill(sector, photon_pT, 1.);
+        h3_bbc->Fill((double)sector, photon_pT, 1.);
       }
 
-      double fill_hn_photonbg[] = {sector, photon_pT, ecore, eta, bbc_trig};
+      double fill_hn_photonbg[] = {(double)sector, photon_pT, ecore, eta, bbc_trig};
       hn_photonbg->Fill(fill_hn_photonbg);
 
       for(unsigned j=0; j<nphotons; j++)
@@ -354,7 +354,7 @@ int FillHisto::FillBBCEfficiency(const PhotonContainer *photoncont)
             double tot_pT = anatools::GetTot_pT(photon1, photon2);
             double minv = anatools::GetInvMass(photon1, photon2);
 
-            double fill_hn_bbc_pion[] = {sector, tot_pT, minv, 0.};
+            double fill_hn_bbc_pion[] = {(double)sector, tot_pT, minv, 0.};
             hn_bbc_pion->Fill(fill_hn_bbc_pion);
             if( photoncont->get_bbcnovtx_live() )
             {
@@ -420,9 +420,9 @@ int FillHisto::FillERTEfficiency(const PhotonContainer *photoncont, const int ev
       bool trig2 = photon1->get_trg2();
       bool trig3 = photon1->get_trg3();
 
-      h3_ert->Fill(sector, photon_pT, (double)evtype);
+      h3_ert->Fill((double)sector, photon_pT, (double)evtype);
       if( CheckGammaTrigger(evtype, trig1, trig2, trig3) )
-        h3_ert->Fill(sector, photon_pT, evtype+3.);
+        h3_ert->Fill((double)sector, photon_pT, evtype+3.);
 
       for(unsigned j=0; j<nphotons; j++)
         if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
@@ -445,7 +445,7 @@ int FillHisto::FillERTEfficiency(const PhotonContainer *photoncont, const int ev
             double tot_pT = anatools::GetTot_pT(photon1, photon2);
             double minv = anatools::GetInvMass(photon1, photon2);
 
-            double fill_hn_ert_pion[] = {sector, tot_pT, minv, evtype};
+            double fill_hn_ert_pion[] = {(double)sector, tot_pT, minv, (double)evtype};
             hn_ert_pion->Fill(fill_hn_ert_pion);
             if( CheckGammaTrigger(evtype, trig1, trig2, trig3) )
             {
@@ -511,7 +511,7 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont, const int evty
           double tot_pT = anatools::GetTot_pT(photon1, photon2);
           double minv = anatools::GetInvMass(photon1, photon2);
 
-          double fill_hn_pion[] = {sector, tot_pT, minv, 0., evtype};
+          double fill_hn_pion[] = {(double)sector, tot_pT, minv, 0., (double)evtype};
           hn_pion->Fill(fill_hn_pion);
           if( abs( photon1->get_tof() - bbc_t0 ) < 10. &&
               abs( photon2->get_tof() - bbc_t0 ) < 10. )
@@ -588,7 +588,7 @@ int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int e
           pT > 5. && pT < 10. )
         h2_cluster_eta_phi[part]->Fill(eta, phi);
 
-      double fill_hn_1photon[] = {sector, pT, pattern, 0., evtype};
+      double fill_hn_1photon[] = {(double)sector, pT, (double)pattern, 0., (double)evtype};
       hn_1photon->Fill(fill_hn_1photon);
       if( abs( photon1->get_tof() - bbc_t0 ) < 10. )
       {
@@ -617,7 +617,7 @@ int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int e
           if( GetStatus(photon2) != 0 ) continue;
           double minv = anatools::GetInvMass(photon1, photon2);
 
-          double fill_hn_2photon[] = {sector, pT, minv, pattern, 0., evtype};
+          double fill_hn_2photon[] = {(double)sector, pT, minv, (double)pattern, 0., (double)evtype};
           hn_2photon->Fill(fill_hn_2photon);
           if( abs( photon1->get_tof() - bbc_t0 ) < 10. &&
               abs( photon2->get_tof() - bbc_t0 ) < 10. )

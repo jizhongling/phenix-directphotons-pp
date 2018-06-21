@@ -3,10 +3,11 @@ AUTOMAKE_OPTIONS = foreign
 AM_CXXFLAGS = -Wall -Werror
 INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include -I$(ROOTSYS)/include
 
-lib_LTLIBRARIES = libMissingRatio.la
+lib_LTLIBRARIES = \
+  libMissingRatio.la
 
-mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
-dist_mydata_DATA = 
+#mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
+#dist_mydata_DATA = 
 
 include_HEADERS =
 
@@ -24,9 +25,7 @@ libMissingRatio_la_SOURCES = \
   MissingRatio.C \
   PhotonEff.C \
   IsolationCut.C \
-  Isolation.C
-
-nodist_libMissingRatio_la_SOURCES = \
+  Isolation.C \
   AnaTrk.C \
   MissingRatio_Dict.C
 
@@ -35,24 +34,14 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libMissingRatio_la_LIBADD = \
+  -lTOAD \
   -lemc \
   -lEmcStatic \
   -lcteval \
   -lcompactCNT \
   -lfun4all \
   -lfun4allfuncs \
-  -lphool \
-  -lTOAD
-
-#  -lEmcNode \
-#  -lemc \
-#  -lemcEmbed4all \
-#  -lcteval \
-#  -lcompactCNT \
-#  -lfun4all \
-#  -lfun4allfuncs \
-#  -lphool \
-#  -lTOAD
+  -lphool
 
 BUILT_SOURCES = testexternals.C
 noinst_PROGRAMS = testexternals

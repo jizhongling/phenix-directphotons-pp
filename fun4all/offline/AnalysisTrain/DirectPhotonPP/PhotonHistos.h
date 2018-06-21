@@ -116,10 +116,10 @@ class PhotonHistos: public SubsysReco
     THnSparse *hn_ert_pion;
     TH2 *h2_photon_eta_phi[3];
     TH2 *h2_cluster_eta_phi[3];
-    THnSparse *hn_etwr;
-    THnSparse *hn_pion;
-    THnSparse *hn_1photon;
-    THnSparse *hn_2photon;
+    THnSparse *hn_etwr[16*8*2];
+    THnSparse *hn_pion[4*3*2];
+    THnSparse *hn_1photon[2*4*3*2];
+    THnSparse *hn_2photon[2*2*4*3*2];
     THnSparse *hn_photonbg;
 };
 
