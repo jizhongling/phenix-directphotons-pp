@@ -140,7 +140,7 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
           if( econe < re * part->GetEnergy() )
             isolated = 1;
 
-          double fill_hn_photon[] = {v3_part.Pt(), rcone, re, isolated, prompt};
+          double fill_hn_photon[] = {v3_part.Pt(), rcone, re, (double)isolated, (double)prompt};
           hn_photon->Fill(fill_hn_photon);
         }
 
@@ -252,7 +252,7 @@ void AnaPHPythiaHistos::FillCorrelation(const TMCParticle *pref, int type)
            abs(v3_part2.Phi()) < PI*3./4.) )
         continue;
 
-      double fill_hn_corr[] = {v3_pref.Pt(), v3_part2.Pt(), abs(v3_pref.DeltaPhi(v3_part2)), type};
+      double fill_hn_corr[] = {v3_pref.Pt(), v3_part2.Pt(), abs(v3_pref.DeltaPhi(v3_part2)), (double)type};
       hn_corr->Fill(fill_hn_corr);
     }
   }
