@@ -294,7 +294,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
     int sector = photon.at(0)->sector;
     int passed = photon.at(0)->prob_photon > 0.02 ? 1 : 0;
     double eta = abs( photon.at(0)->trkvp.Eta() );
-    double fill_hn_merge[] = {pionpt, sector, passed, eta};
+    double fill_hn_merge[] = {pionpt, (double)sector, (double)passed, eta};
     hn_merge->Fill(fill_hn_merge);
   }
 
@@ -305,7 +305,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
     double pt_truth = trk->trkpt;
     double pt_reco = trk->cluspt;
     int sector = trk->sector;
-    double fill_hn_photon[] = {pt_truth, pt_reco, sector, nphoton};
+    double fill_hn_photon[] = {pt_truth, pt_reco, (double)sector, (double)nphoton};
     hn_photon->Fill(fill_hn_photon, weight);
   }
 
@@ -325,7 +325,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
       /* Fill pi0 histogram */
       double ptsim = anatools::GetTot_pT( photon.at(0)->emcclus, photon.at(1)->emcclus );
       double minv = anatools::GetInvMass( photon.at(0)->emcclus, photon.at(1)->emcclus );
-      double fill_hn_pion[] = {pionpt, ptsim, minv, sec1, npeak};
+      double fill_hn_pion[] = {pionpt, ptsim, minv, (double)sec1, (double)npeak};
       hn_pion->Fill(fill_hn_pion, weight);
     }
   }

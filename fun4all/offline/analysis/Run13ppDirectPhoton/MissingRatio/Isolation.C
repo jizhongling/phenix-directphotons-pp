@@ -145,7 +145,7 @@ int Isolation::process_event(PHCompositeNode *topNode)
         if( econe < re * emcclus->ecore() )
           isolated = 1;
 
-        double fill_hn_photon[] = {anatrk->cluspt, rcone, re, isolated, prompt};
+        double fill_hn_photon[] = {anatrk->cluspt, rcone, re, (double)isolated, (double)prompt};
         hn_photon->Fill(fill_hn_photon);
       } // icone, ie
 

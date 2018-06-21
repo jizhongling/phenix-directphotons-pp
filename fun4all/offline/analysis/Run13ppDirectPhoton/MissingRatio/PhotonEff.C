@@ -115,6 +115,9 @@ int PhotonEff::process_event(PHCompositeNode *topNode)
   double photonpt = 0.;
   double weight = 1.;
 
+  // workaround to avoid "set but not used" compiler warning
+  if (weight) {};
+
   unsigned nemctrk = emctrkcont->size();
   for(unsigned itrk=0; itrk<nemctrk; itrk++)
   {
@@ -157,7 +160,7 @@ int PhotonEff::process_event(PHCompositeNode *topNode)
       double tof = emccluster->tofcorr();
       double prob = emccluster->prob_photon();
 
-      double fill_hn_1photon[] = {sector, photonpt, recopt, 0., tof, tof-bbc_t0};
+      double fill_hn_1photon[] = {(double)sector, photonpt, recopt, 0., tof, tof-bbc_t0};
       hn_1photon->Fill(fill_hn_1photon);
       if( abs(tof - bbc_t0) < 10. )
       {
