@@ -1,4 +1,4 @@
-AC_INIT(AnaPHPythiaDirectPhoton, 1.00)
+AC_INIT(DirectPhotonPP, 1.00)
 AC_CONFIG_SRCDIR(Makefile.am)
 AM_INIT_AUTOMAKE
 

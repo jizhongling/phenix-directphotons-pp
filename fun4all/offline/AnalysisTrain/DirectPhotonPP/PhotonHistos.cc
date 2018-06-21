@@ -63,15 +63,15 @@ const double eClusMin = 0.15;
 const double eTrkMin = 0.2;
 const double eTrkMax = 15.;
 
+/* Isolation cut cone angle and energy fraction */
+const double cone_angle = 0.5;
+const double eratio = 0.1;
+
 /* Triger bit */
 const unsigned bit_ppg = 0x70000000;
 const unsigned bit_bbcnarrow = 0x00000010;
 const unsigned bit_bbcnovtx = 0x00000002;
 const unsigned bit_ert4x4[3] = {0x00000080, 0x00000040, 0x00000100};  // ert4x4a/b/c
-
-/* Isolation cut cone angle and energy fraction */
-const double cone_angle = 0.5;
-const double eratio = 0.1;
 
 PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   SubsysReco(name),
@@ -90,10 +90,6 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   hn_bbc_pion(NULL),
   hn_ert(NULL),
   hn_ert_pion(NULL),
-  hn_etwr(NULL),
-  hn_pion(NULL),
-  hn_1photon(NULL),
-  hn_2photon(NULL),
   hn_photonbg(NULL)
 {
   datatype = ERT;
@@ -350,9 +346,9 @@ int PhotonHistos::FillClusterTofSpectrum(const emcClusterContainer *data_emccont
       double pT = anatools::Get_pT(cluster);
 
       if( quali == "raw" )
-        h3_tof_raw->Fill(sector, pT, tof);
+        h3_tof_raw->Fill((double)sector, pT, tof);
       else
-        h3_tof->Fill(sector, pT, tof);
+        h3_tof->Fill((double)sector, pT, tof);
     }
   }
 
@@ -391,9 +387,9 @@ int PhotonHistos::FillPi0InvariantMass(const emcClusterContainer *data_emccontai
           double minv = anatools::GetInvMass(cluster1, cluster2);
 
           if( quali == "raw" )
-            h3_minv_raw->Fill(sector1, tot_pT, minv);
+            h3_minv_raw->Fill((double)sector1, tot_pT, minv);
           else
-            h3_minv->Fill(sector1, tot_pT, minv);
+            h3_minv->Fill((double)sector1, tot_pT, minv);
         }
       }
   }
@@ -425,9 +421,9 @@ int PhotonHistos::FillBBCEfficiency(const emcClusterContainer *data_emccontainer
       double photon_pT = anatools::Get_pT( cluster1 );
 
       if( lvl1_live & bit_bbcnovtx )
-        h3_bbc->Fill(sector, photon_pT, 1.);
+        h3_bbc->Fill((double)sector, photon_pT, 1.);
       else
-        h3_bbc->Fill(sector, photon_pT, 0.);
+        h3_bbc->Fill((double)sector, photon_pT, 0.);
 
       for(unsigned j=0; j<ncluster; j++)
         if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
@@ -443,7 +439,7 @@ int PhotonHistos::FillBBCEfficiency(const emcClusterContainer *data_emccontainer
             double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
             double minv = anatools::GetInvMass(cluster1, cluster2);
 
-            double fill_hn_bbc_pion[] = {sector, tot_pT, minv, 0.};
+            double fill_hn_bbc_pion[] = {(double)sector, tot_pT, minv, 0.};
             if( lvl1_live & bit_bbcnovtx )
               fill_hn_bbc_pion[3] = 1.;
             hn_bbc_pion->Fill(fill_hn_bbc_pion);
@@ -513,7 +509,7 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
       double photon_pT = anatools::Get_pT( cluster1 );
       bool trig = anatools::PassERT(data_ert, cluster1, (anatools::TriggerMode)evtype);
 
-      double fill_hn_ert[] = {sector, photon_pT, evtype, bbc10cm};
+      double fill_hn_ert[] = {(double)sector, photon_pT, (double)evtype, (double)bbc10cm};
       if( trig )
         fill_hn_ert[2] += 3.;
       hn_ert->Fill(fill_hn_ert);
@@ -537,7 +533,7 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
             double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
             double minv = anatools::GetInvMass(cluster1, cluster2);
 
-            double fill_hn_ert_pion[] = {sector, tot_pT, minv, evtype, bbc10cm};
+            double fill_hn_ert_pion[] = {(double)sector, tot_pT, minv, (double)evtype, (double)bbc10cm};
             if( trig )
               fill_hn_ert_pion[3] += 3.;
             hn_ert_pion->Fill(fill_hn_ert_pion);
@@ -605,8 +601,9 @@ int PhotonHistos::FillTowerEnergy(const emcClusterContainer *data_emccontainer, 
           if(tower)
           {
             double etwr = tower->Energy();
-            double fill_hn_etwr[] = {sector, pT, iz-3, iy-3, tof, trig, cut, collision};
-            hn_etwr->Fill(fill_hn_etwr, etwr);
+            int ih = 8*2*trig + 2*cut + collision;
+            double fill_hn_etwr[] = {(double)sector, pT, iz-3., iy-3., tof};
+            hn_etwr[ih]->Fill(fill_hn_etwr, etwr);
           }
         }
     }
@@ -671,26 +668,19 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
           double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
           double minv = anatools::GetInvMass(cluster1, cluster2);
 
-          double fill_hn_pion[] = {sector, tot_pT, minv, pattern, 0., evtype, bbc10cm};
-          hn_pion->Fill(fill_hn_pion);
+          int cut = 0;
           if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax &&
               abs( cluster2->tofcorr() - bbc_t0 ) < tofMax )
-          {
-            fill_hn_pion[4] = 1.;
-            hn_pion->Fill(fill_hn_pion);
-          }
+            cut = 1;
           if( cluster1->prob_photon() > probMin &&
               cluster2->prob_photon() > probMin )
-          {
-            fill_hn_pion[4] = 2.;
-            hn_pion->Fill(fill_hn_pion);
-          }
+            cut = 2;
           if( TestPhoton(cluster1, bbc_t0) &&
               TestPhoton(cluster2, bbc_t0) )
-          {
-            fill_hn_pion[4] = 3.;
-            hn_pion->Fill(fill_hn_pion);
-          }
+            cut = 3;
+          int ih = 4*3*cut + 3*evtype + bbc10cm;
+          double fill_hn_pion[] = {(double)sector, tot_pT, minv, (double)pattern};
+          hn_pion[ih]->Fill(fill_hn_pion);
         } // GetStatus and asymmetry cut
       } // j loop
   } // i loop
@@ -761,27 +751,21 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
       if( econe < eratio * cluster1->ecore() )
         isolated = 1;
 
-      double fill_hn_1photon[] = {sector, pT, pattern, isolated, 0., evtype, bbc10cm};
-      hn_1photon->Fill(fill_hn_1photon);
+      int cut = 0;
       if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax )
-      {
-        fill_hn_1photon[4] = 1.;
-        hn_1photon->Fill(fill_hn_1photon);
-      }
+        cut = 1;
       if( cluster1->prob_photon() > probMin )
-      {
-        fill_hn_1photon[4] = 2.;
-        hn_1photon->Fill(fill_hn_1photon);
-      }
+        cut = 2;
       if( TestPhoton(cluster1, bbc_t0) )
       {
+        cut = 3;
         if( evtype == 2 && part >= 0 &&
             pT > 5. && pT < 10. )
           h2_photon_eta_phi[part]->Fill(eta, phi);
-
-        fill_hn_1photon[4] = 3.;
-        hn_1photon->Fill(fill_hn_1photon);
       }
+      int ih = 4*3*2*isolated + 3*2*cut + 2*evtype + bbc10cm;
+      double fill_hn_1photon[] = {(double)sector, pT, (double)pattern};
+      hn_1photon[ih]->Fill(fill_hn_1photon);
 
       for(unsigned j=0; j<ncluster; j++)
         if(j != i)
@@ -806,26 +790,19 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
               econePair2 < eratio * cluster2->ecore() )
             isopair = 1;
 
-          double fill_hn_2photon[] = {sector, pT, minv, pattern, isoboth, isopair, 0., evtype, bbc10cm};
-          hn_2photon->Fill(fill_hn_2photon);
+          int cut = 0;
           if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax &&
               abs( cluster2->tofcorr() - bbc_t0 ) < tofMax )
-          {
-            fill_hn_2photon[6] = 1.;
-            hn_2photon->Fill(fill_hn_2photon);
-          }
+            cut = 1;
           if( cluster1->prob_photon() > probMin && 
               cluster2->prob_photon() > probMin )
-          {
-            fill_hn_2photon[6] = 2.;
-            hn_2photon->Fill(fill_hn_2photon);
-          }
+            cut = 2;
           if( TestPhoton(cluster1, bbc_t0) &&
               TestPhoton(cluster2, bbc_t0) )
-          {
-            fill_hn_2photon[6] = 3.;
-            hn_2photon->Fill(fill_hn_2photon);
-          }
+            cut = 3;
+          int ih = 2*4*3*2*isoboth + 4*3*2*isopair + 3*2*cut + 2*evtype + bbc10cm;
+          double fill_hn_2photon[] = {(double)sector, pT, minv, (double)pattern};
+          hn_2photon[ih]->Fill(fill_hn_2photon);
         } // j loop
     } // check photon1
   } // i loop
@@ -973,14 +950,25 @@ void PhotonHistos::BookHistograms()
   hn_ert_pion->SetBinEdges(1, pTbin);
   hm->registerHisto(hn_ert_pion);
 
-  /* Tower energy distribution */
-  const int nbins_hn_etwr[] = {8, npT, 7, 7, 60, 16, 8, 2};
-  const double xmin_hn_etwr[] = {-0.5, 0., -3.5, -3.5, -30., -0.5, -0.5, -0.5};
-  const double xmax_hn_etwr[] = {7.5, 0., 3.5, 3.5, 30., 15.5, 7.5, 1.5};
-  hn_etwr = new THnSparseF("hn_etwr", "Tower energy;sector;p_{T} [GeV];dz;dy;ToF [ns];trig;cut;collision;",
-      8, nbins_hn_etwr, xmin_hn_etwr, xmax_hn_etwr);
-  hn_etwr->SetBinEdges(1, pTbin);
-  hm->registerHisto(hn_etwr);
+  /* Tower energy distribution 
+   * ih = 8*2*trig + 2*cut + collision */
+  //const int nbins_hn_etwr[] = {8, npT, 7, 7, 60, 16, 8, 2};
+  //const double xmin_hn_etwr[] = {-0.5, 0., -3.5, -3.5, -30., -0.5, -0.5, -0.5};
+  //const double xmax_hn_etwr[] = {7.5, 0., 3.5, 3.5, 30., 15.5, 7.5, 1.5};
+  //hn_etwr = new THnSparseF("hn_etwr", "Tower energy;sector;p_{T} [GeV];dz;dy;ToF [ns];trig;cut;collision;",
+  //    8, nbins_hn_etwr, xmin_hn_etwr, xmax_hn_etwr);
+  //hn_etwr->SetBinEdges(1, pTbin);
+  //hm->registerHisto(hn_etwr);
+  for(int ih=0; ih<16*8*2; ih++)
+  {
+    const int nbins_hn_etwr[] = {8, npT, 7, 7, 60};
+    const double xmin_hn_etwr[] = {-0.5, 0., -3.5, -3.5, -30.};
+    const double xmax_hn_etwr[] = {7.5, 0., 3.5, 3.5, 30.};
+    hn_etwr[ih] = new THnSparseF(Form("hn_etwr_%d",ih), "Tower energy;sector;p_{T} [GeV];dz;dy;ToF [ns];",
+        5, nbins_hn_etwr, xmin_hn_etwr, xmax_hn_etwr);
+    hn_etwr[ih]->SetBinEdges(1, pTbin);
+    hm->registerHisto(hn_etwr[ih]);
+  }
 
   for(Int_t part=0; part<3; part++)
   {
@@ -990,32 +978,65 @@ void PhotonHistos::BookHistograms()
     hm->registerHisto(h2_cluster_eta_phi[part]);
   }
 
-  /* Store pi0 information */
-  const int nbins_hn_pion[] = {8, npT, 300, 3, 4, 3, 2};
-  const double xmin_hn_pion[] = {-0.5, 0., 0., -1.5, -0.5, -0.5, -0.5};
-  const double xmax_hn_pion[] = {7.5, 0., 0.3, 1.5, 3.5, 2.5, 1.5};
-  hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p_{T} [GeV];m_{inv} [GeV];pattern;cut;evtype;bbc10cm;",
-      7, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
-  hn_pion->SetBinEdges(1, pTbin);
-  hm->registerHisto(hn_pion);
+  /* Store pi0 information 
+   * ih = 4*3*cut + 3*evtype + bbc10cm */
+  //const int nbins_hn_pion[] = {8, npT, 300, 3, 4, 3, 2};
+  //const double xmin_hn_pion[] = {-0.5, 0., 0., -1.5, -0.5, -0.5, -0.5};
+  //const double xmax_hn_pion[] = {7.5, 0., 0.3, 1.5, 3.5, 2.5, 1.5};
+  //hn_pion = new THnSparseF("hn_pion", "#pi^{0} spectrum;sector;p_{T} [GeV];m_{inv} [GeV];pattern;cut;evtype;bbc10cm;",
+  //    7, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
+  //hn_pion->SetBinEdges(1, pTbin);
+  //hm->registerHisto(hn_pion);
+  for(int ih=0; ih<4*3*2; ih++)
+  {
+    const int nbins_hn_pion[] = {8, npT, 300, 3};
+    const double xmin_hn_pion[] = {-0.5, 0., 0., -1.5};
+    const double xmax_hn_pion[] = {7.5, 0., 0.3, 1.5};
+    hn_pion[ih] = new THnSparseF(Form("hn_pion_%d",ih), "#pi^{0} spectrum;sector;p_{T} [GeV];m_{inv} [GeV];pattern;",
+        4, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
+    hn_pion[ih]->SetBinEdges(1, pTbin);
+    hm->registerHisto(hn_pion[ih]);
+  }
 
-  /* Store single photon information */
-  const int nbins_hn_1photon[] = {8, npT, 3, 2, 4, 3, 2};
-  const double xmin_hn_1photon[] = {-0.5, 0., -1.5, -0.5, 0.5, -0.5, -0.5};
-  const double xmax_hn_1photon[] = {7.5, 0., 1.5, 1.5, 3.5, 2.5, 1.5};
-  hn_1photon = new THnSparseF("hn_1photon", "Single photon spectrum;sector;p_{T} [GeV];pattern;isolated;cut;evtype;bbc10cm;",
-      7, nbins_hn_1photon, xmin_hn_1photon, xmax_hn_1photon);
-  hn_1photon->SetBinEdges(1, pTbin);
-  hm->registerHisto(hn_1photon);
+  /* Store single photon information 
+   * ih = 4*3*2*isolated + 3*2*cut + 2*evtype + bbc10cm */
+  //const int nbins_hn_1photon[] = {8, npT, 3, 2, 4, 3, 2};
+  //const double xmin_hn_1photon[] = {-0.5, 0., -1.5, -0.5, 0.5, -0.5, -0.5};
+  //const double xmax_hn_1photon[] = {7.5, 0., 1.5, 1.5, 3.5, 2.5, 1.5};
+  //hn_1photon = new THnSparseF("hn_1photon", "Single photon spectrum;sector;p_{T} [GeV];pattern;isolated;cut;evtype;bbc10cm;",
+  //    7, nbins_hn_1photon, xmin_hn_1photon, xmax_hn_1photon);
+  //hn_1photon->SetBinEdges(1, pTbin);
+  //hm->registerHisto(hn_1photon);
+  for(int ih=0; ih<2*4*3*2; ih++)
+  {
+    const int nbins_hn_1photon[] = {8, npT, 3};
+    const double xmin_hn_1photon[] = {-0.5, 0., -1.5};
+    const double xmax_hn_1photon[] = {7.5, 0., 1.5};
+    hn_1photon[ih] = new THnSparseF(Form("hn_1photon_%d",ih), "Single photon spectrum;sector;p_{T} [GeV];pattern;",
+        3, nbins_hn_1photon, xmin_hn_1photon, xmax_hn_1photon);
+    hn_1photon[ih]->SetBinEdges(1, pTbin);
+    hm->registerHisto(hn_1photon[ih]);
+  }
 
-  /* Store two photons information */
-  const int nbins_hn_2photon[] = {8, npT, 700, 3, 2, 2, 4, 3, 2};
-  const double xmin_hn_2photon[] = {-0.5, 0., 0., -1.5, -0.5, -0.5, -0.5, -0.5, -0.5};
-  const double xmax_hn_2photon[] = {7.5, 0., 0.7, 1.5, 1.5, 1.5, 3.5, 2.5, 1.5};
-  hn_2photon = new THnSparseF("hn_2photon", "Two photons spectrum;sector;p_{T} [GeV];m_{inv} [GeV];pattern;isoboth;isopair;cut;evtype;bbc10cm;",
-      9, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon);
-  hn_2photon->SetBinEdges(1, pTbin);
-  hm->registerHisto(hn_2photon);
+  /* Store two photons information 
+   * ih = 2*4*3*2*isoboth + 4*3*2*isopair + 3*2*cut + 2*evtype + bbc10cm */
+  //const int nbins_hn_2photon[] = {8, npT, 700, 3, 2, 2, 4, 3, 2};
+  //const double xmin_hn_2photon[] = {-0.5, 0., 0., -1.5, -0.5, -0.5, -0.5, -0.5, -0.5};
+  //const double xmax_hn_2photon[] = {7.5, 0., 0.7, 1.5, 1.5, 1.5, 3.5, 2.5, 1.5};
+  //hn_2photon = new THnSparseF("hn_2photon", "Two photons spectrum;sector;p_{T} [GeV];m_{inv} [GeV];pattern;isoboth;isopair;cut;evtype;bbc10cm;",
+  //    9, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon);
+  //hn_2photon->SetBinEdges(1, pTbin);
+  //hm->registerHisto(hn_2photon);
+  for(int ih=0; ih<2*2*4*3*2; ih++)
+  {
+    const int nbins_hn_2photon[] = {8, npT, 700, 3};
+    const double xmin_hn_2photon[] = {-0.5, 0., 0., -1.5};
+    const double xmax_hn_2photon[] = {7.5, 0., 0.7, 1.5};
+    hn_2photon[ih] = new THnSparseF(Form("hn_2photon_%d",ih), "Two photons spectrum;sector;p_{T} [GeV];m_{inv} [GeV];pattern;",
+        4, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon);
+    hn_2photon[ih]->SetBinEdges(1, pTbin);
+    hm->registerHisto(hn_2photon[ih]);
+  }
 
   /* Store photon bg information */
   const int nbins_hn_photonbg[] = {8, npT, 100, 40, 2};

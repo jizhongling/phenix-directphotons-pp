@@ -17,6 +17,7 @@ class Fun4AllHistoManager;
 class TFile;
 class TH1;
 class TH2;
+class TH3;
 class THnSparse;
 class TF1;
 
@@ -90,6 +91,8 @@ class AnaFastMC: public SubsysReco
     TH1 *h_photon;
     TH2 *h2_pion_eta_phi[3];
     TH2 *h2_photon_eta_phi[3];
+    TH3 *h3_isopi0;
+    TH3 *h3_isoeta;
     THnSparse* hn_missing;
     THnSparse* hn_pion;
     THnSparse *hn_photon;

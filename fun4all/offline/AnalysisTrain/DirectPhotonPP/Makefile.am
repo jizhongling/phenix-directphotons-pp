@@ -1,5 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
+AM_CXXFLAGS = -Wall -Werror
 INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include -I$(ROOTSYS)/include
 
 lib_LTLIBRARIES = \
@@ -14,8 +15,6 @@ dist_mydata_DATA = \
   ecorr_run13pp500gev.txt \
   ecorr_run_run13pp500gev.txt \
   tcorr_run13pp500gev.txt
-
-AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib
 
 include_HEADERS = \
   PhotonContainer.h \
@@ -34,6 +33,10 @@ noinst_HEADERS = \
   PhotonNode.h \
   PhotonHistos.h \
   DirectPhotonPPLinkDef.h
+
+AM_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
 
 libDirectPhotonPP_la_LIBADD = \
   -lTOAD \
@@ -60,7 +63,6 @@ libDirectPhotonPP_la_SOURCES = \
   DirectPhotonPP_Dict.C
 
 # Rule for generating CINT dictionaries from class headers.
-
 DirectPhotonPP_Dict.C: \
   HistogramBooker.h \
   EmcLocalRecalibrator.h \
@@ -75,5 +77,4 @@ DirectPhotonPP_Dict.C: \
   DirectPhotonPPLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
-clean-local:
-	rm -f *Dict*
+CLEANFILES = *Dict* testexternals*

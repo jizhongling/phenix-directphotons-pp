@@ -12,11 +12,11 @@ void draw_Isolation()
   TAxis *axis_iso = hn_photon->GetAxis(3);
   TAxis *axis_prompt = hn_photon->GetAxis(4);
 
-  mc(0, 3,3);
-  mc(1, 3,3);
+  mc(0, 2,1);
+  mc(1, 2,1);
 
   Int_t ipad = 1;
-  for(Int_t ipt=0; ipt<27; ipt+=4)
+  for(Int_t ipt=8; ipt<16; ipt+=4)
   {
     TH1 *h_total[2];  // h_total[iso]
     TH1 *h_prompt[2];  // h_prompt[iso]
