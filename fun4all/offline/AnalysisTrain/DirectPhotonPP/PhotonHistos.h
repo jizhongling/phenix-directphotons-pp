@@ -22,7 +22,6 @@ class Fun4AllHistoManager;
 class TH1;
 class TH2;
 class TH3;
-class THnSparse;
 
 class PhotonHistos: public SubsysReco
 {
@@ -90,7 +89,17 @@ class PhotonHistos: public SubsysReco
     enum DataType {MB, ERT};
     DataType datatype;
 
-    // Tower status for warnmap
+    /* Number of histogram array */
+    static const int nh_calib = 2*8;
+    static const int nh_bbc = 2*8;
+    static const int nh_ert = 2*6*8;
+    static const int nh_etwr = 16*8*2*7*7*8;
+    static const int nh_eta_phi = 2*3;
+    static const int nh_pion = 2*3*4*3*8;
+    static const int nh_1photon = 2*3*4*2*3*8;
+    static const int nh_2photon = 2*3*4*2*2*3*8;
+
+    /* Tower status for warnmap */
     int tower_status[8][48][96];
     int tower_status_sasha[8][48][96];
 
@@ -106,21 +115,18 @@ class PhotonHistos: public SubsysReco
     std::string outFile;
     Fun4AllHistoManager *hm;
     TH1 *h_events;
-    TH3 *h3_tof;
-    TH3 *h3_tof_raw;
-    TH3 *h3_minv;
-    TH3 *h3_minv_raw;
-    TH3 *h3_bbc;
-    THnSparse *hn_bbc_pion;
-    THnSparse *hn_ert;
-    THnSparse *hn_ert_pion;
-    TH2 *h2_photon_eta_phi[3];
-    TH2 *h2_cluster_eta_phi[3];
-    THnSparse *hn_etwr[16*8*2];
-    THnSparse *hn_pion[4*3*2];
-    THnSparse *hn_1photon[2*4*3*2];
-    THnSparse *hn_2photon[2*2*4*3*2];
-    THnSparse *hn_photonbg;
+    TH2 *h2_tof[nh_calib];
+    TH2 *h2_minv[nh_calib];
+    TH1 *h_bbc[nh_bbc];
+    TH2 *h2_bbc_pion[nh_bbc];
+    TH3 *h3_photonbg[nh_bbc];
+    TH1 *h_ert[nh_ert];
+    TH2 *h2_ert_pion[nh_ert];
+    TH2 *h2_etwr[nh_etwr];
+    TH2 *h2_eta_phi[nh_eta_phi];
+    TH2 *h2_pion[nh_pion];
+    TH1 *h_1photon[nh_1photon];
+    TH2 *h2_2photon[nh_2photon];
 };
 
 #endif /* __PHOTONHISTOS_H__ */
