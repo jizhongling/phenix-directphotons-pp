@@ -39,6 +39,9 @@ class PhotonHistos: public SubsysReco
     void SelectERT();
 
   protected:
+    /* Event counts */
+    int FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
+
     /* ToF and energy calibration */
     int FillClusterTofSpectrum(const emcClusterContainer *data_emccontainer, const PHGlobal *data_global, const std::string &qualii = "");
     int FillPi0InvariantMass(const emcClusterContainer *data_emccontainer, const PHGlobal *data_global, const std::string &quali = "");

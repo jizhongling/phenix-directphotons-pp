@@ -95,6 +95,9 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
     return ABORTEVENT;
   }
 
+  static int event = 0;
+  cout << "\nEvent: " << event++ << endl;
+
   // Loop over all particles & Fill output histograms
   int npart = phpythia->size();
   for (int ipart=0; ipart<npart; ipart++)
@@ -107,6 +110,17 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
     double py = part->GetPy();
     double pz = part->GetPz();
     TVector3 v3_part(px,py,pz);
+
+    double eta = v3_part.Eta();
+    double phi = v3_part.Phi();
+    if(   abs(eta) < 0.35 &&
+        ( abs(phi-PI/16.) < PI/4. ||
+          phi > PI*11./16. ||
+          phi < -PI*13./16. ) )
+      cout << part->GetKF() << "(" << part->GetKS() << "), ";
+
+    if(event > 1000) exit(0);
+    continue;
 
     // Test if particle is in Central Arm acceptance
     // and passes energy threshold

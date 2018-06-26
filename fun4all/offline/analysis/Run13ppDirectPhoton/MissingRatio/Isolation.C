@@ -109,6 +109,9 @@ int Isolation::process_event(PHCompositeNode *topNode)
   // number of tracks
   int nemctrk = emctrkcont->size();
 
+  static int event = 0;
+  cout << "\nEvent: " << event++ << endl;
+
   // Loop over all emcGeaTrack
   for(int itrk=0; itrk<nemctrk; itrk++)
   {
@@ -120,7 +123,7 @@ int Isolation::process_event(PHCompositeNode *topNode)
     static int count = 100;
     if(anatrk->pid == 1072)
     {
-      cout << anatrk->pid << ": ";
+      cout << endl << anatrk->pid << "(" << anatrk->trkposbirth.Mag() << "): ";
       BOOST_FOREACH(const long &tn, anatrk->daughter_list)
       {
         emcGeaTrackContent *trk = emctrkcont->get(tn);
@@ -130,6 +133,10 @@ int Isolation::process_event(PHCompositeNode *topNode)
         if(--count < 0) exit(0);
       }
       cout << endl;
+    }
+    else
+    {
+      cout << "pid(" << anatrk->pid << "), ";
     }
 
     // Get the associated cluster
