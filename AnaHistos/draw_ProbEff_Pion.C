@@ -4,16 +4,16 @@
 
 void draw_ProbEff_Pion()
 {
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
   TGraphAsymmErrors *gr[2];
-  Int_t igp[2] = {};
-  for(Int_t part=0; part<2; part++)
+  int igp[2] = {};
+  for(int part=0; part<2; part++)
   {
     gr[part] = new TGraphAsymmErrors(npT);
     gr[part]->SetName(Form("gr_%d",part));
-    for(Int_t ic=0; ic<2; ic++)
+    for(int ic=0; ic<2; ic++)
       mc(part*2+ic, 6,5);
   }
 
@@ -26,15 +26,15 @@ void draw_ProbEff_Pion()
   TAxis *axis_cut = hn_pion->GetAxis(3);
   TAxis *axis_type = hn_pion->GetAxis(4);
 
-  for(Int_t part=0; part<2; part++)
-    for(Int_t ipt=0; ipt<npT; ipt++)
+  for(int part=0; part<2; part++)
+    for(int ipt=0; ipt<npT; ipt++)
     {
       axis_type->SetRange(3,3);
       axis_sec->SetRange(secl[part],sech[part]);
       axis_pt->SetRange(ipt+1,ipt+1);
       TH1 *h_minv;
 
-      Double_t nt, ent;
+      double nt, ent;
       mcd(part*2, ipt+1);
       axis_cut->SetRange(2,2);
       h_minv = hn_pion->Projection(2);
@@ -45,7 +45,7 @@ void draw_ProbEff_Pion()
         nt = h_minv->Integral(12,16);
       delete h_minv;
 
-      Double_t np, enp;
+      double np, enp;
       mcd(part*2+1, ipt+1);
       axis_cut->SetRange(4,4);
       h_minv = hn_pion->Projection(2);
@@ -56,8 +56,8 @@ void draw_ProbEff_Pion()
         np = h_minv->Integral(12,16);
       delete h_minv;
 
-      Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Double_t yy, eyyl, eyyh;
+      double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      double yy, eyyl, eyyh;
       if( !GetEfficiency(nt,np, yy,eyyl,eyyh) )
       {
         eyyl = yy * sqrt( pow(ent/nt,2.) + pow(enp/np,2.) );
@@ -78,7 +78,7 @@ void draw_ProbEff_Pion()
   gr[0]->SetTitle("Prob Eff for PbSc");
   gr[1]->SetTitle("Prob Eff for PbGl");
 
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     mcd(5, part+1);
     gr[part]->Set(igp[part]);
@@ -90,7 +90,7 @@ void draw_ProbEff_Pion()
   }
 
   TFile *f_out = new TFile("data/ProbEff-pion.root", "RECREATE");
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     gr[part]->Write();
     mcw( part*2, Form("part%d-total",part) );

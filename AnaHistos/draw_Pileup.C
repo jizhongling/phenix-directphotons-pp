@@ -10,26 +10,26 @@ void draw_Pileup()
   TFile *f_out = new TFile("data/Pileup-fit.root", "RECREATE");
 
   TMultiGraph *mg[npT*8];
-  for(Int_t ipt=0; ipt<npT; ipt++)
-    for(Int_t id=0; id<2; id++)
-      for(Int_t ic=0; ic<2; ic++)
-        for(Int_t is=0; is<2; is++)
+  for(int ipt=0; ipt<npT; ipt++)
+    for(int id=0; id<2; id++)
+      for(int ic=0; ic<2; ic++)
+        for(int is=0; is<2; is++)
         {
-          Int_t ig = ipt*8+id*4+ic*2+is;
+          int ig = ipt*8+id*4+ic*2+is;
           mg[ig] = new TMultiGraph();
         }
 
-  for(Int_t i=0; i<44; i++)
+  for(int i=0; i<44; i++)
   {
     TFile *f = new TFile(Form("pileup/Pileup-%d.root",i));
     if( f->IsZombie() ) continue;
 
-    for(Int_t ipt=0; ipt<npT; ipt++)
-      for(Int_t id=0; id<2; id++)
-        for(Int_t ic=0; ic<2; ic++)
-          for(Int_t is=0; is<2; is++)
+    for(int ipt=0; ipt<npT; ipt++)
+      for(int id=0; id<2; id++)
+        for(int ic=0; ic<2; ic++)
+          for(int is=0; is<2; is++)
           {
-            Int_t ig = ipt*8+id*4+ic*2+is;
+            int ig = ipt*8+id*4+ic*2+is;
             TGraphErrors *gr = (TGraphErrors*)f->Get(Form("gr_%d",ig));
             if( gr->GetN() > 0)
               mg[ig]->Add(gr);
@@ -38,13 +38,13 @@ void draw_Pileup()
 
   TGraphErrors *gr_ratio[8];
   TGraphErrors *gr_tof[8];
-  Int_t igp[8] = {};
-  Int_t igp2[8] = {};
-  for(Int_t id=0; id<2; id++)
-    for(Int_t im=0; im<2; im++)
-      for(Int_t is=0; is<2; is++)
+  int igp[8] = {};
+  int igp2[8] = {};
+  for(int id=0; id<2; id++)
+    for(int im=0; im<2; im++)
+      for(int is=0; is<2; is++)
       {
-        Int_t igr = id*4+im*2+is;
+        int igr = id*4+im*2+is;
         gr_ratio[igr] = new TGraphErrors(npT);
         gr_tof[igr] = new TGraphErrors(npT);
       }
@@ -54,23 +54,23 @@ void draw_Pileup()
   fn_fit[0] = new TF1("fn_pol1", "pol1", 0., 0.2);
   fn_fit[1] = new TF1("fn_log", "-[0]*log(1-[1]*x)/([1]*x)", 1e-3, 0.2);
 
-  for(Int_t i=0; i<5; i++)
+  for(int i=0; i<5; i++)
     mc(i, 2,2);
 
-  for(Int_t ipt=0; ipt<npT; ipt++)
-    for(Int_t id=0; id<2; id++)
-      for(Int_t im=0; im<2; im++)
+  for(int ipt=0; ipt<npT; ipt++)
+    for(int id=0; id<2; id++)
+      for(int im=0; im<2; im++)
       {
-        for(Int_t is=0; is<2; is++)
+        for(int is=0; is<2; is++)
         {
-          Int_t igr = id*4+im*2+is;
-          Double_t p0[2], ep0[2]; // p0[ic]
-          Double_t mean[2], emean[2]; // mean[ic]
+          int igr = id*4+im*2+is;
+          double p0[2], ep0[2]; // p0[ic]
+          double mean[2], emean[2]; // mean[ic]
 
-          for(Int_t ic=0; ic<2; ic++)
+          for(int ic=0; ic<2; ic++)
           {
-            Int_t cond = ic*2+is;
-            Int_t ig = ipt*8+id*4+ic*2+is;
+            int cond = ic*2+is;
+            int ig = ipt*8+id*4+ic*2+is;
 
             mcd(0, cond+1);
             mg[ig]->Draw("AP");  // must before GetXaxis()
@@ -83,7 +83,7 @@ void draw_Pileup()
             fn_fit[im]->SetParameters(GetMaximum<TGraphErrors>(mg[ig]), 1.);
             mg[ig]->Fit(fn_fit[im], "RQ");
 
-            Double_t scale = sqrt( fn_fit[im]->GetChisquare() / fn_fit[im]->GetNDF() );
+            double scale = sqrt( fn_fit[im]->GetChisquare() / fn_fit[im]->GetNDF() );
             if(scale < 1.) scale = 1.;
             p0[ic] = fn_fit[im]->GetParameter(0);
             ep0[ic] = fn_fit[im]->GetParError(0) * scale;
@@ -97,9 +97,9 @@ void draw_Pileup()
 
           if( ipt > 0 )
           {
-            Double_t xx = ( pTbin[id][ipt-1] + pTbin[id][ipt] ) / 2.;
-            Double_t yy = p0[1] / mean[1];
-            Double_t eyy = yy * sqrt( pow(emean[1]/mean[1],2.) + pow(ep0[1]/p0[1],2.) );
+            double xx = ( pTbin[id][ipt-1] + pTbin[id][ipt] ) / 2.;
+            double yy = p0[1] / mean[1];
+            double eyy = yy * sqrt( pow(emean[1]/mean[1],2.) + pow(ep0[1]/p0[1],2.) );
             if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
             {
               gr_ratio[igr]->SetPoint(igp[igr], xx, yy);
@@ -123,11 +123,11 @@ void draw_Pileup()
         c0->Clear("D");
       } // ipt, id, im
 
-  for(Int_t id=0; id<2; id++)
-    for(Int_t im=0; im<2; im++)
-      for(Int_t is=0; is<2; is++)
+  for(int id=0; id<2; id++)
+    for(int im=0; im<2; im++)
+      for(int is=0; is<2; is++)
       {
-        Int_t igr = id*4+im*2+is;
+        int igr = id*4+im*2+is;
         gr_ratio[igr]->Set(igp[igr]);
         gr_tof[igr]->Set(igp2[igr]);
 

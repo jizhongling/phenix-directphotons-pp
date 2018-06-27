@@ -106,11 +106,12 @@ int Isolation::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
+  //static int event = 0;
+  //cout << "\n\nEvent " << event++ << endl;
+  //if(event > 1000) exit(0);
+
   // number of tracks
   int nemctrk = emctrkcont->size();
-
-  static int event = 0;
-  cout << "\n\nEvent " << event++ << endl;
 
   // Loop over all emcGeaTrack
   for(int itrk=0; itrk<nemctrk; itrk++)
@@ -120,24 +121,21 @@ int Isolation::process_event(PHCompositeNode *topNode)
     AnaTrk *anatrk = new AnaTrk(emctrk, emccluscont, (int*)tower_status);
     if(!anatrk) continue;
 
-    static int count = 100;
-    if(anatrk->pid == 1072)
-    {
-      cout << endl << anatrk->pid << "(" << anatrk->anclvl << "): ";
-      BOOST_FOREACH(const long &tn, anatrk->daughter_list)
-      {
-        emcGeaTrackContent *trk = emctrkcont->get(tn);
-        if(!trk) continue;
-        TVector3 vx(trk->get_x(), trk->get_y(), trk->get_z());
-        cout << trk->get_pid() << "(" << vx.Mag() << "), ";
-        if(--count < 0) exit(0);
-      }
-      cout << endl;
-    }
-    else if(anatrk->anclvl == 0)
-    {
-      cout << anatrk->pid << "(" << anatrk->trkposbirth.Mag() << "), ";
-    }
+    //if(anatrk->pid == 1072)
+    //{
+    //  cout << endl << anatrk->pid << "(" << anatrk->anclvl << "): ";
+    //  BOOST_FOREACH(const long &it2, anatrk->daughter_list)
+    //  {
+    //    emcGeaTrackContent *trk2 = emctrkcont->get(it2);
+    //    if(!trk2) continue;
+    //    TVector3 vtx2(trk2->get_x(), trk2->get_y(), trk2->get_z());
+    //    cout << trk2->get_pid() << "(" << vtx2.Mag() << "), ";
+    //  }
+    //  cout << endl;
+    //}
+    //else if(anatrk->anclvl == 0)
+    //  cout << anatrk->pid << "(" << anatrk->trkposbirth.Mag() << "), ";
+    //continue;
 
     // Get the associated cluster
     emcGeaClusterContent *emcclus = anatrk->emcclus;

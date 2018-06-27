@@ -1,11 +1,11 @@
-Double_t Chi2Fit(Int_t n, Double_t *x, Double_t *ex, Double_t &xbar, Double_t &exbar)
+double Chi2Fit(int n, double *x, double *ex, double &xbar, double &exbar)
 {
-  Int_t sumN = 0;
-  Double_t sumw = 0.;
-  Double_t sumx = 0.;
-  Double_t sumx2 = 0.;
+  int sumN = 0;
+  double sumw = 0.;
+  double sumx = 0.;
+  double sumx2 = 0.;
 
-  for(Int_t i=0; i<n; i++)
+  for(int i=0; i<n; i++)
     if( ex[i] > 0. && ex[i] < TMath::Infinity() )
     {
       sumN++;
@@ -17,6 +17,6 @@ Double_t Chi2Fit(Int_t n, Double_t *x, Double_t *ex, Double_t &xbar, Double_t &e
   xbar = sumx/sumw;
   exbar = 1./sqrt(sumw);
 
-  Double_t chi2 = sumN > 1 ? ( sumx2 - sumw*xbar*xbar ) / ( sumN - 1 ) : 0.;
+  double chi2 = sumN > 1 ? ( sumx2 - sumw*xbar*xbar ) / ( sumN - 1 ) : 0.;
   return chi2;
 }

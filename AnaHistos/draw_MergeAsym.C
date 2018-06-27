@@ -15,8 +15,8 @@ void draw_MergeAsym()
   legi(0, 0.4,0.7,0.7,0.9);
 
   const char *sec_name[2] = {"PbSc", "PbGl"};
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
   TGraphAsymmErrors *gr_sim[2][5];
   TGraphAsymmErrors *gr_data[2][5];
@@ -24,7 +24,7 @@ void draw_MergeAsym()
   TLine *line = new TLine(5., 0., 5., 1.);
   line->SetLineColor(kBlue);
 
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     hn_asym_sim->GetAxis(0)->SetRange(secl[part], sech[part]);
     hn_asym_data->GetAxis(0)->SetRange(secl[part], sech[part]);
@@ -35,15 +35,15 @@ void draw_MergeAsym()
     TH1 *h_pt_sim = (TH1*)hn_asym_sim->Projection(1)->Clone("h_pt_sim");
     TH1 *h_pt_data = (TH1*)hn_asym_data->Projection(1)->Clone("h_pt_data");
 
-    for(Int_t ias=0; ias<5; ias++)
+    for(int ias=0; ias<5; ias++)
     {
       mcd(0, 2*ias+part+1);
 
       hn_asym_sim->GetAxis(2)->SetRange(10*ias+1,10*ias+10);
       hn_asym_data->GetAxis(2)->SetRange(10*ias+1,10*ias+10);
 
-      Double_t AsymLow = hn_asym_sim->GetAxis(2)->GetBinLowEdge(10*ias+1);
-      Double_t AsymUp = hn_asym_sim->GetAxis(2)->GetBinUpEdge(10*ias+10);
+      double AsymLow = hn_asym_sim->GetAxis(2)->GetBinLowEdge(10*ias+1);
+      double AsymUp = hn_asym_sim->GetAxis(2)->GetBinUpEdge(10*ias+10);
       sprintf(name, "%s Asym: %.1f-%.1f", sec_name[part], AsymLow, AsymUp);
 
       TH1 *h_1pt_sim = (TH1*)hn_asym_sim->Projection(1)->Clone("h_1pt_sim");

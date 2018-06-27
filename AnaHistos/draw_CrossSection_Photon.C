@@ -5,15 +5,15 @@
 
 void draw_CrossSection_Photon()
 {
-  const Double_t PI = TMath::Pi();
+  const double PI = TMath::Pi();
 
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
-  const Int_t secl[3] = {1, 5, 7};
-  const Int_t sech[3] = {4, 6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
 
   TGraphErrors *gr[4];  // PbScW, PbScE, PbGl, Combined
-  Int_t igp[4] = {};
-  for(Int_t part=0; part<4; part++)
+  int igp[4] = {};
+  for(int part=0; part<4; part++)
   {
     gr[part] = new TGraphErrors(npT);
     gr[part]->SetName(Form("gr_%d",part));
@@ -34,43 +34,43 @@ void draw_CrossSection_Photon()
   TAxis *axis_cut = hn_2photon->GetAxis(4);
   TAxis *axis_type = hn_2photon->GetAxis(5);
 
-  const Double_t DeltaEta = 1.0;
-  //const Double_t NBBC =  3.59e11;  // from DAQ
-  const Double_t NBBC =  3.54e11;  // from rejection power
-  const Double_t XBBC = 32.51e9;
-  const Double_t eXBBC = 3.24e9;
-  const Double_t Pile[3] = {0.891, 0.891, 0.878};
-  const Double_t ePile = 0.01;
-  const Double_t TrigBBC = 0.91;
-  const Double_t eTrigBBC = 0.01;
-  const Double_t ToF[3] = {0.992, 0.992, 0.997};
-  const Double_t eToF[3] = {0.002, 0.002, 0.002};
-  const Double_t Conv[3] = {0.849, 0.959, 0.959};
-  const Double_t eConv[3] = {0.027, 0.023, 0.023};
-  const Double_t Norm[3] = {0.321, 0.314, 0.243};
-  const Double_t eNorm[3] = {0.005, 0.006, 0.005};
+  const double DeltaEta = 1.0;
+  //const double NBBC =  3.59e11;  // from DAQ
+  const double NBBC =  3.54e11;  // from rejection power
+  const double XBBC = 32.51e9;
+  const double eXBBC = 3.24e9;
+  const double Pile[3] = {0.891, 0.891, 0.878};
+  const double ePile = 0.01;
+  const double TrigBBC = 0.91;
+  const double eTrigBBC = 0.01;
+  const double ToF[3] = {0.992, 0.992, 0.997};
+  const double eToF[3] = {0.002, 0.002, 0.002};
+  const double Conv[3] = {0.849, 0.959, 0.959};
+  const double eConv[3] = {0.027, 0.023, 0.023};
+  const double Norm[3] = {0.321, 0.314, 0.243};
+  const double eNorm[3] = {0.005, 0.006, 0.005};
 
-  Double_t xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
-  Double_t xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
-  Double_t xTrigERT[3][npT] = {}, TrigERT[3][npT] = {}, eTrigERT[3][npT] = {};
+  double xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
+  double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
+  double xTrigERT[3][npT] = {}, TrigERT[3][npT] = {}, eTrigERT[3][npT] = {};
 
-  Double_t bck[2][npT] = {
+  double bck[2][npT] = {
     { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.10, 1.15, 1.20, 1.30,  1, 1, 1 },
     { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.08, 1.08, 1.11, 1.11, 1.11, 1.11, 1.11 }
   };
 
-  Double_t meff[2][npT] = {
+  double meff[2][npT] = {
     { 1, 1, 0.96, 0.97, 0.98, 0.985, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.985, 0.995, 0.995, 0.99, 0.98, 0.95, 1,1,1,1,1, },
     { 1, 1, 0.95, 0.97, 0.975, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.995, 0.995, 0.99, 0.99, 0.98, 0.98, 0.98, 0.98, 1, 1 }
   };
 
-  Double_t Prob[2][npT] = {
+  double Prob[2][npT] = {
     { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96 },
     { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97 }
   };
-  Double_t eProb = 0.02;
+  double eProb = 0.02;
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     ReadGraph<TGraphAsymmErrors>("data/Acceptance-photon.root", part, xAcc[part], Acc[part], eAcc[part]);
     ReadGraph<TGraphAsymmErrors>("data/HadronRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
@@ -82,11 +82,11 @@ void draw_CrossSection_Photon()
   TrigERT[2][0] = 0.651;
   eTrigERT[2][0] = 0.008;
 
-  for(Int_t ipt=0; ipt<npT; ipt++)
+  for(int ipt=0; ipt<npT; ipt++)
   {
-    Double_t xx, yy[3], eyy[3];
+    double xx, yy[3], eyy[3];
 
-    for(Int_t part=0; part<3; part++)
+    for(int part=0; part<3; part++)
     {
       if(ipt < 22)  // <14GeV use ERT_4x4c
       {
@@ -105,11 +105,11 @@ void draw_CrossSection_Photon()
       axis_pt->SetRange(ipt+1,ipt+1);
 
       TH1 *h_photon = hn_1photon->Projection(0);
-      Double_t nphoton = h_photon->Integral(secl[part],sech[part]);
+      double nphoton = h_photon->Integral(secl[part],sech[part]);
       delete h_photon;
 
       mcd(part, ipt+1);
-      Double_t npion = 1., enpion = 1.;
+      double npion = 1., enpion = 1.;
       TH1 *h_minv = hn_2photon->Projection(2);
       h_minv->Scale(0.5);
       h_minv->Rebin(10);
@@ -125,13 +125,13 @@ void draw_CrossSection_Photon()
       delete h_minv;
 
       xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Int_t ipAcc = Get_ipt(xAcc[part], xx);
-      Int_t ipMiss = Get_ipt(xMiss[part], xx);
-      Int_t ipTrigERT = Get_ipt(xTrigERT[part], xx);
+      int ipAcc = Get_ipt(xAcc[part], xx);
+      int ipMiss = Get_ipt(xMiss[part], xx);
+      int ipTrigERT = Get_ipt(xTrigERT[part], xx);
       if(ipt >= 20)
         ipTrigERT = 0;
-      Double_t ndir = nphoton - Miss[part][ipMiss]*npion*2.;
-      Double_t endir = sqrt( nphoton + pow(eMiss[part][ipMiss]*npion*2.,2.) + pow(Miss[part][ipMiss]*enpion*2.,2.) );
+      double ndir = nphoton - Miss[part][ipMiss]*npion*2.;
+      double endir = sqrt( nphoton + pow(eMiss[part][ipMiss]*npion*2.,2.) + pow(Miss[part][ipMiss]*enpion*2.,2.) );
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
         ndir *= Norm[part];
@@ -156,7 +156,7 @@ void draw_CrossSection_Photon()
       }
     } // part
 
-    Double_t ybar, eybar;
+    double ybar, eybar;
     if(ipt < 25)
       Chi2Fit(3, yy, eyy, ybar, eybar);
     else
@@ -175,7 +175,7 @@ void draw_CrossSection_Photon()
   mc(3, 2,1);
   legi(0, 0.4,0.7,0.7,0.9);
 
-  for(Int_t part=0; part<4; part++)
+  for(int part=0; part<4; part++)
   {
     gr[part]->Set(igp[part]);
     mcd(3, part/3+1);
@@ -198,7 +198,7 @@ void draw_CrossSection_Photon()
   c3->Print("plots/CrossSection-photon.pdf");
 
   TFile *f_out = new TFile("data/CrossSection-photon.root", "RECREATE");
-  for(Int_t part=0; part<4; part++)
+  for(int part=0; part<4; part++)
   {
     if(part<3)
       mcw( part, Form("Minv-part%d",part) );

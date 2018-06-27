@@ -2,21 +2,21 @@
 #include "BBCCounts.h"
 #include "GetEfficiency.h"
 
-void anaToFEff_Photon(const Int_t process = 0)
+void anaToFEff_Photon(const int process = 0)
 {
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
-  const Int_t nThread = 1000;
-  Int_t thread = -1;
-  Int_t runnumber;
+  const int nThread = 1000;
+  int thread = -1;
+  int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
   TFile *f_out = new TFile(Form("pileup/ToF-photon-%d.root",process), "RECREATE");
 
   TGraphAsymmErrors *gr[2];
-  Int_t igp[2] = {};
-  for(Int_t part=0; part<2; part++)
+  int igp[2] = {};
+  for(int part=0; part<2; part++)
   {
     gr[part] = new TGraphAsymmErrors(nThread);
     gr[part]->SetName(Form("gr_%d",part));
@@ -45,17 +45,17 @@ void anaToFEff_Photon(const Int_t process = 0)
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNovtxLive(runnumber);
 
-    for(Int_t part=0; part<2; part++)
+    for(int part=0; part<2; part++)
     {
       axis_sec->SetRange(secl[part],sech[part]);
       TH1 *h_tof = hn_1photon->Projection(3);
-      Double_t nt = h_tof->GetBinContent(3);
-      Double_t np = h_tof->GetBinContent(4);
+      double nt = h_tof->GetBinContent(3);
+      double np = h_tof->GetBinContent(4);
       delete h_tof;
 
-      //Double_t xx = (Double_t)nmb / (Double_t)nclock;
-      Double_t xx = nt;
-      Double_t yy, eyyl, eyyh;
+      //double xx = (double)nmb / (double)nclock;
+      double xx = nt;
+      double yy, eyyl, eyyh;
       if( !GetEfficiency(nt,np, yy,eyyl,eyyh) )
       {
         eyyl = yy * sqrt( pow(ent/nt,2.) + pow(enp/np,2.) );
@@ -73,7 +73,7 @@ void anaToFEff_Photon(const Int_t process = 0)
   }
 
   f_out->cd();
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     gr[part]->Set(igp[part]);
     gr[part]->Write();

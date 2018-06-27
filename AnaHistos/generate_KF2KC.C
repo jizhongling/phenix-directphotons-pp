@@ -1,20 +1,20 @@
 void generate_KF2KC()
 {
-  const Int_t N = 1e6;
-  Int_t vkf[N];
-  Int_t vkc[N];
-  Int_t idx = 0;
+  const int N = 1e6;
+  int vkf[N];
+  int vkc[N];
+  int idx = 0;
   TPythia6 *tpythia6 = new TPythia6();
 
-  for(Int_t kf=1; kf<N; kf++)
+  for(int kf=1; kf<N; kf++)
   {
     if(kf > 1000 && kf/10%10 == 0)
       continue;
-    Int_t kc = tpythia6->Pycomp(kf);
+    int kc = tpythia6->Pycomp(kf);
     if(kc != 0)
     {
       bool has = false;
-      for(Int_t i=0; i<idx; i++)
+      for(int i=0; i<idx; i++)
         if(kc == vkc[i])
           has = true;
       if(!has)
@@ -26,6 +26,6 @@ void generate_KF2KC()
     }
   }
 
-  for(Int_t i=0; i<idx; i++)
+  for(int i=0; i<idx; i++)
     cout << "mdcy " << vkc[i] << " 1 0\t// " << vkf[i] << endl;
 }

@@ -5,14 +5,14 @@ void draw_ConversionPosition()
   TH2 *h2_angle= (TH2*)f->Get("h2_angle");
   THnSparse *hn_position = (THnSparse*)f->Get("hn_conversion_position");
 
-  for(Int_t ic=0; ic<4; ic++)
+  for(int ic=0; ic<4; ic++)
     mc(ic, 6,5);
 
-  Int_t ipad = 1;
-  for(Int_t ipt=0; ipt<30; ipt++)
+  int ipad = 1;
+  for(int ipt=0; ipt<30; ipt++)
   {
-    Double_t pTlow = h2_radius->GetXaxis()->GetBinLowEdge(ipt+1);
-    Double_t pTup = h2_radius->GetXaxis()->GetBinUpEdge(ipt+1);
+    double pTlow = h2_radius->GetXaxis()->GetBinLowEdge(ipt+1);
+    double pTup = h2_radius->GetXaxis()->GetBinUpEdge(ipt+1);
 
     mcd(0, ipad);
     TH1 *h_radius= h2_radius->ProjectionY(Form("h_radius_py_%d",ipt), ipt+1,ipt+1);

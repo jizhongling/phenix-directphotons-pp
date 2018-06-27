@@ -96,7 +96,8 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
   }
 
   static int event = 0;
-  cout << "\n\nEvent " << event++ << endl;
+  bool none = true;
+  if(event > 1000) exit(0);
 
   // Loop over all particles & Fill output histograms
   int npart = phpythia->size();
@@ -117,9 +118,14 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
         ( abs(phi-PI/16.) < PI/4. ||
           phi > PI*11./16. ||
           phi < -PI*13./16. ) )
+    {
+      if(none)
+      {
+        cout << "\n\nEvent " << event++ << endl;
+        none = false;
+      }
       cout << part->GetKF() << "(" << part->GetKS() << "), ";
-
-    if(event > 1000) exit(0);
+    }
     continue;
 
     // Test if particle is in Central Arm acceptance

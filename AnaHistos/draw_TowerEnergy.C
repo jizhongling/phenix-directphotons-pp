@@ -2,8 +2,8 @@
 
 void draw_TowerEnergy()
 {
-  const Int_t secl[3] = {1, 5, 7};
-  const Int_t sech[3] = {4, 6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
 
   TFile *f = new TFile("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13173/data/PhotonHistos-histo.root");
   THnSparse *hn_etwr = (THnSparse*)f->Get("hn_etwr");
@@ -12,24 +12,24 @@ void draw_TowerEnergy()
   hn_etwr->GetAxis(1)->SetRange(26,-1);
   hn_etwr->GetAxis(2)->SetRange(4,4);
   hn_etwr->GetAxis(3)->SetRange(4,4);
-  for(Int_t sec=0; sec<8; sec++)
+  for(int sec=0; sec<8; sec++)
   {
     hn_etwr->GetAxis(0)->SetRange(sec+1,sec+1);
     TH1 *h_cut = hn_etwr->Projection(6);
-    Double_t ncount = 0.;
-    for(Int_t ic=2; ic<=8; ic+=2)
+    double ncount = 0.;
+    for(int ic=2; ic<=8; ic+=2)
       ncount += h_cut->GetBinContent(ic);
     cout << "Sector " << sec << ": " << ncount << endl;
     delete h_cut;
   }
   return;
 
-  for(Int_t ic=0; ic<2; ic++)
-    for(Int_t part=0; part<3; part++)
+  for(int ic=0; ic<2; ic++)
+    for(int part=0; part<3; part++)
     {
       mc(ic*3+part, 6,5);
       mc(ic*3+part+6, 6,5);
-      for(Int_t ipt=0; ipt<npT; ipt++)
+      for(int ipt=0; ipt<npT; ipt++)
       {
         hn_etwr->GetAxis(7)->SetRange(ic+1,ic+1);
         hn_etwr->GetAxis(0)->SetRange(secl[part],sech[part]);
@@ -53,8 +53,8 @@ void draw_TowerEnergy()
     }
 
   TFile *f_out = new TFile("data/ETower.root", "RECREATE");
-  for(Int_t ic=0; ic<2; ic++)
-    for(Int_t part=0; part<3; part++)
+  for(int ic=0; ic<2; ic++)
+    for(int part=0; part<3; part++)
     {
       mcw( ic*3+part, Form("part%d-bbc%d-yz",part,ic) );
       mcw( ic*3+part+6, Form("part%d-bbc%d-tof",part,ic) );

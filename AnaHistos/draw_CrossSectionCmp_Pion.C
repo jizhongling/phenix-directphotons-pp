@@ -5,28 +5,28 @@ void draw_CrossSectionCmp_Pion()
 {
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
 
-  Double_t gx[4][npT] = {}, gy[4][npT] = {}, egy[4][npT] = {};
-  for(Int_t part=0; part<4; part++)
+  double gx[4][npT] = {}, gy[4][npT] = {}, egy[4][npT] = {};
+  for(int part=0; part<4; part++)
     ReadGraph<TGraphErrors>("data/CrossSection-pion.root", part, gx[part], gy[part], egy[part]);
 
   TGraph *gr_sasha = new TGraph("data/sasha-cross-pbgl.txt");
 
   TGraphErrors *gr_ratio[4];
-  Int_t igp[4] = {};
+  int igp[4] = {};
 
-  for(Int_t part=0; part<4; part++)
+  for(int part=0; part<4; part++)
   {
     gr_ratio[part] = new TGraphErrors(npT);
 
-    for(Int_t ipt=2; ipt<npT; ipt++)
+    for(int ipt=2; ipt<npT; ipt++)
     {
-      Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Double_t yy, eyy;
+      double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      double yy, eyy;
 
-      Int_t ip1 = Get_ipt(gx[part], xx);
-      Int_t ip2 = Get_ipt(gx[3], xx);
+      int ip1 = Get_ipt(gx[part], xx);
+      int ip2 = Get_ipt(gx[3], xx);
 
-      Double_t sasha_pT, sasha;
+      double sasha_pT, sasha;
       gr_sasha->GetPoint(ipt-2, sasha_pT, sasha);
       //sasha *= sasha_pT / xx;
 
@@ -64,7 +64,7 @@ void draw_CrossSectionCmp_Pion()
   leg0->Draw();
   mc(1);
 
-  for(Int_t part=0; part<4; part++)
+  for(int part=0; part<4; part++)
   {
     mcd(part/3, 0);
     if(part < 3)

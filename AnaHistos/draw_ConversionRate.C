@@ -5,14 +5,14 @@ void draw_ConversionRate()
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
 
   TH2 *h2_total = (TH2*)f->Get("h2_photon");
-  TH2 *h2_passed[3]; for(Int_t ic=0; ic<3; ic++)
+  TH2 *h2_passed[3]; for(int ic=0; ic<3; ic++)
     h2_passed[ic] = (TH2*)f->Get( Form("h2_%s",cname[ic]) );
 
   mc(0, 3,1);
 
   TGraphAsymmErrors *gr[3][2];  // gr[ic][arm]
-  for(Int_t ic=0; ic<3; ic++)
-    for(Int_t arm=0; arm<2; arm++)
+  for(int ic=0; ic<3; ic++)
+    for(int arm=0; arm<2; arm++)
     {
       TH1 *h_total = h2_total->ProjectionX("h_total", arm+1, arm+1);
       TH1 *h_passed = h2_passed[ic]->ProjectionX("h_passed", arm+1, arm+1);

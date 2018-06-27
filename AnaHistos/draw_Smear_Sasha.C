@@ -20,11 +20,11 @@ void draw_Smear_Sasha()
   leg0->SetNColumns(3);
   leg1->SetNColumns(3);
 
-  const Int_t secl[3] = {1, 5, 7};
-  const Int_t sech[3] = {4, 6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
   const char *pname[3] = {"PbScW", "PbScE", "PbGlE"};  // must be non-const if used directly in TLegend
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     hn_pion->GetAxis(3)->SetRange(secl[part],sech[part]);
     TH1 *h_pt0 = hn_pion->Projection(0);
@@ -78,7 +78,7 @@ void draw_Smear_Sasha()
     leg1->Draw();
 
     gr2->RemovePoint(0);
-    for(Int_t ip=1; ip<3; ip++)
+    for(int ip=1; ip<3; ip++)
     {
       gr1->RemovePoint(ip);
       gr2->RemovePoint(ip);

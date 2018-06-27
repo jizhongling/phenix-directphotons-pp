@@ -5,8 +5,8 @@ void draw_Acceptance_Sasha()
   const char *suffix[3] = {"geom", "cuts", "smear"};
   const char *title[3] = {"Geom without smearing", "Cuts without smearing", "Cuts with smearing"};
 
-  const Int_t secl[3] = {1, 5, 7};
-  const Int_t sech[3] = {4, 6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
   const char *pname[3] = {"PbScW", "PbScE", "PbGlE"};  // must be non-const if used directly in TLegend
 
   TF1 *cross = new TF1("cross", "x*(1/(1+exp((x-[5])/[6]))*[0]/pow(1+x/[1],[2])+(1-1/(1+exp((x-[5])/[6])))*[3]/pow(x,[4]))", 0, 30);
@@ -25,7 +25,7 @@ void draw_Acceptance_Sasha()
   mc(0);
   mc(1);
 
-  for(Int_t ic=0; ic<3; ic++)
+  for(int ic=0; ic<3; ic++)
   {
     legi(0, 0.2,0.8,0.9,0.9);
     legi(1, 0.2,0.8,0.9,0.9);
@@ -43,14 +43,14 @@ void draw_Acceptance_Sasha()
       THnSparse *hn_pion2 = (THnSparse*)f2->Get("hn_pion");
     }
 
-    for(Int_t part=0; part<3; part++)
+    for(int part=0; part<3; part++)
     {
       h_sig = new TH1D("h_sig", "#pi^{0} signal count; p_{T} [GeV/c];", 60,0.,30.);
       hn_pion->GetAxis(3)->SetRange(secl[part],sech[part]);
       TH1 *h_pt = hn_pion->Projection(ic/2);
-      for(Int_t ipt=0; ipt<60; ipt++)
+      for(int ipt=0; ipt<60; ipt++)
       {
-        Double_t npion = h_pt->Integral(ipt+1,ipt+1);
+        double npion = h_pt->Integral(ipt+1,ipt+1);
         h_sig->SetBinContent(ipt+1, npion);
         h_sig->SetBinError( ipt+1, sqrt(npion) * cross->Eval(ipt/2.) );
       }
@@ -61,9 +61,9 @@ void draw_Acceptance_Sasha()
       //h_sig = new TH1D("h_sig", "#pi^{0} signal count; p_{T} [GeV/c];", 60,0.,30.);
       //hn_pion2->GetAxis(3)->SetRange(secl[part],sech[part]);
       //TH1 *h_pt = hn_pion2->Projection(ic/2);
-      //for(Int_t ipt=0; ipt<60; ipt++)
+      //for(int ipt=0; ipt<60; ipt++)
       //{
-      //  Double_t npion = h_pt->Integral(ipt+1,ipt+1);
+      //  double npion = h_pt->Integral(ipt+1,ipt+1);
       //  h_sig->SetBinContent(ipt+1, npion);
       //  h_sig->SetBinError( ipt+1, sqrt(npion) * cross->Eval(ipt/2.) );
       //}
@@ -111,7 +111,7 @@ void draw_Acceptance_Sasha()
       leg1->AddEntry(gr1, pname[part], "P");
       leg1->Draw();
 
-      for(Int_t ip=1; ip<3; ip++)
+      for(int ip=1; ip<3; ip++)
       {
         gr1->RemovePoint(ip);
         gr2->RemovePoint(ip);

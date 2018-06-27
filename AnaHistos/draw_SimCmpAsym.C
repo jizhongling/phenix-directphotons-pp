@@ -8,18 +8,18 @@ void draw_SimCmpAsym()
 
   mc(0, 6,5);
 
-  Int_t ipad = 1;
-  for(Int_t ipt=0; ipt<30; ipt++)
+  int ipad = 1;
+  for(int ipt=0; ipt<30; ipt++)
   {
     mcd(0, ipad++);
 
     TAxis *axis_pt = hn_total_fastmc->GetAxis(0);
-    Double_t pt_low = axis_pt->GetBinLowEdge(ipt+1);
-    Double_t pt_up = axis_pt->GetBinUpEdge(ipt+1);
+    double pt_low = axis_pt->GetBinLowEdge(ipt+1);
+    double pt_up = axis_pt->GetBinUpEdge(ipt+1);
 
     hn_total_fastmc->GetAxis(0)->SetRange(ipt+1,ipt+1);
     TH1 *h_asym_fastmc = hn_total_fastmc->Projection(3);
-    Double_t ss = h_asym_fastmc->GetEntries();
+    double ss = h_asym_fastmc->GetEntries();
     aset(h_asym_fastmc, "Asym", "Yield");
     h_asym_fastmc->SetTitle(Form("p_{T}: %3.1f-%3.1f GeV",pt_low,pt_up));
     h_asym_fastmc->GetXaxis()->SetRangeUser(0.,1.);

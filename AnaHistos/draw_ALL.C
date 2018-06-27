@@ -1,27 +1,27 @@
 void draw_ALL()
 {
-  const Int_t npT = 30;
-  const Float_t pTbins[npT+1] = { 0.0,
+  const int npT = 30;
+  const float pTbins[npT+1] = { 0.0,
     0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
     5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
     12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0};
 
-  //Float_t ALLbar[npT] = {};
-  //Float_t eALLbar[npT] = {};
+  //float ALLbar[npT] = {};
+  //float eALLbar[npT] = {};
 
-  for(Int_t itype=0; itype<3; itype++)
+  for(int itype=0; itype<3; itype++)
   {
     TCanvas *c = new TCanvas("c", "Canvas", 2000, 2400);
     gStyle->SetOptStat(0);
     gStyle->SetOptFit();
     c->Divide(6,5);
 
-    for(Int_t ipt=0; ipt<npT; ipt++)
+    for(int ipt=0; ipt<npT; ipt++)
     {
       c->cd(ipt+1);
       bool drawAxis = true;
-      for(Int_t ipart=0; ipart<3; ipart++)
-        for(Int_t icr=0; icr<2; icr++)
+      for(int ipart=0; ipart<3; ipart++)
+        for(int icr=0; icr<2; icr++)
         {
           TGraphErrors *gr = new TGraphErrors(Form("ALL/type%d-part%d-crossing%d-pT%d.txt",itype,ipart,icr,ipt), "%lg %lg %lg");
           if( gr->GetN() == 0 ) continue;
@@ -56,8 +56,8 @@ void draw_ALL()
   //TCanvas *c0 = new TCanvas("c0", "Canvas", 600, 600);
   //gStyle->SetOptStat(0);
 
-  //Float_t xpt[npT];
-  //for(Int_t ipt=0; ipt<npT; ipt++)
+  //float xpt[npT];
+  //for(int ipt=0; ipt<npT; ipt++)
   //  xpt[ipt] = ( pTbins[ipt] + pTbins[ipt+1] ) / 2.;
 
   //TGraphErrors *gr0 = new TGraphErrors(npT, xpt, ALLbar, 0, eALLbar);

@@ -35,15 +35,15 @@ void draw_ToF_Calib_Tower() {
 
   c->cd(3);
   fout << "towerid    ToF peak" << endl; 
-  for(Int_t id=0; id<25000; id++) {
+  for(int id=0; id<25000; id++) {
     TH1D* hp_hitmap_tof_tower = (TH1D*)h_hitmap_tof_tower->ProjectionY("_py",id+1,id+1);
     TSpectrum* peak = new TSpectrum();
-    Int_t nfound = peak->Search(hp_hitmap_tof_tower,2.,"nodraw");
+    int nfound = peak->Search(hp_hitmap_tof_tower,2.,"nodraw");
     if(nfound) {
-      Float_t peakX = *peak->GetPositionX();
+      float peakX = *peak->GetPositionX();
       hp_hitmap_tof_tower->Fit("gaus","Q0","",peakX-3.,peakX+3.);
       TF1* f_hitmap_tof_tower = hp_hitmap_tof_tower->GetFunction("gaus");
-      Double_t mean_hitmap_tof_tower = f_hitmap_tof_tower->GetParameter(1);
+      double mean_hitmap_tof_tower = f_hitmap_tof_tower->GetParameter(1);
       fout << id << "    " << mean_hitmap_tof_tower << endl;
       f_hitmap_tof_tower->Delete();
     }
@@ -58,10 +58,10 @@ void draw_ToF_Calib_Tower() {
   TH1D* hp_hitmap_tof_tower = (TH1D*)h_hitmap_tof_tower->ProjectionY("_py",100,100);
   TSpectrum* peak = new TSpectrum();
   peak->Search(hp_hitmap_tof_tower,2.,"nodraw");
-  Float_t peakX = *peak->GetPositionX();
+  float peakX = *peak->GetPositionX();
   hp_hitmap_tof_tower->Fit("gaus","","",peakX-3.,peakX+3.);
   TF1* f_hitmap_tof_tower = hp_hitmap_tof_tower->GetFunction("gaus");
-  Double_t mean_hitmap_tof_tower = f_hitmap_tof_tower->GetParameter(1);
+  double mean_hitmap_tof_tower = f_hitmap_tof_tower->GetParameter(1);
   cout << "peakX=" << peakX << endl;
   cout << "ToF mean=" << mean_hitmap_tof_tower << endl;
 

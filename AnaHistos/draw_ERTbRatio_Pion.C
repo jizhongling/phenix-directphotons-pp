@@ -2,8 +2,8 @@
 
 void draw_ERTbRatio_Pion()
 {
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
 
@@ -16,10 +16,10 @@ void draw_ERTbRatio_Pion()
   
   mc(0, 2,2);
 
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
-    Double_t npion_ertc, enpion_ertc;
-    Double_t npion_ertb, enpion_ertb;
+    double npion_ertc, enpion_ertc;
+    double npion_ertb, enpion_ertb;
     TH1 *h_minv;
 
     axis_sec->SetRange(secl[part],sech[part]);
@@ -40,8 +40,8 @@ void draw_ERTbRatio_Pion()
     FitMinv(h_minv, npion_ertb, enpion_ertb, kTRUE, 0.10,0.17);
     delete h_minv;
 
-    Double_t ratio = npion_ertc / npion_ertb;
-    Double_t eratio = ratio * sqrt( pow(enpion_ertc/npion_ertc,2.) + pow(enpion_ertb/npion_ertb,2.) );
+    double ratio = npion_ertc / npion_ertb;
+    double eratio = ratio * sqrt( pow(enpion_ertc/npion_ertc,2.) + pow(enpion_ertb/npion_ertb,2.) );
 
     cout << "Part " << part << ", ratio = " << ratio << ", eratio = " << eratio << endl;
   }

@@ -2,24 +2,24 @@
 #include "BBCCounts.h"
 #include "GetEfficiency.h"
 
-void anaBBCEff_Photon(const Int_t process = 0)
+void anaBBCEff_Photon(const int process = 0)
 {
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
-  const Int_t nThread = 1000;
-  Int_t thread = -1;
-  Int_t runnumber;
+  const int nThread = 1000;
+  int thread = -1;
+  int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
   TFile *f_out = new TFile(Form("pileup/BBCEff-photon-%d.root",process), "RECREATE");
 
   TGraphAsymmErrors *gr[npT*2];
-  Int_t igp[npT*2] = {};
-  for(Int_t part=0; part<2; part++)
-    for(Int_t ipt=0; ipt<npT; ipt++)
+  int igp[npT*2] = {};
+  for(int part=0; part<2; part++)
+    for(int ipt=0; ipt<npT; ipt++)
     {
-      Int_t ig = ipt*2+part;
+      int ig = ipt*2+part;
       gr[ig] = new TGraphAsymmErrors(nThread);
       gr[ig]->SetName(Form("gr_%d",ig));
     }
@@ -40,16 +40,16 @@ void anaBBCEff_Photon(const Int_t process = 0)
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNovtxLive(runnumber);
 
-    for(Int_t part=0; part<2; part++)
-      for(Int_t ipt=0; ipt<npT; ipt++)
+    for(int part=0; part<2; part++)
+      for(int ipt=0; ipt<npT; ipt++)
       {
-        Int_t ig = ipt*2+part;
+        int ig = ipt*2+part;
 
-        Double_t nt = h3_trig->Integral(secl[part],sech[part], ipt+1,ipt+1, 1,1);
-        Double_t np = h3_trig->Integral(secl[part],sech[part], ipt+1,ipt+1, 2,2);
+        double nt = h3_trig->Integral(secl[part],sech[part], ipt+1,ipt+1, 1,1);
+        double np = h3_trig->Integral(secl[part],sech[part], ipt+1,ipt+1, 2,2);
 
-        Double_t xx = (Double_t)nmb / (Double_t)nclock;
-        Double_t yy, eyyl, eyyh;
+        double xx = (double)nmb / (double)nclock;
+        double yy, eyyl, eyyh;
         if( !GetEfficiency(nt,np, yy,eyyl,eyyh) )
         {
           eyyl = yy * sqrt( pow(ent/nt,2.) + pow(enp/np,2.) );
@@ -67,10 +67,10 @@ void anaBBCEff_Photon(const Int_t process = 0)
   }
 
   f_out->cd();
-  for(Int_t part=0; part<2; part++)
-    for(Int_t ipt=0; ipt<npT; ipt++)
+  for(int part=0; part<2; part++)
+    for(int ipt=0; ipt<npT; ipt++)
     {
-      Int_t ig = ipt*2+part;
+      int ig = ipt*2+part;
       gr[ig]->Set(igp[ig]);
       gr[ig]->Write();
     }

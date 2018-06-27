@@ -1,20 +1,20 @@
-TGraphErrors *DivideHisto(TH1 *h1, TH1 *h2, Double_t kh1 = 1., Double_t kh2 = 1.)
+TGraphErrors *DivideHisto(TH1 *h1, TH1 *h2, double kh1 = 1., double kh2 = 1.)
 {
-  Int_t gn = h1->GetXaxis()->GetNbins();
+  int gn = h1->GetXaxis()->GetNbins();
 
-  vector<Double_t> gx;
-  vector<Double_t> gy;
-  vector<Double_t> egx;
-  vector<Double_t> egy;
+  vector<double> gx;
+  vector<double> gy;
+  vector<double> egx;
+  vector<double> egy;
 
-  for(Int_t i=0; i<gn; i++)
+  for(int i=0; i<gn; i++)
   {
-    Double_t h1x = h1->GetXaxis()->GetBinCenter(i+1);
-    Double_t h1y = h1->GetBinContent(i+1) * kh1; 
-    Double_t h2y = h2->GetBinContent(i+1) * kh2; 
-    Double_t eh1x = h1->GetXaxis()->GetBinWidth(i+1) / 2.;
-    Double_t eh1y = h1->GetBinError(i+1) * kh1;
-    Double_t eh2y = h2->GetBinError(i+1) * kh2;
+    double h1x = h1->GetXaxis()->GetBinCenter(i+1);
+    double h1y = h1->GetBinContent(i+1) * kh1; 
+    double h2y = h2->GetBinContent(i+1) * kh2; 
+    double eh1x = h1->GetXaxis()->GetBinWidth(i+1) / 2.;
+    double eh1y = h1->GetBinError(i+1) * kh1;
+    double eh2y = h2->GetBinError(i+1) * kh2;
 
     if( h1y > 0. && h2y > 0. )
     {
@@ -31,22 +31,22 @@ TGraphErrors *DivideHisto(TH1 *h1, TH1 *h2, Double_t kh1 = 1., Double_t kh2 = 1.
 
 TGraphErrors *DivideGraph(TGraphErrors *gr1, TGraphErrors *gr2)
 {
-  Int_t gn = gr1->GetN();
-  Double_t *gx = new Double_t[gn];
-  Double_t *gy = new Double_t[gn];
-  Double_t *egx = new Double_t[gn];
-  Double_t *egy = new Double_t[gn];
+  int gn = gr1->GetN();
+  double *gx = new double[gn];
+  double *gy = new double[gn];
+  double *egx = new double[gn];
+  double *egy = new double[gn];
 
-  for(Int_t i=0; i<gn; i++)
+  for(int i=0; i<gn; i++)
   {
     gx[i] = gy[i] = egx[i] = egy[i] = 0.;
 
-    Double_t g1x, g1y, g2x, g2y;
+    double g1x, g1y, g2x, g2y;
     gr1->GetPoint(i, g1x, g1y);
     gr2->GetPoint(i, g2x, g2y);
-    Double_t eg1x = gr1->GetErrorX(i);
-    Double_t eg1y = gr1->GetErrorY(i);
-    Double_t eg2y = gr2->GetErrorY(i);
+    double eg1x = gr1->GetErrorX(i);
+    double eg1y = gr1->GetErrorY(i);
+    double eg2y = gr2->GetErrorY(i);
 
     if( g1y > 0. && g2y > 0. )
     {
@@ -64,10 +64,10 @@ TGraphErrors *DivideGraph(TGraphErrors *gr1, TGraphErrors *gr2)
 template <class GraphType>
 void InvertGraph(GraphType *gr)
 {
-  Int_t gn = gr->GetN();
-  for(Int_t i=0; i<gn; i++)
+  int gn = gr->GetN();
+  for(int i=0; i<gn; i++)
   {
-    Double_t gx, gy;
+    double gx, gy;
     gr->GetPoint(i, gx, gy);
     gr->SetPoint(i, gx, 1.-gy);
   }

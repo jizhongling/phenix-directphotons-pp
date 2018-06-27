@@ -1,17 +1,17 @@
 template <class GraphType>
-Double_t GetMaximum(TMultiGraph *mg)
+double GetMaximum(TMultiGraph *mg)
 {
-  Double_t max = -1e9;
+  double max = -1e9;
 
   GraphType *gr;
   TIter iter( mg->GetListOfGraphs() );
   while( gr = (GraphType*)iter.Next() )
   {
-    Int_t N = gr->GetN();
+    int N = gr->GetN();
     if( N <= 0 ) continue;
-    for(Int_t i=0; i<N; i++)
+    for(int i=0; i<N; i++)
     {
-      Double_t xx, yy;
+      double xx, yy;
       gr->GetPoint(i, xx, yy);
       if( yy > max )
         max = yy;
@@ -22,19 +22,19 @@ Double_t GetMaximum(TMultiGraph *mg)
 }
 
 template <class GraphType>
-Double_t GetMinimum(TMultiGraph *mg)
+double GetMinimum(TMultiGraph *mg)
 {
-  Double_t min = 1e9;
+  double min = 1e9;
 
   GraphType *gr;
   TIter iter( mg->GetListOfGraphs() );
   while( gr = (GraphType*)iter.Next() )
   {
-    Int_t N = gr->GetN();
+    int N = gr->GetN();
     if( N <= 0 ) continue;
-    for(Int_t i=0; i<N; i++)
+    for(int i=0; i<N; i++)
     {
-      Double_t xx, yy;
+      double xx, yy;
       gr->GetPoint(i, xx, yy);
       if( yy < min )
         min = yy;
@@ -44,24 +44,24 @@ Double_t GetMinimum(TMultiGraph *mg)
   return min;
 }
 
-Double_t GetMeanError(TMultiGraph *mg, Double_t &mean, Double_t &emean)
+double GetMeanError(TMultiGraph *mg, double &mean, double &emean)
 {
-  Int_t sumN = 0;
-  Double_t sumw = 0.;
-  Double_t sumy = 0.;
-  Double_t sumy2 = 0.;
+  int sumN = 0;
+  double sumw = 0.;
+  double sumy = 0.;
+  double sumy2 = 0.;
 
   TGraphErrors *gr;
   TIter iter( mg->GetListOfGraphs() );
   while( gr = (TGraphErrors*)iter.Next() )
   {
-    Int_t N = gr->GetN();
+    int N = gr->GetN();
     if( N <= 0 ) continue;
-    for(Int_t i=0; i<N; i++)
+    for(int i=0; i<N; i++)
     {
-      Double_t xx, yy;
+      double xx, yy;
       gr->GetPoint(i, xx, yy);
-      Double_t eyy = gr->GetErrorY(i);
+      double eyy = gr->GetErrorY(i);
       if( eyy > 0. && eyy < TMath::Infinity() )
       {
         sumN++;
@@ -75,6 +75,6 @@ Double_t GetMeanError(TMultiGraph *mg, Double_t &mean, Double_t &emean)
   mean = sumy/sumw;
   emean = 1./sqrt(sumw);
 
-  Double_t chi2 = sumN > 1 ? ( sumy2 - sumw*mean*mean ) / ( sumN - 1 ) : 0.;
+  double chi2 = sumN > 1 ? ( sumy2 - sumw*mean*mean ) / ( sumN - 1 ) : 0.;
   return chi2;
 }

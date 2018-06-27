@@ -1,7 +1,7 @@
 void draw_MergePassRate()
 {
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
   TFile *f_out = new TFile("data/MergePassRate.root", "RECREATE");
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
@@ -9,8 +9,8 @@ void draw_MergePassRate()
 
   mc(0, 2,4);
 
-  for(Int_t ieta=0; ieta<8; ieta++)
-    for(Int_t part=0; part<2; part++)
+  for(int ieta=0; ieta<8; ieta++)
+    for(int part=0; part<2; part++)
     {
       mcd(0, ieta+1);
       hn_merge->GetAxis(3)->SetRange(ieta+1-ieta/7*7,ieta+1-ieta/7*3);  // |eta|

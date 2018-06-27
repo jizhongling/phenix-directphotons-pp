@@ -1,4 +1,4 @@
-void GetCriteria(Int_t criteria, Int_t &merge, Int_t &part, Int_t &prob, Int_t &warnmap)
+void GetCriteria(int criteria, int &merge, int &part, int &prob, int &warnmap)
 {
   merge = criteria / 12;
   part = criteria % 12 / 4;
@@ -8,7 +8,7 @@ void GetCriteria(Int_t criteria, Int_t &merge, Int_t &part, Int_t &prob, Int_t &
   return;
 }
 
-TGraphErrors* CreateGraph(TFile *f, const Int_t criteria, Int_t ispion)
+TGraphErrors* CreateGraph(TFile *f, const int criteria, int ispion)
 {
   TH1::SetDefaultSumw2();
 
@@ -23,23 +23,23 @@ TGraphErrors* CreateGraph(TFile *f, const Int_t criteria, Int_t ispion)
     TH2 *h2_nomissing = (TH2*)f->Get("h2_incident_pion");
   }
 
-  const Int_t n = h2_missing->GetNbinsX();
-  Double_t *x = new Double_t[n];
-  Double_t *y = new Double_t[n];
-  Double_t *ey = new Double_t[n];
-  for(Int_t i=0; i<n; i++)
+  const int n = h2_missing->GetNbinsX();
+  double *x = new double[n];
+  double *y = new double[n];
+  double *ey = new double[n];
+  for(int i=0; i<n; i++)
     x[i] = y[i] = ey[i] = 0.;
 
-  Int_t merge, part, prob, warnmap;
+  int merge, part, prob, warnmap;
   GetCriteria(criteria, merge, part, prob, warnmap);
 
-  for(Int_t i=0; i<n; i++)
+  for(int i=0; i<n; i++)
   {
     x[i] = h2_missing->GetXaxis()->GetBinCenter(i+1);
-    Double_t missing = h2_missing->GetBinContent(i+1, criteria+1);
-    Double_t emissing = h2_missing->GetBinError(i+1, criteria+1);
-    Double_t nomissing = h2_nomissing->GetBinContent(i+1, criteria+1);
-    Double_t enomissing = h2_nomissing->GetBinError(i+1, criteria+1);
+    double missing = h2_missing->GetBinContent(i+1, criteria+1);
+    double emissing = h2_missing->GetBinError(i+1, criteria+1);
+    double nomissing = h2_nomissing->GetBinContent(i+1, criteria+1);
+    double enomissing = h2_nomissing->GetBinError(i+1, criteria+1);
     if( missing > 0. && nomissing > 0. )
     {
       y[i] = missing / nomissing;
@@ -51,7 +51,7 @@ TGraphErrors* CreateGraph(TFile *f, const Int_t criteria, Int_t ispion)
   return graph;
 }
 
-void GenerateSmear(TFile *f, TObjArray *Glist, Int_t ispion)
+void GenerateSmear(TFile *f, TObjArray *Glist, int ispion)
 {
   TCanvas *c = new TCanvas("c", "Canvas", 1800, 1200);
   gStyle->SetOptStat(0);
@@ -60,12 +60,12 @@ void GenerateSmear(TFile *f, TObjArray *Glist, Int_t ispion)
   TGraphErrors *gr[24];
   TLegend *leg = new TLegend(0.6, 0.7, 0.9, 0.9);
 
-  for(Int_t icr=0; icr<24; icr++)
+  for(int icr=0; icr<24; icr++)
   {
     c->cd( icr/4 + 1 );
 
     char buf[100];
-    Int_t merge, part, prob, warnmap;
+    int merge, part, prob, warnmap;
     GetCriteria(icr, merge, part, prob, warnmap);
 
     gr[icr] = CreateGraph(f, icr, ispion);
@@ -114,7 +114,7 @@ void draw_Smear()
   TFile *f = new TFile("data/AnaPHPythia-histo.root");
   TObjArray *Glist = new TObjArray();
 
-  for(Int_t ispion=0; ispion<2; ispion++)
+  for(int ispion=0; ispion<2; ispion++)
   {
     cout << "\nispion " << ispion << endl;
     GenerateSmear(f, Glist, ispion);

@@ -1,12 +1,12 @@
-Bool_t FitMinv(TH1 *h_minv, Double_t &npion, Double_t &enpion,
-    const Bool_t bsub = kTRUE,
-    const Double_t c1 = 0.11, const Double_t c2 = 0.16,
-    const Double_t l1 = 0.06, const Double_t r2 = 0.25)
+bool FitMinv(TH1 *h_minv, double &npion, double &enpion,
+    const bool bsub = kTRUE,
+    const double c1 = 0.11, const double c2 = 0.16,
+    const double l1 = 0.06, const double r2 = 0.25)
 {
-  const Int_t binC1 = h_minv->GetXaxis()->FindBin(c1);
-  const Int_t binC2 = h_minv->GetXaxis()->FindBin(c2);
+  const int binC1 = h_minv->GetXaxis()->FindBin(c1);
+  const int binC2 = h_minv->GetXaxis()->FindBin(c2);
 
-  const Double_t max = h_minv->GetMaximum();
+  const double max = h_minv->GetMaximum();
   if( max <= 0. )
     return kFALSE;
 
@@ -15,7 +15,7 @@ Bool_t FitMinv(TH1 *h_minv, Double_t &npion, Double_t &enpion,
   TF1 *fn_fit = new TF1("fn_fit", "gaus(0) + pol2(3)", l1, r2);
   TF1 *fn_bg = new TF1("fn_bg", "pol2", l1, r2);
 
-  Double_t par[10] = {max,0.137,0.010, 0.,0.,0.};
+  double par[10] = {max,0.137,0.010, 0.,0.,0.};
   fn_fit->SetParameters(par);
   h_minv->Fit(fn_fit, "RQ0");
   fn_fit->GetParameters(par);
@@ -29,18 +29,18 @@ Bool_t FitMinv(TH1 *h_minv, Double_t &npion, Double_t &enpion,
   fn_fit->DrawCopy("SAME");
   fn_bg->DrawCopy("SAME");
 
-  Double_t nsig = 0.;
-  Double_t nbg = 0.;
-  for(Int_t ib=binC1; ib<binC2; ib++)
+  double nsig = 0.;
+  double nbg = 0.;
+  for(int ib=binC1; ib<binC2; ib++)
   {
     nsig += h_minv->GetBinContent(ib);
-    Double_t bincenter = h_minv->GetXaxis()->GetBinCenter(ib);
+    double bincenter = h_minv->GetXaxis()->GetBinCenter(ib);
     nbg += fn_bg->Eval(bincenter);
   }
 
-  Double_t ensig = sqrt(nsig);
-  Double_t rbg = nbg / nsig;
-  Double_t erbg = sqrt(nbg) / nsig;
+  double ensig = sqrt(nsig);
+  double rbg = nbg / nsig;
+  double erbg = sqrt(nbg) / nsig;
 
   if(bsub)
   {

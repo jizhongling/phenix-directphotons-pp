@@ -2,19 +2,19 @@
 
 void draw_PileupCmp()
 {
-  Int_t gn_mine[2] = {}, gn_sasha[2] = {};
-  Double_t runno_mine[2][1000] = {}, runno_sasha[2][1000] = {};
-  Double_t npi0_mine[2][1000] = {}, npi0_sasha[2][1000] = {};
+  int gn_mine[2] = {}, gn_sasha[2] = {};
+  double runno_mine[2][1000] = {}, runno_sasha[2][1000] = {};
+  double npi0_mine[2][1000] = {}, npi0_sasha[2][1000] = {};
 
-  for(Int_t i=0; i<44; i++)
+  for(int i=0; i<44; i++)
   {
     TFile *f_mine = new TFile(Form("pileup/Pileup-%d.root",i));
     if( f_mine->IsZombie() ) continue;
 
-    for(Int_t igr=0; igr<2; igr++)
+    for(int igr=0; igr<2; igr++)
     {
       TGraphErrors *gr = (TGraphErrors*)f_mine->Get(Form("gr_run_%d",2*8*npT+4+igr));
-      for(Int_t ip=0; ip<gr->GetN(); ip++)
+      for(int ip=0; ip<gr->GetN(); ip++)
       {
         gr->GetPoint(ip, runno_mine[igr][gn_mine[igr]], npi0_mine[igr][gn_mine[igr]]);
         gn_mine[igr]++;
@@ -27,11 +27,11 @@ void draw_PileupCmp()
   TFile *f_sasha = new TFile("data/Pileup-Sasha-CVS.root");
   TFile *f_sasha0 = new TFile("data/Pileup-Sasha-TAXI.root");
 
-  for(Int_t igr=0; igr<2; igr++)
+  for(int igr=0; igr<2; igr++)
   {
     TGraphErrors *gr = (TGraphErrors*)f_sasha->Get(Form("gr_run_%d",2+igr));
     TGraphErrors *gr0 = (TGraphErrors*)f_sasha0->Get(Form("gr_run_%d",2+igr));
-    for(Int_t ip=0; ip<gr->GetN(); ip++)
+    for(int ip=0; ip<gr->GetN(); ip++)
     {
       gr->GetPoint(ip, runno_sasha[igr][gn_sasha[igr]], npi0_sasha[igr][gn_sasha[igr]]);
       gn_sasha[igr]++;
@@ -43,12 +43,12 @@ void draw_PileupCmp()
   delete f_sasha;
   delete f_sasha0;
 
-  for(Int_t igr=0; igr<2; igr++)
+  for(int igr=0; igr<2; igr++)
   {
-    for(Int_t j=0; j<gn_sasha[igr]; j++)
+    for(int j=0; j<gn_sasha[igr]; j++)
     {
       bool matched = false;
-      for(Int_t i=0; i<gn_mine[igr]; i++)
+      for(int i=0; i<gn_mine[igr]; i++)
         if( TMath::Abs(runno_mine[igr][i]-runno_sasha[igr][j]) < 0.1 )
           matched = true;
       if(!matched)
@@ -60,16 +60,16 @@ void draw_PileupCmp()
   mcd();
 
   TGraph *gr_ratio[2];
-  for(Int_t igr=0; igr<2; igr++)
+  for(int igr=0; igr<2; igr++)
   {
     gr_ratio[igr] = new TGraph(1000);
-    Int_t igp1 = 0;
-    for(Int_t i=0; i<gn_mine[igr]; i++)
-      for(Int_t j=0; j<gn_sasha[igr]; j++)
+    int igp1 = 0;
+    for(int i=0; i<gn_mine[igr]; i++)
+      for(int j=0; j<gn_sasha[igr]; j++)
         if( TMath::Abs(runno_mine[igr][i]-runno_sasha[igr][j]) < 0.1 )
         {
-          Double_t xx = runno_mine[igr][i];
-          Double_t yy = npi0_mine[igr][i] / npi0_sasha[igr][j];
+          double xx = runno_mine[igr][i];
+          double yy = npi0_mine[igr][i] / npi0_sasha[igr][j];
           gr_ratio[igr]->SetPoint(igp1, xx, yy);
           igp1++;
         }

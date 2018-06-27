@@ -4,14 +4,14 @@ void draw_YieldCmpByRun()
 
   TFile *f = new TFile("data/YieldCmpByRun.root");
   TGraph *gr[3];
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
     gr[part] = (TGraph*)f->Get(Form("gr_%d",part));
 
   mc();
   mcd();
   legi();
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     gr[part]->SetTitle("Raw yield ratio");
     aset(gr[part], "Runnumber","#frac{Mine}{Sasha}", 387000,398200, 0.3,0.6);
