@@ -96,7 +96,7 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
   }
 
   static int event = 0;
-  cout << "\nEvent: " << event++ << endl;
+  cout << "\n\nEvent " << event++ << endl;
 
   // Loop over all particles & Fill output histograms
   int npart = phpythia->size();
