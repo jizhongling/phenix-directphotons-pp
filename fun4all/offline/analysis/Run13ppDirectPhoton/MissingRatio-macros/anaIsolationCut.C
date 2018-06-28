@@ -48,41 +48,45 @@ void anaIsolationCut(const int process=0)
   Fun4AllInputManager *in1 = new Fun4AllDstInputManager("DSTin1", "DST");
   se->registerInputManager(in1);
 
-  // Process single file
-  int openReturn = se->fileopen("DSTin1", "simDST.root");
-  if(openReturn)
-    {
-      cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl;
-      continue;
-    }
-  se->run(0);
-  cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;
-  int closeReturn = se->fileclose("DSTin1");
-  if(closeReturn)
-    cout << "\nAbnormal return: closeReturn from Fun4All fileclose = " << closeReturn << endl;
-
-
-//  // Loop over input DST files
-//  for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
-//  {
-//    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST/simDST%d.root", thread);
+//  // Process single file
+//  //int openReturn = se->fileopen("DSTin1", "data_pisa/simDST_phpythia_pp510GeV_all_minpt1_seed1.root");
+//  //int openReturn = se->fileopen("DSTin1", "data_pisa/simDST_phpythia_pp510GeV_dirphoton_minpt1_seed1.root");
 //
-//    cout << "\nfileopen for " << dstFileName << endl;
-//    int openReturn = se->fileopen("DSTin1", dstFileName);
-//    if(openReturn)
+//  int openReturn = se->fileopen("DSTin1", "/gpfs/mnt/gpfs02/phenix/spin/spin1/phnxsp01/zji/data/pisaRun13/simDST/simDST1.root");
+//
+//  if(openReturn)
 //    {
 //      cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl;
 //      continue;
 //    }
-//
-//    // Do the analysis for this DST file
-//    se->run(0);
-//
-//    cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;
-//    int closeReturn = se->fileclose("DSTin1");
-//    if(closeReturn)
-//      cout << "\nAbnormal return: closeReturn from Fun4All fileclose = " << closeReturn << endl;
-//  }
+//  se->run(0);
+//  cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;
+//  int closeReturn = se->fileclose("DSTin1");
+//  if(closeReturn)
+//    cout << "\nAbnormal return: closeReturn from Fun4All fileclose = " << closeReturn << endl;
+
+
+  // Loop over input DST files
+  for(int fileid=0; fileid<=999; fileid++)
+  {
+    sprintf(dstFileName, "/gpfs/mnt/gpfs02/phenix/spin/spin1/phnxsp01/zji/data/pisaRun13/simDST-isolation/simDST%d.root", fileid);
+
+    cout << "\nfileopen for " << dstFileName << endl;
+    int openReturn = se->fileopen("DSTin1", dstFileName);
+    if(openReturn)
+    {
+      cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl;
+      continue;
+    }
+
+    // Do the analysis for this DST file
+    se->run(0);
+
+    cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;
+    int closeReturn = se->fileclose("DSTin1");
+    if(closeReturn)
+      cout << "\nAbnormal return: closeReturn from Fun4All fileclose = " << closeReturn << endl;
+  }
 
   // Write out the histogram file
   se->End();
