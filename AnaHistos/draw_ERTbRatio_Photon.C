@@ -62,7 +62,7 @@ void draw_ERTbRatio_Photon()
       h_minv->Rebin(10);
       h_minv->Scale(0.5);
       h_minv->SetTitle( Form("ERT4x4c Part %d",part) );
-      FitMinv(h_minv, npion_ertc, enpion_ertc, kTRUE, 0.10,0.17);
+      FitMinv(h_minv, npion_ertc, enpion_ertc, true, 0.10,0.17);
       delete h_minv;
 
       axis_1type->SetRange(2,2);
@@ -74,7 +74,7 @@ void draw_ERTbRatio_Photon()
       h_minv = hn_2photon->Projection(2);
       h_minv->Scale(0.5);
       h_minv->SetTitle( Form("ERT4x4b Part %d",part) );
-      FitMinv(h_minv, npion_ertb, enpion_ertb, kTRUE, 0.10,0.17);
+      FitMinv(h_minv, npion_ertb, enpion_ertb, true, 0.10,0.17);
       delete h_minv;
 
       double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;

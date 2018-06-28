@@ -23,7 +23,7 @@ void anaphpythia(const int process = 0)
   // Loop over input DST files
   for(int thread = process*nThread; thread < (process+1)*nThread; thread++)
   {
-    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/phpythia_isodecay/phpythia%d.root", thread);
+    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/phpythia-isodecay/phpythia%d.root", thread);
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DSTin1", dstFileName);

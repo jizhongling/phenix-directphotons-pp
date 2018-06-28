@@ -28,7 +28,6 @@ void draw_CrossSection_IsoPhoton()
 
   int bbc10cm = 1;
   int cut = 3;
-  int isolated = 1;
 
   for(int evtype=1; evtype<3; evtype++)
     for(int part=0; part<3; part++)
@@ -38,6 +37,7 @@ void draw_CrossSection_IsoPhoton()
       for(int sector=secl[part]; sector<=sech[part]; sector++)
         for(int pattern=0; pattern<3; pattern++)
         {
+          int isolated = 1;
           int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm;
           TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
           h_photon[evtype][part]->Add(h_tmp);
@@ -133,40 +133,42 @@ void draw_CrossSection_IsoPhoton()
 
     for(int part=0; part<3; part++)
     {
+      int evtype = 2;
       if(ipt < 22)  // <14GeV use ERT_4x4c
-      {
-        axis_1type->SetRange(3,3);
-        axis_type->SetRange(3,3);
-      }
+        evtype = 2;
       else  // >14GeV use ERT_4x4b
-      {
-        axis_1type->SetRange(2,2);
-        axis_type->SetRange(2,2);
-      }
-      axis_1cut->SetRange(4,4);
-      axis_1pt->SetRange(ipt+1,ipt+1);
-      axis_cut->SetRange(4,4);
-      axis_sec->SetRange(secl[part],sech[part]);
-      axis_pt->SetRange(ipt+1,ipt+1);
+        evtype = 1;
 
-      TH1 *h_photon = hn_1photon->Projection(0);
-      double nphoton = h_photon->Integral(secl[part],sech[part]);
-      delete h_photon;
+      double nphoton = h_photon[evtype][part]->GetBinContent(ipt+1);
+
+      TH1 *h_minv;
 
       mcd(part, ipt+1);
-      double npion = 1., enpion = 1.;
-      TH1 *h_minv = hn_2photon->Projection(2);
-      h_minv->Scale(0.5);
+      double nisoboth = 1., enisoboth = 1.;
+      h_minv = h2_isoboth[evtype][part]->ProjectionY("h_minv", ipt+1,ipt+1);
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
       if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
-        FitMinv(h_minv, npion, enpion, kTRUE, 0.11,0.16);
+        FitMinv(h_minv, nisoboth, enisoboth, true, 0.11,0.16);
       else if(ipt < 23)  // <16GeV subtract background
-        FitMinv(h_minv, npion, enpion, kTRUE, 0.10,0.17);
+        FitMinv(h_minv, nisoboth, enisoboth, true, 0.10,0.17);
       else  // >16GeV don't subtract background
-        FitMinv(h_minv, npion, enpion, kFALSE, 0.10,0.17);
-      //cout << "Part " << part << ", pT = " << (pTbin[ipt]+pTbin[ipt+1])/2. << ": " << npion << endl;
-      npion /= bck[part/2][ipt] * meff[part/2][ipt];
+        FitMinv(h_minv, nisoboth, enisoboth, false, 0.10,0.17);
+      nisoboth /= bck[part/2][ipt] * meff[part/2][ipt];
+      delete h_minv;
+
+      mcd(part, ipt+1);
+      double nisopair = 1., enisopair = 1.;
+      h_minv = h2_isopair[evtype][part]->ProjectionY("h_minv", ipt+1,ipt+1);
+      h_minv->Rebin(10);
+      h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
+      if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
+        FitMinv(h_minv, nisopair, enisopair, true, 0.11,0.16);
+      else if(ipt < 23)  // <16GeV subtract background
+        FitMinv(h_minv, nisopair, enisopair, true, 0.10,0.17);
+      else  // >16GeV don't subtract background
+        FitMinv(h_minv, nisopair, enisopair, false, 0.10,0.17);
+      nisopair /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
       xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
@@ -175,8 +177,8 @@ void draw_CrossSection_IsoPhoton()
       int ipTrigERT = Get_ipt(xTrigERT[part], xx);
       if(ipt >= 20)
         ipTrigERT = 0;
-      double ndir = nphoton - Miss[part][ipMiss]*npion*2.;
-      double endir = sqrt( nphoton + pow(eMiss[part][ipMiss]*npion*2.,2.) + pow(Miss[part][ipMiss]*enpion*2.,2.) );
+      double ndir = nphoton - ( nisoboth + Miss[part][ipMiss] * nisopair ) - HadronR[part][ipHadronR] * ( 1. + Miss[part][ipMiss] ) * nisopair;
+      double endir = 1.;
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
         ndir *= Norm[part];

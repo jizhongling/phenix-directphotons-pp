@@ -1,5 +1,5 @@
 bool FitMinv(TH1 *h_minv, double &npion, double &enpion,
-    const bool bsub = kTRUE,
+    const bool bsub = true,
     const double c1 = 0.11, const double c2 = 0.16,
     const double l1 = 0.06, const double r2 = 0.25)
 {
@@ -8,7 +8,7 @@ bool FitMinv(TH1 *h_minv, double &npion, double &enpion,
 
   const double max = h_minv->GetMaximum();
   if( max <= 0. )
-    return kFALSE;
+    return false;
 
   aset(h_minv, "m_{inv} [GeV]","", 0.,0.3);
 
@@ -55,5 +55,5 @@ bool FitMinv(TH1 *h_minv, double &npion, double &enpion,
 
   delete fn_fit;
   delete fn_bg;
-  return kTRUE;
+  return true;
 }

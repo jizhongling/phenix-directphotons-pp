@@ -244,7 +244,6 @@ int PhotonHistos::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
-  return EVENT_OK;
   /* Check trigger */
   unsigned lvl1_live = data_triggerlvl1->get_lvl1_triglive();
   unsigned lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();

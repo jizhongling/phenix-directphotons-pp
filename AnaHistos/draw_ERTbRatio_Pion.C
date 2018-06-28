@@ -30,14 +30,14 @@ void draw_ERTbRatio_Pion()
     axis_type->SetRange(3,3);
     h_minv = hn_pion->Projection(2);
     h_minv->SetTitle( Form("ERT4x4c Part %d",part) );
-    FitMinv(h_minv, npion_ertc, enpion_ertc, kTRUE, 0.10,0.17);
+    FitMinv(h_minv, npion_ertc, enpion_ertc, true, 0.10,0.17);
     delete h_minv;
 
     mcd(0, part+3);
     axis_type->SetRange(2,2);
     h_minv = hn_pion->Projection(2);
     h_minv->SetTitle( Form("ERT4x4b Part %d",part) );
-    FitMinv(h_minv, npion_ertb, enpion_ertb, kTRUE, 0.10,0.17);
+    FitMinv(h_minv, npion_ertb, enpion_ertb, true, 0.10,0.17);
     delete h_minv;
 
     double ratio = npion_ertc / npion_ertb;

@@ -108,11 +108,11 @@ void draw_CrossSection_Pion()
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
       if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
-        FitMinv(h_minv, npion, enpion, kTRUE, 0.11,0.16);
+        FitMinv(h_minv, npion, enpion, true, 0.11,0.16);
       else if(ipt < 23)  // <16GeV subtract background
-        FitMinv(h_minv, npion, enpion, kTRUE, 0.10,0.17);
+        FitMinv(h_minv, npion, enpion, true, 0.10,0.17);
       else  // >16GeV don't subtract background
-        FitMinv(h_minv, npion, enpion, kFALSE, 0.10,0.17);
+        FitMinv(h_minv, npion, enpion, false, 0.10,0.17);
       //cout << "Part " << part << ", pT = " << (pTbin[ipt]+pTbin[ipt+1])/2. << ": " << npion << endl;
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {

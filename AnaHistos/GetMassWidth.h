@@ -2,7 +2,7 @@ bool GetMassWidth(TH1 *h_minv, double &mass, double &emass, double &width, doubl
 {
   double max = h_minv->GetMaximum();
   if( max <= 0. )
-    return kFALSE;
+    return false;
 
   aset(h_minv, "m_{inv} [GeV]","", 0.,0.3);
 
@@ -26,5 +26,5 @@ bool GetMassWidth(TH1 *h_minv, double &mass, double &emass, double &width, doubl
   ewidth = fn_fit->GetParError(2) * scale;
 
   delete fn_fit;
-  return kTRUE;
+  return true;
 }

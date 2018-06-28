@@ -10,6 +10,7 @@ class PHPythiaContainer;
 class Fun4AllHistoManager;
 
 class TDatabasePDG;
+class TH1;
 class THnSparse;
 
 class AnaPHPythiaHistos: public SubsysReco
@@ -46,6 +47,7 @@ class AnaPHPythiaHistos: public SubsysReco
     Fun4AllHistoManager *hm;
     THnSparse *hn_photon;
     THnSparse *hn_corr;
+    TH1 *h_photon[3];
 };
 
 #endif	/* __ANAPHPYTHIAHISTOS_H__ */
