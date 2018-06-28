@@ -32,6 +32,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TH3.h>
 #include <THnSparse.h>
 
 #include <cstdlib>
@@ -44,11 +45,18 @@
 
 using namespace std;
 
+/* Some constants */
 const double PI = TMath::Pi();
 const double mPi0 = 0.1349770;
+const double mEta = 0.547862;
 
+/* Some cuts for photon identification */
 const double eMin = 0.3;
 const double AsymCut = 0.8;
+
+/* Isolation cut cone angle and energy fraction */
+const double cone_angle = 0.5;
+const double eratio = 0.1;
 
 AnaFastMC::AnaFastMC(const string &name):
   SubsysReco(name),
@@ -60,6 +68,8 @@ AnaFastMC::AnaFastMC(const string &name):
   hm(NULL),
   h_pion(NULL),
   h_photon(NULL),
+  h3_isopi0(NULL),
+  h3_isoeta(NULL),
   hn_missing(NULL),
   hn_pion(NULL),
   hn_photon(NULL)
@@ -116,22 +126,25 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
 
 int AnaFastMC::process_event(PHCompositeNode *topNode)
 {
-  /* initialize parameters for pi0 decay */
+  /* pt for pi0, eta and direct photon */
+  double pt = 0.;
+
+  /* initialize parameters for pi0 and eta decay */
   static TLorentzVector beam_pi0;
+  static TLorentzVector beam_eta;
   static TLorentzVector *pG1;
   static TLorentzVector *pG2;
-  vector<TLorentzVector> incident;
 
+  /* decay to two photons for pi0 and eta */
   static TGenPhaseSpace event;
   static double masses[2] = {0., 0.};
 
-  double pt_pi0 = 0.;
+  /* store pi0 decay photons */
+  vector<TLorentzVector> incident;
   double weight_pi0 = 1.;
 
   /* initialize parameters for direct photon */
   static TLorentzVector beam_ph;
-
-  double pt_ph = 0.;
   double weight_ph = 1.;
 
   /* Initialize parameters for clusters' information */
@@ -171,12 +184,12 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
       if( part->GetKF() == 111 )
       {
         beam_pi0.SetPxPyPzE(px,py,pz,energy);
-        pt_pi0 = anatools::GetPt(part);
+        pt = anatools::GetPt(part);
       }
       else if( part->GetKF() == 22 )
       {
         beam_ph.SetPxPyPzE(px,py,pz,energy);
-        pt_ph = anatools::GetPt(part);
+        pt = anatools::GetPt(part);
       }
     }
   }
@@ -196,20 +209,21 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
 
     // This is if we use uniform rapidity (eta here is y)
     double pz_pi0 = sqrt((pt*pt+mPi0*mPi0)*(exp(2*eta)-1)*(exp(2*eta)-1)/4./(exp(2*eta)));  // pz_pi0 = mt*gamma*beta = mt*sinh(eta)
+    double pz_eta = sqrt((pt*pt+mEta*mEta)*(exp(2*eta)-1)*(exp(2*eta)-1)/4./(exp(2*eta)));  // pz_eta = mt*gamma*beta = mt*sinh(eta)
     double pz_ph = sqrt(pt*pt*(exp(2*eta)-1)*(exp(2*eta)-1)/4./(exp(2*eta)));  // pz_ph = pt*gamma*beta = pt*sinh(eta)
     if( eta < 0 )
     {
       pz_pi0 = -pz_pi0;
+      pz_eta = -pz_eta;
       pz_ph = -pz_ph;
     }
     double energy_pi0 = sqrt(pz_pi0*pz_pi0+pt*pt+mPi0*mPi0);
+    double energy_eta = sqrt(pz_eta*pz_eta+pt*pt+mEta*mEta);
     double energy_ph = sqrt(pz_ph*pz_ph+pt*pt);
 
     beam_pi0.SetPxPyPzE(px,py,pz_pi0,energy_pi0);
-    pt_pi0 = pt;
-
+    beam_eta.SetPxPyPzE(px,py,pz_eta,energy_eta);
     beam_ph.SetPxPyPzE(px,py,pz_ph,energy_ph);
-    pt_ph = pt;
   }
 
   /* Let pi0 decay into two photons */
@@ -222,13 +236,13 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
   incident.push_back(*pG2);
 
   /* Get event weight for pi0 */
-  if(pt_pi0 > 1.)
-    weight_pi0 = cross_pi0->Eval(pt_pi0);
+  if(pt > 1.)
+    weight_pi0 = cross_pi0->Eval(pt);
   else
     weight_pi0 = cross_pi0->Eval(1.);
 
   /* Fill histogram for all generated pi0 */
-  h_pion->Fill( pt_pi0, weight_pi0 );
+  h_pion->Fill( pt, weight_pi0 );
 
   /* Initialize parameters for pi0_sim */
   float ptsim_pi0 = 0.;
@@ -259,12 +273,15 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
     /* parameters for clusters from pi0 decay photons */
     int sec1 = sector[0];
     double e1 = Vpart[0].E();
+    double pt_reco = Vpart[0].Pt();
 
     if( e1 > eMin )
     {
-      double pt_reco = Vpart[0].Pt();
-      double fill_hn_missing[] = {pt_pi0, pt_reco, sec1, NPart, 1.};
+      double fill_hn_missing[] = {pt, pt_reco, (double)sec1, (double)NPart, 1.};
       hn_missing->Fill(fill_hn_missing, weight_pi0);
+
+      /* This code is for the self veto power for pi0 */
+      h3_isopi0->Fill(pt_reco, sec1, 1.);
     }
   }
 
@@ -285,7 +302,7 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
       for(int iph=0; iph<2; iph++)
       {
         double pt_reco = Vpart[iph].Pt();
-        double fill_hn_missing[] = {pt_pi0, pt_reco, sector[iph], NPart, NPeak};
+        double fill_hn_missing[] = {pt, pt_reco, (double)sector[iph], (double)NPart, (double)NPeak};
         hn_missing->Fill(fill_hn_missing, weight_pi0);
       }
 
@@ -319,14 +336,89 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
       /* Fill pi0 histogram
        * NPeak=2: No merging for two photons
        * NPeak=1: Merging for two photons */
-      double fill_hn_pion[] = {pt_pi0, ptsim_pi0, minv, sec1, NPeak};
+      double fill_hn_pion[] = {pt, ptsim_pi0, minv, (double)sec1, (double)NPeak};
       hn_pion->Fill(fill_hn_pion, weight_pi0);
     }
+
+    /* This code is for the self veto power for pi0 */
+    if( NPeak >= 2 )
+    {
+      double angle = Vpart[0].Angle( Vpart[1].Vect() );
+      for(int iph=0; iph<2; iph++)
+      {
+        double sec = sector[iph];
+        double energy = Vpart[iph].E();
+        if(energy < eMin) continue;
+        double pt_reco = Vpart[iph].Pt();
+        double isolated = 0.;
+        double econe = angle < cone_angle ? Vpart[1-iph].E() : 0.;
+        if( econe < eratio * energy )
+          isolated = 1.;
+        h3_isopi0->Fill(pt_reco, sec, isolated);
+      }
+    } // NPeak
   } // acc_pi0
 
+  /* Let eta decay into two photons */
+  event.SetDecay(beam_eta, 2, masses);
+  event.Generate();
+
+  pG1 = event.GetDecay(0);
+  pG2 = event.GetDecay(1);
+
+  /* Initialize parameters for eta simulation */
+  float ptsim_eta = 0.;
+  minv = 0.;
+  dist = 9999.;
+  ResetTowerEnergy();
+
+  /* determine if eta decay photons within a tower that is NOT flagged bad (set boolean 'acc_eta')
+   * and fill ptsim_eta, minv, and dist values */
+  bool acc_eta = pi0_sim( pG1, pG2, ptsim_eta, minv, dist );
+
+  /* Missing one photon */
+  if(NPart == 1)
+  {
+    /* parameters for clusters from eta decay photons */
+    int sec1 = sector[0];
+    double e1 = Vpart[0].E();
+    double pt_reco = Vpart[0].Pt();
+
+    if( e1 > eMin )
+    {
+      /* This code is for the self veto power for eta */
+      h3_isoeta->Fill(pt_reco, sec1, 1.);
+    }
+  }
+
+  /* Two photons are in acceptance */
+  if(acc_eta)
+  {
+    /* Get NPeak */
+    GetNpeak();
+
+    /* This code is for the self veto power for eta */
+    if( NPeak >= 2 )
+    {
+      double angle = Vpart[0].Angle( Vpart[1].Vect() );
+      for(int iph=0; iph<2; iph++)
+      {
+        double sec = sector[iph];
+        double energy = Vpart[iph].E();
+        if(energy < eMin) continue;
+        double pt_reco = Vpart[iph].Pt();
+        double isolated = 0.;
+        double econe = angle < cone_angle ? Vpart[1-iph].E() : 0.;
+        if( econe < eratio * energy )
+          isolated = 1.;
+        h3_isoeta->Fill(pt_reco, sec, isolated);
+      }
+    } // NPeak
+  } // acc_eta
+
   /* Get event weight for direct photon */
-  if(pt_ph > 1.)
-    weight_ph = cross_ph->Eval(pt_ph);
+  if(pt > 1.)
+    weight_ph = cross_ph->Eval(pt);
   else
     weight_ph = cross_ph->Eval(1.);
 
@@ -381,7 +473,7 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
       if( part >= 0 && pt_reco > 5. && pt_reco < 10. )
         h2_photon_eta_phi[part]->Fill(-eta, phi, weight_ph);
 
-      double fill_hn_photon[] = {pt_truth, pt_reco, sec1};
+      double fill_hn_photon[] = {pt_truth, pt_reco, (double)sec1};
       hn_photon->Fill(fill_hn_photon, weight_ph);
     }
   } // acc_ph
@@ -458,6 +550,15 @@ void AnaFastMC::BookHistograms()
     hm->registerHisto(h2_pion_eta_phi[part]);
     hm->registerHisto(h2_photon_eta_phi[part]);
   }
+
+  h3_isopi0 = new TH3F("h3_isopi0", "Self veto for #pi^{0};p_{T} [GeV];sector;isolated;",
+      npT,0.,0., 8,-0.5,7.5, 2,-0.5,1.5);
+  h3_isopi0->GetXaxis()->Set(npT, pTbin);
+  hm->registerHisto(h3_isopi0);
+
+  h3_isoeta = static_cast<TH3*>( h3_isopi0->Clone("h3_isoeta") );
+  h3_isoeta->SetTitle("Self veto for #eta");
+  hm->registerHisto(h3_isoeta);
 
   int nbins_hn_missing[] = {npT, npT, 8, 3, 3};
   double xmin_hn_missing[] = {0., 0., -0.5, -0.5, -0.5};
@@ -1059,6 +1160,7 @@ bool AnaFastMC::Gamma_En(Double_t px, Double_t py, Double_t pz, float& eout, int
   static float corr_gl = 1.009;
 
   float a, b, bc, corr, cnoise;
+  if(cnoise);
 
   //const float Eback = 0.1; // mean energy per fired tower
   //const float Rload = 0.08; // 25% of towers fired

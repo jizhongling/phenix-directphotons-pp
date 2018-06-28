@@ -3,7 +3,11 @@ AUTOMAKE_OPTIONS = foreign
 AM_CXXFLAGS = -Wall -Werror
 INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include -I$(ROOTSYS)/include
 
-lib_LTLIBRARIES = libAnaPHPythiaDirectPhoton.la
+lib_LTLIBRARIES = \
+  libAnaPHPythiaDirectPhoton.la
+
+#mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
+#  dist_mydata_DATA =
 
 include_HEADERS =
 
@@ -13,9 +17,7 @@ noinst_HEADERS = \
 
 libAnaPHPythiaDirectPhoton_la_SOURCES = \
   AnaPHPythiaDirectPhoton.C \
-  AnaPHPythiaHistos.C
-
-nodist_libAnaPHPythiaDirectPhoton_la_SOURCES = \
+  AnaPHPythiaHistos.C \
   AnaPHPythiaDirectPhoton_Dict.C
 
 AM_LDFLAGS = \
@@ -23,10 +25,10 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libAnaPHPythiaDirectPhoton_la_LIBADD = \
-  -lphool \
-  -lSubsysReco \
+  -lTOAD \
   -lPHPythia \
-  -lTOAD
+  -lphool \
+  -lSubsysReco
 
 BUILT_SOURCES = testexternals.C
 noinst_PROGRAMS = testexternals

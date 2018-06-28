@@ -1,8 +1,6 @@
-/anaFastMC.C/1.1.1.1/Wed Sep 27 00:07:57 2017//
-/anaFastMC.csh/1.1.1.1/Wed Sep 27 00:07:57 2017//
-/anaFastMC.job/1.1.1.1/Wed Sep 27 00:07:57 2017//
-/genfilelist.sh/1.1.1.1/Wed Sep 27 00:07:57 2017//
-/myhadd.sh/1.1.1.1/Wed Sep 27 00:07:57 2017//
-/phparticlegen.csh/1.1.1.1/Wed Sep 27 00:07:57 2017//
-/phparticlegen.job/1.1.1.1/Wed Sep 27 00:07:57 2017//
 D/filelist////
+/anaFastMC.C/1.2/Tue Jun 19 02:01:25 2018//
+/anaFastMC.job/1.2/Thu May 10 20:25:49 2018//
+/myhadd.sh/1.2/Sat Jun 16 18:43:59 2018//
+/phparticlegen.csh/1.2/Fri Jan  5 03:28:44 2018//
+/phparticlegen.job/1.2/Thu May 10 20:25:49 2018//

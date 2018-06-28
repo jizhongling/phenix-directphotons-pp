@@ -13,7 +13,7 @@ void draw_GammaRatio()
 
   TGraphErrors *gr = DivideHisto(h_others, h_pion);
   gr->SetTitle("Photon Ratio");
-  aset(gr, "p_{T} [GeV]","#frac{#eta+#omega+#eta'}{#pi^{0}}", 0.,30., 0.,0.5);
+  aset(gr, "p_{T} [GeV]","#frac{#eta+#omega+#eta'}{#pi^{0}}", 2.,30., 0.,0.5);
   style(gr, 20, 1);
   gr->Draw("AP");
 
