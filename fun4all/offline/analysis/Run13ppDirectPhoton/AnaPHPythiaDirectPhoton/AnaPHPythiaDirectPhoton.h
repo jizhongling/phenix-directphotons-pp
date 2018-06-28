@@ -3,6 +3,8 @@
 
 #include "SubsysReco.h"
 
+#include <map>
+
 class PHCompositeNode;
 class PHPythiaHeader;
 class PHPythiaContainer;
@@ -23,6 +25,9 @@ public:
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  /** Turn on/off photon and PHENIX acceptance cut */
+  void SelectPhotons( bool yesno ) { _select_photons = yesno; }
+
 protected:
 
   /** sum up electromagnetic energy within cone of fixed opening
@@ -33,6 +38,12 @@ protected:
       angle rcone around particle with vector vref */
   float SumPTrack( TMCParticle* pref, float rcone );
 
+  /** Reset global variables that store cluster information for filling output tree */
+  void ResetBranchVariables();
+
+  /** boolean to turn on/off photon and acceptance selection */
+  bool _select_photons;
+
   /** ROOT databsae with PDG properties */
   TDatabasePDG* _pdg_db;
 
@@ -42,18 +53,15 @@ protected:
   /** output tree with truth information */
   TTree* _tree_event_truth;
 
-  /** truth tree variables */
+  /** Map of Event properties that will be written to
+   * output ROOT Tree */
+  std::map< std::string , float > _branchmap_event;
+
+  /** Map of Particle (or cluster) properties that will be written to
+   * output ROOT Tree */
+  std::map< std::string , std::vector< float > > _branchmap_mcparticles;
+
   unsigned int _ievent;
-  int _pythia_event;
-  int _pythia_processid;
-  float _truth_pid;
-  float _truth_parentid;
-  float _truth_ispromptphoton;
-  float _truth_ptot;
-  float _truth_pt;
-  float _truth_etot;
-  float _truth_eta;
-  float _truth_phi;
 
   std::vector < float > _v_iso_conesize;
   std::vector < float > _v_iso_eemcal;

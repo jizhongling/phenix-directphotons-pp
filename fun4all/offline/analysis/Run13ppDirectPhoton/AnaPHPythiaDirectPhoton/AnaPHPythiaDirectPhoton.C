@@ -37,21 +37,12 @@
 using namespace std;
 
 AnaPHPythiaDirectPhoton::AnaPHPythiaDirectPhoton(const std::string &name): SubsysReco(name),
+									   _select_photons(false),
 									   _pdg_db(nullptr),
                                                                            phpythiaheader(0),
                                                                            phpythia(0),
                                                                            _tree_event_truth(nullptr),
-                                                                           _ievent(0),
-                                                                           _pythia_event(0),
-                                                                           _pythia_processid(0),
-                                                                           _truth_pid(0),
-                                                                           _truth_parentid(0),
-                                                                           _truth_ispromptphoton(0),
-                                                                           _truth_ptot(0),
-                                                                           _truth_pt(0),
-                                                                           _truth_etot(0),
-                                                                           _truth_eta(0),
-                                                                           _truth_phi(0),
+									   _ievent(0),
                                                                            _output_file_name("test.root"),
                                                                            _fout(NULL)
 {
@@ -79,30 +70,51 @@ AnaPHPythiaDirectPhoton::~AnaPHPythiaDirectPhoton()
 // Done at the beginning of processing
 int AnaPHPythiaDirectPhoton::Init(PHCompositeNode *topNode)
 {
+  /* create output file */
   _fout = new TFile(_output_file_name.c_str(),"RECREATE");
+
+  /* Add cluster properties to map that defines output tree */
+  float dummy = 0;
+  vector< float > vdummy;
+
+  _branchmap_event.insert( make_pair( "eventcounter" , dummy ) );
+  _branchmap_event.insert( make_pair( "pythia_event" , dummy ) );
+  _branchmap_event.insert( make_pair( "pythia_processid" , dummy ) );
+
+  _branchmap_mcparticles.insert( make_pair( "t_pid" , vdummy ) );
+  _branchmap_mcparticles.insert( make_pair( "t_parentpid" , vdummy ) );
+  _branchmap_mcparticles.insert( make_pair( "t_ispromptphoton" , vdummy ) );
+  _branchmap_mcparticles.insert( make_pair( "t_ptot" , vdummy ) );
+  _branchmap_mcparticles.insert( make_pair( "t_pt" , vdummy ) );
+  _branchmap_mcparticles.insert( make_pair( "t_etot" , vdummy ) );
+  _branchmap_mcparticles.insert( make_pair( "t_eta" , vdummy ) );
+  _branchmap_mcparticles.insert( make_pair( "t_phi" , vdummy ) );
 
   /* Create tree for information about full event truth */
   _tree_event_truth = new TTree("event_truth", "a Tree with global event information and EM truth");
 
   /* Add event branches */
-  _tree_event_truth->Branch( "event", &_ievent );
-  _tree_event_truth->Branch( "pythia_event", &_pythia_event );
-  _tree_event_truth->Branch( "pythia_processid", &_pythia_processid );
+  for ( map< string , float >::iterator iter = _branchmap_event.begin();
+        iter != _branchmap_event.end();
+        ++iter )
+    {
+      _tree_event_truth->Branch( (iter->first).c_str(),
+				     &(iter->second) );
+    }
 
   /* Add particle branches */
-  _tree_event_truth->Branch( "pid", &_truth_pid );
-  _tree_event_truth->Branch( "parentid", &_truth_parentid );
-  _tree_event_truth->Branch( "ispromptphoton", &_truth_ispromptphoton );
-  _tree_event_truth->Branch( "ptot", &_truth_ptot );
-  _tree_event_truth->Branch( "pt", &_truth_pt );
-  _tree_event_truth->Branch( "etot", &_truth_etot );
-  _tree_event_truth->Branch( "eta", &_truth_eta );
-  _tree_event_truth->Branch( "phi", &_truth_phi );
+  for ( map< string , vector<float> >::iterator iter = _branchmap_mcparticles.begin();
+        iter != _branchmap_mcparticles.end();
+        ++iter )
+    {
+      _tree_event_truth->Branch( (iter->first).c_str(),
+				 &(iter->second) );
+    }
 
   /* Add islolation cut branches */
-  _tree_event_truth->Branch( "iso_conesize", &_v_iso_conesize );
-  _tree_event_truth->Branch( "iso_eemcal", &_v_iso_eemcal );
-  _tree_event_truth->Branch( "iso_ptrack", &_v_iso_ptrack );
+  //  _tree_event_truth->Branch( "iso_conesize", &_v_iso_conesize );
+  //  _tree_event_truth->Branch( "iso_eemcal", &_v_iso_eemcal );
+  //  _tree_event_truth->Branch( "iso_ptrack", &_v_iso_ptrack );
 
   return EVENT_OK;
 }
@@ -126,6 +138,9 @@ int AnaPHPythiaDirectPhoton::process_event(PHCompositeNode *topNode)
   /* increment event counter */
   _ievent++;
 
+  /* reset variables that store cluster properties */
+  ResetBranchVariables();
+
   // Get PYTHIA Header
   phpythiaheader = findNode::getClass<PHPythiaHeader>(topNode,"PHPythiaHeader");
   if (!phpythiaheader)
@@ -147,9 +162,10 @@ int AnaPHPythiaDirectPhoton::process_event(PHCompositeNode *topNode)
   //  cout << "Process: " << phpythiaheader->GetProcessid() << endl;
   //  cout << "KS\tKF\tpid\tname\thistory" << endl;
 
-  /* Update event parameter information */
-  _pythia_event = phpythiaheader->GetEvt();
-  _pythia_processid = phpythiaheader->GetProcessid();
+  /* Set event parameters for putput trees */
+  ( _branchmap_event.find("eventcounter") )->second  = _ievent;
+  ( _branchmap_event.find("pythia_event") )->second  = phpythiaheader->GetEvt();
+  ( _branchmap_event.find("pythia_processid") )->second  = phpythiaheader->GetProcessid();
 
   /* Loop over all particles & Fill output tree */
   int npart = phpythia->size();
@@ -159,8 +175,8 @@ int AnaPHPythiaDirectPhoton::process_event(PHCompositeNode *topNode)
       TMCParticle *parent = phpythia->getParent(part);
 
       /* test if particle is stable photon */
-      if ( part->GetKF() != 22 ||
-           part->GetKS() != 1 )
+      if ( _select_photons & ( part->GetKF() != 22 ||
+			      part->GetKS() != 1 ) )
         continue;
 
       /* test if particle is prompt photon */
@@ -185,25 +201,27 @@ int AnaPHPythiaDirectPhoton::process_event(PHCompositeNode *topNode)
 
       /* test if particle is in Central Arm acceptance- continue if not */
       Double_t Eta = v_part.Eta();
-      if ( ! ( fabs(Eta)<0.35 ) )
+      if ( _select_photons & ( ! ( fabs(Eta)<0.35 ) ) )
         continue;
 
       /* test if photon passes energy threshold- continue of not */
-      double photon_minEnergy = 1.0;
-      if ( ! ( part->GetEnergy() > photon_minEnergy ) )
-	continue;
+      double photon_minEnergy = 0.15;
+      if ( _select_photons & ( ! ( part->GetEnergy() > photon_minEnergy ) ) )
+      	continue;
 
       /* Set tree varables to store particle information */
-      _truth_pid = part->GetKF();
-      _truth_parentid = 0;
+      ( _branchmap_mcparticles.find("t_pid") )->second.push_back( part->GetKF() );
+
+      int truth_parentpid = 0;
       if ( parent )
-        _truth_parentid = parent->GetKF();
-      _truth_ispromptphoton = isPromptPhoton;
-      _truth_ptot = v_part.P();
-      _truth_pt = v_part.Perp();
-      _truth_etot = part->GetEnergy();
-      _truth_eta = v_part.Eta();
-      _truth_phi = v_part.Phi();
+	truth_parentpid =  parent->GetKF();
+      ( _branchmap_mcparticles.find("t_parentpid") )->second.push_back( truth_parentpid );
+      ( _branchmap_mcparticles.find("t_ispromptphoton") )->second.push_back( isPromptPhoton );
+      ( _branchmap_mcparticles.find("t_ptot") )->second.push_back(  v_part.P() );
+      ( _branchmap_mcparticles.find("t_pt") )->second.push_back( v_part.Perp() );
+      ( _branchmap_mcparticles.find("t_etot") )->second.push_back( part->GetEnergy() );
+      ( _branchmap_mcparticles.find("t_eta") )->second.push_back( v_part.Eta() );
+      ( _branchmap_mcparticles.find("t_phi") )->second.push_back( v_part.Phi() );
 
       /* Get eneries and momenta in different size isolation cones */
       for ( unsigned icone = 0; icone < _v_iso_conesize.size(); icone++ )
@@ -211,11 +229,9 @@ int AnaPHPythiaDirectPhoton::process_event(PHCompositeNode *topNode)
           _v_iso_eemcal.at( icone ) = SumEEmcal( part , _v_iso_conesize.at( icone ) );
           _v_iso_ptrack.at( icone ) = SumPTrack( part , _v_iso_conesize.at( icone ) );
         }
-
-      /* Fill tree */
-      _tree_event_truth->Fill();
-
     }
+  /* Fill tree */
+  _tree_event_truth->Fill();
 
   // some useful functions
   // phpythia->getHistoryString(part)               // return a TString with part's all ancestor
@@ -225,7 +241,6 @@ int AnaPHPythiaDirectPhoton::process_event(PHCompositeNode *topNode)
   // phpythia->hasAncestor(part, pid1, pid2, pid3)  // whether part has all ancestor pid1, pid2, pid3
   // phpythia->hasAncestorAbs(part, pid)            // return the nearest ancestor pointer with abs(KF)==pid
   // phpythia->hasAncestorRange(part, pid1, pid2)   // return the nearest ancestor whose pid1<=KF<=pid2
-
 
   return EVENT_OK;
 }
@@ -291,4 +306,25 @@ float AnaPHPythiaDirectPhoton::SumPTrack( TMCParticle* pref, float rcone )
     }
 
   return pcone;
+}
+
+void AnaPHPythiaDirectPhoton::ResetBranchVariables( )
+{
+  /* Event branches */
+  for ( map< string , float >::iterator iter = _branchmap_event.begin();
+        iter != _branchmap_event.end();
+        ++iter)
+    {
+      (iter->second) = NAN;
+    }
+
+  /* Particle branches */
+  for ( map< string , vector<float> >::iterator iter = _branchmap_mcparticles.begin();
+        iter != _branchmap_mcparticles.end();
+        ++iter)
+    {
+      (iter->second).clear();
+    }
+
+  return;
 }
