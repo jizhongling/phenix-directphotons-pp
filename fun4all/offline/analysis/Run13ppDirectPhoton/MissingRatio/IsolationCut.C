@@ -95,44 +95,44 @@ int IsolationCut::Init(PHCompositeNode *topNode)
   _branchmap_mcparticles.insert( make_pair( "t_phi" , vdummy ) );
 
   /* Cluster information */
-  _branchmap_cluster.insert( make_pair( "cluster_ecore" , dummy ) ); // cluster energy
-  _branchmap_cluster.insert( make_pair( "cluster_pt" , dummy ) ); // cluster transverse momentum
-  _branchmap_cluster.insert( make_pair( "cluster_prob" , dummy ) ); // cluster em-like probability
-  _branchmap_cluster.insert( make_pair( "cluster_rcone_r01" , dummy ) ); // cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_rcone_r02" , dummy ) ); // cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_rcone_r03" , dummy ) ); // cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_rcone_r04" , dummy ) ); // cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_rcone_r05" , dummy ) ); // cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_rcone_r06" , dummy ) ); // cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_rcone_r07" , dummy ) ); // cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_rcone_r08" , dummy ) ); // cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_rcone_r09" , dummy ) ); // cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_rcone_r10" , dummy ) ); // cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r01" , dummy ) ); // energy in EMCal clusters within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r02" , dummy ) ); // energy in EMCal clusters within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r03" , dummy ) ); // energy in EMCal clusters within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r04" , dummy ) ); // energy in EMCal clusters within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r05" , dummy ) ); // energy in EMCal clusters within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r06" , dummy ) ); // energy in EMCal clusters within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r07" , dummy ) ); // energy in EMCal clusters within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r08" , dummy ) ); // energy in EMCal clusters within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r09" , dummy ) ); // energy in EMCal clusters within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r10" , dummy ) ); // energy in EMCal clusters within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r01" , dummy ) ); // charged tracks momenta within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r02" , dummy ) ); // charged tracks momenta within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r03" , dummy ) ); // charged tracks momenta within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r04" , dummy ) ); // charged tracks momenta within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r05" , dummy ) ); // charged tracks momenta within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r06" , dummy ) ); // charged tracks momenta within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r07" , dummy ) ); // charged tracks momenta within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r08" , dummy ) ); // charged tracks momenta within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r09" , dummy ) ); // charged tracks momenta within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r10" , dummy ) ); // charged tracks momenta within cone radius
-  _branchmap_cluster.insert( make_pair( "cluster_truth_pdgpid" , dummy ) ); // pid of associated truth particle
-  _branchmap_cluster.insert( make_pair( "cluster_truth_pdgparentpid" , dummy ) ); // parent pid of associated truth particle
-  _branchmap_cluster.insert( make_pair( "cluster_truth_pid" , dummy ) ); // pid of associated truth particle
-  _branchmap_cluster.insert( make_pair( "cluster_truth_parentpid" , dummy ) ); // parent pid of associated truth particle
-  _branchmap_cluster.insert( make_pair( "cluster_truth_anclvl" , dummy ) ); // ancestry level of associated truth particle
+  _branchmap_cluster.insert( make_pair( "cluster_ecore" , vdummy ) ); // cluster energy
+  _branchmap_cluster.insert( make_pair( "cluster_pt" , vdummy ) ); // cluster transverse momentum
+  _branchmap_cluster.insert( make_pair( "cluster_prob" , vdummy ) ); // cluster em-like probability
+  _branchmap_cluster.insert( make_pair( "cluster_rcone_r01" , vdummy ) ); // cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_rcone_r02" , vdummy ) ); // cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_rcone_r03" , vdummy ) ); // cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_rcone_r04" , vdummy ) ); // cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_rcone_r05" , vdummy ) ); // cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_rcone_r06" , vdummy ) ); // cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_rcone_r07" , vdummy ) ); // cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_rcone_r08" , vdummy ) ); // cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_rcone_r09" , vdummy ) ); // cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_rcone_r10" , vdummy ) ); // cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r01" , vdummy ) ); // energy in EMCal clusters within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r02" , vdummy ) ); // energy in EMCal clusters within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r03" , vdummy ) ); // energy in EMCal clusters within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r04" , vdummy ) ); // energy in EMCal clusters within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r05" , vdummy ) ); // energy in EMCal clusters within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r06" , vdummy ) ); // energy in EMCal clusters within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r07" , vdummy ) ); // energy in EMCal clusters within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r08" , vdummy ) ); // energy in EMCal clusters within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r09" , vdummy ) ); // energy in EMCal clusters within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_emcal_r10" , vdummy ) ); // energy in EMCal clusters within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r01" , vdummy ) ); // charged tracks momenta within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r02" , vdummy ) ); // charged tracks momenta within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r03" , vdummy ) ); // charged tracks momenta within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r04" , vdummy ) ); // charged tracks momenta within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r05" , vdummy ) ); // charged tracks momenta within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r06" , vdummy ) ); // charged tracks momenta within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r07" , vdummy ) ); // charged tracks momenta within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r08" , vdummy ) ); // charged tracks momenta within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r09" , vdummy ) ); // charged tracks momenta within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_econe_tracks_r10" , vdummy ) ); // charged tracks momenta within cone radius
+  _branchmap_cluster.insert( make_pair( "cluster_truth_pdgpid" , vdummy ) ); // pid of associated truth particle
+  _branchmap_cluster.insert( make_pair( "cluster_truth_pdgparentpid" , vdummy ) ); // parent pid of associated truth particle
+  _branchmap_cluster.insert( make_pair( "cluster_truth_pid" , vdummy ) ); // pid of associated truth particle
+  _branchmap_cluster.insert( make_pair( "cluster_truth_parentpid" , vdummy ) ); // parent pid of associated truth particle
+  _branchmap_cluster.insert( make_pair( "cluster_truth_anclvl" , vdummy ) ); // ancestry level of associated truth particle
 
   /* Create tree for information about full event */
   _tree_recocluster = new TTree("recocluster", "EMCal cluster and isolation cone information");
@@ -147,7 +147,7 @@ int IsolationCut::Init(PHCompositeNode *topNode)
     }
 
   /* Add cluster branches */
-  for ( map< string , float >::iterator iter = _branchmap_cluster.begin();
+  for ( map< string , vector<float> >::iterator iter = _branchmap_cluster.begin();
         iter != _branchmap_cluster.end();
         ++iter )
     {
@@ -415,49 +415,48 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
       double econe_track_r10 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r10 );
 
       /* Update tree branch variables */
-      _branchmap_cluster.find( "cluster_ecore" )->second = cluster_ecore;
-      _branchmap_cluster.find( "cluster_pt" )->second = cluster_pt;
-      _branchmap_cluster.find( "cluster_prob" )->second = cluster_prob;
-      _branchmap_cluster.find( "cluster_rcone_r01" )->second = rcone_r01;
-      _branchmap_cluster.find( "cluster_rcone_r02" )->second = rcone_r02;
-      _branchmap_cluster.find( "cluster_rcone_r03" )->second = rcone_r03;
-      _branchmap_cluster.find( "cluster_rcone_r04" )->second = rcone_r04;
-      _branchmap_cluster.find( "cluster_rcone_r05" )->second = rcone_r05;
-      _branchmap_cluster.find( "cluster_rcone_r06" )->second = rcone_r06;
-      _branchmap_cluster.find( "cluster_rcone_r07" )->second = rcone_r07;
-      _branchmap_cluster.find( "cluster_rcone_r08" )->second = rcone_r08;
-      _branchmap_cluster.find( "cluster_rcone_r09" )->second = rcone_r09;
-      _branchmap_cluster.find( "cluster_rcone_r10" )->second = rcone_r10;
-      _branchmap_cluster.find( "cluster_econe_emcal_r01" )->second = econe_emcal_r01;
-      _branchmap_cluster.find( "cluster_econe_emcal_r02" )->second = econe_emcal_r02;
-      _branchmap_cluster.find( "cluster_econe_emcal_r03" )->second = econe_emcal_r03;
-      _branchmap_cluster.find( "cluster_econe_emcal_r04" )->second = econe_emcal_r04;
-      _branchmap_cluster.find( "cluster_econe_emcal_r05" )->second = econe_emcal_r05;
-      _branchmap_cluster.find( "cluster_econe_emcal_r06" )->second = econe_emcal_r06;
-      _branchmap_cluster.find( "cluster_econe_emcal_r07" )->second = econe_emcal_r07;
-      _branchmap_cluster.find( "cluster_econe_emcal_r08" )->second = econe_emcal_r08;
-      _branchmap_cluster.find( "cluster_econe_emcal_r09" )->second = econe_emcal_r09;
-      _branchmap_cluster.find( "cluster_econe_emcal_r10" )->second = econe_emcal_r10;
-      _branchmap_cluster.find( "cluster_econe_tracks_r01" )->second = econe_track_r01;
-      _branchmap_cluster.find( "cluster_econe_tracks_r02" )->second = econe_track_r02;
-      _branchmap_cluster.find( "cluster_econe_tracks_r03" )->second = econe_track_r03;
-      _branchmap_cluster.find( "cluster_econe_tracks_r04" )->second = econe_track_r04;
-      _branchmap_cluster.find( "cluster_econe_tracks_r05" )->second = econe_track_r05;
-      _branchmap_cluster.find( "cluster_econe_tracks_r06" )->second = econe_track_r06;
-      _branchmap_cluster.find( "cluster_econe_tracks_r07" )->second = econe_track_r07;
-      _branchmap_cluster.find( "cluster_econe_tracks_r08" )->second = econe_track_r08;
-      _branchmap_cluster.find( "cluster_econe_tracks_r09" )->second = econe_track_r09;
-      _branchmap_cluster.find( "cluster_econe_tracks_r10" )->second = econe_track_r10;
-      _branchmap_cluster.find( "cluster_truth_pdgpid" )->second = 0;
-      _branchmap_cluster.find( "cluster_truth_pdgparentpid" )->second = 0;
-      _branchmap_cluster.find( "cluster_truth_pid" )->second = pid_i;
-      _branchmap_cluster.find( "cluster_truth_parentpid" )->second = parent_id;
-      _branchmap_cluster.find( "cluster_truth_anclvl" )->second = anclvl_i;
-
-      /* Fill tree */
-      _tree_recocluster->Fill();
-
+      _branchmap_cluster.find( "cluster_ecore" )->second.push_back( cluster_ecore );
+      _branchmap_cluster.find( "cluster_pt" )->second.push_back( cluster_pt );
+      _branchmap_cluster.find( "cluster_prob" )->second.push_back( cluster_prob );
+      _branchmap_cluster.find( "cluster_rcone_r01" )->second.push_back( rcone_r01 );
+      _branchmap_cluster.find( "cluster_rcone_r02" )->second.push_back( rcone_r02 );
+      _branchmap_cluster.find( "cluster_rcone_r03" )->second.push_back( rcone_r03 );
+      _branchmap_cluster.find( "cluster_rcone_r04" )->second.push_back( rcone_r04 );
+      _branchmap_cluster.find( "cluster_rcone_r05" )->second.push_back( rcone_r05 );
+      _branchmap_cluster.find( "cluster_rcone_r06" )->second.push_back( rcone_r06 );
+      _branchmap_cluster.find( "cluster_rcone_r07" )->second.push_back( rcone_r07 );
+      _branchmap_cluster.find( "cluster_rcone_r08" )->second.push_back( rcone_r08 );
+      _branchmap_cluster.find( "cluster_rcone_r09" )->second.push_back( rcone_r09 );
+      _branchmap_cluster.find( "cluster_rcone_r10" )->second.push_back( rcone_r10 );
+      _branchmap_cluster.find( "cluster_econe_emcal_r01" )->second.push_back( econe_emcal_r01 );
+      _branchmap_cluster.find( "cluster_econe_emcal_r02" )->second.push_back( econe_emcal_r02 );
+      _branchmap_cluster.find( "cluster_econe_emcal_r03" )->second.push_back( econe_emcal_r03 );
+      _branchmap_cluster.find( "cluster_econe_emcal_r04" )->second.push_back( econe_emcal_r04 );
+      _branchmap_cluster.find( "cluster_econe_emcal_r05" )->second.push_back( econe_emcal_r05 );
+      _branchmap_cluster.find( "cluster_econe_emcal_r06" )->second.push_back( econe_emcal_r06 );
+      _branchmap_cluster.find( "cluster_econe_emcal_r07" )->second.push_back( econe_emcal_r07 );
+      _branchmap_cluster.find( "cluster_econe_emcal_r08" )->second.push_back( econe_emcal_r08 );
+      _branchmap_cluster.find( "cluster_econe_emcal_r09" )->second.push_back( econe_emcal_r09 );
+      _branchmap_cluster.find( "cluster_econe_emcal_r10" )->second.push_back( econe_emcal_r10 );
+      _branchmap_cluster.find( "cluster_econe_tracks_r01" )->second.push_back( econe_track_r01 );
+      _branchmap_cluster.find( "cluster_econe_tracks_r02" )->second.push_back( econe_track_r02 );
+      _branchmap_cluster.find( "cluster_econe_tracks_r03" )->second.push_back( econe_track_r03 );
+      _branchmap_cluster.find( "cluster_econe_tracks_r04" )->second.push_back( econe_track_r04 );
+      _branchmap_cluster.find( "cluster_econe_tracks_r05" )->second.push_back( econe_track_r05 );
+      _branchmap_cluster.find( "cluster_econe_tracks_r06" )->second.push_back( econe_track_r06 );
+      _branchmap_cluster.find( "cluster_econe_tracks_r07" )->second.push_back( econe_track_r07 );
+      _branchmap_cluster.find( "cluster_econe_tracks_r08" )->second.push_back( econe_track_r08 );
+      _branchmap_cluster.find( "cluster_econe_tracks_r09" )->second.push_back( econe_track_r09 );
+      _branchmap_cluster.find( "cluster_econe_tracks_r10" )->second.push_back( econe_track_r10 );
+      _branchmap_cluster.find( "cluster_truth_pdgpid" )->second.push_back( 0 );
+      _branchmap_cluster.find( "cluster_truth_pdgparentpid" )->second.push_back( 0 );
+      _branchmap_cluster.find( "cluster_truth_pid" )->second.push_back( pid_i );
+      _branchmap_cluster.find( "cluster_truth_parentpid" )->second.push_back( parent_id );
+      _branchmap_cluster.find( "cluster_truth_anclvl" )->second.push_back( anclvl_i );
     }
+
+  /* Fill tree */
+  _tree_recocluster->Fill();
 
   return EVENT_OK;
 }
@@ -592,11 +591,11 @@ float IsolationCut::SumTrackEnergyInCone( emcClusterContent* emccluster_ref,
 void IsolationCut::ResetBranchVariables( )
 {
   /* Cluster branches */
-  for ( map< string , float >::iterator iter = _branchmap_cluster.begin();
+  for ( map< string , vector<float> >::iterator iter = _branchmap_cluster.begin();
         iter != _branchmap_cluster.end();
         ++iter)
     {
-      (iter->second) = NAN;
+      (iter->second).clear();
     }
 
   /* Event branches */

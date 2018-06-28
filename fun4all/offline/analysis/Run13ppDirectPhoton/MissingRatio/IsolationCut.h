@@ -80,7 +80,7 @@ protected:
   TTree* _tree_mcparticles;
 
   /** map with cluster variables */
-  std::map< std::string , float > _branchmap_cluster;
+  std::map< std::string , std::vector< float > > _branchmap_cluster;
 
   /** Map of Event properties that will be written to
    * output ROOT Tree */
