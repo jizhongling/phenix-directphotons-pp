@@ -7,21 +7,21 @@ void draw_ClusterEShare()
   mc(0, 6,5);
   mc(1, 6,5);
   
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
-  const Double_t tsize[2] = {5.5, 4.};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
+  const double tsize[2] = {5.5, 4.};
 
   TLine *line = new TLine();
   line->SetLineColor(kRed);
 
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     hn_sharing->GetAxis(0)->SetRange(secl[part],sech[part]);
-    for(Int_t ipt=0; ipt<30; ipt++)
+    for(int ipt=0; ipt<30; ipt++)
     {
       hn_sharing->GetAxis(1)->SetRange(ipt+1,ipt+1);
-      Double_t pTlow = hn_sharing->GetAxis(1)->GetBinLowEdge(ipt+1);
-      Double_t pTup = hn_sharing->GetAxis(1)->GetBinUpEdge(ipt+1);
+      double pTlow = hn_sharing->GetAxis(1)->GetBinLowEdge(ipt+1);
+      double pTup = hn_sharing->GetAxis(1)->GetBinUpEdge(ipt+1);
       sprintf(name, "p_{T}: %.1f-%.1f", pTlow, pTup);
 
       mcd(0, ipt+1);

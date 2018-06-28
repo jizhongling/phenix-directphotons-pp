@@ -12,12 +12,12 @@ void draw_Correlation()
 
   mc(0, 4,4);
 
-  Int_t ipad = 1;
-  for(Int_t ipt1=10; ipt1<23; ipt1+=4)
-    for(Int_t ipt2=4; ipt2<17; ipt2+=4)
+  int ipad = 1;
+  for(int ipt1=10; ipt1<23; ipt1+=4)
+    for(int ipt2=4; ipt2<17; ipt2+=4)
     {
       mcd(0, ipad++);
-      for(Int_t itype=0; itype<3; itype++)
+      for(int itype=0; itype<3; itype++)
       {
         axis_pt1->SetRange(ipt1+1,ipt1+4);
         axis_pt2->SetRange(ipt2+1,ipt2+4);

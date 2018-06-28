@@ -1,15 +1,15 @@
-TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t calib)
+TGraphErrors **CreateGraph(TFile *f, int part, int calib)
 {
-  const Int_t gn = 30;
-  Double_t *gx[2];
-  Double_t *gy[2];
-  Double_t *egy[2];
-  for(Int_t i=0; i<2; i++)
+  const int gn = 30;
+  double *gx[2];
+  double *gy[2];
+  double *egy[2];
+  for(int i=0; i<2; i++)
   {
-    gx[i] = new Double_t[gn];
-    gy[i] = new Double_t[gn];
-    egy[i] = new Double_t[gn];
-    for(Int_t j=0; j<gn; j++)
+    gx[i] = new double[gn];
+    gy[i] = new double[gn];
+    egy[i] = new double[gn];
+    for(int j=0; j<gn; j++)
     {
       gx[i][j] = 0.;
       gy[i][j] = 0.;
@@ -24,8 +24,8 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t calib)
   TAxis *axis_pt = h3_tof->GetYaxis();
 
   mc(1, 6,5);
-  Int_t ipad = 1;
-  for(Int_t ipt=1; ipt<gn; ipt++)
+  int ipad = 1;
+  for(int ipt=1; ipt<gn; ipt++)
   {
     mcd(1, ipad++);
 
@@ -33,21 +33,21 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t calib)
       TH1 *h_tof = (TH1*)h3_tof->ProjectionZ("h_tof", 1,6, ipt+1,ipt+1)->Clone();
     else if(part == 1)
       TH1 *h_tof = (TH1*)h3_tof->ProjectionZ("h_tof", 7,8, ipt+1,ipt+1)->Clone();
-    Double_t low = axis_pt->GetBinLowEdge(ipt+1);
-    Double_t high = axis_pt->GetBinUpEdge(ipt+1);
+    double low = axis_pt->GetBinLowEdge(ipt+1);
+    double high = axis_pt->GetBinUpEdge(ipt+1);
     h_tof->SetTitle(Form("pT: %3.1f-%3.1f GeV",low, high));
 
     TF1 *fn2 = new TF1("fn2", "gaus", -30., 30.);
 
-    const Double_t range_left[2] = {-30., -10.};
-    const Double_t range_right[2] = {10., 20.};
+    const double range_left[2] = {-30., -10.};
+    const double range_right[2] = {10., 20.};
     fn2->SetParameters(1e3, 0., 1.);
     h_tof->Fit(fn2, "RQ0", "", range_left[part], range_right[part]);
     fn2->SetParameters( fn2->GetParameters() );
     h_tof->Fit(fn2, "RQE", "", range_left[part], range_right[part]);
     h_tof->DrawCopy();
 
-    Double_t scale = 1.;
+    double scale = 1.;
     if( fn2->GetNDF() > 0 )
       scale = sqrt( fn2->GetChisquare() / fn2->GetNDF() );
 
@@ -66,7 +66,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t calib)
   delete c1;
 
   TGraphErrors **graph = new TGraphErrors*[2];
-  for(Int_t i=0; i<2; i++)
+  for(int i=0; i<2; i++)
     graph[i] = new TGraphErrors(gn, gx[i], gy[i], 0, egy[i]);
   return graph;
 }
@@ -81,11 +81,11 @@ void draw_ToF_Calib_pT()
 
   TGraphErrors **gr_raw[2];
   TGraphErrors **gr_calib[2];
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     gr_raw[part] = CreateGraph(f, part, 0);
     gr_calib[part] = CreateGraph(f, part, 1);
-    for(Int_t i=0; i<2; i++)
+    for(int i=0; i<2; i++)
     {
       mcd(0, 2*i+part+1);
       aset(gr_raw[part][0], "p_{T} [GeV]","ToF [ns]", 0.,30., -20.,20.);

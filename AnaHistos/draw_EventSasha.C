@@ -4,14 +4,14 @@ void draw_EventSasha()
 
   TTree *treePi0 = (TTree*)f->Get("treePi0");
 
-  Int_t runno;
-  Short_t evtype;
-  Float_t bbc_z, bbc_t0;
+  int runno;
+  int evtype;
+  float bbc_z, bbc_t0;
 
-  Float_t pi0_eg1, pi0_eg2, pi0_tof1, pi0_tof2, pi0_prob1, pi0_prob2;
-  Float_t pi0_pt;
-  Float_t pi0_mc;
-  Short_t pi0_id1, pi0_id2;
+  float pi0_eg1, pi0_eg2, pi0_tof1, pi0_tof2, pi0_prob1, pi0_prob2;
+  float pi0_pt;
+  float pi0_mc;
+  int pi0_id1, pi0_id2;
 
   treePi0->SetBranchAddress("runno",&runno);
   treePi0->SetBranchAddress("evtype",&evtype);
@@ -29,11 +29,11 @@ void draw_EventSasha()
   treePi0->SetBranchAddress("pt",&pi0_pt);
   treePi0->SetBranchAddress("mc",&pi0_mc);
 
-  Double_t ID1list[10];
-  Double_t ID2list[10];
-  Int_t count = 0;
-  Int_t nentries = treePi0->GetEntries();
-  for(Int_t i=0; i<nentries; i++)
+  double ID1list[10];
+  double ID2list[10];
+  int count = 0;
+  int nentries = treePi0->GetEntries();
+  for(int i=0; i<nentries; i++)
   {
     treePi0->GetEntry(i);
     if( count < 10 &&
@@ -63,10 +63,10 @@ void draw_EventSasha()
     }
   }
 
-  for(Int_t i=0; i<10; i++)
+  for(int i=0; i<10; i++)
     cout << ID1list[i] << ", ";
   cout << endl;
-  for(Int_t i=0; i<10; i++)
+  for(int i=0; i<10; i++)
     cout << ID2list[i] << ", ";
   cout << endl;
 }

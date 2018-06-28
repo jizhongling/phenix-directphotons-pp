@@ -1,10 +1,10 @@
 void draw_YieldByRun()
 {
-  const Int_t secl[3] = {1, 5, 7};
-  const Int_t sech[3] = {4, 6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
 
-  Int_t runnumber;
-  Double_t npion_notof[3], npion_tof[3];
+  int runnumber;
+  double npion_notof[3], npion_tof[3];
 
   TTree *t_ert = new TTree("t_ert", "Pi0 raw yield from ERT sample");
   t_ert->Branch("runnumber", &runnumber, "runnumber/I");
@@ -24,8 +24,8 @@ void draw_YieldByRun()
 
     THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
 
-    for(Int_t ic=0; ic<2; ic++)
-      for(Int_t is=0; is<3; is++)
+    for(int ic=0; ic<2; ic++)
+      for(int is=0; is<3; is++)
       {
         hn_pion->GetAxis(4)->SetRange(3,3);
         hn_pion->GetAxis(3)->SetRange(ic+1,ic+1);
@@ -54,8 +54,8 @@ void draw_YieldByRun()
 
     THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
 
-    for(Int_t ic=0; ic<2; ic++)
-      for(Int_t is=0; is<3; is++)
+    for(int ic=0; ic<2; ic++)
+      for(int is=0; is<3; is++)
       {
         hn_pion->GetAxis(3)->SetRange(ic+1,ic+1);
         hn_pion->GetAxis(0)->SetRange(secl[is],sech[is]);

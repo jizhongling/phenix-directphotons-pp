@@ -105,7 +105,6 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   {
     h_bbc[ih] = NULL;
     h2_bbc_pion[ih] = NULL;
-    h3_photonbg[ih] = NULL;
   }
   for(int ih=0; ih<nh_ert; ih++)
   {
@@ -113,7 +112,7 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
     h2_ert_pion[ih] = NULL;
   }
   for(int ih=0; ih<nh_etwr; ih++)
-    h2_etwr[ih] = NULL;
+    h3_etwr[ih] = NULL;
   for(int ih=0; ih<nh_eta_phi; ih++)
     h2_eta_phi[ih] = NULL;
   for(int ih=0; ih<nh_pion; ih++)
@@ -250,59 +249,13 @@ int PhotonHistos::process_event(PHCompositeNode *topNode)
   unsigned lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
   if( (lvl1_live & bit_ppg) || (lvl1_scaled & bit_ppg) ) return DISCARDEVENT;
 
-  /* Get event global parameters */
-  double bbc_z = data_global->getBbcZVertex();
-  //double bbc_t0 = data_global->getBbcTimeZero();
-
-  /* Fill BBC and ERT trigger counts */
-  if( datatype == ERT )
-  {
-    if( (lvl1_live & bit_bbcnarrow) )
-    {
-      if( abs(bbc_z) < 10. )
-      {
-        if( lvl1_scaled & bit_ert4x4[0] )
-          h_events->Fill("ert_a_10cm", 1.);
-        if( lvl1_scaled & bit_ert4x4[1] )
-          h_events->Fill("ert_b_10cm", 1.);
-        if( lvl1_scaled & bit_ert4x4[2] )
-          h_events->Fill("ert_c_10cm", 1.);
-      }
-      if( abs(bbc_z) < 30. )
-      {
-        if( lvl1_scaled & bit_ert4x4[0] )
-          h_events->Fill("ert_a_30cm", 1.);
-        if( lvl1_scaled & bit_ert4x4[1] )
-          h_events->Fill("ert_b_30cm", 1.);
-        if( lvl1_scaled & bit_ert4x4[2] )
-          h_events->Fill("ert_c_30cm", 1.);
-      }
-    }
-  }
-  else if( datatype == MB )
-  {
-    if( lvl1_scaled & bit_bbcnarrow )
-    {
-      h_events->Fill("bbc_narrow", 1.);
-      if( abs(bbc_z) < 10. )
-      {
-        h_events->Fill("bbc_narrow_10cm", 1.);
-        if( lvl1_live & bit_ert4x4[2] )
-          h_events->Fill("bbc_narrow_10cm_ert_c", 1.);
-      }
-      if( abs(bbc_z) < 30. )
-      {
-        h_events->Fill("bbc_narrow_30cm", 1.);
-        if( lvl1_live & bit_ert4x4[2] )
-          h_events->Fill("bbc_narrow_30cm_ert_c", 1.);
-      }
-    }
-  }
-
   /* Run local recalibration of EMCal cluster data */
   emcClusterContainer *data_emccontainer = data_emccontainer_raw->clone();
   //emcrecalib->ApplyClusterCorrection( data_emccontainer );
   emcrecalib_sasha->ApplyClusterCorrection( runnumber, data_emccontainer );
+
+  /* Event counts */
+  FillEventCounts(data_global, data_triggerlvl1);
 
   /* Store ToF information for cluster as calibration check */
   FillClusterTofSpectrum(data_emccontainer_raw, data_global, "raw");
@@ -336,6 +289,65 @@ int PhotonHistos::process_event(PHCompositeNode *topNode)
   return EVENT_OK;
 }
 
+int PhotonHistos::FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1)
+{
+  /* Get trigger */
+  const unsigned lvl1_live = data_triggerlvl1->get_lvl1_triglive();
+  const unsigned lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
+
+  /* Get event global parameters */
+  double bbc_z = data_global->getBbcZVertex();
+
+  /* Fill ERT trigger counts */
+  if( datatype == ERT )
+  {
+    if( (lvl1_live & bit_bbcnarrow) )
+    {
+      if( abs(bbc_z) < 10. )
+      {
+        if( lvl1_scaled & bit_ert4x4[0] )
+          h_events->Fill("ert_a_10cm", 1.);
+        if( lvl1_scaled & bit_ert4x4[1] )
+          h_events->Fill("ert_b_10cm", 1.);
+        if( lvl1_scaled & bit_ert4x4[2] )
+          h_events->Fill("ert_c_10cm", 1.);
+      }
+      if( abs(bbc_z) < 30. )
+      {
+        if( lvl1_scaled & bit_ert4x4[0] )
+          h_events->Fill("ert_a_30cm", 1.);
+        if( lvl1_scaled & bit_ert4x4[1] )
+          h_events->Fill("ert_b_30cm", 1.);
+        if( lvl1_scaled & bit_ert4x4[2] )
+          h_events->Fill("ert_c_30cm", 1.);
+      }
+    }
+  }
+
+  /* Fill BBC trigger counts */
+  else if( datatype == MB )
+  {
+    if( lvl1_scaled & bit_bbcnarrow )
+    {
+      h_events->Fill("bbc_narrow", 1.);
+      if( abs(bbc_z) < 10. )
+      {
+        h_events->Fill("bbc_narrow_10cm", 1.);
+        if( lvl1_live & bit_ert4x4[2] )
+          h_events->Fill("bbc_narrow_10cm_ert_c", 1.);
+      }
+      if( abs(bbc_z) < 30. )
+      {
+        h_events->Fill("bbc_narrow_30cm", 1.);
+        if( lvl1_live & bit_ert4x4[2] )
+          h_events->Fill("bbc_narrow_30cm_ert_c", 1.);
+      }
+    }
+  }
+
+  return EVENT_OK;
+}
+
 int PhotonHistos::FillClusterTofSpectrum(const emcClusterContainer *data_emccontainer, const PHGlobal *data_global, const string &quali)
 {
   /* Get event global parameters */
@@ -360,8 +372,11 @@ int PhotonHistos::FillClusterTofSpectrum(const emcClusterContainer *data_emccont
       if( quali == "raw" )
         raw = 1;
 
-      int ih = sector + 8*raw; 
-      h2_tof[ih]->Fill(pT, tof);
+      if(sector >= 0 && sector <= 7)
+      {
+        int ih = sector + 8*raw; 
+        h2_tof[ih]->Fill(pT, tof);
+      }
     }
   }
 
@@ -403,8 +418,11 @@ int PhotonHistos::FillPi0InvariantMass(const emcClusterContainer *data_emccontai
           if( quali == "raw" )
             raw = 1;
 
-          int ih = sector1 + 8*raw;
-          h2_minv[ih]->Fill(tot_pT, minv);
+          if(sector1 >= 0 && sector1 <= 7)
+          {
+            int ih = sector1 + 8*raw;
+            h2_minv[ih]->Fill(tot_pT, minv);
+          }
         }
       }
   }
@@ -433,18 +451,17 @@ int PhotonHistos::FillBBCEfficiency(const emcClusterContainer *data_emccontainer
       v_used.push_back(i);
 
       int sector = anatools::GetSector(cluster1);
-      TLorentzVector pE = anatools::Get_pE(cluster1);
-      double photon_pT = pE.Pt();
-      double ecore = pE.E();
-      double eta = pE.Eta();
+      double pT = anatools::Get_pT(cluster1);
 
       int bbc_trig = 0;
       if( lvl1_live & bit_bbcnovtx )
         bbc_trig = 1;
 
-      int ih = sector + 8*bbc_trig;
-      h_bbc[ih]->Fill(photon_pT);
-      h3_photonbg[ih]->Fill(photon_pT, ecore, eta);
+      if(sector >= 0 && sector <= 7)
+      {
+        int ih = sector + 8*bbc_trig;
+        h_bbc[ih]->Fill(pT);
+      }
 
       for(unsigned j=0; j<ncluster; j++)
         if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
@@ -464,8 +481,11 @@ int PhotonHistos::FillBBCEfficiency(const emcClusterContainer *data_emccontainer
             if( lvl1_live & bit_bbcnovtx )
               bbc_trig = 1;
 
-            int ih = sector + 8*bbc_trig;
-            h2_bbc_pion[ih]->Fill(tot_pT, minv);
+            if(sector >= 0 && sector <= 7)
+            {
+              int ih = sector + 8*bbc_trig;
+              h2_bbc_pion[ih]->Fill(tot_pT, minv);
+            }
           } // check photon2
         } // j loop
     } // check photon1
@@ -536,8 +556,11 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
       if( trig )
         ert_trig += 3;
 
-      int ih = sector + 8*ert_trig + 6*8*bbc10cm;
-      h_ert[ih]->Fill(photon_pT);
+      if(sector >= 0 && sector <= 7)
+      {
+        int ih = sector + 8*ert_trig + 6*8*bbc10cm;
+        h_ert[ih]->Fill(photon_pT);
+      }
 
       for(unsigned j=0; j<ncluster; j++)
         if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
@@ -562,8 +585,11 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
             if( trig )
               ert_trig += 3;
 
-            int ih = sector + 8*ert_trig + 6*8*bbc10cm;
-            h2_ert_pion[ih]->Fill(tot_pT, minv);
+            if(sector >= 0 && sector <= 7)
+            {
+              int ih = sector + 8*ert_trig + 6*8*bbc10cm;
+              h2_ert_pion[ih]->Fill(tot_pT, minv);
+            }
           } // check photon2
         } // j loop
     } // check photon1
@@ -596,7 +622,7 @@ int PhotonHistos::FillTowerEnergy(const emcClusterContainer *data_emccontainer, 
 
   /* Test whether at the beam abort gap or not */
   int collision = 1;
-  if( pattern_blue == 10 || pattern_yellow == 10 )
+  if( abs(pattern_blue) > 1 || abs(pattern_yellow) > 1 )
     collision = 0;
 
   unsigned ncluster = data_emccontainer->size();
@@ -625,11 +651,11 @@ int PhotonHistos::FillTowerEnergy(const emcClusterContainer *data_emccontainer, 
         {
           int twrid = EmcIndexer::getTowerId(sector, izpos+iz-3, iypos+iy-3);
           emcTowerContent *tower = data_emctwrcontainer->findTower(twrid);
-          if(tower)
+          if(tower && sector >= 0 && sector <= 7)
           {
             double etwr = tower->Energy();
-            int ih = sector + 8*iy + 7*8*iz + 7*7*8*collision + 2*7*7*8*cut + 8*2*7*7*8*trig;
-            h2_etwr[ih]->Fill(pT, tof, etwr);
+            int ih = sector + 8*collision + 2*8*cut + 8*2*8*trig;
+            h3_etwr[ih]->Fill(pT, iy-3., iz-3., etwr);
           }
         }
     }
@@ -705,8 +731,11 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
               TestPhoton(cluster2, bbc_t0) )
             cut = 3;
 
-          int ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm;
-          h2_pion[ih]->Fill(tot_pT, minv);
+          if(sector >= 0 && sector <= 7)
+          {
+            int ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm;
+            h2_pion[ih]->Fill(tot_pT, minv);
+          }
         } // GetStatus and asymmetry cut
       } // j loop
   } // i loop
@@ -791,8 +820,11 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
       if( TestPhoton(cluster1, bbc_t0) )
         cut = 3;
 
-      int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm;
-      h_1photon[ih]->Fill(pT);
+      if(sector >= 0 && sector <= 7)
+      {
+        int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm;
+        h_1photon[ih]->Fill(pT);
+      }
 
       for(unsigned j=0; j<ncluster; j++)
         if(j != i)
@@ -828,8 +860,11 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
               TestPhoton(cluster2, bbc_t0) )
             cut = 3;
 
-          int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
-          h2_2photon[ih]->Fill(pT, minv);
+          if(sector >= 0 && sector <= 7)
+          {
+            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
+            h2_2photon[ih]->Fill(pT, minv);
+          }
         } // j loop
     } // check photon1
   } // i loop
@@ -928,7 +963,7 @@ void PhotonHistos::BookHistograms()
   for(int ih=0; ih<nh_calib; ih++)
   {
     /* ToF calibration */
-    h2_tof[ih] = new TH2F(Form("h2_tof_%d",ih), "ToF;p_{T} [GeV];tof [ns];", npT,pTbin, 1001,-100.05,100.05);
+    h2_tof[ih] = new TH2F(Form("h2_tof_%d",ih), "ToF;p_{T} [GeV];tof [ns];", npT,pTbin, 500,-50.,50.);
     hm->registerHisto(h2_tof[ih]);
     /* Storing invariant mass of photon pairs in different sectors and pT bins.
      * Require both photons to be in same sector.
@@ -948,9 +983,6 @@ void PhotonHistos::BookHistograms()
     h2_bbc_pion[ih] = new TH2F(Form("h2_bbc_pion_%d",ih), "BBC efficiency;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);
     hm->registerHisto(h2_bbc_pion[ih]);
     /* Store photon bg information */
-    h3_photonbg[ih] = new TH3F(Form("h3_photonbg_%d",ih), "Photon bg spectrum;p_{T} [GeV];E [GeV];#eta;", npT,0.,0., 100,0.,35., 40,-0.4,0.4);
-    h3_photonbg[ih]->GetXaxis()->Set(npT, pTbin);
-    hm->registerHisto(h3_photonbg[ih]);
   }
 
   // ih = sector + 8*ert_trig + 6*8*bbc10cm < 2*6*8
@@ -961,17 +993,19 @@ void PhotonHistos::BookHistograms()
     hm->registerHisto(h_ert[ih]);
     /* ERT Trigger efficiency for pion */
     h2_ert_pion[ih] = new TH2F(Form("h2_ert_pion_%d",ih), "ERT efficiency;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);
-    hm->registerHisto(h2_bbc_pion[ih]);
+    hm->registerHisto(h2_ert_pion[ih]);
   }
 
   /* Tower energy distribution */
-  // ih = sector + 8*iy + 7*8*iz + 7*7*8*collision + 2*7*7*8*cut + 8*2*7*7*8*trig < 16*8*2*7*7*8
+  // ih = sector + 8*collision + 2*8*cut + 8*2*8*trig < 16*8*2*8
   for(int ih=0; ih<nh_etwr; ih++)
   {
-    h2_etwr[ih] = new TH2F(Form("h2_etwr_%d",ih), "Tower energy;p_{T} [GeV];ToF [ns];", npT,0.,0., 60,-30.,30.);
-    hm->registerHisto(h2_etwr[ih]);
+    h3_etwr[ih] = new TH3F(Form("h3_etwr_%d",ih), "Tower energy;p_{T} [GeV];iy;iz;", npT,0.,0., 7,-3.5,3.5, 7,-3.5,3.5);
+    h3_etwr[ih]->GetXaxis()->Set(npT, pTbin);
+    h3_etwr[ih]->Sumw2();
+    hm->registerHisto(h3_etwr[ih]);
   }
-
+  
   /* Eta and phi distribution */
   // ih = part + 3*id < 2*3
   // cluster id = 0; photon id = 1
@@ -1173,7 +1207,8 @@ int PhotonHistos::GetPattern(int crossing)
   int pattern_blue = spinpattern->get_spinpattern_blue(bunch);
   int pattern_yellow = spinpattern->get_spinpattern_yellow(bunch);
   int pattern = pattern_blue * pattern_yellow;  
-  //if( abs(pattern) != 1 ) pattern = 0;
+  if( abs(pattern) > 1 ) pattern = 0;
+  pattern += 1;
 
   return pattern;
 }

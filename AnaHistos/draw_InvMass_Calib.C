@@ -1,15 +1,15 @@
-TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
+TGraphErrors **CreateGraph(TFile *f, int part, int data)
 {
-  const Int_t gn = 30;
-  Double_t *gx[2];
-  Double_t *gy[2];
-  Double_t *egy[2];
-  for(Int_t i=0; i<2; i++)
+  const int gn = 30;
+  double *gx[2];
+  double *gy[2];
+  double *egy[2];
+  for(int i=0; i<2; i++)
   {
-    gx[i] = new Double_t[gn];
-    gy[i] = new Double_t[gn];
-    egy[i] = new Double_t[gn];
-    for(Int_t j=0; j<gn; j++)
+    gx[i] = new double[gn];
+    gy[i] = new double[gn];
+    egy[i] = new double[gn];
+    for(int j=0; j<gn; j++)
     {
       gx[i][j] = 0.;
       gy[i][j] = 0.;
@@ -30,8 +30,8 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
   gStyle->SetOptFit(1111);
   c->Divide(6,5);
 
-  Int_t ipad = 1;
-  for(Int_t ipt=1; ipt<gn; ipt++)
+  int ipad = 1;
+  for(int ipt=1; ipt<gn; ipt++)
   {
     c->cd(ipad++);
 
@@ -39,8 +39,8 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
       TH1 *h_minv = (TH1*)h3_minv->ProjectionZ("h_minv", 1,6, ipt+1,ipt+1)->Clone();
     else if(part == 1)
       TH1 *h_minv = (TH1*)h3_minv->ProjectionZ("h_minv", 7,8, ipt+1,ipt+1)->Clone();
-    Double_t low = axis_pt->GetBinLowEdge(ipt+1);
-    Double_t high = axis_pt->GetBinUpEdge(ipt+1);
+    double low = axis_pt->GetBinLowEdge(ipt+1);
+    double high = axis_pt->GetBinUpEdge(ipt+1);
     h_minv->SetTitle(Form("pT: %3.1f-%3.1f GeV",low, high));
 
     TF1 *fn1 = new TF1("fn1", "gaus", 0., 0.5);
@@ -52,7 +52,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
     h_minv->Fit(fn2, "QE", "", 0.047, 0.227);
     h_minv->DrawCopy();
 
-    Double_t scale = 1.;
+    double scale = 1.;
     if( fn2->GetNDF() > 0 )
       scale = sqrt( fn2->GetChisquare() / fn2->GetNDF() );
 
@@ -71,7 +71,7 @@ TGraphErrors **CreateGraph(TFile *f, Int_t part, Int_t data)
   delete c;
 
   TGraphErrors **graph = new TGraphErrors*[2];
-  for(Int_t i=0; i<2; i++)
+  for(int i=0; i<2; i++)
     graph[i] = new TGraphErrors(gn, gx[i], gy[i], 0, egy[i]);
   return graph;
 }
@@ -85,11 +85,11 @@ void draw_InvMass_Calib()
 
   TGraphErrors **gr_sim[2];
   TGraphErrors **gr_data[2];
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     gr_sim[part] = CreateGraph(f_sim, part, 0);
     gr_data[part] = CreateGraph(f_data, part, 1);
-    for(Int_t i=0; i<2; i++)
+    for(int i=0; i<2; i++)
     {
       mcd(0, 2*i+part+1);
       aset(gr_sim[part][i]);

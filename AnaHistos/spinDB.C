@@ -9,8 +9,8 @@ using namespace std;
 int main()
 {
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist.txt");
-  Int_t nrun = 0;
-  Int_t runnumber[1024];
+  int nrun = 0;
+  int runnumber[1024];
   while(fin >> runnumber[nrun]) nrun++;
   fin.close();
 

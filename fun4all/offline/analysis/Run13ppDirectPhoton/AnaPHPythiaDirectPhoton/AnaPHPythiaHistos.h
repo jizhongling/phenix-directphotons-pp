@@ -10,6 +10,7 @@ class PHPythiaContainer;
 class Fun4AllHistoManager;
 
 class TDatabasePDG;
+class TH1;
 class THnSparse;
 
 class AnaPHPythiaHistos: public SubsysReco

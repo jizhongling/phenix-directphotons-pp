@@ -117,21 +117,6 @@ int Isolation::process_event(PHCompositeNode *topNode)
     AnaTrk *anatrk = new AnaTrk(emctrk, emccluscont, (int*)tower_status);
     if(!anatrk) continue;
 
-    static int count = 100;
-    if(anatrk->pid == 1072)
-    {
-      cout << anatrk->pid << ": ";
-      BOOST_FOREACH(const long &tn, anatrk->daughter_list)
-      {
-        emcGeaTrackContent *trk = emctrkcont->get(tn);
-        if(!trk) continue;
-        TVector3 vx(trk->get_x(), trk->get_y(), trk->get_z());
-        cout << trk->get_pid() << "(" << vx.Mag() << "), ";
-        if(--count < 0) exit(0);
-      }
-      cout << endl;
-    }
-
     // Get the associated cluster
     emcGeaClusterContent *emcclus = anatrk->emcclus;
 

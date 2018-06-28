@@ -39,6 +39,9 @@ class PhotonHistos: public SubsysReco
     void SelectERT();
 
   protected:
+    /* Event counts */
+    int FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
+
     /* ToF and energy calibration */
     int FillClusterTofSpectrum(const emcClusterContainer *data_emccontainer, const PHGlobal *data_global, const std::string &qualii = "");
     int FillPi0InvariantMass(const emcClusterContainer *data_emccontainer, const PHGlobal *data_global, const std::string &quali = "");
@@ -93,7 +96,7 @@ class PhotonHistos: public SubsysReco
     static const int nh_calib = 2*8;
     static const int nh_bbc = 2*8;
     static const int nh_ert = 2*6*8;
-    static const int nh_etwr = 16*8*2*7*7*8;
+    static const int nh_etwr = 16*8*2*8;
     static const int nh_eta_phi = 2*3;
     static const int nh_pion = 2*3*4*3*8;
     static const int nh_1photon = 2*3*4*2*3*8;
@@ -119,10 +122,9 @@ class PhotonHistos: public SubsysReco
     TH2 *h2_minv[nh_calib];
     TH1 *h_bbc[nh_bbc];
     TH2 *h2_bbc_pion[nh_bbc];
-    TH3 *h3_photonbg[nh_bbc];
     TH1 *h_ert[nh_ert];
     TH2 *h2_ert_pion[nh_ert];
-    TH2 *h2_etwr[nh_etwr];
+    TH3 *h3_etwr[nh_etwr];
     TH2 *h2_eta_phi[nh_eta_phi];
     TH2 *h2_pion[nh_pion];
     TH1 *h_1photon[nh_1photon];

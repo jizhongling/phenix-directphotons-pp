@@ -4,8 +4,8 @@
 
 void draw_ToFEff_Pion()
 {
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
   const char *name[2] = {"PbSc", "PbGl"};
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
@@ -18,16 +18,16 @@ void draw_ToFEff_Pion()
   TAxis *axis_type = hn_pion->GetAxis(4);
 
   TGraphAsymmErrors *gr[2];
-  Int_t igr[2] = {};
-  for(Int_t part=0; part<2; part++)
+  int igr[2] = {};
+  for(int part=0; part<2; part++)
     gr[part] =  new TGraphAsymmErrors(npT);
 
   mc(0, 6,5);
   mc(1, 6,5);
   mc(2, 2,1);
 
-  for(Int_t part=0; part<2; part++)
-    for(Int_t ipt=0; ipt<npT; ipt++)
+  for(int part=0; part<2; part++)
+    for(int ipt=0; ipt<npT; ipt++)
     {
       axis_type->SetRange(3,3);
       axis_sec->SetRange(secl[part],sech[part]);
@@ -35,7 +35,7 @@ void draw_ToFEff_Pion()
       TH1 *h_minv;
 
       mcd(0, ipt+1);
-      Double_t nt, ent;
+      double nt, ent;
       axis_cut->SetRange(3,3);
       h_minv = hn_pion->Projection(2); 
       h_minv->Rebin(10);
@@ -44,7 +44,7 @@ void draw_ToFEff_Pion()
       delete h_minv;
 
       mcd(1, ipt+1);
-      Double_t np, enp;
+      double np, enp;
       axis_cut->SetRange(4,4);
       h_minv = hn_pion->Projection(2); 
       h_minv->Rebin(10);
@@ -52,8 +52,8 @@ void draw_ToFEff_Pion()
       FitMinv(h_minv, np, enp);
       delete h_minv;
 
-      Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Double_t yy, eyyl, eyyh;
+      double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      double yy, eyyl, eyyh;
       if( !GetEfficiency(nt,np, yy,eyyl,eyyh) )
       {
         eyyl = yy * sqrt( pow(ent/nt,2.) + pow(enp/np,2.) );
@@ -67,7 +67,7 @@ void draw_ToFEff_Pion()
       }
     }
 
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     mcd(2, part+1);
     gr[part]->SetTitle( Form("ToF efficeincy for %s", name[part]) );

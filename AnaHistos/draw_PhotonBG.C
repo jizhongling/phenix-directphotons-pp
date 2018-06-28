@@ -2,23 +2,23 @@
 
 void draw_PhotonBG()
 {
-  const Int_t secl[3] = {1, 5, 7};
-  const Int_t sech[3] = {4, 6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
   THnSparse *hn_photonbg = (THnSparse*)f->Get("hn_photonbg");
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
-    for(Int_t ic=0; ic<2; ic++)
+    for(int ic=0; ic<2; ic++)
       mc(ic*3+part, 5,6);
     mc(part+6, 5,6);
   }
 
-  Double_t ncounts[2] = {};
-  for(Int_t part=0; part<3; part++)
-    for(Int_t ic=1; ic>=0; ic--)
-      for(Int_t ipt=0; ipt<npT; ipt++)
+  double ncounts[2] = {};
+  for(int part=0; part<3; part++)
+    for(int ic=1; ic>=0; ic--)
+      for(int ipt=0; ipt<npT; ipt++)
       {
         hn_photonbg->GetAxis(4)->SetRange(ic+1,ic+1);
         hn_photonbg->GetAxis(0)->SetRange(secl[part],sech[part]);
@@ -38,12 +38,12 @@ void draw_PhotonBG()
         if( ic==0 && ipt>=20 )
           ncounts[part/2] += h_angle->Integral(0,-1);
         //TH1 *h_angle = new TH1F("h_angle", "#eta distributions;#eta;", 10, 0., 0.5);
-        //for(Int_t ib=1; ib<=h_rt->GetNbinsX(); ib++)
+        //for(int ib=1; ib<=h_rt->GetNbinsX(); ib++)
         //{
-        //  Double_t xx = h_rt->GetXaxis()->GetBinCenter(ib);
-        //  Double_t yy = h_rt->GetBinContent(ib);
-        //  Double_t theta = TMath::ASin(xx);
-        //  Double_t eta = -TMath::Log( TMath::Tan(theta/2) );
+        //  double xx = h_rt->GetXaxis()->GetBinCenter(ib);
+        //  double yy = h_rt->GetBinContent(ib);
+        //  double theta = TMath::ASin(xx);
+        //  double eta = -TMath::Log( TMath::Tan(theta/2) );
         //  h_angle->Fill(eta, yy);
         //}
         h_angle->SetTitle( Form("p_{T}: %.1f-%.1f",pTbin[ipt],pTbin[ipt+1]) );
@@ -59,9 +59,9 @@ void draw_PhotonBG()
   cout << ncounts[1] << endl;
 
   TFile *f_out = new TFile("data/PhotonBG.root", "RECREATE");
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
-    for(Int_t ic=0; ic<2; ic++)
+    for(int ic=0; ic<2; ic++)
       mcw( ic*3+part, Form("part%d-bbc%d",part,ic) );
     mcw( part+6, Form("angle-part%d",part) );
   }

@@ -3,26 +3,26 @@
 #include "FitMinv.h"
 #include "GetEfficiency.h"
 
-void anaBBCEff_Pion(const Int_t process = 0)
+void anaBBCEff_Pion(const int process = 0)
 {
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
-  const Int_t nThread = 20;
-  Int_t thread = -1;
-  Int_t runnumber;
+  const int nThread = 20;
+  int thread = -1;
+  int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
   TFile *f_out = new TFile(Form("pileup/BBCEff-pion-%d.root",process), "RECREATE");
-  for(Int_t ic=0; ic<2; ic++)
+  for(int ic=0; ic<2; ic++)
     mc(ic, 6,5);
 
   TGraphAsymmErrors *gr[npT*2];
-  Int_t igp[npT*2] = {};
-  for(Int_t part=0; part<2; part++)
-    for(Int_t ipt=0; ipt<npT; ipt++)
+  int igp[npT*2] = {};
+  for(int part=0; part<2; part++)
+    for(int ipt=0; ipt<npT; ipt++)
     {
-      Int_t ig = ipt*2+part;
+      int ig = ipt*2+part;
       gr[ig] = new TGraphAsymmErrors(nThread);
       gr[ig]->SetName(Form("gr_%d",ig));
     }
@@ -46,17 +46,17 @@ void anaBBCEff_Pion(const Int_t process = 0)
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNovtxLive(runnumber);
 
-    for(Int_t part=0; part<2; part++)
+    for(int part=0; part<2; part++)
     {
-      for(Int_t ipt=0; ipt<npT; ipt++)
+      for(int ipt=0; ipt<npT; ipt++)
       {
-        Int_t ig = ipt*2+part;
+        int ig = ipt*2+part;
 
         axis_sec->SetRange(secl[part],sech[part]);
         axis_pt->SetRange(ipt+1,ipt+1);
         TH1 *h_minv;
 
-        Double_t nt, ent;
+        double nt, ent;
         mcd(0, ipt+1);
         axis_cond->SetRange(1,1);
         h_minv = hn_trig->Projection(2);
@@ -65,7 +65,7 @@ void anaBBCEff_Pion(const Int_t process = 0)
         FitMinv(h_minv, nt, ent);
         delete h_minv;
 
-        Double_t np, enp;
+        double np, enp;
         mcd(1, ipt+1);
         axis_cond->SetRange(2,2);
         h_minv = hn_trig->Projection(2);
@@ -74,8 +74,8 @@ void anaBBCEff_Pion(const Int_t process = 0)
         FitMinv(h_minv, np, enp);
         delete h_minv;
 
-        Double_t xx = (Double_t)nmb / (Double_t)nclock;
-        Double_t yy, eyyl, eyyh;
+        double xx = (double)nmb / (double)nclock;
+        double yy, eyyl, eyyh;
         if( !GetEfficiency(nt,np, yy,eyyl,eyyh) )
         {
           eyyl = yy * sqrt( pow(ent/nt,2.) + pow(enp/np,2.) );
@@ -92,7 +92,7 @@ void anaBBCEff_Pion(const Int_t process = 0)
       f_out->cd();
       mcw( 0, Form("Run%d-part%d-total",runnumber,part) );
       mcw( 1, Form("Run%d-part%d-passed",runnumber,part) );
-      for(Int_t ic=0; ic<2; ic++)
+      for(int ic=0; ic<2; ic++)
         gROOT->ProcessLine( Form("c%d->Clear(\"D\");",ic) );
     }
 
@@ -100,10 +100,10 @@ void anaBBCEff_Pion(const Int_t process = 0)
   }
 
   f_out->cd();
-  for(Int_t part=0; part<2; part++)
-    for(Int_t ipt=0; ipt<npT; ipt++)
+  for(int part=0; part<2; part++)
+    for(int ipt=0; ipt<npT; ipt++)
     {
-      Int_t ig = ipt*2+part;
+      int ig = ipt*2+part;
       gr[ig]->Set(igp[ig]);
       gr[ig]->Write();
     }

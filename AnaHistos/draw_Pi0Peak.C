@@ -3,20 +3,20 @@
 
 void draw_Pi0Peak()
 {
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
   TGraphErrors *gr_data_mass[2], *gr_data_width[2];
   TGraphErrors *gr_sim_mass[2], *gr_sim_width[2];
-  Int_t igp_data[2] = {};
-  Int_t igp_sim[2] = {};
-  for(Int_t part=0; part<2; part++)
+  int igp_data[2] = {};
+  int igp_sim[2] = {};
+  for(int part=0; part<2; part++)
   {
     gr_data_mass[part] =  new TGraphErrors(npT);
     gr_data_width[part] =  new TGraphErrors(npT);
     gr_sim_mass[part] =  new TGraphErrors(npT);
     gr_sim_width[part] =  new TGraphErrors(npT);
-    for(Int_t id=0; id<2; id++)
+    for(int id=0; id<2; id++)
       mc(part*2+id, 6,5);
   }
 
@@ -31,13 +31,13 @@ void draw_Pi0Peak()
 
   mc(4, 2,2);
 
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
-    for(Int_t ipt=0; ipt<npT; ipt++)
+    for(int ipt=0; ipt<npT; ipt++)
     {
-      Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Double_t ww = cross->Eval(xx);
-      Double_t mass, emass, width, ewidth;
+      double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      double ww = cross->Eval(xx);
+      double mass, emass, width, ewidth;
       TH1 *h_minv;
 
       mcd(part*2, ipt+1);
@@ -101,7 +101,7 @@ void draw_Pi0Peak()
   gr_data_width[1]->SetTitle("PbGl #sigma_{#gamma#gamma}");
 
   TFile *f_out = new TFile("data/Pi0Peak.root", "RECREATE");
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     mcw( part*2, Form("part%d-data",part) );
     mcw( part*2+1, Form("part%d-sim",part) );

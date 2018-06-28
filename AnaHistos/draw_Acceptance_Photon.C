@@ -3,11 +3,11 @@
 void draw_Acceptance_Photon()
 {
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
-  const Int_t secl[3] = {1, 5, 7};
-  const Int_t sech[3] = {4, 6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
 
   TGraphAsymmErrors *gr[3];
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     gr[part] = new TGraphAsymmErrors(npT);
     gr[part]->SetName(Form("gr_%d",part));
@@ -18,7 +18,7 @@ void draw_Acceptance_Photon()
   TH1 *h_total = (TH1*)f->Get("h_photon");
   THnSparse *hn_photon = (THnSparse*)f->Get("hn_photon");
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     hn_photon->GetAxis(2)->SetRange(secl[part],sech[part]);
     TH1 *h_pass = hn_photon->Projection(0);
@@ -31,7 +31,7 @@ void draw_Acceptance_Photon()
   legi(0, 0.2,0.8,0.9,0.9);
   leg0->SetNColumns(3);
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     gr[part]->SetTitle("Photon acceptance");
     aset(gr[part], "p_{T} [GeV]","acceptance", 2.,30., 0.,0.2);
@@ -47,7 +47,7 @@ void draw_Acceptance_Photon()
   c0->Print("plots/Acceptance-photon.pdf");
 
   TFile *f_out = new TFile("data/Acceptance-photon.root", "RECREATE");
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     gr[part]->Write();
   }

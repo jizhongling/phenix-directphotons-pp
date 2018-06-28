@@ -2,8 +2,8 @@
 
 void draw_MissingRatio()
 {
-  const Int_t secl[3] = {1, 5, 7};
-  const Int_t sech[3] = {4, 6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
 
   TFile *f_miss = new TFile("data/MissingRatio.root", "RECREATE");
   TFile *f_merge = new TFile("data/Merge-photon.root", "RECREATE");
@@ -16,7 +16,7 @@ void draw_MissingRatio()
   mc(0);
   mc(1);
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     mcd(0);
 

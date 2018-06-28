@@ -5,12 +5,12 @@
 void draw_BBCEff_Pion()
 {
   const char *pname[2] = {"PbSc", "PbGl"};
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
   TGraphAsymmErrors *gr[2];
-  Int_t igp[2] = {};
-  for(Int_t part=0; part<2; part++)
+  int igp[2] = {};
+  for(int part=0; part<2; part++)
   {
     gr[part] = new TGraphAsymmErrors(npT);
     gr[part]->SetName(Form("gr_%d",part));
@@ -25,14 +25,14 @@ void draw_BBCEff_Pion()
   TAxis *axis_minv = hn_trig->GetAxis(2);
   TAxis *axis_cond = hn_trig->GetAxis(3);
 
-  for(Int_t part=0; part<2; part++)
-    for(Int_t ipt=0; ipt<npT; ipt++)
+  for(int part=0; part<2; part++)
+    for(int ipt=0; ipt<npT; ipt++)
     {
       axis_sec->SetRange(secl[part],sech[part]);
       axis_pt->SetRange(ipt+1,ipt+1);
       TH1 *h_minv;
 
-      Double_t nt, ent;
+      double nt, ent;
       mcd(part, ipt+1);
       axis_cond->SetRange(1,1);
       h_minv = hn_trig->Projection(2);
@@ -41,7 +41,7 @@ void draw_BBCEff_Pion()
       FitMinv(h_minv, nt, ent);
       delete h_minv;
 
-      Double_t np, enp;
+      double np, enp;
       mcd(part, ipt+1);
       axis_cond->SetRange(2,2);
       h_minv = hn_trig->Projection(2);
@@ -50,8 +50,8 @@ void draw_BBCEff_Pion()
       FitMinv(h_minv, np, enp);
       delete h_minv;
 
-      Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Double_t yy, eyyl, eyyh;
+      double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      double yy, eyyl, eyyh;
       if( !GetEfficiency(nt,np, yy,eyyl,eyyh) )
       {
         eyyl = yy * sqrt( pow(ent/nt,2.) + pow(enp/np,2.) );
@@ -67,7 +67,7 @@ void draw_BBCEff_Pion()
 
   mc(2, 2,1);
 
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     mcd(2, part+1);
     gr[part]->Set(igp[part]);
@@ -84,7 +84,7 @@ void draw_BBCEff_Pion()
   }
 
   TFile *f_out = new TFile("data/BBCEff-pion.root", "RECREATE");
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     mcw(part, Form("part%d",part) );
     gr[part]->Write();

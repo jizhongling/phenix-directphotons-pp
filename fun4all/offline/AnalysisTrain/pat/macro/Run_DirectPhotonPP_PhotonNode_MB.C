@@ -1,5 +1,4 @@
 // .x RunMyMacro.C("Run_DirectPhotonPP_PhotonNode_MB.C","num.root",1000,"Run13pp510MB_Fast")
-// condor_run 'rootb RunMyMacro.C\(\"Run_DirectPhotonPP_PhotonNode_MB.C\",\"num.root\",0,\"Run13pp510MB_Fast\"\) >& /dev/null' &
 
 void Run_DirectPhotonPP_PhotonNode_MB(const char *filename = "num.root")
 {

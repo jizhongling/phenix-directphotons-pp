@@ -1,7 +1,7 @@
 void draw_SelfVeto()
 {
-  const Int_t secl[3] = {1, 5, 7};
-  const Int_t sech[3] = {4, 6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
 
   TFile *f_out = new TFile("data/eta-selfveto.root", "RECREATE");
 
@@ -11,7 +11,7 @@ void draw_SelfVeto()
   mc();
   mcd();
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     TH1 *h_total = h3_isopair->ProjectionX("h_total", secl[part],sech[part], 1,2);
     TH1 *h_passed = h3_isopair->ProjectionX("h_passed", secl[part],sech[part], 2,2);

@@ -1,5 +1,4 @@
 // .x RunMyMacro.C("Run_DirectPhotonPP_PhotonHistos_ERT.C","num.root",1000,"Run13pp510ERT_Fast")
-// condor_run 'rootb RunMyMacro.C\(\"Run_DirectPhotonPP_PhotonHistos_ERT.C\",\"num.root\",0,\"Run13pp510ERT_Fast\"\) >& /dev/null' &
 
 void Run_DirectPhotonPP_PhotonHistos_ERT(const char *filename = "num.root")
 {

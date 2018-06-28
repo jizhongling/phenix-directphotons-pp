@@ -14,24 +14,24 @@ void draw_Theta_CV()
   //axis_sec->SetRange(1,6);
   axis_sec->SetRange(7,8);
   
-  Int_t ipad = 1;
-  Int_t icol = 1;
+  int ipad = 1;
+  int icol = 1;
 
-  for(Int_t iE=0; iE<10; iE++)
+  for(int iE=0; iE<10; iE++)
   {
     c->cd(ipad++);
     icol = 1;
     bool first = true;
 
     axis_e->SetRange(iE+1,iE+1);
-    Double_t clusterE_low = axis_e->GetBinLowEdge(iE+1);
-    Double_t clusterE_high = axis_e->GetBinLowEdge(iE+2);
+    double clusterE_low = axis_e->GetBinLowEdge(iE+1);
+    double clusterE_high = axis_e->GetBinLowEdge(iE+2);
 
-    for(Int_t ith=0; ith<10; ith++)
+    for(int ith=0; ith<10; ith++)
     {
       axis_th->SetRange(ith+1,ith+1);
       TH1D *h_2photon = (TH1D*)hn_2photon->Projection(1);
-      Int_t nEntries = h_2photon->GetEntries();
+      int nEntries = h_2photon->GetEntries();
       if(nEntries <= 0.)
       {
         h_2photon->Delete();
@@ -60,10 +60,10 @@ void draw_Theta_CV()
 
   c->cd(ipad++);
   icol = 1;
-  Double_t y = 0.9;
-  for(Int_t ith=0; ith<10; ith++)
+  double y = 0.9;
+  for(int ith=0; ith<10; ith++)
   {
-    Double_t theta_cv = axis_th->GetBinLowEdge(ith+1);
+    double theta_cv = axis_th->GetBinLowEdge(ith+1);
     char buf[100];
     sprintf(buf, "%5.3f", theta_cv);
 

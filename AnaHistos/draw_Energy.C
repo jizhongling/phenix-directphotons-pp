@@ -12,11 +12,11 @@ void draw_Energy()
 
   TLegend *leg = new TLegend(0.7, 0.5, 0.9, 0.9);
 
-  Int_t icon = 1;
-  for(Int_t i=1; i<10; i++)
+  int icon = 1;
+  for(int i=1; i<10; i++)
   {
     axis_e->SetRange(i+1, 30);
-    Double_t E = axis_e->GetBinLowEdge(i+1);
+    double E = axis_e->GetBinLowEdge(i+1);
     TH1 *h_1photon = (TH1*)hn_1photon->Projection(1)->Clone(Form("h_%d",i));
     h_1photon->GetXaxis()->SetRangeUser(0., 10.);
     h_1photon->GetYaxis()->SetRangeUser(1e4, 1e7);
