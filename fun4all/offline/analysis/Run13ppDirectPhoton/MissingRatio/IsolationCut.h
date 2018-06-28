@@ -74,21 +74,21 @@ protected:
   THnSparse*  _hn_energy_cone_reco;
 
   /** output tree with cluster information */
-  TTree* _tree_event_cluster;
+  TTree* _tree_recocluster;
 
   /** output tree with truth information */
-  TTree* _tree_event_particles;
+  TTree* _tree_mcparticles;
 
   /** map with cluster variables */
-  std::map< std::string , float > _map_cluster_branches;
+  std::map< std::string , float > _branchmap_cluster;
 
   /** Map of Event properties that will be written to
    * output ROOT Tree */
-  std::map< std::string , float > _map_event_branches;
+  std::map< std::string , float > _branchmap_event;
 
   /** Map of Particle (or cluster) properties that will be written to
    * output ROOT Tree */
-  std::map< std::string , std::vector< float > > _map_particle_branches;
+  std::map< std::string , std::vector< float > > _branchmap_mcparticles;
 
   /** truth tree variables */
   float _truth_pid;
