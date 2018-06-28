@@ -47,7 +47,6 @@ class AnaPHPythiaHistos: public SubsysReco
     Fun4AllHistoManager *hm;
     THnSparse *hn_photon;
     THnSparse *hn_corr;
-    TH1 *h_photon[3];
 };
 
 #endif	/* __ANAPHPYTHIAHISTOS_H__ */

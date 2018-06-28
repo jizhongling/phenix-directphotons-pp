@@ -106,10 +106,6 @@ int Isolation::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
-  //static int event = 0;
-  //cout << "\n\nEvent " << event++ << endl;
-  //if(event > 1000) exit(0);
-
   // number of tracks
   int nemctrk = emctrkcont->size();
 
@@ -120,22 +116,6 @@ int Isolation::process_event(PHCompositeNode *topNode)
     emcGeaTrackContent *emctrk = emctrkcont->get(itrk);
     AnaTrk *anatrk = new AnaTrk(emctrk, emccluscont, (int*)tower_status);
     if(!anatrk) continue;
-
-    //if(anatrk->pid == 1072)
-    //{
-    //  cout << endl << anatrk->pid << "(" << anatrk->anclvl << "): ";
-    //  BOOST_FOREACH(const long &it2, anatrk->daughter_list)
-    //  {
-    //    emcGeaTrackContent *trk2 = emctrkcont->get(it2);
-    //    if(!trk2) continue;
-    //    TVector3 vtx2(trk2->get_x(), trk2->get_y(), trk2->get_z());
-    //    cout << trk2->get_pid() << "(" << vtx2.Mag() << "), ";
-    //  }
-    //  cout << endl;
-    //}
-    //else if(anatrk->anclvl == 0)
-    //  cout << anatrk->pid << "(" << anatrk->trkposbirth.Mag() << "), ";
-    //continue;
 
     // Get the associated cluster
     emcGeaClusterContent *emcclus = anatrk->emcclus;

@@ -11,20 +11,21 @@ void draw_YieldCmpSample()
   for(int part=0; part<3; part++)
     gr[part] =  new TGraph(25);
 
-  const int runnumber = 392294;
-  TFile *f_histo = new TFile( Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13585/data/PhotonHistos-%d.root",runnumber) );
+  const int runnumber = 387788;
+  TFile *f_histo = new TFile( Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13597/data/PhotonHistos-%d.root",runnumber) );
   TFile *f_node = new TFile( Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber) );
 
   // h_histo[part]
   TH2 *h2_histo[3];
+  TH2 *h2_histo_t = (TH2*)f_histo->Get("h2_pion_0");
+  h2_histo_t->Reset();
   int bbc10cm = 1;
   int evtype = 2;
   int cut = 3;
   for(int part=0; part<3; part++)
   {
-    h2_histo[part] = (TH2*)f_histo->Get("h2_pion_0");
-    h2_histo[part]->Reset();
-    for(int sector=secl[part]; sector<=sech[part]; sector++)
+    h2_histo[part] = (TH2*)h2_histo_t->Clone(Form("h2_histo_%d",part));
+    for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
       for(int pattern=0; pattern<3; pattern++)
       {
         int ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm;
@@ -70,7 +71,7 @@ void draw_YieldCmpSample()
   for(int part=0; part<3; part++)
   {
     gr[part]->Set(igp[part]);
-    aset(gr[part], "p_{T} [GeV]","#frac{histo}{node}", 0.,30., 0.,2.);
+    aset(gr[part], "p_{T} [GeV]","#frac{histo}{node}", 0.,30., 0.9999,1.0001);
     style(gr[part], part+24, part+1);
     if(part == 0)
       gr[part]->Draw("AP");

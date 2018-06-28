@@ -51,8 +51,6 @@ AnaPHPythiaHistos::AnaPHPythiaHistos(const string &name, const char *filename): 
   hm = 0;
   hn_photon = 0;
   hn_corr = 0;
-  for(int ih=0; ih<3; ih++)
-    h_photon[ih] = 0;
 }
 
 AnaPHPythiaHistos::~AnaPHPythiaHistos()
@@ -98,10 +96,6 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
     return ABORTEVENT;
   }
 
-  //static int event = 0;
-  //bool none = true;
-  //if(event > 1000) exit(0);
-
   // Loop over all particles & Fill output histograms
   int npart = phpythia->size();
   for (int ipart=0; ipart<npart; ipart++)
@@ -114,22 +108,6 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
     double py = part->GetPy();
     double pz = part->GetPz();
     TVector3 v3_part(px,py,pz);
-
-    //double eta = v3_part.Eta();
-    //double phi = v3_part.Phi();
-    //if(   abs(eta) < 0.35 &&
-    //    ( abs(phi-PI/16.) < PI/4. ||
-    //      phi > PI*11./16. ||
-    //      phi < -PI*13./16. ) )
-    //{
-    //  if(none)
-    //  {
-    //    cout << "\n\nEvent " << event++ << endl;
-    //    none = false;
-    //  }
-    //  cout << part->GetKF() << "(" << part->GetKS() << "), ";
-    //}
-    //continue;
 
     // Test if particle is in Central Arm acceptance
     // and passes energy threshold
@@ -144,14 +122,6 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
     if( part->GetKF() == 22 &&
         part->GetKS() == 1 )
     {
-      h_photon[0]->Fill(v3_part.Pt());
-
-      // Test if particle is prompt photon
-      if( parent &&
-          part->GetKF() == 22 &&
-          abs(parent->GetKF()) < 100 )
-        h_photon[1]->Fill(v3_part.Pt());
-
       // Test if particle is direct photon
       int prompt = 0;
       if( parent &&
@@ -159,10 +129,7 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
           parent->GetKF() == 22 &&
           parent->GetKS() == 21 &&
           !(parent->GetParent()) )
-      {
-        h_photon[2]->Fill(v3_part.Pt());
         prompt = 1;
-      }
 
       for(int icone=0; icone<11; icone++)
         for(int ie=0; ie<20; ie++)
@@ -201,12 +168,6 @@ void AnaPHPythiaHistos::BookHistograms()
     0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
     5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
     12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
-
-  for(int ih=0; ih<3; ih++)
-  {
-    h_photon[ih] = new TH1F(Form("h_photon_%d",ih), "Photon counts;p_{T} [GeV];", npT,pTbin);
-    hm->registerHisto(h_photon[ih]);
-  }
 
   const int nbins_hn_photon[] = {npT, 11, 20, 2, 2};
   const double xmin_hn_photon[] = {0., -0.05, 0.01, -0.5, -0.5};
