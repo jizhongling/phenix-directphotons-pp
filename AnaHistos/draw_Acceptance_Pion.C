@@ -5,14 +5,14 @@
 void draw_Acceptance_Pion()
 {
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
-  const Int_t secl[3] = {1, 5, 7};
-  const Int_t sech[3] = {4, 6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
 
   SetWeight();
 
   TGraphAsymmErrors *gr[3];
-  Int_t igp[3] = {};
-  for(Int_t part=0; part<3; part++)
+  int igp[3] = {};
+  for(int part=0; part<3; part++)
   {
     gr[part] = new TGraphAsymmErrors(npT);
     gr[part]->SetName(Form("gr_%d",part));
@@ -30,19 +30,19 @@ void draw_Acceptance_Pion()
   TAxis *axis_sec = hn_pion->GetAxis(3);
   TAxis *axis_peak = hn_pion->GetAxis(4);
 
-  for(Int_t part=0; part<3; part++)
-    for(Int_t ipt=0; ipt<npT; ipt++)
+  for(int part=0; part<3; part++)
+    for(int ipt=0; ipt<npT; ipt++)
     {
-      Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Double_t ww = cross_pi0->Eval(xx);
+      double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      double ww = cross_pi0->Eval(xx);
 
       TH1 *h_tt = (TH1*)h_total->Clone();
       h_tt->Scale(1./ww);
-      Double_t nt = h_tt->GetBinContent(ipt+1);
-      Double_t ent = sqrt(nt);
+      double nt = h_tt->GetBinContent(ipt+1);
+      double ent = sqrt(nt);
       delete h_tt;
 
-      Double_t np, enp;
+      double np, enp;
       mcd(part, ipt+1);
       //axis_peak->SetRange(3,3);  // Require two peaks
       axis_sec->SetRange(secl[part],sech[part]);
@@ -57,7 +57,7 @@ void draw_Acceptance_Pion()
       enp = sqrt(np);
       delete h_minv;
 
-      Double_t yy, eyyl, eyyh;
+      double yy, eyyl, eyyh;
       if( !GetEfficiency(nt,np, yy,eyyl,eyyh) )
       {
         eyyl = yy * sqrt( pow(ent/nt,2.) + pow(enp/np,2.) );
@@ -77,7 +77,7 @@ void draw_Acceptance_Pion()
   legi(0, 0.2,0.8,0.9,0.9);
   leg0->SetNColumns(3);
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     gr[part]->Set(igp[part]);
     gr[part]->SetTitle("#pi^{0} acceptance");
@@ -96,7 +96,7 @@ void draw_Acceptance_Pion()
   c3->Print("plots/Acceptance-pion.pdf");
 
   TFile *f_out = new TFile("data/Acceptance-pion.root", "RECREATE");
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     mcw( part, Form("part%d",part) );
     gr[part]->Write();

@@ -3,8 +3,8 @@ void draw_SpinPattern()
   gSystem->Load("libDirectPhotonPP.so");
 
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist.txt");
-  Int_t nrun = 0;
-  Int_t runnumber[1024];
+  int nrun = 0;
+  int runnumber[1024];
   while(fin >> runnumber[nrun]) nrun++;
   fin.close();
 
@@ -16,7 +16,7 @@ void draw_SpinPattern()
   T1->GetEntry(0);
 
   string pattern;
-  for(Int_t ib=0; ib<120; ib++)
+  for(int ib=0; ib<120; ib++)
   {
     int blue = spinpat->get_spinpattern_blue(ib);
     int yellow = spinpat->get_spinpattern_yellow(ib);

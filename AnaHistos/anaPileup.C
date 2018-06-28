@@ -2,26 +2,26 @@
 #include "BBCCounts.h"
 #include "FitMinv.h"
 
-void anaPileup(const Int_t process = 0)
+void anaPileup(const int process = 0)
 {
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
-  const Int_t nThread = 20;
-  Int_t thread = -1;
-  Int_t irun =0;
-  Int_t runnumber;
+  const int nThread = 20;
+  int thread = -1;
+  int irun =0;
+  int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
   TGraphErrors *gr[npT*8];
   TGraphErrors *gr_run[npT*8];
-  Int_t igp[npT*8] = {};
-  for(Int_t ipt=0; ipt<npT; ipt++)
-    for(Int_t id=0; id<2; id++)
-      for(Int_t ic=0; ic<2; ic++)
-        for(Int_t is=0; is<2; is++)
+  int igp[npT*8] = {};
+  for(int ipt=0; ipt<npT; ipt++)
+    for(int id=0; id<2; id++)
+      for(int ic=0; ic<2; ic++)
+        for(int is=0; is<2; is++)
         {
-          Int_t ig = ipt*8+id*4+ic*2+is;
+          int ig = ipt*8+id*4+ic*2+is;
           mc(ig, 5,4);
           gr[ig] = new TGraphErrors(nThread);
           gr_run[ig] = new TGraphErrors(nThread);
@@ -52,7 +52,7 @@ void anaPileup(const Int_t process = 0)
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
     ULong_t scaledown = GetERT4x4cScaledown(runnumber) + 1;
     
-    Double_t nev[2];
+    double nev[2];
     //nev[0] = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );
     nev[0] = nmb / scaledown;
     nev[1] = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm") );
@@ -60,15 +60,15 @@ void anaPileup(const Int_t process = 0)
     TF1 *fn_fit = new TF1("fn_fit", "gaus(0) + pol2(3)", 0.06, 0.25);
     TF1 *fn_bg = new TF1("fn_bg", "pol2", 0.06, 0.25);
 
-    for(Int_t ipt=0; ipt<npT; ipt++)
-      for(Int_t id=0; id<2; id++)
-        for(Int_t ic=0; ic<2; ic++)
-          for(Int_t is=0; is<2; is++)
+    for(int ipt=0; ipt<npT; ipt++)
+      for(int id=0; id<2; id++)
+        for(int ic=0; ic<2; ic++)
+          for(int is=0; is<2; is++)
           {
-            Int_t ig = ipt*8+id*4+ic*2+is;
+            int ig = ipt*8+id*4+ic*2+is;
             mcd(ig, irun+1);
             
-            Double_t npion, enpion;
+            double npion, enpion;
 
             hn_pion[id]->GetAxis(3)->SetRange(ic+3,ic+3);
             hn_pion[id]->GetAxis(0)->SetRange(secl[is],sech[is]);
@@ -80,9 +80,9 @@ void anaPileup(const Int_t process = 0)
             FitMinv(h_minv, npion, enpion);
             delete h_minv;
 
-            Double_t xx = (Double_t)nmb / (Double_t)nclock;
-            Double_t yy = npion / nev[id];
-            Double_t eyy = enpion / nev[id];
+            double xx = (double)nmb / (double)nclock;
+            double yy = npion / nev[id];
+            double eyy = enpion / nev[id];
             if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
             {
               gr[ig]->SetPoint(igp[ig], xx, yy);
@@ -99,12 +99,12 @@ void anaPileup(const Int_t process = 0)
   }
 
   TFile *f_out = new TFile(Form("pileup/Pileup-%d.root",process), "RECREATE");
-  for(Int_t ipt=0; ipt<npT; ipt++)
-    for(Int_t id=0; id<2; id++)
-      for(Int_t ic=0; ic<2; ic++)
-        for(Int_t is=0; is<2; is++)
+  for(int ipt=0; ipt<npT; ipt++)
+    for(int id=0; id<2; id++)
+      for(int ic=0; ic<2; ic++)
+        for(int is=0; is<2; is++)
         {
-          Int_t ig = ipt*8+id*4+ic*2+is;
+          int ig = ipt*8+id*4+ic*2+is;
           mcw( ig, Form("proc%d-data%d-cond%d-pt%d-%d", process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
           gr[ig]->Set(igp[ig]);
           gr_run[ig]->Set(igp[ig]);

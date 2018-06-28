@@ -2,11 +2,11 @@
 
 void draw_ProbEff_Photon()
 {
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
   TGraphAsymmErrors *gr[2];
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     gr[part] = new TGraphAsymmErrors(npT);
     gr[part]->SetName(Form("gr_%d",part));
@@ -22,7 +22,7 @@ void draw_ProbEff_Photon()
   TAxis *axis_cut = hn_1photon->GetAxis(3);
   TAxis *axis_type = hn_1photon->GetAxis(4);
 
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     axis_type->SetRange(3,3);
     axis_sec->SetRange(secl[part],sech[part]);
@@ -40,7 +40,7 @@ void draw_ProbEff_Photon()
   gr[0]->SetTitle("Prob Eff for PbSc");
   gr[1]->SetTitle("Prob Eff for PbGl");
 
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     mcd(0, part+1);
     aset(gr[part], "p_{T} [GeV]","Prob Eff", 2.,30., 0.,1.1);
@@ -49,7 +49,7 @@ void draw_ProbEff_Photon()
   }
 
   TFile *f_out = new TFile("data/ProbEff-photon.root", "RECREATE");
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
     gr[part]->Write();
   f_out->Close();
 

@@ -16,13 +16,13 @@ void draw_pTSmear()
   gStyle->SetOptStat(0);
   c->Divide(2,1);
 
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
   const char *pname[2] = {"PbSc", "PbGl"};
 
   hn_pion->GetAxis(2)->SetRange(112,162);
 
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     hn_pi0_total->GetAxis(2)->SetRange(secl[part],sech[part]);
     hn_pi0_separate->GetAxis(2)->SetRange(secl[part],sech[part]);

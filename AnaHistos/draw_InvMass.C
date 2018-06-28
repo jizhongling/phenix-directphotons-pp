@@ -21,27 +21,27 @@ void draw_InvMass()
   TAxis *axis2 = (TAxis*)hn_inv_mass_2photon->GetAxis(2);
   TAxis *axis3 = (TAxis*)hn_inv_mass_2photon->GetAxis(3);
 
-  Int_t Last0 = axis0->GetLast();
-  //Int_t Last1 = axis1->GetLast();
-  Int_t Last2 = axis2->GetLast();
-  Int_t Last3 = axis3->GetLast();
+  int Last0 = axis0->GetLast();
+  //int Last1 = axis1->GetLast();
+  int Last2 = axis2->GetLast();
+  int Last3 = axis3->GetLast();
 
-  Int_t nsec = (Last2<8) ? Last2 : 8;
-  for(Int_t isec=0; isec<nsec; isec++)
+  int nsec = (Last2<8) ? Last2 : 8;
+  for(int isec=0; isec<nsec; isec++)
   {
     TCanvas *c = new TCanvas("c", "Canvas", 1200, 1200);
     gStyle->SetOptStat(0);
     c->Divide(4,4);
 
     axis2->SetRange(isec+1,isec+1);
-    Int_t npt = (Last0<15) ? Last0 : 15;
-    for(Int_t ipt=1; ipt<=npt; ipt++)
+    int npt = (Last0<15) ? Last0 : 15;
+    for(int ipt=1; ipt<=npt; ipt++)
     {
       c->cd(ipt);
       axis0->SetRange(ipt+1,ipt+1);
-      Double_t pt_low = axis0->GetBinLowEdge(ipt+1);
-      Double_t pt_high = axis0->GetBinLowEdge(ipt+2);
-      for(Int_t icon=2; icon<=Last3; icon++)
+      double pt_low = axis0->GetBinLowEdge(ipt+1);
+      double pt_high = axis0->GetBinLowEdge(ipt+2);
+      for(int icon=2; icon<=Last3; icon++)
       {
         axis3->SetRange(icon,icon);
         TH1D *hnp_inv_mass_2photon = (TH1D*)hn_inv_mass_2photon->Projection(1);
@@ -64,8 +64,8 @@ void draw_InvMass()
     c->cd(npt+1);
     const char *cond[] = {"Direct Photon", "Photon", "E_{min}", "ToF", "Shape", "#theta_{CV}"};
 
-    Double_t y = 0.8;
-    for(Int_t icon=2; icon<=Last3; icon++)
+    double y = 0.8;
+    for(int icon=2; icon<=Last3; icon++)
     {
 
       TLine *line = new TLine(0.2, y, 0.5, y);

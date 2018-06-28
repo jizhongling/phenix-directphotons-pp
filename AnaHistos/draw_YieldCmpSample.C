@@ -3,66 +3,63 @@
 void draw_YieldCmpSample()
 {
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
-  const Int_t secl[3] = {1, 5, 7};
-  const Int_t sech[3] = {4, 6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
 
   TGraph *gr[3];
-  Int_t igp[3] = {};
-  for(Int_t part=0; part<3; part++)
+  int igp[3] = {};
+  for(int part=0; part<3; part++)
     gr[part] =  new TGraph(25);
 
-  const Int_t runnumber = 392294;
-  TFile *f_histo = new TFile( Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13568/data/PhotonHistos-%d.root",runnumber) );
+  const int runnumber = 387788;
+  TFile *f_histo = new TFile( Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13597/data/PhotonHistos-%d.root",runnumber) );
   TFile *f_node = new TFile( Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber) );
 
-  THnSparse *hn_histo = (THnSparse*)f_histo->Get("hn_bbc_pion");
-  TAxis *axis_histo_sec = hn_histo->GetAxis(0);
-  TAxis *axis_histo_pt = hn_histo->GetAxis(1);
-  TAxis *axis_histo_bbc = hn_histo->GetAxis(3);
-  //hn_histo->Reset();
-  //for(Int_t isoboth=0; isoboth<2; isoboth++)
-  //  for(Int_t isopair=0; isopair<2; isopair++)
-  //  {
-  //    Int_t cut = 3;
-  //    Int_t evtype = 2;
-  //    Int_t bbc10cm = 1;
-  //    Int_t ih = 2*4*3*2*isoboth + 4*3*2*isopair + 3*2*cut + 2*evtype + bbc10cm;
-  //    THnSparse *hn_tmp = (THnSparse*)f_histo->Get(Form("hn_2photon_%d",ih));
-  //    hn_histo->Add(hn_tmp);
-  //    delete hn_tmp;
-  //  }
+  // h_histo[part]
+  TH2 *h2_histo[3];
+  TH2 *h2_histo_t = (TH2*)f_histo->Get("h2_pion_0");
+  h2_histo_t->Reset();
+  int bbc10cm = 1;
+  int evtype = 2;
+  int cut = 3;
+  for(int part=0; part<3; part++)
+  {
+    h2_histo[part] = (TH2*)h2_histo_t->Clone(Form("h2_histo_%d",part));
+    for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+      for(int pattern=0; pattern<3; pattern++)
+      {
+        int ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm;
+        TH2 *h2_tmp = (TH2*)f_histo->Get(Form("h2_pion_%d",ih));
+        h2_histo[part]->Add(h2_tmp);
+        delete h2_tmp;
+      }
+  }
 
-  THnSparse *hn_node = (THnSparse*)f_node->Get("hn_bbc_pion");
+  THnSparse *hn_node = (THnSparse*)f_node->Get("hn_pion");
   TAxis *axis_node_sec = hn_node->GetAxis(0);
   TAxis *axis_node_pt = hn_node->GetAxis(1);
-  TAxis *axis_node_bbc = hn_node->GetAxis(3);
+  TAxis *axis_node_cut = hn_node->GetAxis(3);
+  TAxis *axis_node_type = hn_node->GetAxis(4);
+  axis_node_type->SetRange(3,3);
+  axis_node_cut->SetRange(4,4);
 
-  TH3 *h3_histo = (TH3*)f_histo->Get("h3_minv");
-  TH3 *h3_node = (TH3*)f_node->Get("h3_minv");
-
-  for(Int_t part=0; part<3; part++)
-    for(Int_t ipt=0; ipt<30; ipt++)
+  for(int part=0; part<3; part++)
+    for(int ipt=0; ipt<30; ipt++)
     {
       TH1 *h_minv;
 
-      axis_histo_bbc->SetRange(2,2);
-      axis_histo_sec->SetRange(secl[part],sech[part]);
-      axis_histo_pt->SetRange(ipt+1,ipt+1);
-      h_minv = hn_histo->Projection(2);
-      //h_minv = h3_histo->ProjectionZ("h_minv", secl[part],sech[part], ipt+1,ipt+1);
-      Double_t npion_histo = h_minv->Integral(120,160);
+      h_minv = h2_histo[part]->ProjectionY("h_minv", ipt+1,ipt+1);
+      double npion_histo = h_minv->Integral(120,160);
       delete h_minv;
 
-      axis_node_bbc->SetRange(2,2);
       axis_node_sec->SetRange(secl[part],sech[part]);
       axis_node_pt->SetRange(ipt+1,ipt+1);
       h_minv = hn_node->Projection(2);
-      //h_minv = h3_node->ProjectionZ("h_minv", secl[part],sech[part], ipt+1,ipt+1);
-      Double_t npion_node = h_minv->Integral(120,160);
+      double npion_node = h_minv->Integral(120,160);
       delete h_minv;
 
-      Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Double_t ratio = npion_histo / npion_node;
+      double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      double ratio = npion_histo / npion_node;
       gr[part]->SetPoint(igp[part], xx, ratio);
       igp[part]++;
     }
@@ -71,10 +68,10 @@ void draw_YieldCmpSample()
   mcd();
   legi();
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     gr[part]->Set(igp[part]);
-    aset(gr[part], "p_{T} [GeV]","#frac{histo}{node}", 0.,30., 0.,2.);
+    aset(gr[part], "p_{T} [GeV]","#frac{histo}{node}", 0.,30., 0.9999,1.0001);
     style(gr[part], part+24, part+1);
     if(part == 0)
       gr[part]->Draw("AP");

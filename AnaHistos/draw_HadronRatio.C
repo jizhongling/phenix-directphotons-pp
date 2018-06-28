@@ -5,18 +5,18 @@ void draw_HadronRatio()
 {
   TFile *f_out = new TFile("data/HadronRatio.root", "RECREATE");
   TGraphErrors *gr[3];
-  Int_t igp[3] = {};
+  int igp[3] = {};
 
-  const Double_t A = 0.22;
-  const Double_t eA = 0.04;
-  Double_t xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
-  Double_t xMerge[3][npT] = {}, Merge[3][npT] = {}, eMerge[3][npT] = {};
-  Double_t xBadPass[3][npT] = {}, BadPass[3][npT] = {}, eBadPass[3][npT] = {};
+  const double A = 0.22;
+  const double eA = 0.04;
+  double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
+  double xMerge[3][npT] = {}, Merge[3][npT] = {}, eMerge[3][npT] = {};
+  double xBadPass[3][npT] = {}, BadPass[3][npT] = {}, eBadPass[3][npT] = {};
 
   mc();
   mcd();
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     gr[part] = new TGraphErrors(npT);
     gr[part]->SetName(Form("gr_%d",part));
@@ -25,28 +25,28 @@ void draw_HadronRatio()
     ReadGraph<TGraphAsymmErrors>("data/Merge-photon.root", part, xMerge[part], Merge[part], eMerge[part]);
     ReadGraph<TGraphErrors>("data/MergePassRate.root", part/2, xBadPass[part], BadPass[part], eBadPass[part]);
 
-    for(Int_t ipt=0; ipt<30; ipt++)
+    for(int ipt=0; ipt<30; ipt++)
     {
-      Double_t xpT = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Int_t ipMiss = Get_ipt(xMiss[part], xpT);
-      Double_t aMiss = Miss[part][ipMiss];
-      Double_t eaMiss = eMiss[part][ipMiss];
-      Int_t ipMerge = Get_ipt(xMerge[part], xpT);
-      Double_t aMerge = Merge[part][ipMerge];
-      Double_t eaMerge = eMerge[part][ipMerge];
-      Int_t ipBadPass = Get_ipt(xBadPass[part], xpT);
-      Double_t aBadPass = BadPass[part][ipBadPass];
-      Double_t eaBadPass = eBadPass[part][ipBadPass];
+      double xpT = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      int ipMiss = Get_ipt(xMiss[part], xpT);
+      double aMiss = Miss[part][ipMiss];
+      double eaMiss = eMiss[part][ipMiss];
+      int ipMerge = Get_ipt(xMerge[part], xpT);
+      double aMerge = Merge[part][ipMerge];
+      double eaMerge = eMerge[part][ipMerge];
+      int ipBadPass = Get_ipt(xBadPass[part], xpT);
+      double aBadPass = BadPass[part][ipBadPass];
+      double eaBadPass = eBadPass[part][ipBadPass];
       if(ipt<23)
       {
         aBadPass = 0.;
         eaBadPass = 0.;
       }
 
-      Double_t aMissCorr = aMiss + aMerge * aBadPass;
-      Double_t eaMissCorr = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2.) + pow(eaBadPass*aMerge,2.) );
-      Double_t aHadronR = (1. + aMissCorr) * (1. + A);
-      Double_t eaHadronR = sqrt( pow(eaMissCorr*(1.+A),2.) + pow(eA*(1.+aMissCorr),2.) );
+      double aMissCorr = aMiss + aMerge * aBadPass;
+      double eaMissCorr = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2.) + pow(eaBadPass*aMerge,2.) );
+      double aHadronR = (1. + aMissCorr) * (1. + A);
+      double eaHadronR = sqrt( pow(eaMissCorr*(1.+A),2.) + pow(eA*(1.+aMissCorr),2.) );
 
       gr[part]->SetPoint(igp[part], xpT, aHadronR);
       gr[part]->SetPointError(igp[part], 0., eaHadronR);

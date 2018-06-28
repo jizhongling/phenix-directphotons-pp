@@ -6,19 +6,19 @@ void draw_Acceptance_Cmp()
   mc(0, 2,4);
   legi(0, 0.2,0.2,0.9,0.9);
 
-  for(Int_t i=0; i<4; i++)
+  for(int i=0; i<4; i++)
   {
     TFile *f = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-%s-histo.root",fname[i]));
 
     THnSparse *hn_pion[4];
 
-    for(Int_t ih=0; ih<4; ih++)
+    for(int ih=0; ih<4; ih++)
     {
       hn_pion[ih] = (THnSparse*)f->Get(Form("hn_pion_%s",hname[ih]));
 
       if( i==0 && ih<3 )
       {
-        for(Int_t ip=0; ip<2; ip++)
+        for(int ip=0; ip<2; ip++)
         {
           TH1 *h_proj = hn_pion[ih]->Projection(ip+1);
           aset(h_proj);
@@ -47,7 +47,7 @@ void draw_Acceptance_Cmp()
 
       if( i==1 && ih>1 )
       {
-        for(Int_t ip=0; ip<2; ip++)
+        for(int ip=0; ip<2; ip++)
         {
           mcd(0, ip+3);
           TH1 *h_proj = hn_pion[ih]->Projection(ip+1);
@@ -61,7 +61,7 @@ void draw_Acceptance_Cmp()
 
       if( ( i==0 || i==3 ) && ih == 0 )
       {
-        for(Int_t ip=0; ip<2; ip++)
+        for(int ip=0; ip<2; ip++)
         {
           mcd(0, ip+5);
           TH1 *h_proj = hn_pion[ih]->Projection(ip+1);

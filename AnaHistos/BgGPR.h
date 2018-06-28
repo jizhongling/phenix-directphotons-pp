@@ -1,12 +1,12 @@
-void BgGPR(vector<Double_t> &x, vector<Double_t> &y, vector<Double_t> &sigma_y,
-    Double_t &Integral, Double_t &dIntegral)
+void BgGPR(vector<double> &x, vector<double> &y, vector<double> &sigma_y,
+    double &Integral, double &dIntegral)
 {
-  const Int_t verbosity = 0;
+  const int verbosity = 0;
   const char *outfile = "BgGPR.root";
 
-  const Double_t xmin = 0.047;
-  const Double_t xmax = 0.227;
-  const Int_t nPredictions = 90;
+  const double xmin = 0.047;
+  const double xmax = 0.227;
+  const int nPredictions = 90;
 
   GausProc a(x, y, sigma_y, xmin, xmax, nPredictions, outfile);
   //gSystem->Exec(Form("rm -f %s",outfile));

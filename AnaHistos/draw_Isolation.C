@@ -15,12 +15,12 @@ void draw_Isolation()
   mc(0, 2,1);
   mc(1, 2,1);
 
-  Int_t ipad = 1;
-  for(Int_t ipt=8; ipt<16; ipt+=4)
+  int ipad = 1;
+  for(int ipt=8; ipt<16; ipt+=4)
   {
     TH1 *h_total[2];  // h_total[iso]
     TH1 *h_prompt[2];  // h_prompt[iso]
-    for(Int_t iso=1; iso>=0; iso--)
+    for(int iso=1; iso>=0; iso--)
     {
       axis_pt->SetRange(ipt+1,ipt+4);
       axis_iso->SetRange(iso+1,2);
@@ -32,7 +32,7 @@ void draw_Isolation()
       h_prompt[iso] = hn_photon->Projection(1);
     }
 
-    for(Int_t iso=1; iso>=0; iso--)
+    for(int iso=1; iso>=0; iso--)
     {
       mcd(0, ipad);
       TGraphAsymmErrors *gr_prompt = new TGraphAsymmErrors(h_prompt[iso], h_total[iso]);
@@ -53,7 +53,7 @@ void draw_Isolation()
     style(gr_iso, 21, 2);
     gr_iso->Draw("AP");
 
-    for(Int_t iso=1; iso>=0; iso--)
+    for(int iso=1; iso>=0; iso--)
     {
       delete h_total[iso];
       delete h_prompt[iso];

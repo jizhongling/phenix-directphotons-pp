@@ -16,6 +16,7 @@
 #include <TDatabasePDG.h>
 #include <TMath.h>
 #include <TVector3.h>
+#include <TH1.h>
 #include <THnSparse.h>
 
 #include <PHIODataNode.h>
@@ -121,7 +122,7 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
     if( part->GetKF() == 22 &&
         part->GetKS() == 1 )
     {
-      // Test if particle is prompt photon
+      // Test if particle is direct photon
       int prompt = 0;
       if( parent &&
           part->GetKF() == 22 &&

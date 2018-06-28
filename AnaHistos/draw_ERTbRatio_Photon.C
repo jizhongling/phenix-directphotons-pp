@@ -4,19 +4,19 @@
 
 void draw_ERTbRatio_Photon()
 {
-  const Int_t secl[3] = {1, 5, 7};
-  const Int_t sech[3] = {4, 6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
 
   TGraphErrors *gr[3];
-  Int_t igp[3] = {};
-  for(Int_t part=0; part<3; part++)
+  int igp[3] = {};
+  for(int part=0; part<3; part++)
   {
     gr[part] = new TGraphErrors(npT);
     gr[part]->SetName(Form("gr_%d",part));
   }
 
-  Double_t xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
-  for(Int_t part=0; part<3; part++)
+  double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
+  for(int part=0; part<3; part++)
   {
     ReadGraph<TGraphAsymmErrors>("data/HadronRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
     mc(part, 4,3);
@@ -38,11 +38,11 @@ void draw_ERTbRatio_Photon()
   TAxis *axis_cut = hn_2photon->GetAxis(4);
   TAxis *axis_type = hn_2photon->GetAxis(5);
 
-  for(Int_t part=0; part<3; part++)
-    for(Int_t ipt=20; ipt<30; ipt++)
+  for(int part=0; part<3; part++)
+    for(int ipt=20; ipt<30; ipt++)
     {
-      Double_t nphoton_ertc, npion_ertc, enpion_ertc;
-      Double_t nphoton_ertb, npion_ertb, enpion_ertb;
+      double nphoton_ertc, npion_ertc, enpion_ertc;
+      double nphoton_ertb, npion_ertb, enpion_ertb;
       TH1 *h_photon, *h_minv;
 
       axis_1pt->SetRange(ipt+1,ipt+1);
@@ -62,7 +62,7 @@ void draw_ERTbRatio_Photon()
       h_minv->Rebin(10);
       h_minv->Scale(0.5);
       h_minv->SetTitle( Form("ERT4x4c Part %d",part) );
-      FitMinv(h_minv, npion_ertc, enpion_ertc, kTRUE, 0.10,0.17);
+      FitMinv(h_minv, npion_ertc, enpion_ertc, true, 0.10,0.17);
       delete h_minv;
 
       axis_1type->SetRange(2,2);
@@ -74,20 +74,20 @@ void draw_ERTbRatio_Photon()
       h_minv = hn_2photon->Projection(2);
       h_minv->Scale(0.5);
       h_minv->SetTitle( Form("ERT4x4b Part %d",part) );
-      FitMinv(h_minv, npion_ertb, enpion_ertb, kTRUE, 0.10,0.17);
+      FitMinv(h_minv, npion_ertb, enpion_ertb, true, 0.10,0.17);
       delete h_minv;
 
-      Double_t xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      Int_t ipMiss = Get_ipt(xMiss[part], xx);
-      Double_t aMiss = 1.;//Miss[part][ipMiss];
-      Double_t eaMiss = eMiss[part][ipMiss];
+      double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      int ipMiss = Get_ipt(xMiss[part], xx);
+      double aMiss = 1.;//Miss[part][ipMiss];
+      double eaMiss = eMiss[part][ipMiss];
 
-      Double_t ndir_ertc = nphoton_ertc - aMiss*npion_ertc*2.;
-      Double_t endir_ertc = sqrt( nphoton_ertc + pow(eaMiss*npion_ertc*2.,2.) + pow(aMiss*enpion_ertc*2.,2.) );
-      Double_t ndir_ertb = nphoton_ertb - aMiss*npion_ertb*2.;
-      Double_t endir_ertb = sqrt( nphoton_ertb + pow(eaMiss*npion_ertb*2.,2.) + pow(aMiss*enpion_ertb*2.,2.) );
-      Double_t ratio = ndir_ertc / ndir_ertb;
-      Double_t eratio = ratio * sqrt( pow(endir_ertc/ndir_ertc,2.) + pow(endir_ertb/ndir_ertb,2.) );
+      double ndir_ertc = nphoton_ertc - aMiss*npion_ertc*2.;
+      double endir_ertc = sqrt( nphoton_ertc + pow(eaMiss*npion_ertc*2.,2.) + pow(aMiss*enpion_ertc*2.,2.) );
+      double ndir_ertb = nphoton_ertb - aMiss*npion_ertb*2.;
+      double endir_ertb = sqrt( nphoton_ertb + pow(eaMiss*npion_ertb*2.,2.) + pow(aMiss*enpion_ertb*2.,2.) );
+      double ratio = ndir_ertc / ndir_ertb;
+      double eratio = ratio * sqrt( pow(endir_ertc/ndir_ertc,2.) + pow(endir_ertb/ndir_ertb,2.) );
 
       if(eratio > 0.)
       {
@@ -99,7 +99,7 @@ void draw_ERTbRatio_Photon()
 
   mc(6, 3,1);
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     mcd(6, part+1);
     gr[part]->Set(igp[part]);
@@ -112,7 +112,7 @@ void draw_ERTbRatio_Photon()
   c6->Print("plots/ERTbRatio-photon.pdf");
 
   TFile *f_out = new TFile("data/ERTbRatio-photon.root", "RECREATE");
-  for(Int_t part=0; part<6; part++)
+  for(int part=0; part<6; part++)
   {
     mcw( part, Form("ERT%c-part%d",99-part/3,part%3) );
     if(part<3)

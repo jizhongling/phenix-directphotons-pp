@@ -6,18 +6,18 @@ void draw_InvMass_Check()
   TAxis *axis_sec = hn_minv->GetAxis(0);
   TAxis *axis_pt = hn_minv->GetAxis(1);
 
-  const Int_t secl[2] = {1, 7};
-  const Int_t sech[2] = {6, 8};
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
-  Double_t pTbins[30];
-  Double_t E1[2][30], E2[2][30], Theta[2][30], M[2][30];
-  Double_t eE1[2][30], eE2[2][30], eTheta[2][30], eM[2][30];
+  double pTbins[30];
+  double E1[2][30], E2[2][30], Theta[2][30], M[2][30];
+  double eE1[2][30], eE2[2][30], eTheta[2][30], eM[2][30];
 
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     axis_sec->SetRange(secl[part],sech[part]);
 
-    for(Int_t ipt=0; ipt<30; ipt++)
+    for(int ipt=0; ipt<30; ipt++)
     {
       axis_pt->SetRange(ipt+1,ipt+1);
       pTbins[ipt] = axis_pt->GetBinCenter(ipt+1);
@@ -43,24 +43,24 @@ void draw_InvMass_Check()
   }
 
   TGraphErrors *gr[2][4];
-  for(Int_t part=0; part<2; part++)
+  for(int part=0; part<2; part++)
   {
     TCanvas *c = new TCanvas("c", "", 2400, 2400);
     gStyle->SetOptStat(0);
     c->Divide(2,2);
 
-    gr[part][0] = new TGraphErrors(30, pTbins, (Double_t*)E1[part], 0, (Double_t*)eE1[part]);
-    gr[part][1] = new TGraphErrors(30, pTbins, (Double_t*)E2[part], 0, (Double_t*)eE2[part]);
-    gr[part][2] = new TGraphErrors(30, pTbins, (Double_t*)Theta[part], 0, (Double_t*)eTheta[part]);
-    gr[part][3] = new TGraphErrors(30, pTbins, (Double_t*)M[part], 0, (Double_t*)eM[part]);
+    gr[part][0] = new TGraphErrors(30, pTbins, (double*)E1[part], 0, (double*)eE1[part]);
+    gr[part][1] = new TGraphErrors(30, pTbins, (double*)E2[part], 0, (double*)eE2[part]);
+    gr[part][2] = new TGraphErrors(30, pTbins, (double*)Theta[part], 0, (double*)eTheta[part]);
+    gr[part][3] = new TGraphErrors(30, pTbins, (double*)M[part], 0, (double*)eM[part]);
 
     gr[part][0]->SetTitle("#bar{E_{1}} [GeV]");
     gr[part][1]->SetTitle("#bar{E_{2}} [GeV]");
     gr[part][2]->SetTitle("#bar{#sqrt{1-cos(#theta)}}");
     gr[part][3]->SetTitle("#sqrt{2#bar{E_{1}}#bar{E_{2}}}#bar{#sqrt{1-cos#theta}} [GeV]");
 
-    Int_t ipad = 1;
-    for(Int_t igr=0; igr<3; igr++)
+    int ipad = 1;
+    for(int igr=0; igr<3; igr++)
     {
       c->cd(ipad++);
       gr[part][igr]->GetXaxis()->SetTitle("p_{T} [GeV]");
