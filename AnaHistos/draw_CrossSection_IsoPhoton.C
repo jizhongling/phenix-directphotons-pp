@@ -19,12 +19,12 @@ void draw_CrossSection_IsoPhoton()
     gr[part]->SetName(Form("gr_%d",part));
   }
 
-  // h[evtype][part]
-  TH1 *h_photon[3][3];
-  TH1 *h2_isoboth[3][3];
-  TH1 *h2_isopair[3][3];
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
-  TFile *f = new TFile();
+  // h[evtype][part]
+  TH1 *h_1photon[3][3];
+  TH2 *h2_isoboth[3][3];
+  TH2 *h2_isopair[3][3];
 
   int bbc10cm = 1;
   int cut = 3;
@@ -34,24 +34,24 @@ void draw_CrossSection_IsoPhoton()
   for(int evtype=1; evtype<3; evtype++)
     for(int part=0; part<3; part++)
     {
-      h_photon[evtype][part] = (TH1*)h_1photon_t->Clone(Form("h_photon_type%d_part%d",evtype,part));
+      h_1photon[evtype][part] = (TH1*)h_1photon_t->Clone(Form("h_1photon_type%d_part%d",evtype,part));
       for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
         for(int pattern=0; pattern<3; pattern++)
         {
           int isolated = 1;
           int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm;
           TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
-          h_photon[evtype][part]->Add(h_tmp);
+          h_1photon[evtype][part]->Add(h_tmp);
           delete h_tmp;
         }
     }
 
-  TH2 *h2_2photon_t = (TH1*)f->Get("h2_2photon_0");
+  TH2 *h2_2photon_t = (TH2*)f->Get("h2_2photon_0");
   h2_2photon_t->Reset();
   for(int evtype=1; evtype<3; evtype++)
     for(int part=0; part<3; part++)
     {
-      h2_isoboth[evtype][part] = (TH1*)h2_2photon_t->Clone(Form("h2_isoboth_type%d_part%d",evtype,part));
+      h2_isoboth[evtype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isoboth_type%d_part%d",evtype,part));
       for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
         for(int pattern=0; pattern<3; pattern++)
           for(int isopair=0; isopair<2; isopair++)
@@ -67,7 +67,7 @@ void draw_CrossSection_IsoPhoton()
   for(int evtype=1; evtype<3; evtype++)
     for(int part=0; part<3; part++)
     {
-      h2_isopair[evtype][part] = (TH1*)h2_2photon_t->Clone(Form("h2_isopair_type%d_part%d",evtype,part));
+      h2_isopair[evtype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isopair_type%d_part%d",evtype,part));
       for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
         for(int pattern=0; pattern<3; pattern++)
           for(int isoboth=0; isoboth<2; isoboth++)
@@ -140,7 +140,7 @@ void draw_CrossSection_IsoPhoton()
       else  // >14GeV use ERT_4x4b
         evtype = 1;
 
-      double nphoton = h_photon[evtype][part]->GetBinContent(ipt+1);
+      double nphoton = h_1photon[evtype][part]->GetBinContent(ipt+1);
 
       TH1 *h_minv;
 

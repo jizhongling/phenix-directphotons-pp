@@ -17,26 +17,40 @@ void draw_ERTEff_Pion()
       mc(part*2+ic, 6,5);
   }
 
-  //TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
-  TFile *f = new TFile("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13173/data/PhotonHistos-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
-  THnSparse *hn_trig = (THnSparse*)f->Get("hn_ert_pion");
-  TAxis *axis_sec = hn_trig->GetAxis(0);
-  TAxis *axis_pt = hn_trig->GetAxis(1);
-  TAxis *axis_minv = hn_trig->GetAxis(2);
-  TAxis *axis_cond = hn_trig->GetAxis(3);
+  // h[part][cond]
+  TH2 *h2_ert_pion[2][2];
+
+  int bbc10cm = 1;
+  int ert_trig[2] = {2, 5};
+
+  TH2 *h2_ert_pion_t = (TH2*)f->Get("h2_ert_pion_0");
+  h2_ert_pion_t->Reset();
+  for(int part=0; part<2; part++)
+  {
+    for(int cond=0; cond<2; cond++)
+    {
+      h2_ert_pion[part][cond] = (TH2*)h2_ert_pion_t->Clone(Form("h2_ert_pion_part%d_cond%d",part,cond));
+      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+      {
+        int ih = sector + 8*ert_trig[cond] + 6*8*bbc10cm;
+        TH2 *h2_tmp = (TH2*)f->Get(Form("h2_ert_pion_%d",ih));
+        h2_ert_pion[part][cond]->Add(h2_tmp);
+        delete h2_tmp;
+      }
+    }
+    h2_ert_pion[part][0]->Add(h2_ert_pion[part][1]);
+  }
 
   for(int part=0; part<2; part++)
     for(int ipt=0; ipt<npT; ipt++)
     {
-      axis_sec->SetRange(secl[part],sech[part]);
-      axis_pt->SetRange(ipt+1,ipt+1);
       TH1 *h_minv;
 
       double nt, ent;
       mcd(part*2, ipt+1);
-      axis_cond->SetRange(3,3);
-      h_minv = hn_trig->Projection(2);
+      h_minv = h2_ert_pion[part][0]->ProjectionY("h_minv", ipt+1,ipt+1);
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
       FitMinv(h_minv, nt, ent);
@@ -44,8 +58,7 @@ void draw_ERTEff_Pion()
 
       double np, enp;
       mcd(part*2+1, ipt+1);
-      axis_cond->SetRange(6,6);
-      h_minv = hn_trig->Projection(2);
+      h_minv = h2_ert_pion[part][1]->ProjectionY("h_minv", ipt+1,ipt+1);
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
       FitMinv(h_minv, np, enp);

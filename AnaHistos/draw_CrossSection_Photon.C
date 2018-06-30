@@ -19,20 +19,49 @@ void draw_CrossSection_Photon()
     gr[part]->SetName(Form("gr_%d",part));
   }
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
-  THnSparse *hn_1photon = (THnSparse*)f->Get("hn_1photon");
-  TAxis *axis_1sec = hn_1photon->GetAxis(0);
-  TAxis *axis_1pt = hn_1photon->GetAxis(1);
-  TAxis *axis_1cut = hn_1photon->GetAxis(3);
-  TAxis *axis_1type = hn_1photon->GetAxis(4);
+  // h[evtype][part]
+  TH1 *h_1photon[3][3];
+  TH2 *h2_2photon[3][3];
 
-  THnSparse *hn_2photon = (THnSparse*)f->Get("hn_2photon");
-  TAxis *axis_sec = hn_2photon->GetAxis(0);
-  TAxis *axis_pt = hn_2photon->GetAxis(1);
-  TAxis *axis_minv = hn_2photon->GetAxis(2);
-  TAxis *axis_cut = hn_2photon->GetAxis(4);
-  TAxis *axis_type = hn_2photon->GetAxis(5);
+  int bbc10cm = 1;
+  int cut = 3;
+
+  TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
+  h_1photon_t->Reset();
+  for(int evtype=1; evtype<3; evtype++)
+    for(int part=0; part<3; part++)
+    {
+      h_1photon[evtype][part] = (TH1*)h_1photon_t->Clone(Form("h_1photon_type%d_part%d",evtype,part));
+      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+        for(int pattern=0; pattern<3; pattern++)
+          for(int isolated=0; isolated<2; isolated++)
+          {
+            int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm;
+            TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
+            h_1photon[evtype][part]->Add(h_tmp);
+            delete h_tmp;
+          }
+    }
+
+  TH2 *h2_2photon_t = (TH2*)f->Get("h2_2photon_0");
+  h2_2photon_t->Reset();
+  for(int evtype=1; evtype<3; evtype++)
+    for(int part=0; part<3; part++)
+    {
+      h2_2photon[evtype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_2photon_type%d_part%d",evtype,part));
+      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+        for(int pattern=0; pattern<3; pattern++)
+          for(int isoboth=0; isoboth<2; isoboth++)
+            for(int isopair=0; isopair<2; isopair++)
+            {
+              int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
+              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
+              h2_2photon[evtype][part]->Add(h2_tmp);
+              delete h2_tmp;
+            }
+    }
 
   const double DeltaEta = 1.0;
   //const double NBBC =  3.59e11;  // from DAQ
@@ -88,29 +117,17 @@ void draw_CrossSection_Photon()
 
     for(int part=0; part<3; part++)
     {
+      int evtype = 2;
       if(ipt < 22)  // <14GeV use ERT_4x4c
-      {
-        axis_1type->SetRange(3,3);
-        axis_type->SetRange(3,3);
-      }
+        evtype = 2;
       else  // >14GeV use ERT_4x4b
-      {
-        axis_1type->SetRange(2,2);
-        axis_type->SetRange(2,2);
-      }
-      axis_1cut->SetRange(4,4);
-      axis_1pt->SetRange(ipt+1,ipt+1);
-      axis_cut->SetRange(4,4);
-      axis_sec->SetRange(secl[part],sech[part]);
-      axis_pt->SetRange(ipt+1,ipt+1);
+        evtype = 1;
 
-      TH1 *h_photon = hn_1photon->Projection(0);
-      double nphoton = h_photon->Integral(secl[part],sech[part]);
-      delete h_photon;
+      double nphoton = h_1photon[evtype][part]->GetBinContent(ipt+1);
 
       mcd(part, ipt+1);
       double npion = 1., enpion = 1.;
-      TH1 *h_minv = hn_2photon->Projection(2);
+      TH1 *h_minv = h2_2photon[evtype][part]->ProjectionY("h_minv", ipt+1,ipt+1);
       h_minv->Scale(0.5);
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
