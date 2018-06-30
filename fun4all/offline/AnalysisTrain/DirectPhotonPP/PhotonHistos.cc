@@ -179,7 +179,7 @@ int PhotonHistos::InitRun(PHCompositeNode *topNode)
   SpinDBOutput spin_out;
   SpinDBContent spin_cont;
 
-  /* Initialize opbject to access spin DB */
+  /* Initialize object to access spin DB */
   spin_out.Initialize();
   spin_out.SetUserName("phnxrc");
   spin_out.SetTableName("spin");
@@ -617,12 +617,14 @@ int PhotonHistos::FillTowerEnergy(const emcClusterContainer *data_emccontainer, 
   int crossing = data_triggerlvl1->get_lvl1_clock_cross();
   int crossing_shift = spinpattern->get_crossing_shift();
   int bunch = (crossing + crossing_shift) % 120;
+  if(bunch < 0) return DISCARDEVENT;
+
   int pattern_blue = spinpattern->get_spinpattern_blue(bunch);
   int pattern_yellow = spinpattern->get_spinpattern_yellow(bunch);
 
   /* Test whether at the beam abort gap or not */
   int collision = 1;
-  if( abs(pattern_blue) > 1 || abs(pattern_yellow) > 1 )
+  if( pattern_blue == 10 || pattern_yellow == 10 )
     collision = 0;
 
   unsigned ncluster = data_emccontainer->size();
@@ -1202,11 +1204,15 @@ int PhotonHistos::GetStatus(const emcClusterContent *cluster)
 
 int PhotonHistos::GetPattern(int crossing)
 {
+  int pattern = 0;
   int crossing_shift = spinpattern->get_crossing_shift();
   int bunch = (crossing + crossing_shift) % 120;
-  int pattern_blue = spinpattern->get_spinpattern_blue(bunch);
-  int pattern_yellow = spinpattern->get_spinpattern_yellow(bunch);
-  int pattern = pattern_blue * pattern_yellow;  
+  if(bunch >= 0)
+  {
+    int pattern_blue = spinpattern->get_spinpattern_blue(bunch);
+    int pattern_yellow = spinpattern->get_spinpattern_yellow(bunch);
+    pattern = pattern_blue * pattern_yellow;  
+  }
   if( abs(pattern) > 1 ) pattern = 0;
   pattern += 1;
 

@@ -21,14 +21,29 @@ void draw_CrossSection_Pion()
     gr[part]->SetName(Form("gr_%d",part));
   }
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
-  THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
-  TAxis *axis_sec = hn_pion->GetAxis(0);
-  TAxis *axis_pt = hn_pion->GetAxis(1);
-  TAxis *axis_minv = hn_pion->GetAxis(2);
-  TAxis *axis_cut = hn_pion->GetAxis(3);
-  TAxis *axis_type = hn_pion->GetAxis(4);
+  // h[evtype][part]
+  TH2 *h2_pion[3][3];
+
+  int bbc10cm = 1;
+  int cut = 3;
+
+  TH2 *h2_pion_t = (TH2*)f->Get("h2_pion_0");
+  h2_pion_t->Reset();
+  for(int evtype=1; evtype<3; evtype++)
+    for(int part=0; part<3; part++)
+    {
+      h2_pion[evtype][part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_type%d_part%d",evtype,part));
+      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+        for(int pattern=0; pattern<3; pattern++)
+        {
+          int ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm;
+          TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
+          h2_pion[evtype][part]->Add(h2_tmp);
+          delete h2_tmp;
+        }
+    }
 
   const double DeltaEta = 1.0;
   //const double NBBC =  3.59e11;  // from DAQ
@@ -94,17 +109,15 @@ void draw_CrossSection_Pion()
 
     for(int part=0; part<3; part++)
     {
+      int evtype = 2;
       if(ipt < 22)  // <14GeV use ERT_4x4c
-        axis_type->SetRange(3,3);
+        evtype = 2;
       else  // >14GeV use ERT_4x4b
-        axis_type->SetRange(2,2);
-      axis_cut->SetRange(4,4);
-      axis_sec->SetRange(secl[part],sech[part]);
-      axis_pt->SetRange(ipt+1,ipt+1);
+        evtype = 1;
 
       mcd(part, ipt+1);
       double npion = 1., enpion = 1.;
-      TH1 *h_minv = hn_pion->Projection(2);
+      TH1 *h_minv = h2_pion[evtype][part]->ProjectionY("h_minv", ipt+1,ipt+1);
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
       if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
@@ -160,9 +173,9 @@ void draw_CrossSection_Pion()
     } // part
 
     double ybar, eybar;
-    //if(ipt < 25)
-    //  Chi2Fit(3, yy, eyy, ybar, eybar);
-    //else
+    if(ipt < 25)
+      Chi2Fit(3, yy, eyy, ybar, eybar);
+    else
     {
       ybar = yy[2];
       eybar = eyy[2];

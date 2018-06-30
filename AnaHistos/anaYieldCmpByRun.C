@@ -28,8 +28,7 @@ void anaYieldCmpByRun(const int process = 0)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    //TFile *f_mine = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
-    TFile *f_mine = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13527/data/PhotonHistos-%d.root",runnumber));
+    TFile *f_mine = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13597/data/PhotonHistos-%d.root",runnumber));
     TFile *f_sasha = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510ERT/12232/data/Pi0PP-%d.root",runnumber));
     if( f_mine->IsZombie() || f_sasha->IsZombie() ) continue;
 
@@ -39,23 +38,29 @@ void anaYieldCmpByRun(const int process = 0)
       npion_sasha[part] = 0.;
     }
 
-    THnSparse *hn_pion = (THnSparse*)f_mine->Get("hn_pion");
-    TAxis *axis_sec = hn_pion->GetAxis(0);
-    TAxis *axis_pt = hn_pion->GetAxis(1);
-    TAxis *axis_minv = hn_pion->GetAxis(2);
-    TAxis *axis_pattern = hn_pion->GetAxis(3);
-    TAxis *axis_cut = hn_pion->GetAxis(4);
-    TAxis *axis_type = hn_pion->GetAxis(5);
-    TAxis *axis_bbc10cm = hn_pion->GetAxis(6);
+    // h2_pion[part]
+    TH2 *h2_pion[3];
+    TH2 *h2_pion_t = (TH2*)f_mine->Get("h2_pion_0");
+    h2_pion_t->Reset();
+    int bbc10cm = 1;
+    int evtype = 2;
+    int cut = 3;
+    for(int part=0; part<3; part++)
+    {
+      h2_pion[part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_%d",part));
+      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+        for(int pattern=0; pattern<3; pattern++)
+        {
+          int ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm;
+          TH2 *h2_tmp = (TH2*)f_mine->Get(Form("h2_pion_%d",ih));
+          h2_pion[part]->Add(h2_tmp);
+          delete h2_tmp;
+        }
+    }
 
     for(int part=0; part<3; part++)
     {
-      axis_bbc10cm->SetRange(2,2);
-      axis_type->SetRange(3,3);
-      axis_cut->SetRange(4,4);
-      axis_sec->SetRange(secl[part],sech[part]);
-      axis_pt->SetRange(5,25);
-      TH1 *h_minv = hn_pion->Projection(2);
+      TH1 *h_minv = h2_pion[part]->ProjectionY("h_minv", 5,25);
       npion_mine[part] = h_minv->Integral(113,162);
       delete h_minv;
     }

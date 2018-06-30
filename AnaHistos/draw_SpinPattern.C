@@ -1,30 +1,34 @@
 void draw_SpinPattern()
 {
-  gSystem->Load("libDirectPhotonPP.so");
+  gSystem->Load("libuspin.so");
 
-  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist.txt");
-  int nrun = 0;
-  int runnumber[1024];
-  while(fin >> runnumber[nrun]) nrun++;
-  fin.close();
+  const int runnumber = 391870;
 
-  TFile *f = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510ERT/8847/data/DirectPhotonPP_PhotonNode-%d.root", runnumber[600]));
-  TTree *T1 = (TTree*)f->Get("T1");
+  SpinDBOutput spin_out;
+  SpinDBContent spin_cont;
 
-  SpinPattern *spinpat = new SpinPattern;
-  T1->SetBranchAddress("RUN/SpinPattern", &spinpat);
-  T1->GetEntry(0);
+  /* Initialize object to access spin DB */
+  spin_out.Initialize();
+  spin_out.SetUserName("phnxrc");
+  spin_out.SetTableName("spin");
+
+  /* Retrieve entry from Spin DB */
+  int qa_level = spin_out.GetDefaultQA(runnumber);
+  spin_out.StoreDBContent(runnumber, runnumber, qa_level);
+  spin_out.GetDBContentStore(spin_cont, runnumber);
 
   string pattern;
-  for(int ib=0; ib<120; ib++)
-  {
-    int blue = spinpat->get_spinpattern_blue(ib);
-    int yellow = spinpat->get_spinpattern_yellow(ib);
-    int value = blue * yellow;
-    if(value == 1)  pattern += "S";
-    else if(value==-1) pattern += "O";
-    else pattern += "N";
-  }
+  if( spin_out.CheckRunRow(runnumber,qa_level) == 1 &&
+      spin_cont.GetRunNumber() == runnumber )
+    for(int ib=0; ib<120; ib++)
+    {
+      int blue = spin_cont.GetSpinPatternBlue(ib);
+      int yellow = spin_cont.GetSpinPatternYellow(ib);
+      int value = blue * yellow;
+      if(value == 1)  pattern += "S";
+      else if(value==-1) pattern += "O";
+      else pattern += "N";
+    }
   cout << pattern << endl;
 
   vector<int> SOOSSOO;

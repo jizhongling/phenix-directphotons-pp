@@ -12,33 +12,38 @@ void draw_YieldCmpByPt()
     gr[part] =  new TGraph(25);
 
   TFile *f_mine = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
-  //TFile *f_sasha = new TFile("data/Pi0PP-histo.root");
-  TFile *f_sasha = new TFile("/phenix/spin/phnxsp01/shura/taxi/Run13pp510ERT/5116/data/nt_merged_ert.root");
+  TFile *f_sasha = new TFile("data/Pi0PP-histo.root");
+  //TFile *f_sasha = new TFile("/phenix/spin/phnxsp01/shura/taxi/Run13pp510ERT/5116/data/nt_merged_ert.root");
 
-  THnSparse *hn_pion = (THnSparse*)f_mine->Get("hn_pion");
-  TAxis *axis_sec = hn_pion->GetAxis(0);
-  TAxis *axis_pt = hn_pion->GetAxis(1);
-  TAxis *axis_minv = hn_pion->GetAxis(2);
-  TAxis *axis_pattern = hn_pion->GetAxis(3);
-  TAxis *axis_cut = hn_pion->GetAxis(4);
-  TAxis *axis_type = hn_pion->GetAxis(5);
-  TAxis *axis_bbc10cm = hn_pion->GetAxis(6);
+  // h2_pion[part]
+  TH2 *h2_pion[3];
+  TH2 *h2_pion_t = (TH2*)f_mine->Get("h2_pion_0");
+  h2_pion_t->Reset();
+  int bbc10cm = 1;
+  int evtype = 2;
+  int cut = 3;
+  for(int part=0; part<3; part++)
+  {
+    h2_pion[part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_%d",part));
+    for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+      for(int pattern=0; pattern<3; pattern++)
+      {
+        int ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm;
+        TH2 *h2_tmp = (TH2*)f_mine->Get(Form("h2_pion_%d",ih));
+        h2_pion[part]->Add(h2_tmp);
+        delete h2_tmp;
+      }
+  }
 
   for(int part=0; part<3; part++)
     for(int ipt=2; ipt<25; ipt++)
     {
-      axis_bbc10cm->SetRange(2,2);
-      axis_type->SetRange(3,3);
-      axis_cut->SetRange(4,4);
-      axis_sec->SetRange(secl[part],sech[part]);
-      axis_pt->SetRange(ipt+1,ipt+1);
-
-      TH1 *h_minv = hn_pion->Projection(2);
+      TH1 *h_minv = h2_pion[part]->ProjectionY("h_minv", ipt+1,ipt+1);
       double npion_mine = h_minv->Integral(120,160);
       delete h_minv;
 
-      //TH1 *mchist = (TH1*)f_sasha->Get(Form("mchist_s%d_pt%02d_tp",part,ipt));
-      TH1 *mchist = (TH1*)f_sasha->Get(Form("mc_s%d_bcc0_pt_%03d_tp",part,5*ipt));
+      TH1 *mchist = (TH1*)f_sasha->Get(Form("mchist_s%d_pt%02d_tp",part,ipt));
+      //TH1 *mchist = (TH1*)f_sasha->Get(Form("mc_s%d_bcc0_pt_%03d_tp",part,5*ipt));
       double npion_sasha = mchist->Integral(120,160);
       delete mchist;
 
@@ -55,7 +60,7 @@ void draw_YieldCmpByPt()
   for(int part=0; part<3; part++)
   {
     gr[part]->Set(igp[part]);
-    aset(gr[part], "p_{T} [GeV]","#frac{Mine}{Sasha}", 0.,20., 0.3,0.6);
+    aset(gr[part], "p_{T} [GeV]","#frac{Mine}{Sasha}", 0.,20., 0.499,0.501);
     style(gr[part], part+24, part+1);
     if(part == 0)
       gr[part]->Draw("AP");

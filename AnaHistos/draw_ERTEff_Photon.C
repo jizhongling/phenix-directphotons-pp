@@ -12,15 +12,31 @@ void draw_ERTEff_Photon()
     gr[part]->SetName(Form("gr_%d",part));
   }
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
-  TH3 *h3_ert = (TH3*)f->Get("h3_ert");
+  // h[part][cond]
+  TH1 *h_ert[2][2];
 
+  int bbc10cm = 1;
+  int ert_trig[2] = {2, 5};
+
+  TH1 *h_ert_t = (TH1*)f->Get("h_ert_0");
+  h_ert_t->Reset();
   for(int part=0; part<2; part++)
   {
-    TH1 *h_total = (TH1*)h3_ert->ProjectionY("_py", secl[part],sech[part], 3,3)->Clone("h_total");
-    TH1 *h_passed = (TH1*)h3_ert->ProjectionY("_py", secl[part],sech[part], 6,6)->Clone("h_passed");
-    gr[part]->Divide(h_passed, h_total);
+    for(int cond=0; cond<2; cond++)
+    {
+      h_ert[part][cond] = (TH1*)h_ert_t->Clone(Form("h_ert_part%d_cond%d",part,cond));
+      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+      {
+        int ih = sector + 8*ert_trig[cond] + 6*8*bbc10cm;
+        TH1 *h2_tmp = (TH1*)f->Get(Form("h_ert_%d",ih));
+        h_ert[part][cond]->Add(h2_tmp);
+        delete h2_tmp;
+      }
+    }
+    h_ert[part][0]->Add(h_ert[part][1]);
+    gr[part]->Divide(h_ert[part][1], h_ert[part][0]);
   }
 
   mc();

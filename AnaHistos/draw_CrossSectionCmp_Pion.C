@@ -9,7 +9,7 @@ void draw_CrossSectionCmp_Pion()
   for(int part=0; part<4; part++)
     ReadGraph<TGraphErrors>("data/CrossSection-pion.root", part, gx[part], gy[part], egy[part]);
 
-  TGraph *gr_sasha = new TGraph("data/sasha-cross-pbgl.txt");
+  TGraph *gr_sasha = new TGraph("data/sasha-cross.txt");
 
   TGraphErrors *gr_ratio[4];
   int igp[4] = {};

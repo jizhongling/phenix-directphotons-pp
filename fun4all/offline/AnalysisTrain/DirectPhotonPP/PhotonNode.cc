@@ -138,7 +138,7 @@ int PhotonNode::InitRun(PHCompositeNode *topNode)
   SpinDBOutput spin_out;
   SpinDBContent spin_cont;
 
-  // initialize opbject to access spin DB
+  // initialize object to access spin DB
   spin_out.Initialize();
   spin_out.SetUserName("phnxrc");
   spin_out.SetTableName("spin");
