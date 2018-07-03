@@ -793,16 +793,6 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
       if( datatype == ERT && !trig )
         continue;
 
-      if( evtype == 2 && part >= 0 && pT > 5. && pT < 10. )
-      {
-        int id = 0;  // cluster
-        if( TestPhoton(cluster1, bbc_t0) )
-          id = 1;  // photon
-
-        int ih = part + 3*id;
-        h2_eta_phi[ih]->Fill(eta, phi);
-      }
-
       double econeEM = SumEEmcal(cluster1, data_emccontainer);
       double econeTrk =  SumPTrack(cluster1, data_tracks);
       double econe = econeEM + econeTrk;
@@ -817,6 +807,14 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
         cut = 2;
       if( TestPhoton(cluster1, bbc_t0) )
         cut = 3;
+
+      if( evtype == 2 && part >= 0 &&
+          pT > 5. && pT < 10. &&
+          TestPhoton(cluster1, bbc_t0) )
+      {
+        int ih = part + 3*isolated;
+        h2_eta_phi[ih]->Fill(eta, phi);
+      }
 
       if(sector >= 0 && sector <= 7)
       {
@@ -1005,8 +1003,7 @@ void PhotonHistos::BookHistograms()
   }
   
   /* Eta and phi distribution */
-  // ih = part + 3*id < 2*3
-  // cluster id = 0; photon id = 1
+  // ih = part + 3*isolated < 2*3
   for(int ih=0; ih<nh_eta_phi; ih++)
   {
     h2_eta_phi[ih] = new TH2F(Form("h2_eta_phi_%d",ih), "#eta and #phi distribution;#eta;#phi;", neta,etabin[ih%3/2], nphi,phibin);
