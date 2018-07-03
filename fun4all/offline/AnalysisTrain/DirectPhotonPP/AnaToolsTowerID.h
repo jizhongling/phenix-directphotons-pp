@@ -101,13 +101,39 @@ namespace anatools
     const int ncut = 2; // Number of edge towers
 
     if( sec < 0 || sec > 7 ) return true;
-    if( sec<6 ) {
-      if( iy<ncut || iy>35-ncut ) return true;
-      if( iz<ncut || iz>71-ncut ) return true;
+    if( sec < 6 )
+    {
+      if( iy < ncut || iy > 35-ncut ) return true;
+      if( iz < ncut || iz > 71-ncut ) return true;
     }
-    else {
-      if( iy<ncut || iy>47-ncut ) return true;
-      if( iz<ncut || iz>95-ncut ) return true;
+    else
+    {
+      if( iy < ncut || iy > 47-ncut ) return true;
+      if( iz < ncut || iz > 95-ncut ) return true;
+    }
+    return false;
+  }
+
+  /*
+   * Check whether the tower is in fiducial arm
+   */
+  inline bool ArmEdge_cg(int sec, int iy, int iz)
+  {
+    // Check if shower center of gravity (maximal energy tower) belongs 
+    // to edge tower defined by parameter "ncut"
+    const int ncut = 10; // Number of edge towers
+
+    if( sec < 0 || sec > 7 ) return true;
+    if( sec < 6 )
+    {
+      if( iz < ncut || iz > 71-ncut ) return true;
+      if( sec == 0 && iy < ncut ) return true;
+      if( ( sec == 3 || sec == 4 ) && iy > 35-ncut ) return true;
+    }
+    else
+    {
+      if( iz < ncut || iz > 95-ncut ) return true;
+      if( sec == 7 && iy < ncut ) return true;
     }
     return false;
   }

@@ -78,10 +78,14 @@ void draw_CrossSection_Photon()
   const double eConv[3] = {0.027, 0.023, 0.023};
   const double Norm[3] = {0.321, 0.314, 0.243};
   const double eNorm[3] = {0.005, 0.006, 0.005};
+  const double A = 0.22;
+  const double eA = 0.04;
 
   double xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
-  double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
   double xTrigERT[3][npT] = {}, TrigERT[3][npT] = {}, eTrigERT[3][npT] = {};
+  double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
+  double xMerge[3][npT] = {}, Merge[3][npT] = {}, eMerge[3][npT] = {};
+  double xBadPass[3][npT] = {}, BadPass[3][npT] = {}, eBadPass[3][npT] = {};
 
   double bck[2][npT] = {
     { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.10, 1.15, 1.20, 1.30,  1, 1, 1 },
@@ -102,8 +106,10 @@ void draw_CrossSection_Photon()
   for(int part=0; part<3; part++)
   {
     ReadGraph<TGraphAsymmErrors>("data/Acceptance-photon.root", part, xAcc[part], Acc[part], eAcc[part]);
-    ReadGraph<TGraphAsymmErrors>("data/HadronRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
     ReadGraph<TGraphAsymmErrors>("data/ERTEff-photon.root", part/2, xTrigERT[part], TrigERT[part], eTrigERT[part]);
+    ReadGraph<TGraphErrors>("data/MissingRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
+    ReadGraph<TGraphAsymmErrors>("data/Merge-photon.root", part, xMerge[part], Merge[part], eMerge[part]);
+    ReadGraph<TGraphErrors>("data/MergePassRate.root", part/2, xBadPass[part], BadPass[part], eBadPass[part]);
     mc(part, 6,5);
   }
   TrigERT[0][0] = TrigERT[1][0] = 0.948;
@@ -128,7 +134,6 @@ void draw_CrossSection_Photon()
       mcd(part, ipt+1);
       double npion = 1., enpion = 1.;
       TH1 *h_minv = h2_2photon[evtype][part]->ProjectionY("h_minv", ipt+1,ipt+1);
-      h_minv->Scale(0.5);
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
       if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
@@ -143,12 +148,29 @@ void draw_CrossSection_Photon()
 
       xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
       int ipAcc = Get_ipt(xAcc[part], xx);
-      int ipMiss = Get_ipt(xMiss[part], xx);
       int ipTrigERT = Get_ipt(xTrigERT[part], xx);
+      int ipMiss = Get_ipt(xMiss[part], xx);
+      double aMiss = Miss[part][ipMiss];
+      double eaMiss = eMiss[part][ipMiss];
+      int ipMerge = Get_ipt(xMerge[part], xx);
+      double aMerge = Merge[part][ipMerge];
+      double eaMerge = eMerge[part][ipMerge];
+      int ipBadPass = Get_ipt(xBadPass[part], xx);
+      double aBadPass = BadPass[part][ipBadPass];
+      double eaBadPass = eBadPass[part][ipBadPass];
+      if(ipt<23)
+      {
+        aBadPass = 0.;
+        eaBadPass = 0.;
+      }
       if(ipt >= 20)
         ipTrigERT = 0;
-      double ndir = nphoton - Miss[part][ipMiss]*npion*2.;
-      double endir = sqrt( nphoton + pow(eMiss[part][ipMiss]*npion*2.,2.) + pow(Miss[part][ipMiss]*enpion*2.,2.) );
+      double aMissPass = aMiss + aMerge * aBadPass;
+      double eaMissPass = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2.) + pow(eaBadPass*aMerge,2.) );
+      double aMissAll = aMiss + aMerge;
+      double eaMissAll = sqrt( eaMiss*eaMiss + eaBadPass*eaBadPass );
+      double ndir = nphoton - ( (1. + aMissPass) + A * (1. + aMissAll) ) * npion;
+      double endir = sqrt( ndir );
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
         ndir *= Norm[part];
@@ -159,7 +181,6 @@ void draw_CrossSection_Photon()
         / ToF[part] / Conv[part] / TrigBBC * Pile[part];
       eyy[part] = yy[part] * sqrt( pow(endir/ndir,2.)
           + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2.)
-          + pow(eMiss[part][ipMiss]/Miss[part][ipMiss],2.)
           + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2.)
           + pow(eProb/Prob[part/2][ipt],2.)
           + pow(eToF[part]/ToF[part],2.) + pow(eConv[part]/Conv[part],2.)
@@ -174,13 +195,7 @@ void draw_CrossSection_Photon()
     } // part
 
     double ybar, eybar;
-    if(ipt < 25)
-      Chi2Fit(3, yy, eyy, ybar, eybar);
-    else
-    {
-      ybar = yy[2];
-      eybar = eyy[2];
-    }
+    Chi2Fit(3, yy, eyy, ybar, eybar);
     if( ybar > 0. && eybar > 0. && eybar < TMath::Infinity() )
     {
       gr[3]->SetPoint(igp[3], xx, ybar);

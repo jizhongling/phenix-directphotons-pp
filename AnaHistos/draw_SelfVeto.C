@@ -3,7 +3,7 @@ void draw_SelfVeto()
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
 
-  TFile *f_out = new TFile("data/eta-selfveto.root", "RECREATE");
+  TFile *f_out = new TFile("data/SelfVeto.root", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-warn-histo.root");
   TH3 *h3_isopair = (TH3*)f->Get("h3_isoeta");
