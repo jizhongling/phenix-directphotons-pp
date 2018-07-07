@@ -61,7 +61,6 @@ void draw_CrossSectionCmp_Pion()
   mc(0);
   legi(0, 0.2,0.8,0.9,0.9);
   leg0->SetNColumns(3);
-  leg0->Draw();
   mc(1);
 
   for(int part=0; part<4; part++)
@@ -83,8 +82,10 @@ void draw_CrossSectionCmp_Pion()
       gr_ratio[part]->Draw("APE");
     else
       gr_ratio[part]->Draw("PE");
+    if(part == 0)
+      leg0->Draw();
   }
 
-  c0->Print("plots/CrossSectionCmpParts.pdf");
-  c1->Print("plots/CrossSectionCmpCombined.pdf");
+  c0->Print("plots/CrossSectionCmpParts-pion.pdf");
+  c1->Print("plots/CrossSectionCmpCombined-pion.pdf");
 }

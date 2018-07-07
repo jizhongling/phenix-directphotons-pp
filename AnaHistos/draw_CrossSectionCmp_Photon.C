@@ -7,7 +7,7 @@ void draw_CrossSectionCmp_Photon()
 
   double gx[4][npT] = {}, gy[4][npT] = {}, egy[4][npT] = {};
   for(int part=0; part<4; part++)
-    ReadGraph<TGraphErrors>("data/CrossSection-isophoton.root", part, gx[part], gy[part], egy[part]);
+    ReadGraph<TGraphErrors>("data/CrossSection-photon.root", part, gx[part], gy[part], egy[part]);
 
   TGraph *gr_sasha = new TGraph("data/sasha-cross.txt");
 
@@ -42,7 +42,7 @@ void draw_CrossSectionCmp_Photon()
       }
       else
       {
-        yy = gy[3][ip2]/ sasha;
+        yy = gy[3][ip2] / sasha;
         eyy = egy[3][ip2] / sasha;
       }
 
@@ -60,7 +60,6 @@ void draw_CrossSectionCmp_Photon()
   mc(0);
   legi(0, 0.2,0.8,0.9,0.9);
   leg0->SetNColumns(3);
-  leg0->Draw();
   mc(1);
 
   for(int part=0; part<4; part++)
@@ -82,6 +81,8 @@ void draw_CrossSectionCmp_Photon()
       gr_ratio[part]->Draw("APE");
     else
       gr_ratio[part]->Draw("PE");
+    if(part == 0)
+      leg0->Draw();
   }
 
   c0->Print("plots/CrossSectionCmpParts-photon.pdf");
