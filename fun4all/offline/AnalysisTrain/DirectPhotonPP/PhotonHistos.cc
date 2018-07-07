@@ -90,10 +90,7 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   for(int isector=0; isector<NSEC; isector++)
     for(int ibiny=0; ibiny<NY; ibiny++)
       for(int ibinz=0; ibinz<NZ; ibinz++)
-      {
         tower_status[isector][ibiny][ibinz] = 0;
-        tower_status_sasha[isector][ibiny][ibinz] = 0;
-      }
 
   h_events = NULL;
   for(int ih=0; ih<nh_calib; ih++)
@@ -156,7 +153,6 @@ int PhotonHistos::Init(PHCompositeNode *topNode)
   EMCRecalibSetup();
 
   /* Read warnmap */
-  ReadTowerStatus("Warnmap_Run13pp510.txt");
   ReadSashaWarnmap("warn_all_run13pp500gev.dat");
 
   /* Book histograms and graphs */
@@ -360,7 +356,7 @@ int PhotonHistos::FillClusterTofSpectrum(const emcClusterContainer *data_emccont
   for(unsigned i=0; i<ncluster; i++)
   {
     emcClusterContent *cluster = data_emccontainer->getCluster(i);
-    if( GetStatus(cluster) == 0 &&
+    if( IsGoodTower(cluster) &&
         cluster->ecore() > eMin &&
         cluster->prob_photon() > probMin )
     {
@@ -401,8 +397,8 @@ int PhotonHistos::FillPi0InvariantMass(const emcClusterContainer *data_emccontai
       {
         emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
         emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
-        if( GetStatus(cluster1) == 0 &&
-            GetStatus(cluster2) == 0 &&
+        if( IsGoodTower(cluster1) &&
+            IsGoodTower(cluster2) &&
             TestPhoton(cluster1, bbc_t0) &&
             TestPhoton(cluster2, bbc_t0) &&
             anatools::GetAsymmetry_E(cluster1, cluster2) < AsymCut )
@@ -444,7 +440,7 @@ int PhotonHistos::FillBBCEfficiency(const emcClusterContainer *data_emccontainer
   for(unsigned i=0; i<ncluster; i++)
   {
     emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
-    if( GetStatus(cluster1) == 0 &&
+    if( IsGoodTower(cluster1) &&
         cluster1->ecore() > eMin &&
         cluster1->prob_photon() > probMin )
     {
@@ -467,7 +463,7 @@ int PhotonHistos::FillBBCEfficiency(const emcClusterContainer *data_emccontainer
         if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
         {
           emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
-          if( GetStatus(cluster2) == 0 &&
+          if( IsGoodTower(cluster2) &&
               cluster2->ecore() > eMin &&
               cluster2->prob_photon() > probMin )
           {
@@ -543,7 +539,7 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
     int oarm = ( arm==0 ? 1 : 0 );
     if( datatype == ERT && !FireERT[oarm] ) continue;
 
-    if( GetStatus(cluster1) == 0 &&
+    if( IsGoodTower(cluster1) &&
         TestPhoton(cluster1, bbc_t0) )
     {
       v_used.push_back(i);
@@ -566,7 +562,7 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
         if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
         {
           emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
-          if( GetStatus(cluster2) == 0 &&
+          if( IsGoodTower(cluster2) &&
               TestPhoton(cluster2, bbc_t0) )
           {
             int sector2 = anatools::GetSector( cluster2 );
@@ -631,7 +627,7 @@ int PhotonHistos::FillTowerEnergy(const emcClusterContainer *data_emccontainer, 
   for(unsigned i=0; i<ncluster; i++)
   {
     emcClusterContent *cluster = data_emccontainer->getCluster(i);
-    if( GetStatus(cluster) == 0 &&
+    if( IsGoodTower(cluster) &&
         cluster->ecore() > eMin )
     {
       double pT = anatools::Get_pT(cluster);
@@ -698,8 +694,8 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
       {
         emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
         emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
-        if( GetStatus(cluster1) == 0 &&
-            GetStatus(cluster2) == 0 &&
+        if( IsGoodTower(cluster1) &&
+            IsGoodTower(cluster2) &&
             cluster1->ecore() > eMin &&
             cluster2->ecore() > eMin &&
             anatools::GetAsymmetry_E(cluster1, cluster2) < AsymCut )
@@ -738,7 +734,7 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
             int ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm;
             h2_pion[ih]->Fill(tot_pT, minv);
           }
-        } // GetStatus and asymmetry cut
+        } // IsGoodTower and asymmetry cut
       } // j loop
   } // i loop
 
@@ -771,7 +767,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
   for(unsigned i=0; i<ncluster; i++)
   {
     emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
-    if( GetStatus(cluster1) == 0 &&
+    if( InFiducial(cluster1) &&
         cluster1->ecore() > eMin )
     {
       int sector = anatools::GetSector(cluster1);
@@ -797,16 +793,6 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
       if( datatype == ERT && !trig )
         continue;
 
-      if( evtype == 2 && part >= 0 && pT > 5. && pT < 10. )
-      {
-        int id = 0;  // cluster
-        if( TestPhoton(cluster1, bbc_t0) )
-          id = 1;  // photon
-
-        int ih = part + 3*id;
-        h2_eta_phi[ih]->Fill(eta, phi);
-      }
-
       double econeEM = SumEEmcal(cluster1, data_emccontainer);
       double econeTrk =  SumPTrack(cluster1, data_tracks);
       double econe = econeEM + econeTrk;
@@ -822,6 +808,14 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
       if( TestPhoton(cluster1, bbc_t0) )
         cut = 3;
 
+      if( evtype == 2 && part >= 0 &&
+          pT > 5. && pT < 10. &&
+          TestPhoton(cluster1, bbc_t0) )
+      {
+        int ih = part + 3*isolated;
+        h2_eta_phi[ih]->Fill(eta, phi);
+      }
+
       if(sector >= 0 && sector <= 7)
       {
         int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm;
@@ -832,7 +826,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
         if(j != i)
         {
           emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
-          if( GetStatus(cluster2) != 0 || cluster2->ecore() < eMin ) continue;
+          if( !IsGoodTower(cluster2) || cluster2->ecore() < eMin ) continue;
           double minv = anatools::GetInvMass(cluster1, cluster2);
 
           double econeEM2 = SumEEmcal(cluster2, data_emccontainer);
@@ -1009,8 +1003,7 @@ void PhotonHistos::BookHistograms()
   }
   
   /* Eta and phi distribution */
-  // ih = part + 3*id < 2*3
-  // cluster id = 0; photon id = 1
+  // ih = part + 3*isolated < 2*3
   for(int ih=0; ih<nh_eta_phi; ih++)
   {
     h2_eta_phi[ih] = new TH2F(Form("h2_eta_phi_%d",ih), "#eta and #phi distribution;#eta;#phi;", neta,etabin[ih%3/2], nphi,phibin);
@@ -1063,7 +1056,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
     /* Skip if pointer identical to 'reference' particle
      * or on bad towers or lower than energy threshold */
     if( clus2->id() == cluster->id() ||
-        GetStatus(clus2) > 0 ||
+        //!IsGoodTower(clus2) ||
         clus2->ecore() < eClusMin )
       continue;
 
@@ -1104,7 +1097,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
      * or on bad towers or lower than energy threshold */
     if( clus3->id() == cluster1->id() ||
         clus3->id() == cluster2->id() ||
-        GetStatus(clus3) > 0 ||
+        //!IsGoodTower(clus3) ||
         clus3->ecore() < eClusMin )
       continue;
 
@@ -1191,7 +1184,7 @@ bool PhotonHistos::TestPhoton(const emcClusterContent *cluster, double bbc_t0)
     return false;
 }
 
-int PhotonHistos::GetStatus(const emcClusterContent *cluster)
+bool PhotonHistos::IsGoodTower(const emcClusterContent *cluster)
 {
   int arm = cluster->arm();
   int rawsector = cluster->sector();
@@ -1199,7 +1192,25 @@ int PhotonHistos::GetStatus(const emcClusterContent *cluster)
   int iypos = cluster->iypos();
   int izpos = cluster->izpos();
 
-  return tower_status_sasha[sector][iypos][izpos];
+  if( tower_status[sector][iypos][izpos] == 0 ||
+      tower_status[sector][iypos][izpos] == 30 )
+    return true;
+  else
+    return false;
+}
+
+bool PhotonHistos::InFiducial(const emcClusterContent *cluster)
+{
+  int arm = cluster->arm();
+  int rawsector = cluster->sector();
+  int sector = anatools::CorrectClusterSector(arm, rawsector);
+  int iypos = cluster->iypos();
+  int izpos = cluster->izpos();
+
+  if( tower_status[sector][iypos][izpos] == 0 )
+    return true;
+  else
+    return false;
 }
 
 int PhotonHistos::GetPattern(int crossing)
@@ -1242,40 +1253,6 @@ void PhotonHistos::EMCRecalibSetup()
   return;
 }
 
-void PhotonHistos::ReadTowerStatus(const string &filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  int sector = 0;
-  int biny = 0;
-  int binz = 0;
-  int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  toad_loader->SetVerbosity(0);
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> sector >> biny >> binz >> status )
-  {
-    /* count tower with bad status for PbSc and PbGl */
-    if ( status > 10 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    tower_status[sector][biny][binz] = status;
-  }
-
-  //cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
-
-  return;
-}
-
 void PhotonHistos::ReadSashaWarnmap(const string &filename)
 {
   unsigned int nBadSc = 0;
@@ -1314,11 +1291,15 @@ void PhotonHistos::ReadSashaWarnmap(const string &filename)
       if( sector < 6 ) nBadSc++;
       else nBadGl++;
     }
-    tower_status_sasha[sector][biny][binz] = status;
+    tower_status[sector][biny][binz] = status;
 
-    // mark edge towers
+    /* Mark edge towers */
     if( anatools::Edge_cg(sector, biny, binz) )
-      tower_status_sasha[sector][biny][binz] = 20;
+      tower_status[sector][biny][binz] = 20;
+    /* Mark fiducial arm */
+    if( anatools::ArmEdge_cg(sector, biny, binz) &&
+        tower_status[sector][biny][binz] == 0 )
+      tower_status[sector][biny][binz] = 30;
   }
 
   //cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;

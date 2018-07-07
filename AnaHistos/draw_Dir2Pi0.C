@@ -24,10 +24,10 @@ void draw_Dir2Pi0()
       {
         double sasha_pT, sasha;
         gr_sasha->GetPoint(ipt-2, sasha_pT, sasha);
-        double npi0 = 2*PI*sasha_pT*0.7*sasha;
 
-        double ratio = h_ph->GetBinContent(igp+1) / npi0;
-        double eratio = h_ph->GetBinError(igp+1) / npi0;
+        double factor = 1. / (2*PI*sasha_pT*0.7);
+        double ratio = factor * h_ph->GetBinContent(igp+1) / sasha;
+        double eratio = factor * h_ph->GetBinError(igp+1) / sasha;
 
         gr_ratio->SetPoint(igp, sasha_pT, ratio);
         gr_ratio->SetPointError(igp, 0., eratio);

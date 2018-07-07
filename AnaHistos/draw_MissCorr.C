@@ -1,14 +1,12 @@
 #include "GlobalVars.h"
 #include "ReadGraph.h"
 
-void draw_HadronRatio()
+void draw_MissCorr()
 {
-  TFile *f_out = new TFile("data/HadronRatio.root", "RECREATE");
+  TFile *f_out = new TFile("data/MissCorr.root", "RECREATE");
   TGraphErrors *gr[3];
   int igp[3] = {};
 
-  const double A = 0.22;
-  const double eA = 0.04;
   double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
   double xMerge[3][npT] = {}, Merge[3][npT] = {}, eMerge[3][npT] = {};
   double xBadPass[3][npT] = {}, BadPass[3][npT] = {}, eBadPass[3][npT] = {};
@@ -45,11 +43,9 @@ void draw_HadronRatio()
 
       double aMissCorr = aMiss + aMerge * aBadPass;
       double eaMissCorr = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2.) + pow(eaBadPass*aMerge,2.) );
-      double aHadronR = (1. + aMissCorr) * (1. + A);
-      double eaHadronR = sqrt( pow(eaMissCorr*(1.+A),2.) + pow(eA*(1.+aMissCorr),2.) );
 
-      gr[part]->SetPoint(igp[part], xpT, aHadronR);
-      gr[part]->SetPointError(igp[part], 0., eaHadronR);
+      gr[part]->SetPoint(igp[part], xpT, aMissCorr);
+      gr[part]->SetPointError(igp[part], 0., eaMissCorr);
       igp[part]++;
     }
 
@@ -57,8 +53,8 @@ void draw_HadronRatio()
     f_out->cd();
     gr[part]->Write();
 
-    gr[part]->SetTitle("Total hadron correction");
-    aset(gr[part], "p_{T} [GeV]","(1+R)*(1+A)", 0.,30., 1.,7.);
+    gr[part]->SetTitle("Missing ratio correction");
+    aset(gr[part], "p_{T} [GeV]","R_{corr}", 0.,30., 0.,5.);
     style(gr[part], part+20, part+1);
     if(part==0)
       gr[part]->Draw("AP");
@@ -66,6 +62,6 @@ void draw_HadronRatio()
       gr[part]->Draw("P");
   }
 
-  c0->Print("plots/HadronRatio.pdf");
+  c0->Print("plots/MissCorr.pdf");
   f_out->Close();
 }
