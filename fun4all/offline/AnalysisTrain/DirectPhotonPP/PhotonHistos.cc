@@ -90,7 +90,10 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   for(int isector=0; isector<NSEC; isector++)
     for(int ibiny=0; ibiny<NY; ibiny++)
       for(int ibinz=0; ibinz<NZ; ibinz++)
+      {
         tower_status[isector][ibiny][ibinz] = 0;
+        tower_status_sasha[isector][ibiny][ibinz] = 0;
+      }
 
   h_events = NULL;
   for(int ih=0; ih<nh_calib; ih++)
@@ -153,6 +156,7 @@ int PhotonHistos::Init(PHCompositeNode *topNode)
   EMCRecalibSetup();
 
   /* Read warnmap */
+  ReadTowerStatus("Warnmap_Run13pp510.txt");
   ReadSashaWarnmap("warn_all_run13pp500gev.dat");
 
   /* Book histograms and graphs */
@@ -1056,7 +1060,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
     /* Skip if pointer identical to 'reference' particle
      * or on bad towers or lower than energy threshold */
     if( clus2->id() == cluster->id() ||
-        //!IsGoodTower(clus2) ||
+        IsHotTower(clus2) ||
         clus2->ecore() < eClusMin )
       continue;
 
@@ -1097,7 +1101,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
      * or on bad towers or lower than energy threshold */
     if( clus3->id() == cluster1->id() ||
         clus3->id() == cluster2->id() ||
-        //!IsGoodTower(clus3) ||
+        IsHotTower(clus3) ||
         clus3->ecore() < eClusMin )
       continue;
 
@@ -1184,21 +1188,6 @@ bool PhotonHistos::TestPhoton(const emcClusterContent *cluster, double bbc_t0)
     return false;
 }
 
-bool PhotonHistos::IsGoodTower(const emcClusterContent *cluster)
-{
-  int arm = cluster->arm();
-  int rawsector = cluster->sector();
-  int sector = anatools::CorrectClusterSector(arm, rawsector);
-  int iypos = cluster->iypos();
-  int izpos = cluster->izpos();
-
-  if( tower_status[sector][iypos][izpos] == 0 ||
-      tower_status[sector][iypos][izpos] == 30 )
-    return true;
-  else
-    return false;
-}
-
 bool PhotonHistos::InFiducial(const emcClusterContent *cluster)
 {
   int arm = cluster->arm();
@@ -1207,7 +1196,36 @@ bool PhotonHistos::InFiducial(const emcClusterContent *cluster)
   int iypos = cluster->iypos();
   int izpos = cluster->izpos();
 
-  if( tower_status[sector][iypos][izpos] == 0 )
+  if( tower_status_sasha[sector][iypos][izpos] == 0 )
+    return true;
+  else
+    return false;
+}
+
+bool PhotonHistos::IsGoodTower(const emcClusterContent *cluster)
+{
+  int arm = cluster->arm();
+  int rawsector = cluster->sector();
+  int sector = anatools::CorrectClusterSector(arm, rawsector);
+  int iypos = cluster->iypos();
+  int izpos = cluster->izpos();
+
+  if( tower_status_sasha[sector][iypos][izpos] == 0 ||
+      tower_status_sasha[sector][iypos][izpos] == 30 )
+    return true;
+  else
+    return false;
+}
+
+bool PhotonHistos::IsHotTower(const emcClusterContent *cluster)
+{
+  int arm = cluster->arm();
+  int rawsector = cluster->sector();
+  int sector = anatools::CorrectClusterSector(arm, rawsector);
+  int iypos = cluster->iypos();
+  int izpos = cluster->izpos();
+
+  if( tower_status[sector][iypos][izpos] == 50 )
     return true;
   else
     return false;
@@ -1253,6 +1271,39 @@ void PhotonHistos::EMCRecalibSetup()
   return;
 }
 
+void PhotonHistos::ReadTowerStatus(const string &filename)
+{
+  unsigned int nBadSc = 0;
+  unsigned int nBadGl = 0;
+
+  int sector = 0;
+  int biny = 0;
+  int binz = 0;
+  int status = 0;
+
+  TOAD *toad_loader = new TOAD("DirectPhotonPP");
+  string file_location = toad_loader->location(filename);
+  cout << "TOAD file location: " << file_location << endl;
+  ifstream fin( file_location.c_str() );
+
+  while( fin >> sector >> biny >> binz >> status )
+  {
+    // count tower with bad status for PbSc and PbGl
+    if ( status > 10 )
+    {
+      if( sector < 6 ) nBadSc++;
+      else nBadGl++;
+    }
+    tower_status[sector][biny][binz] = status;
+  }
+
+  //cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
+  fin.close();
+  delete toad_loader;
+
+  return;
+}
+
 void PhotonHistos::ReadSashaWarnmap(const string &filename)
 {
   unsigned int nBadSc = 0;
@@ -1291,15 +1342,15 @@ void PhotonHistos::ReadSashaWarnmap(const string &filename)
       if( sector < 6 ) nBadSc++;
       else nBadGl++;
     }
-    tower_status[sector][biny][binz] = status;
+    tower_status_sasha[sector][biny][binz] = status;
 
     /* Mark edge towers */
     if( anatools::Edge_cg(sector, biny, binz) )
-      tower_status[sector][biny][binz] = 20;
+      tower_status_sasha[sector][biny][binz] = 20;
     /* Mark fiducial arm */
     if( anatools::ArmEdge_cg(sector, biny, binz) &&
-        tower_status[sector][biny][binz] == 0 )
-      tower_status[sector][biny][binz] = 30;
+        tower_status_sasha[sector][biny][binz] == 0 )
+      tower_status_sasha[sector][biny][binz] = 30;
   }
 
   //cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;

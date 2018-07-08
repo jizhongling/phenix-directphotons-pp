@@ -50,6 +50,7 @@ class AnaFastMC: public SubsysReco
     void ResetTowerEnergy();
     void FillTowerEnergy( int sec, int iy, int iz, float e );
     float GetETwr( int sec, int iy, int iz );
+    bool CheckWarnMap( int sec, int iy, int iz );
     int GetNpeak();
     bool GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,  
         int& sec, int& iz, int& iy, float& zz, float& yy, 
@@ -82,6 +83,7 @@ class AnaFastMC: public SubsysReco
     TLorentzVector Vpart[MAXPEAK];
     int itw_part[MAXPEAK];
     float eTwr[NSEC][NY][NZ];
+    bool fiducial;
 
     PHPythiaHeader *phpythiaheader;
     PHPythiaContainer *phpythia;

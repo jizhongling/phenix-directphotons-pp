@@ -95,6 +95,7 @@ AnaFastMC::AnaFastMC(const string &name):
   cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]", 0, 30);
   cross_ph->SetParameters(255., 5.98, 0.273, 14.43);
 
+  fiducial = false;
   NPart = 0;
   NPeak = 0;
   for(int i=0; i<MAXPEAK; i++)
@@ -248,6 +249,7 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
   float ptsim_pi0 = 0.;
   float minv = 0.;
   float dist = 9999.;
+  fiducial = false;
   ResetTowerEnergy();
 
   /* determine if pi0 decay photons within a tower that is NOT flagged bad (set boolean 'acc_pi0')
@@ -370,6 +372,7 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
   float ptsim_eta = 0.;
   minv = 0.;
   dist = 9999.;
+  fiducial = false;
   ResetTowerEnergy();
 
   /* determine if eta decay photons within a tower that is NOT flagged bad (set boolean 'acc_eta')
@@ -427,6 +430,7 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
 
   /* Initialize parameters for photon_sim */
   float ptsim_ph = 0.;
+  fiducial = true;
   ResetTowerEnergy();
 
   /* determine if direct photons within a tower that is NOT flagged bad (set boolean 'acc_ph')
@@ -668,6 +672,10 @@ void AnaFastMC::ReadSashaWarnmap(const string &filename)
     // mark edge towers
     if( anatools::Edge_cg(sector, biny, binz) )
       tower_status[sector][biny][binz] = 20;
+    // mark fiducial arm
+    if( anatools::ArmEdge_cg(sector, biny, binz) &&
+        tower_status[sector][biny][binz] == 0 )
+      tower_status[sector][biny][binz] = 30;
   }
 
   cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
@@ -834,6 +842,22 @@ float AnaFastMC::GetETwr( int sec, int iy, int iz )
 {
   if( sec<0 || sec>NSEC-1 || iy<0 || iy>NY-1 || iz<0 || iz>NZ-1 ) return 0;
   return eTwr[sec][iy][iz];
+}
+
+bool AnaFastMC::CheckWarnMap( int sec, int iy, int iz )
+{
+  if( fiducial )
+  {
+    if( tower_status[sec][iy][iz] == 0 )
+      return true;
+  }
+  else
+  {
+    if( tower_status[sec][iy][iz] == 0 ||
+        tower_status[sec][iy][iz] == 30 )
+      return true;
+  }
+  return false;
 }
 
 int AnaFastMC::GetNpeak()
@@ -1014,11 +1038,10 @@ bool AnaFastMC::GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,
     if( iy_cg >= nY ) {sec=-1; return false;}
   }
 
-  //  if( CheckWarnMap(sec,iy,iz) ) return false;
   // Check CG tower (maximal energy)
   iz = iz_cg;
   iy = iy_cg;
-  if( tower_status[sec][iy][iz] > 0 ) return false; 
+  if( CheckWarnMap(sec,iy,iz) ) return false;
 
   zz = (zsec_cg-zsec_min)/zsize-iz;
   yy = (ysec_cg-ysec_min)/ysize-iy;

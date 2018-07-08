@@ -76,14 +76,16 @@ class PhotonHistos: public SubsysReco
     /* Check event type, photon cuts and tower status */
     bool IsEventType(const int evtype, const TrigLvl1 *data_triggerlvl1);
     bool TestPhoton(const emcClusterContent *cluster, double bbc_t0);
-    bool IsGoodTower(const emcClusterContent *cluster);
     bool InFiducial(const emcClusterContent *cluster);
+    bool IsGoodTower(const emcClusterContent *cluster);
+    bool IsHotTower(const emcClusterContent *cluster);
 
     /* Get warnmap status and spin pattern */
     int GetPattern(int crossing);
 
     /* Setup energy and ToF calibrator and read warnmap */
     void EMCRecalibSetup();
+    void ReadTowerStatus(const std::string &filename);
     void ReadSashaWarnmap(const std::string &filename);
 
     /* Update spin pattern information and store in class */
@@ -104,6 +106,7 @@ class PhotonHistos: public SubsysReco
 
     /* Tower status for warnmap */
     int tower_status[8][48][96];
+    int tower_status_sasha[8][48][96];
 
     /* EMCal recalibrator and spin information*/
     EmcLocalRecalibrator *emcrecalib;
