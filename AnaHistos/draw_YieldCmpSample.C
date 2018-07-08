@@ -12,13 +12,13 @@ void draw_YieldCmpSample()
     gr[part] =  new TGraph(25);
 
   const int runnumber = 393180;
-  //TFile *f_histo = new TFile( Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13597/data/PhotonHistos-%d.root",runnumber) );
+  //TFile *f_histo = new TFile( Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13614/data/PhotonHistos-%d.root",runnumber) );
   TFile *f_histo = new TFile( Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root",runnumber) );
   TFile *f_node = new TFile( Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-total.root",runnumber) );
 
   // h_histo[part]
   TH2 *h2_histo[3];
-  TH2 *h2_histo_t = (TH2*)f_histo->Get("h2_2photon_0");
+  TH2 *h2_histo_t = (TH2*)f_histo->Get("h2_pion_0");
   h2_histo_t->Reset();
   int bbc10cm = 1;
   int evtype = 2;
@@ -28,21 +28,19 @@ void draw_YieldCmpSample()
     h2_histo[part] = (TH2*)h2_histo_t->Clone(Form("h2_histo_%d",part));
     for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
       for(int pattern=0; pattern<3; pattern++)
-        for(int isoboth=0; isoboth<2; isoboth++)
-          for(int isopair=0; isopair<2; isopair++)
           {
-            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
-            TH2 *h2_tmp = (TH2*)f_histo->Get(Form("h2_2photon_%d",ih));
+            int ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm;
+            TH2 *h2_tmp = (TH2*)f_histo->Get(Form("h2_pion_%d",ih));
             h2_histo[part]->Add(h2_tmp);
             delete h2_tmp;
           }
   }
 
-  THnSparse *hn_node = (THnSparse*)f_node->Get("hn_2photon");
+  THnSparse *hn_node = (THnSparse*)f_node->Get("hn_pion");
   TAxis *axis_node_sec = hn_node->GetAxis(0);
   TAxis *axis_node_pt = hn_node->GetAxis(1);
-  TAxis *axis_node_cut = hn_node->GetAxis(4);
-  TAxis *axis_node_type = hn_node->GetAxis(5);
+  TAxis *axis_node_cut = hn_node->GetAxis(3);
+  TAxis *axis_node_type = hn_node->GetAxis(4);
   axis_node_type->SetRange(3,3);
   axis_node_cut->SetRange(4,4);
 

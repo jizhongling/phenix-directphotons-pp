@@ -137,7 +137,7 @@ void draw_CrossSection_IsoPhoton()
   TrigERT[2][0] = 0.651;
   eTrigERT[2][0] = 0.008;
 
-  for(int ipt=0; ipt<npT; ipt++)
+  for(int ipt=2; ipt<npT; ipt++)
   {
     double xx, yy[3], eyy[3];
 
