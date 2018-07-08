@@ -25,8 +25,9 @@ void draw_DirRun6()
 
     //double factor = 1. / (2*PI*pT*0.7);
     double factor = 1.;
-    double nth = factor * h_th->GetBinContent(ipt+1);
-    double enth = factor * h_th->GetBinError(ipt+1);
+    int bin_th = h_th->GetXaxis()->FindBin(pT);
+    double nth = factor * h_th->GetBinContent(bin_th);
+    double enth = factor * h_th->GetBinError(bin_th);
 
     double ratio = run6 / nth;
     double eratio = ratio * enth / nth;

@@ -16,7 +16,7 @@ void draw_Dir2Pi0()
       TGraphErrors *gr_ratio = new TGraphErrors(20);
       int igp = 0;
 
-      TFile *f_ph = new TFile( Form("data/isoprompt-cteq66-%s.root",fname[imu]) );
+      TFile *f_ph = new TFile( Form("data/isoprompt-ct10-%s.root",fname[imu]) );
       TH1 *h_ph = (TH1*)f_ph->Get(Form("hp4%d",io));
       h_ph->Scale(jetphox_scale);
 
@@ -25,9 +25,10 @@ void draw_Dir2Pi0()
         double sasha_pT, sasha;
         gr_sasha->GetPoint(ipt-2, sasha_pT, sasha);
 
-        double factor = 1. / (2*PI*sasha_pT*0.7);
-        double ratio = factor * h_ph->GetBinContent(igp+1) / sasha;
-        double eratio = factor * h_ph->GetBinError(igp+1) / sasha;
+        double factor = 1. / (2*PI*sasha_pT*0.5);
+        int bin_th = h_ph->GetXaxis()->FindBin(sasha_pT);
+        double ratio = factor * h_ph->GetBinContent(bin_th) / sasha;
+        double eratio = factor * h_ph->GetBinError(bin_th) / sasha;
 
         gr_ratio->SetPoint(igp, sasha_pT, ratio);
         gr_ratio->SetPointError(igp, 0., eratio);
