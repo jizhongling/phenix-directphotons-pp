@@ -16,7 +16,7 @@ void draw_Dir2Pi0()
       TGraphErrors *gr_ratio = new TGraphErrors(20);
       int igp = 0;
 
-      TFile *f_ph = new TFile( Form("data/isoprompt-%s.root",fname[imu]) );
+      TFile *f_ph = new TFile( Form("data/isoprompt-cteq66-%s.root",fname[imu]) );
       TH1 *h_ph = (TH1*)f_ph->Get(Form("hp4%d",io));
       h_ph->Scale(jetphox_scale);
 
