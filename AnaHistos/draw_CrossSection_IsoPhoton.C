@@ -203,6 +203,7 @@ void draw_CrossSection_IsoPhoton()
       double eaMissAll = sqrt( eaMiss*eaMiss + eaMerge*eaMerge );
       double ndir = nphoton - ( nisoboth + aMissPass * nisopair ) - A * Veto[part][ipVeto] * ( 1. + aMissAll ) * nisopair;
       double endir = sqrt( nphoton + enisoboth*enisoboth + pow(eaMissPass*nisopair,2.) + pow(aMissPass*enisopair,2.) );
+      if( endir != endir ) endir = sqrt( nphoton + enisoboth*enisoboth );
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
         ndir *= Norm[part];

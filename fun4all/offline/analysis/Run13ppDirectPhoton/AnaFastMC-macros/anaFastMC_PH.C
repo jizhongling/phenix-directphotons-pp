@@ -8,7 +8,7 @@ void anaFastMC_PH(const int process = 0)
   enum MCMethod {PHParticleGen, FastMC};
 
   // Used for input DST files
-  const int nThread = 20;
+  const int nThread = 10;
   char dstFileName[1000];
 
   // Setup recoConsts

@@ -30,7 +30,7 @@ void draw_MissingRatio()
 
     gr_miss[part] = DivideHisto(h_1photon, h_2photon);
     gr_miss[part]->SetNameTitle(Form("gr_%d",part), "Missing Ratio");
-    aset(gr_miss[part], "p_{T} [GeV]","R", 5.,30., 0.,0.3);
+    aset(gr_miss[part], "p_{T} [GeV]","R", 5.,30., 0.3,1.3);
     style(gr_miss[part], 20+part, 1+part);
     if(part==0)
       gr_miss[part]->Draw("AP");
@@ -52,9 +52,9 @@ void draw_MissingRatio()
     hn_missing->GetAxis(4)->SetRange(2,2);
     TH1 *h_merged = hn_missing->Projection(1);
 
-    gr_merge[part] = DivideHisto(h_merged, h_separated);
+    gr_merge[part] = DivideHisto(h_merged, h_separated, 0.5, 1.);
     gr_merge[part]->SetNameTitle(Form("gr_%d",part), "Merging Ratio");
-    aset(gr_merge[part], "p_{T} [GeV]","Merging Ratio", 5.,30., 0.01,15.);
+    aset(gr_merge[part], "p_{T} [GeV]","Merging Ratio", 5.,30., 1e-4,10.);
     style(gr_merge[part], 20+part, 1+part);
     if(part==0)
       gr_merge[part]->Draw("AP");

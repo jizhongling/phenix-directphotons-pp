@@ -203,7 +203,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
 
     double econe_all = SumETruth(part, false);
     double econe_acc = SumETruth(part, true);
-    double fill_hn_isoprompt[] = {pt, pE_part.Pt(), (double)sector, 0.};
+    double fill_hn_isoprompt[] = {pt, ptsim, (double)sector, 0.};
     if( econe_all < eratio * pE_part.E() )
     {
       fill_hn_isoprompt[3] = 0.;
@@ -360,34 +360,36 @@ void AnaFastMC::FastMCInput()
   /* Code for pi0 missing ratio and self veto power */
 
   for(int iph=0; iph<2; iph++)
-  {
-    if( NPart == 1 &&
-        InFiducial(itw_part[iph]) &&
+    if( InFiducial(itw_part[iph]) &&
         Vpart[iph].E() > eMin )
     {
-      double fill_hn_missing[] = {pt, Vpart[iph].Pt(), (double)sector[iph], (double)NPart, (double)NPeak};
+      int npart = 1;
+      int npeak = 1;
+      if( IsGoodTower(itw_part[1-iph]) &&
+          Vpart[1-iph].E() > eMin )
+      {
+        npart = NPart;
+        npeak = NPeak;
+      }
+
+      double fill_hn_missing[] = {pt, Vpart[iph].Pt(), (double)sector[iph], (double)npart, (double)npeak};
       hn_missing->Fill(fill_hn_missing, weight_pi0);
 
-      int isolated = 1;
-      h3_isopi0->Fill(Vpart[iph].Pt(), (double)sector[iph], (double)isolated);
-    }
-    else if( NPart == 2 &&
-        InFiducial(itw_part[iph]) &&
-        IsGoodTower(itw_part[1-iph]) &&
-        Vpart[iph].E() > eMin )
-    {
-      double fill_hn_missing[] = {pt, Vpart[iph].Pt(), (double)sector[iph], (double)NPart, (double)NPeak};
-      hn_missing->Fill(fill_hn_missing, weight_pi0);
-
-      int isolated = 0;
-      double angle = Vpart[0].Angle( Vpart[1].Vect() );
-      double econe = angle < cone_angle ? Vpart[1].E() : 0.;
-      if( econe < eratio * Vpart[0].E() )
-        isolated = 1;
-      if(NPeak == 2)
+      if( npart == 1 )
+      {
+        int isolated = 1;
         h3_isopi0->Fill(Vpart[iph].Pt(), (double)sector[iph], (double)isolated);
-    } // NPart
-  } // iph
+      }
+      else if( npart == 2 && npeak == 2 )
+      {
+        int isolated = 0;
+        double angle = Vpart[0].Angle( Vpart[1].Vect() );
+        double econe = angle < cone_angle ? Vpart[1].E() : 0.;
+        if( econe < eratio * Vpart[0].E() )
+          isolated = 1;
+        h3_isopi0->Fill(Vpart[iph].Pt(), (double)sector[iph], (double)isolated);
+      } // npart and npeak
+    } // iph
 
   /* Let eta decay into two photons */
   event.SetDecay(beam_eta, 2, masses);
@@ -424,31 +426,33 @@ void AnaFastMC::FastMCInput()
   /* Code for eta self veto power */
 
   for(int iph=0; iph<2; iph++)
-  {
-    if( NPart == 1 &&
-        InFiducial(itw_part[iph]) &&
+    if( InFiducial(itw_part[iph]) &&
         Vpart[iph].E() > eMin )
     {
-      int isolated = 1;
-      h3_isoeta->Fill(Vpart[iph].Pt(), (double)sector[iph], (double)isolated);
-    }
-    else if( NPart == 2 &&
-        InFiducial(itw_part[iph]) &&
-        IsGoodTower(itw_part[1-iph]) &&
-        Vpart[iph].E() > eMin )
-    {
-      /* Get NPeak */
-      GetNpeak();
+      int npart = 1;
+      int npeak = 1;
+      if( IsGoodTower(itw_part[1-iph]) &&
+          Vpart[1-iph].E() > eMin )
+      {
+        npart = NPart;
+        npeak = NPeak;
+      }
 
-      int isolated = 0;
-      double angle = Vpart[0].Angle( Vpart[1].Vect() );
-      double econe = angle < cone_angle ? Vpart[1].E() : 0.;
-      if( econe < eratio * Vpart[0].E() )
-        isolated = 1;
-      if(NPeak == 2)
+      if( npart == 1 )
+      {
+        int isolated = 1;
         h3_isoeta->Fill(Vpart[iph].Pt(), (double)sector[iph], (double)isolated);
-    } // NPart
-  } // iph
+      }
+      else if( npart == 2 && npeak == 2 )
+      {
+        int isolated = 0;
+        double angle = Vpart[0].Angle( Vpart[1].Vect() );
+        double econe = angle < cone_angle ? Vpart[1].E() : 0.;
+        if( econe < eratio * Vpart[0].E() )
+          isolated = 1;
+        h3_isoeta->Fill(Vpart[iph].Pt(), (double)sector[iph], (double)isolated);
+      } // npart and npeak
+    } // iph
 
   /* Get event weight for direct photon */
   if(pt > 1.)
@@ -481,7 +485,7 @@ void AnaFastMC::FastMCInput()
   h_photon->Fill( beam_ph.Pt(), weight_ph );
 
   /* Direct photon is in fiducial */
-  if(acc && InFiducial(itw_part[0]) )
+  if( acc && InFiducial(itw_part[0]) )
   {
     /* Parameters for direct photon */
     int sec1 = sector[0];
@@ -496,8 +500,6 @@ void AnaFastMC::FastMCInput()
       else if(sec1 < 6) part = 1;
       else if(sec1 < 8) part = 2;
 
-      double pt_truth = beam_ph.Pt();
-      double pt_reco = Vpart[0].Pt();
       double eta = Vpart[0].Eta();
       double phi = Vpart[0].Phi();
       if(sec1 >= 4)
@@ -506,10 +508,10 @@ void AnaFastMC::FastMCInput()
         phi = Vpart[0].Phi() + PI;
       }
 
-      if( part >= 0 && pt_reco > 5. && pt_reco < 10. )
+      if( part >= 0 && ptsim > 5. && ptsim < 10. )
         h2_photon_eta_phi[part]->Fill(-eta, phi, weight_ph);
 
-      double fill_hn_photon[] = {pt_truth, pt_reco, (double)sec1};
+      double fill_hn_photon[] = {pt, ptsim, (double)sec1};
       hn_photon->Fill(fill_hn_photon, weight_ph);
     } // e1
   } // acc
