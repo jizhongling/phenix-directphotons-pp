@@ -13,7 +13,7 @@ void draw_Acceptance_Photon()
     gr[part]->SetName(Form("gr_%d",part));
   }
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-warn-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-histo.root");
 
   TH1 *h_total = (TH1*)f->Get("h_photon");
   THnSparse *hn_photon = (THnSparse*)f->Get("hn_photon");

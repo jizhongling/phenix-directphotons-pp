@@ -11,9 +11,9 @@
 class PHCompositeNode;
 class PHPythiaHeader;
 class PHPythiaContainer;
+class TMCParticle;
 
 class Fun4AllHistoManager;
-
 class TFile;
 class TH1;
 class TH2;
@@ -22,7 +22,6 @@ class THnSparse;
 class TF1;
 
 enum MCMethod {PHParticleGen, FastMC};
-enum WarnMap {None, Nils, Sasha, Sim};
 
 class AnaFastMC: public SubsysReco
 {
@@ -37,9 +36,13 @@ class AnaFastMC: public SubsysReco
 
     void set_outfile(std::string filename) { outFileName = filename; }
     void set_mcmethod(MCMethod method) { mcmethod = method; }
-    void set_warnmap(WarnMap warn) { warnmap = warn; }
 
   protected:
+    void PythiaInput(PHCompositeNode *topNode);
+    void FastMCInput();
+
+    double SumETruth(const TMCParticle *pref, bool InAcc);
+
     void BookHistograms();
     void ReadTowerStatus(const std::string &filename);
     void ReadSashaWarnmap(const std::string &filename);
@@ -50,7 +53,10 @@ class AnaFastMC: public SubsysReco
     void ResetTowerEnergy();
     void FillTowerEnergy( int sec, int iy, int iz, float e );
     float GetETwr( int sec, int iy, int iz );
-    bool CheckWarnMap( int sec, int iy, int iz );
+    bool InFiducial( int itower );
+    bool IsGoodTower( int itower );
+    bool IsHotTower( int itower );
+    bool CheckWarnMap( int itower );
     int GetNpeak();
     bool GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,  
         int& sec, int& iz, int& iy, float& zz, float& yy, 
@@ -62,9 +68,8 @@ class AnaFastMC: public SubsysReco
 
     std::string outFileName;
     MCMethod mcmethod;
-    WarnMap warnmap;
 
-    static const int MAXPEAK = 10;
+    static const int MAXPEAK = 2;
 
     static const int NSEC = 8;
     static const int NY = 48;
@@ -75,15 +80,18 @@ class AnaFastMC: public SubsysReco
     static const int nY_gl = 48;
     static const int nZ_gl = 96;
 
-    // tower status for warnmap
-    int tower_status[NSEC][NY][NZ];
+    static const int n_twrs = 24768;
+
+    // Tower status for warnmap
+    int tower_status_nils[NSEC][NY][NZ];
+    int tower_status_sasha[NSEC][NY][NZ];
+    int tower_status_sim[NSEC][NY][NZ];
 
     int NPart;
     int NPeak;
     TLorentzVector Vpart[MAXPEAK];
     int itw_part[MAXPEAK];
     float eTwr[NSEC][NY][NZ];
-    bool fiducial;
 
     PHPythiaHeader *phpythiaheader;
     PHPythiaContainer *phpythia;
@@ -95,9 +103,10 @@ class AnaFastMC: public SubsysReco
     TH2 *h2_photon_eta_phi[3];
     TH3 *h3_isopi0;
     TH3 *h3_isoeta;
-    THnSparse* hn_missing;
     THnSparse* hn_pion;
+    THnSparse* hn_missing;
     THnSparse *hn_photon;
+    THnSparse *hn_isoprompt;
 
     TF1 *cross_pi0;
     TF1 *cross_ph;

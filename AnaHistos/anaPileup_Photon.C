@@ -42,9 +42,9 @@ void anaPileup_Photon(const int process = 0)
           gr_run[ig]->SetName(Form("gr_run_%d",ig));
         }
 
-  double xHadron[3][30] = {}, Hadron[3][30] = {}, eHadron[3][30] = {};
+  double xMiss[3][30] = {}, Miss[3][30] = {}, eMiss[3][30] = {};
   for(int part=0; part<3; part++)
-    ReadGraph<TGraphErrors>("data/HadronRatio.root", part, xHadron[part], Hadron[part], eHadron[part]);
+    ReadGraph<TGraphErrors>("data/MissCorr.root", part, xMiss[part], Miss[part], eMiss[part]);
 
   ReadClockCounts();
 
@@ -85,11 +85,11 @@ void anaPileup_Photon(const int process = 0)
     for(int ipt=0; ipt<npT; ipt++)
       for(int id=0; id<2; id++)
       {
-        double Hbar[3] = {}, eHbar[3] = {};
+        double Mbar[3] = {}, eMbar[3] = {};
         for(int part=0; part<3; part++)
         {
-          int iptL = Get_ipt(xHadron[part], pTbinL[id][ipt]+0.25);
-          Chi2Fit(pThigh[id][ipt]-pTlow[id][ipt], &Hadron[part][iptL], &eHadron[part][iptL], Hbar[part], eHbar[part]);
+          int iptL = Get_ipt(xMiss[part], pTbinL[id][ipt]+0.25);
+          Chi2Fit(pThigh[id][ipt]-pTlow[id][ipt], &Miss[part][iptL], &eMiss[part][iptL], Mbar[part], eMbar[part]);
         }
         for(int ic=0; ic<2; ic++)
           for(int is=0; is<2; is++)
@@ -117,21 +117,21 @@ void anaPileup_Photon(const int process = 0)
             FitMinv(h_minv, npion, enpion);
             delete h_minv;
 
-            double Miss, eMiss;
+            double aMiss, eaMiss;
             if(is==0)
             {
-              Chi2Fit(2, Hbar, eHbar, Miss, eMiss);
+              Chi2Fit(2, Mbar, eMbar, aMiss, eaMiss);
             }
             else
             {
-              Miss = Hbar[2];
-              eMiss = eHbar[2];
+              aMiss = Mbar[2];
+              eaMiss = eMbar[2];
             }
-            Miss = 1.;
+            aMiss = 1.;
 
             double xx = (double)nmb / (double)nclock;
-            double yy = ( nphoton - Miss*npion*2. ) / nev[id];
-            double eyy = sqrt( nphoton + pow(eMiss*npion*2.,2.) + pow(Miss*enpion*2.,2.) ) / nev[id];
+            double yy = ( nphoton - aMiss*npion*2. ) / nev[id];
+            double eyy = sqrt( nphoton + pow(eaMiss*npion*2.,2.) + pow(aMiss*enpion*2.,2.) ) / nev[id];
             if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
             {
               gr[ig]->SetPoint(igp[ig], xx, yy);

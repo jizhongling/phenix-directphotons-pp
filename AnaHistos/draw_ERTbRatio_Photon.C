@@ -18,7 +18,7 @@ void draw_ERTbRatio_Photon()
   double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
   for(int part=0; part<3; part++)
   {
-    ReadGraph<TGraphAsymmErrors>("data/HadronRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
+    ReadGraph<TGraphAsymmErrors>("data/MissCorr.root", part, xMiss[part], Miss[part], eMiss[part]);
     mc(part, 4,3);
     mc(part+3, 4,3);
   }

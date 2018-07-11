@@ -84,8 +84,6 @@ void draw_CrossSection_Photon()
   double xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
   double xTrigERT[3][npT] = {}, TrigERT[3][npT] = {}, eTrigERT[3][npT] = {};
   double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
-  double xMerge[3][npT] = {}, Merge[3][npT] = {}, eMerge[3][npT] = {};
-  double xBadPass[3][npT] = {}, BadPass[3][npT] = {}, eBadPass[3][npT] = {};
 
   double bck[2][npT] = {
     { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.10, 1.15, 1.20, 1.30,  1, 1, 1 },
@@ -107,9 +105,7 @@ void draw_CrossSection_Photon()
   {
     ReadGraph<TGraphAsymmErrors>("data/Acceptance-photon.root", part, xAcc[part], Acc[part], eAcc[part]);
     ReadGraph<TGraphAsymmErrors>("data/ERTEff-photon.root", part/2, xTrigERT[part], TrigERT[part], eTrigERT[part]);
-    ReadGraph<TGraphErrors>("data/MissingRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
-    ReadGraph<TGraphAsymmErrors>("data/Merge-photon.root", part, xMerge[part], Merge[part], eMerge[part]);
-    ReadGraph<TGraphErrors>("data/MergePassRate.root", part/2, xBadPass[part], BadPass[part], eBadPass[part]);
+    ReadGraph<TGraphErrors>("data/MissCorr.root", part, xMiss[part], Miss[part], eMiss[part]);
     mc(part, 6,5);
   }
   TrigERT[0][0] = TrigERT[1][0] = 0.948;
@@ -133,7 +129,7 @@ void draw_CrossSection_Photon()
 
       mcd(part, ipt+1);
       double npion = 1., enpion = 1.;
-      TH1 *h_minv = h2_2photon[evtype][part]->ProjectionY("h_minv", ipt+1,ipt+1);
+      TH1 *h_minv = (TH1*)h2_2photon[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
       if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
@@ -142,7 +138,6 @@ void draw_CrossSection_Photon()
         FitMinv(h_minv, npion, enpion, true, 0.10,0.17);
       else  // >16GeV don't subtract background
         FitMinv(h_minv, npion, enpion, false, 0.10,0.17);
-      //cout << "Part " << part << ", pT = " << (pTbin[ipt]+pTbin[ipt+1])/2. << ": " << npion << endl;
       npion /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
@@ -150,27 +145,10 @@ void draw_CrossSection_Photon()
       int ipAcc = Get_ipt(xAcc[part], xx);
       int ipTrigERT = Get_ipt(xTrigERT[part], xx);
       int ipMiss = Get_ipt(xMiss[part], xx);
-      double aMiss = Miss[part][ipMiss];
-      double eaMiss = eMiss[part][ipMiss];
-      int ipMerge = Get_ipt(xMerge[part], xx);
-      double aMerge = Merge[part][ipMerge];
-      double eaMerge = eMerge[part][ipMerge];
-      int ipBadPass = Get_ipt(xBadPass[part], xx);
-      double aBadPass = BadPass[part][ipBadPass];
-      double eaBadPass = eBadPass[part][ipBadPass];
-      if(ipt<23)
-      {
-        aBadPass = 0.;
-        eaBadPass = 0.;
-      }
       if(ipt >= 20)
         ipTrigERT = 0;
-      double aMissPass = aMiss + aMerge * aBadPass;
-      double eaMissPass = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2.) + pow(eaBadPass*aMerge,2.) );
-      double aMissAll = aMiss + aMerge;
-      double eaMissAll = sqrt( eaMiss*eaMiss + eaBadPass*eaBadPass );
-      double ndir = nphoton - ( (1. + aMissPass) + A * (1. + aMissAll) ) * npion;
-      double endir = sqrt( ndir );
+      double ndir = nphoton - Miss[part][ipMiss] * npion;
+      double endir = sqrt( nphoton + pow(eMiss[part][ipMiss]*npion,2.) + pow(Miss[part][ipMiss]*enpion,2.) );
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
         ndir *= Norm[part];

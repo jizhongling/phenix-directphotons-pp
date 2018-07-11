@@ -91,7 +91,7 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
     for(int ibiny=0; ibiny<NY; ibiny++)
       for(int ibinz=0; ibinz<NZ; ibinz++)
       {
-        tower_status[isector][ibiny][ibinz] = 0;
+        tower_status_nils[isector][ibiny][ibinz] = 0;
         tower_status_sasha[isector][ibiny][ibinz] = 0;
       }
 
@@ -1225,7 +1225,7 @@ bool PhotonHistos::IsHotTower(const emcClusterContent *cluster)
   int iypos = cluster->iypos();
   int izpos = cluster->izpos();
 
-  if( tower_status[sector][iypos][izpos] == 50 )
+  if( tower_status_nils[sector][iypos][izpos] == 50 )
     return true;
   else
     return false;
@@ -1294,7 +1294,7 @@ void PhotonHistos::ReadTowerStatus(const string &filename)
       if( sector < 6 ) nBadSc++;
       else nBadGl++;
     }
-    tower_status[sector][biny][binz] = status;
+    tower_status_nils[sector][biny][binz] = status;
   }
 
   //cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;

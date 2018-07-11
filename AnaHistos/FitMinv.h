@@ -10,7 +10,7 @@ bool FitMinv(TH1 *h_minv, double &npion, double &enpion,
   if( max <= 0. )
     return false;
 
-  aset(h_minv, "m_{inv} [GeV]","", 0.,0.3);
+  aset(h_minv, "m_{inv} [GeV]","", 0.,0.3, 0.,1.1*max);
 
   TF1 *fn_fit = new TF1("fn_fit", "gaus(0) + pol2(3)", l1, r2);
   TF1 *fn_bg = new TF1("fn_bg", "pol2", l1, r2);
