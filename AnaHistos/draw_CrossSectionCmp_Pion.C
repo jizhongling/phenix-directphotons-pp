@@ -11,13 +11,12 @@ void draw_CrossSectionCmp_Pion()
 
   TGraph *gr_sasha = new TGraph("data/sasha-cross.txt");
 
-  TGraphErrors *gr_ratio[4];
-  int igp[4] = {};
+  TGraphErrors *gr_parts[4];
+  int igp_parts[4] = {};
 
   for(int part=0; part<4; part++)
   {
-    gr_ratio[part] = new TGraphErrors(npT);
-
+    gr_parts[part] = new TGraphErrors(npT);
     for(int ipt=2; ipt<npT; ipt++)
     {
       double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
@@ -49,13 +48,12 @@ void draw_CrossSectionCmp_Pion()
 
       if( eyy > 0. && eyy < TMath::Infinity() )
       {
-        gr_ratio[part]->SetPoint(igp[part], xx, yy);
-        gr_ratio[part]->SetPointError(igp[part], 0., eyy);
-        igp[part]++;
+        gr_parts[part]->SetPoint(igp_parts[part], xx, yy);
+        gr_parts[part]->SetPointError(igp_parts[part], 0., eyy);
+        igp_parts[part]++;
       }
     }
-
-    gr_ratio[part]->Set(igp[part]);
+    gr_parts[part]->Set(igp_parts[part]);
   }
 
   mc(0);
@@ -68,20 +66,20 @@ void draw_CrossSectionCmp_Pion()
     mcd(part/3, 0);
     if(part < 3)
     {
-      gr_ratio[part]->SetTitle("Diff in parts;p_{T} [GeV];Diff;");
-      aset(gr_ratio[part], "","", 6.1,24., -0.5,0.5);
-      leg0->AddEntry(gr_ratio[part], Form("%s",pname[part]), "P");
+      gr_parts[part]->SetTitle("Diff in parts;p_{T} [GeV];Diff;");
+      aset(gr_parts[part], "","", 6.1,24., -0.5,0.5);
+      leg0->AddEntry(gr_parts[part], Form("%s",pname[part]), "P");
     }
     else
     {
-      gr_ratio[part]->SetTitle("Diff with PRD 93, 011501;p_{T} [GeV];Diff;");
-      aset(gr_ratio[part], "","", 6.1,30., -0.1,0.1);
+      gr_parts[part]->SetTitle("Diff with PRD 93, 011501;p_{T} [GeV];Diff;");
+      aset(gr_parts[part], "","", 6.1,30., -0.1,0.1);
     }
-    style(gr_ratio[part], part+20, part+1);
+    style(gr_parts[part], part+20, part+1);
     if(part%3 == 0)
-      gr_ratio[part]->Draw("APE");
+      gr_parts[part]->Draw("APE");
     else
-      gr_ratio[part]->Draw("PE");
+      gr_parts[part]->Draw("PE");
     if(part == 0)
       leg0->Draw();
   }

@@ -17,7 +17,7 @@ void draw_Merge()
     gr[part]->SetName(Form("gr_%d",part));
   }
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-warn-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-histo.root");
 
   THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
   TAxis *axis_pt0 = hn_pion->GetAxis(0);

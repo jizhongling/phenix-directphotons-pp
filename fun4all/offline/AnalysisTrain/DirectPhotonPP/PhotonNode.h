@@ -52,7 +52,7 @@ class PhotonNode: public SubsysReco
     int fillnumber;
 
     // tower status for warnmap
-    int tower_status[8][48][96];
+    int tower_status_nils[8][48][96];
     int tower_status_sasha[8][48][96];
 };
 

@@ -10,7 +10,7 @@ void draw_MissingRatio()
   TGraphErrors *gr_miss[3];
   TGraphErrors *gr_merge[3];
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-warn-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-histo.root");
   THnSparse *hn_missing = (THnSparse*)f->Get("hn_missing");
 
   mc(0);
@@ -30,7 +30,7 @@ void draw_MissingRatio()
 
     gr_miss[part] = DivideHisto(h_1photon, h_2photon);
     gr_miss[part]->SetNameTitle(Form("gr_%d",part), "Missing Ratio");
-    aset(gr_miss[part], "p_{T} [GeV]","R", 0.,30., 0.,2.);
+    aset(gr_miss[part], "p_{T} [GeV]","R", 5.,30., 0.,0.3);
     style(gr_miss[part], 20+part, 1+part);
     if(part==0)
       gr_miss[part]->Draw("AP");
@@ -54,7 +54,7 @@ void draw_MissingRatio()
 
     gr_merge[part] = DivideHisto(h_merged, h_separated);
     gr_merge[part]->SetNameTitle(Form("gr_%d",part), "Merging Ratio");
-    aset(gr_merge[part], "p_{T} [GeV]","Merging Ratio", 0.,30., 0.01,15.);
+    aset(gr_merge[part], "p_{T} [GeV]","Merging Ratio", 5.,30., 0.01,15.);
     style(gr_merge[part], 20+part, 1+part);
     if(part==0)
       gr_merge[part]->Draw("AP");

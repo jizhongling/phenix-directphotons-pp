@@ -55,7 +55,7 @@ PhotonNode::PhotonNode(const string &name) :
     for(int ibiny=0; ibiny<48; ibiny++)
       for(int ibinz=0; ibinz<96; ibinz++)
       {
-        tower_status[isector][ibiny][ibinz] = 0;
+        tower_status_nils[isector][ibiny][ibinz] = 0;
         tower_status_sasha[isector][ibiny][ibinz] = 0;
       }
 }
@@ -337,7 +337,7 @@ void PhotonNode::ReadTowerStatus(const string &filename)
       if( sector < 6 ) nBadSc++;
       else nBadGl++;
     }
-    tower_status[sector][biny][binz] = status;
+    tower_status_nils[sector][biny][binz] = status;
   }
 
   //cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
@@ -443,7 +443,7 @@ int PhotonNode::GetStatus(const emcClusterContent *emccluster)
   int iypos = emccluster->iypos();
   int izpos = emccluster->izpos();
 
-  return tower_status[sector][iypos][izpos];
+  return tower_status_nils[sector][iypos][izpos];
 }
 
 int PhotonNode::GetStatusSasha(const emcClusterContent *emccluster)

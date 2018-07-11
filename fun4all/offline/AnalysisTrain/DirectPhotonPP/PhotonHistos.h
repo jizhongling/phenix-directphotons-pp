@@ -105,7 +105,7 @@ class PhotonHistos: public SubsysReco
     static const int nh_2photon = 2*3*4*2*2*3*8;
 
     /* Tower status for warnmap */
-    int tower_status[8][48][96];
+    int tower_status_nils[8][48][96];
     int tower_status_sasha[8][48][96];
 
     /* EMCal recalibrator and spin information*/

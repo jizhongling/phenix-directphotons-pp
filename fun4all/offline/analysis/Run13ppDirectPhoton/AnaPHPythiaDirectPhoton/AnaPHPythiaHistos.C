@@ -123,13 +123,13 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
         part->GetKS() == 1 )
     {
       // Test if particle is direct photon
-      int prompt = 0;
+      int direct = 0;
       if( parent &&
           part->GetKF() == 22 &&
           parent->GetKF() == 22 &&
           parent->GetKS() == 21 &&
           !(parent->GetParent()) )
-        prompt = 1;
+        direct = 1;
 
       for(int icone=0; icone<11; icone++)
         for(int ie=0; ie<20; ie++)
@@ -141,11 +141,11 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
           if( econe < re * part->GetEnergy() )
             isolated = 1;
 
-          double fill_hn_photon[] = {v3_part.Pt(), rcone, re, (double)isolated, (double)prompt};
+          double fill_hn_photon[] = {v3_part.Pt(), rcone, re, (double)isolated, (double)direct};
           hn_photon->Fill(fill_hn_photon);
         }
 
-      FillCorrelation(part, 1-prompt);
+      FillCorrelation(part, 1-direct);
     } // photon
 
     // Test if particle is pi0
@@ -172,7 +172,7 @@ void AnaPHPythiaHistos::BookHistograms()
   const int nbins_hn_photon[] = {npT, 11, 20, 2, 2};
   const double xmin_hn_photon[] = {0., -0.05, 0.01, -0.5, -0.5};
   const double xmax_hn_photon[] = {0., 1.05, 0.41, 1.5, 1.5};
-  hn_photon = new THnSparseF("hn_photon", "Photon counts;p_{T} [GeV];rcone;renergy;isolated;prompt;",
+  hn_photon = new THnSparseF("hn_photon", "Photon counts;p_{T} [GeV];rcone;renergy;isolated;direct;",
       5, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
   hn_photon->SetBinEdges(0, pTbin);
   hm->registerHisto(hn_photon);
@@ -201,30 +201,30 @@ double AnaPHPythiaHistos::SumETruth(const TMCParticle *pref, double rcone)
 
   int npart = phpythia->size();
 
-  for (int ipart2=0; ipart2<npart; ipart2++)
+  for(int ipart2=0; ipart2<npart; ipart2++)
   {
     TMCParticle *part2 = phpythia->getParticle(ipart2);
 
     // Only consider stable particles, skip if pointer identical to 'reference' particle
-    if( part2 != pref && part2->GetKS() == 1 )
-    {
-      // Get particle vector
-      TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
-      if( v3_part2.Pt() < 0.01 ) continue;
-      TVector2 v2_part2 = v3_part2.EtaPhiVector();
+    if( part2 == pref || part2->GetKS() != 1 )
+      continue;
 
-      // Test if particle is in Central Arm acceptance
-      // and passes energy threshold
-      if( part2->GetEnergy() < 0.15 ||
-          abs(v2_part2.X()) > 0.35 ||
-          (abs(v2_part2.Y()) > PI/4. &&
-           abs(v2_part2.Y()) < PI*3./4.) )
-        continue;
+    // Get particle vector
+    TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
+    if( v3_part2.Pt() < 0.01 ) continue;
+    TVector2 v2_part2 = v3_part2.EtaPhiVector();
 
-      // Check if particle within cone
-      if( (v2_part2-v2_pref).Mod() < rcone )
-        econe += part2->GetEnergy();
-    }
+    // Test if particle is in Central Arm acceptance
+    // and passes energy threshold
+    if( part2->GetEnergy() < 0.15 ||
+        abs(v2_part2.X()) > 0.35 ||
+        (abs(v2_part2.Y()) > PI/4. &&
+         abs(v2_part2.Y()) < PI*3./4.) )
+      continue;
+
+    // Check if particle within cone
+    if( (v2_part2-v2_pref).Mod() < rcone )
+      econe += part2->GetEnergy();
   }
 
   return econe;

@@ -155,21 +155,17 @@ void draw_CrossSection_IsoPhoton()
 
       mcd(part, ipt+1);
       double nisoboth = 1., enisoboth = 1.;
-      h_minv = h2_isoboth[evtype][part]->ProjectionY("h_minv", ipt+1,ipt+1);
+      h_minv = (TH1*)h2_isoboth[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
-      if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
-        FitMinv(h_minv, nisoboth, enisoboth, true, 0.11,0.16);
-      else if(ipt < 23)  // <16GeV subtract background
-        FitMinv(h_minv, nisoboth, enisoboth, true, 0.10,0.17);
-      else  // >16GeV don't subtract background
-        FitMinv(h_minv, nisoboth, enisoboth, false, 0.10,0.17);
-      nisoboth /= bck[part/2][ipt] * meff[part/2][ipt];
+      // don't subtract background
+      FitMinv(h_minv, nisoboth, enisoboth, false, 0.10,0.17);
+      //nisoboth /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
       mcd(part+3, ipt+1);
       double nisopair = 1., enisopair = 1.;
-      h_minv = h2_isopair[evtype][part]->ProjectionY("h_minv", ipt+1,ipt+1);
+      h_minv = (TH1*)h2_isopair[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
       if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
@@ -202,11 +198,11 @@ void draw_CrossSection_IsoPhoton()
       if(ipt >= 20)
         ipTrigERT = 0;
       double aMissPass = aMiss + aMerge * aBadPass;
-      double eaMissPass = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2.) + pow(eaBadPass*aMerge,2.) );
+      double eaMissPass = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2.) + pow(aMerge*eaBadPass,2.) );
       double aMissAll = aMiss + aMerge;
-      double eaMissAll = sqrt( eaMiss*eaMiss + eaBadPass*eaBadPass );
+      double eaMissAll = sqrt( eaMiss*eaMiss + eaMerge*eaMerge );
       double ndir = nphoton - ( nisoboth + aMissPass * nisopair ) - A * Veto[part][ipVeto] * ( 1. + aMissAll ) * nisopair;
-      double endir = sqrt( ndir );
+      double endir = sqrt( nphoton + enisoboth*enisoboth + pow(eaMissPass*nisopair,2.) + pow(aMissPass*enisopair,2.) );
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
         ndir *= Norm[part];

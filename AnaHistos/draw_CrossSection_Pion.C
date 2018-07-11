@@ -117,7 +117,7 @@ void draw_CrossSection_Pion()
 
       mcd(part, ipt+1);
       double npion = 1., enpion = 1.;
-      TH1 *h_minv = h2_pion[evtype][part]->ProjectionY("h_minv", ipt+1,ipt+1);
+      TH1 *h_minv = (TH1*)h2_pion[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
       if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV

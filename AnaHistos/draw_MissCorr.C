@@ -7,6 +7,9 @@ void draw_MissCorr()
   TGraphErrors *gr[3];
   int igp[3] = {};
 
+  const double A = 0.22;
+  const double eA = 0.04;
+
   double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
   double xMerge[3][npT] = {}, Merge[3][npT] = {}, eMerge[3][npT] = {};
   double xBadPass[3][npT] = {}, BadPass[3][npT] = {}, eBadPass[3][npT] = {};
@@ -41,8 +44,12 @@ void draw_MissCorr()
         eaBadPass = 0.;
       }
 
-      double aMissCorr = aMiss + aMerge * aBadPass;
-      double eaMissCorr = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2.) + pow(eaBadPass*aMerge,2.) );
+      double aMissPass = aMiss + aMerge * aBadPass;
+      double eaMissPass = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2.) + pow(aMerge*eaBadPass,2.) );
+      double aMissAll = aMiss + aMerge;
+      double eaMissAll = sqrt( eaMiss*eaMiss + eaMerge*eaMerge );
+      double aMissCorr = (1. + aMissPass) + A * (1. + aMissAll);
+      double eaMissCorr = sqrt( pow(eA*(1.+aMissPass),2.) + pow((1.+A)*eaMissPass,2.) );
 
       gr[part]->SetPoint(igp[part], xpT, aMissCorr);
       gr[part]->SetPointError(igp[part], 0., eaMissCorr);
