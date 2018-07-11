@@ -61,7 +61,7 @@ void draw_MissCorr()
     gr[part]->Write();
 
     gr[part]->SetTitle("Missing ratio correction");
-    aset(gr[part], "p_{T} [GeV]","R_{corr}", 0.,30., 0.,5.);
+    aset(gr[part], "p_{T} [GeV]","R_{corr}", 5.,30., 1.5,4.);
     style(gr[part], part+20, part+1);
     if(part==0)
       gr[part]->Draw("AP");
