@@ -23,7 +23,7 @@ void draw_IsoAccCorr()
 
     gr[part] = DivideHisto(h_isoall, h_isoacc);
     gr[part]->SetNameTitle(Form("gr_%d",part), "IsoAll/IsoAcc");
-    aset(gr[part], "p_{T} [GeV]","IsoAll/IsoAcc", 5.,30.);
+    aset(gr[part], "p_{T} [GeV]","IsoAll/IsoAcc", 5.,30., 0.,1.1);
     style(gr[part], 20+part, 1+part);
     if(part==0)
       gr[part]->Draw("AP");

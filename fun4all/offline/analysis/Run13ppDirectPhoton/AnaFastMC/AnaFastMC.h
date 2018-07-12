@@ -48,22 +48,22 @@ class AnaFastMC: public SubsysReco
     void ReadSashaWarnmap(const std::string &filename);
     void ReadSimWarnmap(const std::string &filename);
 
-    bool pi0_sim(TLorentzVector *pG1, TLorentzVector *pG2, float& ptsim, float& mm, float& dist);
-    bool photon_sim(TLorentzVector *pG1, float& ptsim);
+    void pi0_sim(const TLorentzVector beam_pi0);
+    void photon_sim(const TLorentzVector beam_ph);
     void ResetTowerEnergy();
-    void FillTowerEnergy( int sec, int iy, int iz, float e );
-    float GetETwr( int sec, int iy, int iz );
+    void FillTowerEnergy( int sec, int iy, int iz, double e );
+    double GetETwr( int sec, int iy, int iz );
+    int GetNpeak();
+    bool CheckWarnMap( int itower );
     bool InFiducial( int itower );
     bool IsGoodTower( int itower );
     bool IsHotTower( int itower );
-    bool CheckWarnMap( int itower );
-    int GetNpeak();
     bool GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,  
-        int& sec, int& iz, int& iy, float& zz, float& yy, 
-        float& phi0, float& ximp, float& yimp, float& zimp );
-    bool GetShower(Double_t px, Double_t py, Double_t pz, float& eout, int& itw );
-    bool Gamma_En(Double_t px, Double_t py, Double_t pz, float& eout, int& itw,
-        float& ximp, float& yimp, float& zimp);
+        int& sec, int& iz, int& iy, double& zz, double& yy, 
+        double& phi0, double& ximp, double& yimp, double& zimp );
+    bool GetShower(Double_t px, Double_t py, Double_t pz, double& eout, int& itw );
+    bool Gamma_En(Double_t px, Double_t py, Double_t pz, double& eout, int& itw,
+        double& ximp, double& yimp, double& zimp);
     bool Gamma_Pos(Double_t& px, Double_t& py, Double_t& pz );
 
     std::string outFileName;
@@ -91,7 +91,8 @@ class AnaFastMC: public SubsysReco
     int NPeak;
     TLorentzVector Vpart[MAXPEAK];
     int itw_part[MAXPEAK];
-    float eTwr[NSEC][NY][NZ];
+    int sec_part[MAXPEAK];
+    double eTwr[NSEC][NY][NZ];
 
     PHPythiaHeader *phpythiaheader;
     PHPythiaContainer *phpythia;

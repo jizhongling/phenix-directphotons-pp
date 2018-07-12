@@ -34,7 +34,7 @@ void anaFastMC_PH(const int process = 0)
   // Loop over input DST files
   for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
   {
-    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/phpythia-ckin3/phpythia%d.root", thread);
+    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/phpythia/phpythia%d.root", thread);
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DSTin1", dstFileName);
