@@ -8,7 +8,7 @@ set -o pipefail
 cd "histos"
 rm -f total.root tmp.root
 
-prename="PhotonEff-"
+prename="Isolation-"
 files=""
 count=0
 
