@@ -1,0 +1,18 @@
+Universe        = vanilla
+Notification    = Complete
+Executable      = phpythia.csh
+Arguments       = $(Initialdir) $(Process)
+Requirements    = (CPU_Speed >= 2 && TotalDisk > 0)
+Rank		= CPU_Speed
+Image_Size      = 32M
+Priority        = +20
+GetEnv          = False
+Initialdir      = $ENV(PWD)
+Input           = /dev/null
+Output          = /dev/null
+Error           = /dev/null
+Log             = /dev/null
+Notify_user     = zji@rcf.rhic.bnl.gov
++Experiment     = "phenix"
++Job_Type       = "cas"
+Queue 1500

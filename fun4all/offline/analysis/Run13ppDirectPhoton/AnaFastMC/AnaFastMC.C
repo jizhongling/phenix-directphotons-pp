@@ -473,9 +473,9 @@ double AnaFastMC::SumETruth(const TMCParticle *pref, bool InAcc)
     /* Require particle in acceptance and not on hot towers */
     if(InAcc)
     {
-    /* Fill Vpart[], itwr_part[] and sec_part[]
-     * and set NPart and NPeak */
-    photon_sim(pE_part2);
+      /* Fill Vpart[], itwr_part[] and sec_part[]
+       * and set NPart and NPeak */
+      photon_sim(pE_part2);
 
       /* Test if particle is in acceptance and not on hot tower
        * and passes energy threshold */
