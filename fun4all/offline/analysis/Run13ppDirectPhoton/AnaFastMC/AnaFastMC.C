@@ -135,7 +135,7 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
 
 int AnaFastMC::process_event(PHCompositeNode *topNode)
 {
-  /* Use PHParticleGen */
+  /* Use PHParticleGen input */
   if( mcmethod == PHParticleGen )
     PythiaInput(topNode);
 
@@ -543,7 +543,7 @@ void AnaFastMC::BookHistograms()
   phibin[iphi++] = PI*19/16 + 0.02;
   sort(phibin, phibin+nphi);
 
-  /* Use PHParticleGen */
+  /* Use PHParticleGen input */
   if( mcmethod == PHParticleGen )
   {
     const int nbins_hn_isoprompt[] = {npT, 8, 2};
@@ -555,7 +555,7 @@ void AnaFastMC::BookHistograms()
     hm->registerHisto(hn_isoprompt);
   }
 
-  /* Use FastMC */
+  /* Use FastMC input */
   else if( mcmethod == FastMC )
   {
     h_pion = new TH1F("h_pion", "Total pion count;p_{T} [GeV];", npT, pTbin);
