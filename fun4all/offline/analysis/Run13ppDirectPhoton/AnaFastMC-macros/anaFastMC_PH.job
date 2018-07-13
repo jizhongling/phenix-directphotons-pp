@@ -1,6 +1,6 @@
 Universe        = vanilla
 Notification    = Complete
-Executable      = phpythia.csh
+Executable      = anaFastMC_PH.csh
 Arguments       = $(Initialdir) $(Process)
 Requirements    = (CPU_Speed >= 1 && TotalDisk > 0)
 Rank		= CPU_Speed

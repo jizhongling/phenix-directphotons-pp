@@ -39,6 +39,7 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -542,70 +543,78 @@ void AnaFastMC::BookHistograms()
   phibin[iphi++] = PI*19/16 + 0.02;
   sort(phibin, phibin+nphi);
 
-  h_pion = new TH1F("h_pion", "Total pion count;p_{T} [GeV];", npT, pTbin);
-  h_pion->Sumw2();
-  hm->registerHisto(h_pion);
-
-  h_photon = new TH1F("h_photon", "Total photon count;p_{T} [GeV];", npT, pTbin);
-  h_photon->Sumw2();
-  hm->registerHisto(h_photon);
-
-  for(int part=0; part<3; part++)
+  /* Use PHParticleGen */
+  if( mcmethod == PHParticleGen )
   {
-    h2_pion_eta_phi[part] = new TH2F(Form("h2_pion_eta_phi_part%d",part), "Pion #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
-    h2_photon_eta_phi[part] = new TH2F(Form("h2_photon_eta_phi_part%d",part), "Photon #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
-    h2_pion_eta_phi[part]->Sumw2();
-    h2_photon_eta_phi[part]->Sumw2();
-    hm->registerHisto(h2_pion_eta_phi[part]);
-    hm->registerHisto(h2_photon_eta_phi[part]);
+    const int nbins_hn_isoprompt[] = {npT, 8, 2};
+    const double xmin_hn_isoprompt[] = {0., -0.5, -0.5};
+    const double xmax_hn_isoprompt[] = {0., 7.5, 1.5};
+    hn_isoprompt = new THnSparseF("hn_isoprompt", "Isolated prompt photon count;p_{T} [GeV];sector;IsoInAcc;",
+        3, nbins_hn_isoprompt, xmin_hn_isoprompt, xmax_hn_isoprompt);
+    hn_isoprompt->SetBinEdges(0, pTbin);
+    hm->registerHisto(hn_isoprompt);
   }
 
-  h3_isopi0 = new TH3F("h3_isopi0", "Self veto for #pi^{0};p_{T} [GeV];sector;isolated;",
-      npT,0.,0., 8,-0.5,7.5, 2,-0.5,1.5);
-  h3_isopi0->GetXaxis()->Set(npT, pTbin);
-  hm->registerHisto(h3_isopi0);
+  /* Use FastMC */
+  else if( mcmethod == FastMC )
+  {
+    h_pion = new TH1F("h_pion", "Total pion count;p_{T} [GeV];", npT, pTbin);
+    h_pion->Sumw2();
+    hm->registerHisto(h_pion);
 
-  h3_isoeta = static_cast<TH3*>( h3_isopi0->Clone("h3_isoeta") );
-  h3_isoeta->SetTitle("Self veto for #eta");
-  hm->registerHisto(h3_isoeta);
+    h_photon = new TH1F("h_photon", "Total photon count;p_{T} [GeV];", npT, pTbin);
+    h_photon->Sumw2();
+    hm->registerHisto(h_photon);
 
-  const int nbins_hn_pion[] = {npT, npT, 300, 8, 3};
-  const double xmin_hn_pion[] = {0., 0., 0., -0.5, -0.5};
-  const double xmax_hn_pion[] = {0., 0., 0.3, 7.5, 2.5};
-  hn_pion = new THnSparseF("hn_pion", "EMCal pion count;p_{T} truth [GeV];p_{T} reco [GeV];m_{inv} [GeV];sector;NPeak;",
-      5, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
-  hn_pion->SetBinEdges(0, pTbin);
-  hn_pion->SetBinEdges(1, pTbin);
-  hn_pion->Sumw2();
-  hm->registerHisto(hn_pion);
+    for(int part=0; part<3; part++)
+    {
+      h2_pion_eta_phi[part] = new TH2F(Form("h2_pion_eta_phi_part%d",part), "Pion #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
+      h2_photon_eta_phi[part] = new TH2F(Form("h2_photon_eta_phi_part%d",part), "Photon #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
+      h2_pion_eta_phi[part]->Sumw2();
+      h2_photon_eta_phi[part]->Sumw2();
+      hm->registerHisto(h2_pion_eta_phi[part]);
+      hm->registerHisto(h2_photon_eta_phi[part]);
+    }
 
-  const int nbins_hn_missing[] = {npT, npT, 8, 3, 3};
-  const double xmin_hn_missing[] = {0., 0., -0.5, -0.5, -0.5};
-  const double xmax_hn_missing[] = {0., 0., 7.5, 2.5, 2.5};
-  hn_missing = new THnSparseF("hn_missing", "#pi^{0} missing ratio;p^{#pi^{0}}_{T} [GeV];p^{#gamma}_{T} [GeV];sector;NPart;NPeak;",
-      5, nbins_hn_missing, xmin_hn_missing, xmax_hn_missing);
-  hn_missing->SetBinEdges(0, pTbin);
-  hn_missing->SetBinEdges(1, pTbin);
-  hn_missing->Sumw2();
-  hm->registerHisto(hn_missing);
+    h3_isopi0 = new TH3F("h3_isopi0", "Self veto for #pi^{0};p_{T} [GeV];sector;isolated;",
+        npT,0.,0., 8,-0.5,7.5, 2,-0.5,1.5);
+    h3_isopi0->GetXaxis()->Set(npT, pTbin);
+    hm->registerHisto(h3_isopi0);
 
-  const int nbins_hn_photon[] = {npT, npT, 8};
-  const double xmin_hn_photon[] = {0., 0., -0.5};
-  const double xmax_hn_photon[] = {0., 0., 7.5};
-  hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;",
-      3, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
-  hn_photon->SetBinEdges(0, pTbin);
-  hn_photon->SetBinEdges(1, pTbin);
-  hn_photon->Sumw2();
-  hm->registerHisto(hn_photon);
+    h3_isoeta = static_cast<TH3*>( h3_isopi0->Clone("h3_isoeta") );
+    h3_isoeta->SetTitle("Self veto for #eta");
+    hm->registerHisto(h3_isoeta);
 
-  const int nbins_hn_isoprompt[] = {npT, 8, 2};
-  const double xmin_hn_isoprompt[] = {0., -0.5, -0.5};
-  const double xmax_hn_isoprompt[] = {0., 7.5, 1.5};
-  hn_isoprompt = new THnSparseF("hn_isoprompt", "Isolated prompt photon count;p_{T} [GeV];sector;IsoInAcc;",
-      3, nbins_hn_isoprompt, xmin_hn_isoprompt, xmax_hn_isoprompt);
-  hn_isoprompt->SetBinEdges(0, pTbin);
-  hm->registerHisto(hn_isoprompt);
+    const int nbins_hn_pion[] = {npT, npT, 300, 8, 3};
+    const double xmin_hn_pion[] = {0., 0., 0., -0.5, -0.5};
+    const double xmax_hn_pion[] = {0., 0., 0.3, 7.5, 2.5};
+    hn_pion = new THnSparseF("hn_pion", "EMCal pion count;p_{T} truth [GeV];p_{T} reco [GeV];m_{inv} [GeV];sector;NPeak;",
+        5, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
+    hn_pion->SetBinEdges(0, pTbin);
+    hn_pion->SetBinEdges(1, pTbin);
+    hn_pion->Sumw2();
+    hm->registerHisto(hn_pion);
+
+    const int nbins_hn_missing[] = {npT, npT, 8, 3, 3};
+    const double xmin_hn_missing[] = {0., 0., -0.5, -0.5, -0.5};
+    const double xmax_hn_missing[] = {0., 0., 7.5, 2.5, 2.5};
+    hn_missing = new THnSparseF("hn_missing", "#pi^{0} missing ratio;p^{#pi^{0}}_{T} [GeV];p^{#gamma}_{T} [GeV];sector;NPart;NPeak;",
+        5, nbins_hn_missing, xmin_hn_missing, xmax_hn_missing);
+    hn_missing->SetBinEdges(0, pTbin);
+    hn_missing->SetBinEdges(1, pTbin);
+    hn_missing->Sumw2();
+    hm->registerHisto(hn_missing);
+
+    const int nbins_hn_photon[] = {npT, npT, 8};
+    const double xmin_hn_photon[] = {0., 0., -0.5};
+    const double xmax_hn_photon[] = {0., 0., 7.5};
+    hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;",
+        3, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
+    hn_photon->SetBinEdges(0, pTbin);
+    hn_photon->SetBinEdges(1, pTbin);
+    hn_photon->Sumw2();
+    hm->registerHisto(hn_photon);
+  }
 
   return;
 }
