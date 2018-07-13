@@ -54,6 +54,7 @@ class AnaFastMC: public SubsysReco
     void FillTowerEnergy( int sec, int iy, int iz, double e );
     double GetETwr( int sec, int iy, int iz );
     int GetNpeak();
+    bool CheckWarnMap( int sec, int iy, int iz );
     bool CheckWarnMap( int itower );
     bool InFiducial( int itower );
     bool IsGoodTower( int itower );

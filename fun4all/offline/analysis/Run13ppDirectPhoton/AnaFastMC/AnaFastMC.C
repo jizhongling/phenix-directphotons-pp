@@ -170,9 +170,11 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     TMCParticle *part = phpythia->getParticle(ipart);
     TMCParticle *parent = phpythia->getParent(part);
 
-    /* Test if particle is a stable prompt photon */
+    /* Test if particle is a stable prompt photon
+     * and passes energy threshold */
     if( part->GetKF() != 22 ||
         part->GetKS() != 1 ||
+        part->GetEnergy() < eMin ||
         ( parent && abs(parent->GetKF()) > 100 ) )
       continue;
 
@@ -187,9 +189,8 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
      * and set NPart and NPeak */
     photon_sim(pE_part);
 
-    /* Test if particle is in fiducial
-     * and passes energy threshold */
-    if( !InFiducial(itw_part[0]) || Vpart[0].E() < eMin )
+    /* Test if particle is in fiducial */
+    if( !InFiducial(itw_part[0]) )
       continue;
 
     double econe_all = SumETruth(part, false);
@@ -541,7 +542,7 @@ void AnaFastMC::BookHistograms()
   h_photon->Sumw2();
   hm->registerHisto(h_photon);
 
-  for(Int_t part=0; part<3; part++)
+  for(int part=0; part<3; part++)
   {
     h2_pion_eta_phi[part] = new TH2F(Form("h2_pion_eta_phi_part%d",part), "Pion #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
     h2_photon_eta_phi[part] = new TH2F(Form("h2_photon_eta_phi_part%d",part), "Photon #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
@@ -899,6 +900,13 @@ int AnaFastMC::GetNpeak()
   return npeak;
 }
 
+bool AnaFastMC::CheckWarnMap( int sec, int iy, int iz )
+{
+  if( sec<0 || sec>NSEC-1 || iy<0 || iy>NY-1 || iz<0 || iz>NZ-1 ) return false;
+  if( tower_status_sim[sec][iy][iz] != 0 ) return true;
+  return false;
+}
+
 bool AnaFastMC::CheckWarnMap( int itower )
 {
   if( itower < 0 || itower >= n_twrs ) return false;
@@ -908,6 +916,7 @@ bool AnaFastMC::CheckWarnMap( int itower )
     return true;
   return false;
 }
+
 bool AnaFastMC::InFiducial( int itower )
 {
   if( itower < 0 || itower >= n_twrs ) return false;
@@ -939,7 +948,7 @@ bool AnaFastMC::IsHotTower( int itower )
   return false;
 }
 
-bool AnaFastMC::GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,  
+bool AnaFastMC::GetImpactSectorTower(double px, double py, double pz,  
     int& sec, int& iz, int& iy, double& zz, double& yy, 
     double& phi0, double& ximp, double& yimp, double& zimp )
   //
@@ -948,7 +957,7 @@ bool AnaFastMC::GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,
   //          All that - for shower CG
   //          and impact position on sector face
   // 
-  // Edge cut is done here
+  // Edge cut is NOT done here
   //
 {
   static double zvert = 0;
@@ -956,28 +965,28 @@ bool AnaFastMC::GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,
   // EMCal Geometry
   // X axis is towards W0
 
-  const Double_t xsec_sc = 507;
-  const Double_t zsize_sc = 5.58; // Tower size in Z
-  const Double_t ysize_sc = 5.57; // Tower size in Y
-  //  const Double_t zsize_sc = 6.5; // Tower size in Z
-  //  const Double_t ysize_sc = 6.5; // Tower size in Y
+  const double xsec_sc = 507;
+  const double zsize_sc = 5.58; // Tower size in Z
+  const double ysize_sc = 5.57; // Tower size in Y
+  //  const double zsize_sc = 6.5; // Tower size in Z
+  //  const double ysize_sc = 6.5; // Tower size in Y
 
-  const Double_t xsec_gl = 540;
-  const Double_t zsize_gl = 4.092; // Tower size in Z
-  const Double_t ysize_gl = 4.106; // Tower size in Y
+  const double xsec_gl = 540;
+  const double zsize_gl = 4.092; // Tower size in Z
+  const double ysize_gl = 4.106; // Tower size in Y
 
   // Sector phi position: 0<phi<2*PI; -phi=2*PI-phi
-  const Double_t phi_sec[8] = {
+  const double phi_sec[8] = {
     -PI/8, 0, PI/8, 2*PI/8, 
     PI-2*PI/8, PI-PI/8, PI, PI+PI/8
   };
 
-  Double_t xsec, zsize, ysize;
+  double xsec, zsize, ysize;
 
   sec=-1; iz=-1; iy=-1; zz=0; yy=0;
 
   TVector3 vv(px,py,pz);
-  Double_t phi = vv.Phi(); // -PI<phi<PI !!
+  double phi = vv.Phi(); // -PI<phi<PI !!
 
   if( px > 0 ) { // West Arm
     for( int is=0; is<4; is++ ) {
@@ -998,7 +1007,7 @@ bool AnaFastMC::GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,
     vv.RotateZ(-(phi_sec[sec]-PI)); phi = vv.Phi();
     // revert Phi and Theta, because numbering on East is reversed
     phi = -phi;
-    Double_t theta = PI-vv.Theta();
+    double theta = PI-vv.Theta();
     vv.SetPhi(phi);
     vv.SetTheta(theta);
   }
@@ -1024,19 +1033,19 @@ bool AnaFastMC::GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,
     nZ = nZ_gl;
     nY = nY_gl;
   }
-  Double_t zsec_min = -zsize*nZ/2;
-  Double_t ysec_min = -ysize*nY/2;
+  double zsec_min = -zsize*nZ/2;
+  double ysec_min = -ysize*nY/2;
 
   // Center of gravity shift along Z
-  Double_t sinZ = vv.CosTheta(); // I work with PI/2-Theta
+  double sinZ = vv.CosTheta(); // I work with PI/2-Theta
   double dz = dl*sinZ;
   double dz_gamma = x0*sinZ; // Shift of gamma related to electron
   // Center of gravity shift along Y
   double dy = dl*phi; // aY ~ sin(aY)
   double dy_gamma = x0*phi; // Shift of gamma related to electron
 
-  Double_t ysec = xsec*vv.Py()/vv.Px();
-  Double_t zsec = xsec*vv.Pz()/vv.Px();
+  double ysec = xsec*vv.Py()/vv.Px();
+  double zsec = xsec*vv.Pz()/vv.Px();
   zsec += zvert; // Zvert shift
   // Photons are deeper than electrons
   ysec += dy_gamma;
@@ -1070,8 +1079,8 @@ bool AnaFastMC::GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,
   }
 
   // Calculate max energy tower (center of gravity)
-  Double_t ysec_cg = ysec + dy;
-  Double_t zsec_cg = zsec + dz;
+  double ysec_cg = ysec + dy;
+  double zsec_cg = zsec + dz;
   int iz_cg, iy_cg;
   if( zsec_cg <= zsec_min ) {sec=-1; return false;}
   else {
@@ -1097,7 +1106,7 @@ bool AnaFastMC::GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,
   return true;
 }
 
-bool AnaFastMC::GetShower(Double_t px, Double_t py, Double_t pz, double& eout, int& itw )
+bool AnaFastMC::GetShower(double px, double py, double pz, double& eout, int& itw )
   // Return false if outside acceptance
   // Called by Gamma_En(...)
 {
@@ -1136,13 +1145,13 @@ bool AnaFastMC::GetShower(Double_t px, Double_t py, Double_t pz, double& eout, i
   // Calculate angle and energy dependent shower parameters
 
   TVector3 vv(px,py,pz);
-  Double_t sinZ = vv.CosTheta(); // I work with PI/2-Theta
+  double sinZ = vv.CosTheta(); // I work with PI/2-Theta
 
-  //  Double_t aY = TMath::Abs(vv.Phi());
+  //  double aY = TMath::Abs(vv.Phi());
   //  while( aY > PI/16 ) aY -= PI/16;
-  //  Double_t sinY = aY; // aY ~ sin(aY)
+  //  double sinY = aY; // aY ~ sin(aY)
 
-  Double_t sinY = TMath::Sin(phi);
+  double sinY = TMath::Sin(phi);
   double sin2a = sinZ*sinZ + sinY*sinY;
   if( sin2a > 0.5*0.5 ) printf("Something wrong in GetShower: too big angles %f %f\n",sinZ,sinY);
   double lgE = 0;
@@ -1166,8 +1175,8 @@ bool AnaFastMC::GetShower(Double_t px, Double_t py, Double_t pz, double& eout, i
   double by = 0.20 + tt*sinY*sinY;
   dz0 = zz - 0.5;
   dy0 = yy - 0.5;
-  dz0 = double(0.5*TMath::SinH(Double_t(dz0/bx))/TMath::SinH(0.5/bx));
-  dy0 = double(0.5*TMath::SinH(Double_t(dy0/by))/TMath::SinH(0.5/by));
+  dz0 = double(0.5*TMath::SinH(double(dz0/bx))/TMath::SinH(0.5/bx));
+  dy0 = double(0.5*TMath::SinH(double(dy0/by))/TMath::SinH(0.5/by));
 
   // Calculate ecore
 
@@ -1206,7 +1215,7 @@ bool AnaFastMC::GetShower(Double_t px, Double_t py, Double_t pz, double& eout, i
   return true;
 }
 
-bool AnaFastMC::Gamma_En(Double_t px, Double_t py, Double_t pz, double& eout, int& itw,
+bool AnaFastMC::Gamma_En(double px, double py, double pz, double& eout, int& itw,
     double& ximp, double& yimp, double& zimp)
   // returns false if out of acceptance
 {
@@ -1317,7 +1326,7 @@ bool AnaFastMC::Gamma_En(Double_t px, Double_t py, Double_t pz, double& eout, in
   return true;
 }
 
-bool AnaFastMC::Gamma_Pos(Double_t& px, Double_t& py, Double_t& pz )
+bool AnaFastMC::Gamma_Pos(double& px, double& py, double& pz )
 {
   // PbSc
   const double a_sc = 0.16;
@@ -1360,9 +1369,9 @@ bool AnaFastMC::Gamma_Pos(Double_t& px, Double_t& py, Double_t& pz )
     xsec = xsec_gl;
   }
 
-  Double_t res = 0., dl;
+  double res = 0., dl;
   TVector3 vv(px,py,pz);
-  Double_t En = vv.Mag();
+  double En = vv.Mag();
 
   if( sec<6 ) res = a + b/TMath::Sqrt(En);
   else        res = sqrt(a*a + b*b/En);
@@ -1371,18 +1380,18 @@ bool AnaFastMC::Gamma_Pos(Double_t& px, Double_t& py, Double_t& pz )
   dl = gRandom->Gaus(0,c);
 
   // Resolution along Z
-  Double_t sinZ = vv.CosTheta(); // I work with PI/2-Theta
-  //  Double_t resz = 0.65*res * ( 1.+ 2.*TMath::Gaus(zz-0.5,0.,0.18) ); // To account for worse resolution in tower center
-  Double_t resz = res;
-  Double_t dz = gRandom->Gaus(0,resz);
+  double sinZ = vv.CosTheta(); // I work with PI/2-Theta
+  //  double resz = 0.65*res * ( 1.+ 2.*TMath::Gaus(zz-0.5,0.,0.18) ); // To account for worse resolution in tower center
+  double resz = res;
+  double dz = gRandom->Gaus(0,resz);
   dz += dl*sinZ;
 
   // Resolution along Y
   /*
-     Double_t aY = TMath::Abs(vv.Phi());
+     double aY = TMath::Abs(vv.Phi());
      int nrot=0;
      while( aY > PI/16 ) { aY -= PI/16; nrot++; }
-     Double_t dy = gRandom->Gaus(0,res);
+     double dy = gRandom->Gaus(0,res);
      dy += dl*aY; // aY ~ sin(aY)
 
      TVector3 dv(0,dy,dz);
@@ -1394,9 +1403,9 @@ bool AnaFastMC::Gamma_Pos(Double_t& px, Double_t& py, Double_t& pz )
      VV.RotateZ(nrot*PI/16);
      */
 
-  //  Double_t resy = 0.65*res * ( 1.+ 2.*TMath::Gaus(yy-0.5,0.,0.18) ); // To account for worse resolution in tower center
-  Double_t resy = res;
-  Double_t dy = gRandom->Gaus(0,resy);
+  //  double resy = 0.65*res * ( 1.+ 2.*TMath::Gaus(yy-0.5,0.,0.18) ); // To account for worse resolution in tower center
+  double resy = res;
+  double dy = gRandom->Gaus(0,resy);
   dy += dl*phi; // aY ~ sin(aY)
 
   // Rotate according to dy in sector frame

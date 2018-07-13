@@ -1,5 +1,5 @@
 #!/bin/bash
-# Function: Combine root files 50 by 50.
+# Function: Combine root files 100 by 100.
 
 set -o errexit
 set -o nounset
@@ -8,14 +8,14 @@ set -o pipefail
 cd "histos"
 rm -f total.root tmp.root
 
-prename="AnaFastMC-Fast-"
+prename="AnaFastMC-PH-"
 files=""
 count=0
 
 for FILE in ${prename}*.root ; do
     files="${files} ${FILE}"
     (( ++count ))
-    if (( "${count}" > "49" )) ; then
+    if (( "${count}" > "99" )) ; then
         if [[ -f "total.root" ]] ; then
     	    hadd tmp.root total.root ${files}
         else
