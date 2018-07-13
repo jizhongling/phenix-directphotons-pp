@@ -73,7 +73,4 @@ void anaMissingRatio(const int process = 0)
 
   // Write out the histogram file
   se->End();
-  se->unregisterSubsystem(my1);
-
-  delete se;
 }

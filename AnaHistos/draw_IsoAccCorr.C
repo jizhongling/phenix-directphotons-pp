@@ -15,10 +15,10 @@ void draw_IsoAccCorr()
 
   for(int part=0; part<3; part++)
   {
-    hn_isoprompt->GetAxis(2)->SetRange(secl[part],sech[part]);
-    hn_isoprompt->GetAxis(3)->SetRange(1,1);
+    hn_isoprompt->GetAxis(1)->SetRange(secl[part],sech[part]);
+    hn_isoprompt->GetAxis(2)->SetRange(1,1);
     TH1 *h_isoall = hn_isoprompt->Projection(0);
-    hn_isoprompt->GetAxis(3)->SetRange(2,2);
+    hn_isoprompt->GetAxis(2)->SetRange(2,2);
     TH1 *h_isoacc = hn_isoprompt->Projection(0);
 
     gr[part] = DivideHisto(h_isoall, h_isoacc);

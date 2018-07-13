@@ -4,9 +4,6 @@ void anaFastMC_Fast(const int process = 0)
   gSystem->Load("libfun4allfuncs.so");	// framework + reco modules
   gSystem->Load("libAnaFastMC.so");
 
-  // Switches for MCMethod
-  enum MCMethod {PHParticleGen, FastMC};
-
   // Setup recoConsts
   recoConsts *rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER",0);
@@ -16,6 +13,7 @@ void anaFastMC_Fast(const int process = 0)
   se->Verbosity(0);
 
   // Reconstruction Modules
+  enum MCMethod {PHParticleGen, FastMC};
   AnaFastMC *my1 = new AnaFastMC("AnaFastMC");
   my1->set_outfile( Form("histos/AnaFastMC-Fast-histo%d.root",process) );
   my1->set_mcmethod(FastMC);
@@ -32,8 +30,4 @@ void anaFastMC_Fast(const int process = 0)
 
   // Write histograms
   se->End();
-  se->unregisterSubsystem(my1);
-
-  // Delete Fun4All server
-  delete se;
 }

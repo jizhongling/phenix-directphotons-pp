@@ -49,18 +49,17 @@ namespace anatools
     return false;
   }
 
-  inline unsigned int TowerID( const int sector, const int ytower, const int ztower )
+  inline int TowerID( const int sector, const int ytower, const int ztower )
   {
-    unsigned int id = 0;
-    unsigned int itower = 0;
+    int id = 0;
+    int itower = 0;
 
+    if( sector < 0 || sector > 7 ) return -1;
+    
     if( sector < 6 ){ // PbSc
 
       if( ytower < 0 || ytower > 35 || ztower < 0 || ztower > 71 )
-      {
-        std::cerr << "Exception: Bad PbSc tower location " << sector << " " << ztower << " " << ytower << std::endl;
-        throw 1;
-      }
+        return -1;
 
       itower = ytower * 72 + ztower;
       id = sector * 2592 + itower;
@@ -69,24 +68,28 @@ namespace anatools
     else{ // PbGl
 
       if( ytower < 0 || ytower > 47 || ztower < 0 || ztower > 95 )
-      {
-        std::cerr << "Exception: Bad PbGl tower location " << sector << " " << ztower << " " << ytower << std::endl;
-        throw 1;
-      }
+        return -1;
 
       itower = ytower * 96 + ztower;
       id = 15552 + ( sector - 6 ) * 4608 + itower;
     }
 
     return id;
-
   }
 
 
   /*! calculate sector, yrow, and zrow location of tower for given tower ID
   */
-  inline void TowerLocation( const unsigned int towerid, int &sector, int &ytower, int &ztower )
+  inline void TowerLocation( const int towerid, int &sector, int &ytower, int &ztower )
   {
+    if( towerid < 0 || towerid >= 24768 )
+    {
+      sector = -1;
+      ytower = -1;
+      ztower = -1;
+      return;
+    }
+
     int itower=0;
 
     if( towerid < 15552 )
@@ -122,11 +125,11 @@ namespace anatools
       return false;
   }
 
-  inline float GetPt(TMCParticle *part)
+  inline double GetPt(TMCParticle *part)
   {
-    float px = part->GetPx();
-    float py = part->GetPy();
-    float pt = std::sqrt(px*px + py*py);
+    double px = part->GetPx();
+    double py = part->GetPy();
+    double pt = std::sqrt(px*px + py*py);
 
     return pt;
   }
