@@ -39,7 +39,4 @@ void anaFillHisto_Sample()
 
   // Write out the histogram file
   se->End();
-  se->unregisterSubsystem(my1);
-
-  delete se;
 }

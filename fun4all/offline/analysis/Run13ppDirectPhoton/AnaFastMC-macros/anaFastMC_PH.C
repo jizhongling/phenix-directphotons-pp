@@ -4,9 +4,6 @@ void anaFastMC_PH(const int process = 0)
   gSystem->Load("libfun4allfuncs.so");	// framework + reco modules
   gSystem->Load("libAnaFastMC.so");
 
-  // Switches for MCMethod
-  enum MCMethod {PHParticleGen, FastMC};
-
   // Used for input DST files
   const int nThread = 10;
   char dstFileName[1000];
@@ -20,6 +17,7 @@ void anaFastMC_PH(const int process = 0)
   se->Verbosity(0);
 
   // Reconstruction Modules
+  enum MCMethod {PHParticleGen, FastMC};
   AnaFastMC *my1 = new AnaFastMC("AnaFastMC");
   my1->set_outfile( Form("histos/AnaFastMC-PH-histo%d.root",process) );
   my1->set_mcmethod(PHParticleGen);
@@ -55,8 +53,4 @@ void anaFastMC_PH(const int process = 0)
 
   // Write histograms
   se->End();
-  se->unregisterSubsystem(my1);
-
-  // Delete Fun4All server
-  delete se;
 }

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Function: Combine root files 100 by 100.
+# Function: Combine root files N by N.
 
 set -o errexit
 set -o nounset
@@ -15,7 +15,7 @@ count=0
 for FILE in ${prename}*.root ; do
     files="${files} ${FILE}"
     (( ++count ))
-    if (( "${count}" > "99" )) ; then
+    if (( "${count}" >= "50" )) ; then
         if [[ -f "total.root" ]] ; then
     	    hadd tmp.root total.root ${files}
         else

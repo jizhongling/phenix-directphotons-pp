@@ -52,6 +52,7 @@ const double mcorr = 0.993;
 
 /* Some cuts for photon identification */
 const double eMin = 0.3;
+const double ptMin = 5.;
 const double AsymCut = 0.8;
 
 /* Some cuts for isolation cut */
@@ -67,7 +68,6 @@ AnaFastMC::AnaFastMC(const string &name):
   SubsysReco(name),
   outFileName("histos/AnaFastMC-"),
   mcmethod(FastMC),
-  phpythiaheader(NULL),
   phpythia(NULL),
   hm(NULL),
   h_pion(NULL),
@@ -147,25 +147,25 @@ int AnaFastMC::process_event(PHCompositeNode *topNode)
 
 void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
 {
-  /* Get PYTHIA Header */
-  phpythiaheader = findNode::getClass<PHPythiaHeader>(topNode,"PHPythiaHeader");
-  if (!phpythiaheader)
-  {
-    cout << PHWHERE << "Unable to get PHPythiaHeader, is Node missing?" << endl;
-    return;
-  }
-
-  /* Get PYTHIA Particles */
+  /* Get PYTHIA Signal Particles */
   phpythia = findNode::getClass<PHPythiaContainer>(topNode,"PHPythia");
-  if (!phpythia)
+  if(!phpythia)
   {
     cout << PHWHERE << "Unable to get PHPythia, is Node missing?" << endl;
     return;
   }
 
-  /* Loop over all particles & Fill output histograms */
+  /* Get PYTHIA Background Particles */
+  phpythia_bg = findNode::getClass<PHPythiaContainer>(topNode,"PHPythiaPyBg");
+  if(!phpythia_bg)
+  {
+    cout << PHWHERE << "Unable to get PHPythiaPyBg, is Node missing?" << endl;
+    return;
+  }
+
+  /* Loop over all signal particles */
   int npart = phpythia->size();
-  for (int ipart=0; ipart<npart; ipart++)
+  for(int ipart=0; ipart<npart; ipart++)
   {
     TMCParticle *part = phpythia->getParticle(ipart);
     TMCParticle *parent = phpythia->getParent(part);
@@ -178,32 +178,34 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
         ( parent && abs(parent->GetKF()) > 100 ) )
       continue;
 
-    /* Convert particle into TLorentzVector */
-    double px = part->GetPx();
-    double py = part->GetPy();
-    double pz = part->GetPz();
+    /* Convert particle into TVector3 */
+    TVector3 v3_part(part->GetPx(), part->GetPy(), part->GetPz());
+    double pt = v3_part.Pt();
     double energy = part->GetEnergy();
-    TLorentzVector pE_part(px,py,pz,energy);
 
-    /* Fill Vpart[], itwr_part[] and sec_part[]
-     * and set NPart and NPeak */
-    photon_sim(pE_part);
+    /* Only consider high-pT photons */
+    if( pt < ptMin )
+      continue;
+
+    /* Fill itwr_part[] and sec_part[]
+     * and set NPart */
+    geom_sim(v3_part);
 
     /* Test if particle is in fiducial */
     if( !InFiducial(itw_part[0]) )
       continue;
 
-    double econe_all = SumETruth(part, false);
-    double econe_acc = SumETruth(part, true);
-    double fill_hn_isoprompt[] = {pE_part.Pt(), Vpart[0].Pt(), (double)sec_part[0], 0.};
-    if( econe_all < eratio * pE_part.E() )
+    double econe_all, econe_acc;
+    SumETruth(part, econe_all, econe_acc);
+    double fill_hn_isoprompt[] = {pt, (double)sec_part[0], 0.};
+    if( econe_all < eratio * energy )
     {
-      fill_hn_isoprompt[3] = 0.;
+      fill_hn_isoprompt[2] = 0.;
       hn_isoprompt->Fill(fill_hn_isoprompt);
     }
-    if( econe_acc < eratio * pE_part.E() )
+    if( econe_acc < eratio * energy )
     {
-      fill_hn_isoprompt[3] = 1.;
+      fill_hn_isoprompt[2] = 1.;
       hn_isoprompt->Fill(fill_hn_isoprompt);
     }
   }
@@ -442,54 +444,60 @@ int AnaFastMC::End(PHCompositeNode *topNode)
   return EVENT_OK;
 }
 
-double AnaFastMC::SumETruth(const TMCParticle *pref, bool InAcc)
+void AnaFastMC::SumETruth(const TMCParticle *pref, double &econe_all, double &econe_acc)
 {
   /* Sum up all energy in cone around particle */
-  double econe = 0;
+  econe_all = 0.;
+  econe_acc = 0.;
 
   /* Get reference vector */
   TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
-  if( v3_pref.Pt() < 0.01 ) return econe;
+  if( v3_pref.Pt() < 0.01 ) return;
   TVector2 v2_pref = v3_pref.EtaPhiVector();
 
-  int npart = phpythia->size();
-  for(int ipart2=0; ipart2<npart; ipart2++)
+  /* Loop over all signal and background particles */
+  PHPythiaContainer *phpythiacont[2] = {phpythia, phpythia_bg};
+  for(int icont=0; icont<2; icont++)
   {
-    TMCParticle *part2 = phpythia->getParticle(ipart2);
-
-    /* Only consider stable particles, skip if pointer identical to 'reference' particle */
-    if( part2 == pref || part2->GetKS() != 1 )
-      continue;
-
-    /* Get particle vector */
-    double px = part2->GetPx();
-    double py = part2->GetPy();
-    double pz = part2->GetPz();
-    double energy = part2->GetEnergy();
-    TLorentzVector pE_part2(px,py,pz,energy);
-
-    if( pE_part2.Pt() < 0.01 ) continue;
-    TVector2 v2_part2 = pE_part2.EtaPhiVector();
-
-    /* Require particle in acceptance and not on hot towers */
-    if(InAcc)
+    int npart = phpythiacont[icont]->size();
+    for(int ipart2=0; ipart2<npart; ipart2++)
     {
-      /* Fill Vpart[], itwr_part[] and sec_part[]
-       * and set NPart and NPeak */
-      photon_sim(pE_part2);
+      TMCParticle *part2 = phpythiacont[icont]->getParticle(ipart2);
 
-      /* Test if particle is in acceptance and not on hot tower
-       * and passes energy threshold */
-      if( NPart == 0 || IsHotTower(itw_part[0]) || energy < eClusMin )
+      /* Only consider stable particles in signal sample
+       * skip if pointer identical to 'reference' particle */
+      if( ( icont == 0 && part2 == pref ) ||
+          part2->GetKS() != 1 )
         continue;
-    }
 
-    /* Check if particle within cone */
-    if( (v2_part2-v2_pref).Mod() < cone_angle )
-      econe += energy;
-  }
+      /* Get particle vector */
+      TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
+      double energy = part2->GetEnergy();
 
-  return econe;
+      if( v3_part2.Pt() < 0.01 ) continue;
+      TVector2 v2_part2 = v3_part2.EtaPhiVector();
+
+      /* Check if particle within cone */
+      if( (v2_part2-v2_pref).Mod() < cone_angle )
+      {
+        econe_all += energy;
+
+        /* Test if particle passes energy threshold */
+        if( energy > eClusMin )
+        {
+          /* Fill itwr_part[] and sec_part[]
+           * and set NPart */
+          geom_sim(v3_part2);
+
+          /* Test if particle is in acceptance and not on hot tower */
+          if( NPart == 1 && !IsHotTower(itw_part[0]) )
+            econe_acc += energy;
+        } // eClusMin
+      } // cone_angle
+    } // ipart2
+  } // icont
+
+  return;
 }
 
 void AnaFastMC::BookHistograms()
@@ -561,9 +569,9 @@ void AnaFastMC::BookHistograms()
   h3_isoeta->SetTitle("Self veto for #eta");
   hm->registerHisto(h3_isoeta);
 
-  int nbins_hn_pion[] = {npT, npT, 300, 8, 3};
-  double xmin_hn_pion[] = {0., 0., 0., -0.5, -0.5};
-  double xmax_hn_pion[] = {0., 0., 0.3, 7.5, 2.5};
+  const int nbins_hn_pion[] = {npT, npT, 300, 8, 3};
+  const double xmin_hn_pion[] = {0., 0., 0., -0.5, -0.5};
+  const double xmax_hn_pion[] = {0., 0., 0.3, 7.5, 2.5};
   hn_pion = new THnSparseF("hn_pion", "EMCal pion count;p_{T} truth [GeV];p_{T} reco [GeV];m_{inv} [GeV];sector;NPeak;",
       5, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
   hn_pion->SetBinEdges(0, pTbin);
@@ -571,9 +579,9 @@ void AnaFastMC::BookHistograms()
   hn_pion->Sumw2();
   hm->registerHisto(hn_pion);
 
-  int nbins_hn_missing[] = {npT, npT, 8, 3, 3};
-  double xmin_hn_missing[] = {0., 0., -0.5, -0.5, -0.5};
-  double xmax_hn_missing[] = {0., 0., 7.5, 2.5, 2.5};
+  const int nbins_hn_missing[] = {npT, npT, 8, 3, 3};
+  const double xmin_hn_missing[] = {0., 0., -0.5, -0.5, -0.5};
+  const double xmax_hn_missing[] = {0., 0., 7.5, 2.5, 2.5};
   hn_missing = new THnSparseF("hn_missing", "#pi^{0} missing ratio;p^{#pi^{0}}_{T} [GeV];p^{#gamma}_{T} [GeV];sector;NPart;NPeak;",
       5, nbins_hn_missing, xmin_hn_missing, xmax_hn_missing);
   hn_missing->SetBinEdges(0, pTbin);
@@ -581,9 +589,9 @@ void AnaFastMC::BookHistograms()
   hn_missing->Sumw2();
   hm->registerHisto(hn_missing);
 
-  int nbins_hn_photon[] = {npT, npT, 8};
-  double xmin_hn_photon[] = {0., 0., -0.5};
-  double xmax_hn_photon[] = {0., 0., 7.5};
+  const int nbins_hn_photon[] = {npT, npT, 8};
+  const double xmin_hn_photon[] = {0., 0., -0.5};
+  const double xmax_hn_photon[] = {0., 0., 7.5};
   hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;",
       3, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
   hn_photon->SetBinEdges(0, pTbin);
@@ -591,13 +599,12 @@ void AnaFastMC::BookHistograms()
   hn_photon->Sumw2();
   hm->registerHisto(hn_photon);
 
-  int nbins_hn_isoprompt[] = {npT, npT, 8, 2};
-  double xmin_hn_isoprompt[] = {0., 0., -0.5, -0.5};
-  double xmax_hn_isoprompt[] = {0., 0., 7.5, 1.5};
-  hn_isoprompt = new THnSparseF("hn_isoprompt", "Isolated prompt photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;IsoInAcc;",
-      4, nbins_hn_isoprompt, xmin_hn_isoprompt, xmax_hn_isoprompt);
+  const int nbins_hn_isoprompt[] = {npT, 8, 2};
+  const double xmin_hn_isoprompt[] = {0., -0.5, -0.5};
+  const double xmax_hn_isoprompt[] = {0., 7.5, 1.5};
+  hn_isoprompt = new THnSparseF("hn_isoprompt", "Isolated prompt photon count;p_{T} [GeV];sector;IsoInAcc;",
+      3, nbins_hn_isoprompt, xmin_hn_isoprompt, xmax_hn_isoprompt);
   hn_isoprompt->SetBinEdges(0, pTbin);
-  hn_isoprompt->SetBinEdges(1, pTbin);
   hm->registerHisto(hn_isoprompt);
 
   return;
@@ -722,9 +729,9 @@ void AnaFastMC::ReadSimWarnmap(const string &filename)
 }
 
 void AnaFastMC::pi0_sim(const TLorentzVector beam_pi0)
-  // returns false if one or two gammas out of acceptance
 {
   // Initialize parameters
+  ResetClusters();
   ResetTowerEnergy();
 
   // Decay to two photons
@@ -795,9 +802,9 @@ void AnaFastMC::pi0_sim(const TLorentzVector beam_pi0)
 }
 
 void AnaFastMC::photon_sim(const TLorentzVector beam_ph)
-  // returns false if this photon out of acceptance
 {
   // Initialize parameters
+  ResetClusters();
   ResetTowerEnergy();
 
   double e1 = beam_ph.E();
@@ -837,7 +844,35 @@ void AnaFastMC::photon_sim(const TLorentzVector beam_ph)
   return;
 }
 
-void AnaFastMC::ResetTowerEnergy()
+void AnaFastMC::geom_sim(const TVector3 beam)
+{
+  // Initialize parameters
+  ResetClusters();
+
+  double px = beam.Px();
+  double py = beam.Py();
+  double pz = beam.Pz();
+
+  int sec, iz0, iy0;
+  double zz, yy; // hit position in tower frame (in tower units)
+  double phi;
+  double ximp, yimp, zimp;
+
+  bool acc = GetImpactSectorTower(px,py,pz, sec,iz0,iy0,zz,yy,phi,ximp,yimp,zimp);
+  if( acc ) {
+    int itw = anatools::TowerID(sec, iy0, iz0);
+    if( itw >= 0 )
+    {
+      itw_part[NPart] = itw;
+      sec_part[NPart] = sec;
+      NPart++;
+    }
+  }
+
+  return;
+}
+
+void AnaFastMC::ResetClusters()
 {
   NPart = 0;
   NPeak = 0;
@@ -847,11 +882,16 @@ void AnaFastMC::ResetTowerEnergy()
     itw_part[i] = -1;
     sec_part[i] = -1;
   }
+  return;
+}
 
+void AnaFastMC::ResetTowerEnergy()
+{
   for( int is=0; is<NSEC; is++ )
     for( int iy=0; iy<NY; iy++ )
       for( int iz=0; iz<NZ; iz++ )
         eTwr[is][iy][iz] = 0.;
+  return;
 }
 
 void AnaFastMC::FillTowerEnergy( int sec, int iy, int iz, double e )
@@ -898,13 +938,6 @@ int AnaFastMC::GetNpeak()
   }
   NPeak = npeak;
   return npeak;
-}
-
-bool AnaFastMC::CheckWarnMap( int sec, int iy, int iz )
-{
-  if( sec<0 || sec>NSEC-1 || iy<0 || iy>NY-1 || iz<0 || iz>NZ-1 ) return false;
-  if( tower_status_sim[sec][iy][iz] != 0 ) return true;
-  return false;
 }
 
 bool AnaFastMC::CheckWarnMap( int itower )

@@ -41,7 +41,7 @@ class AnaFastMC: public SubsysReco
     void PythiaInput(PHCompositeNode *topNode);
     void FastMCInput();
 
-    double SumETruth(const TMCParticle *pref, bool InAcc);
+    void SumETruth(const TMCParticle *pref, double &econe_all, double &econe_acc);
 
     void BookHistograms();
     void ReadTowerStatus(const std::string &filename);
@@ -50,11 +50,12 @@ class AnaFastMC: public SubsysReco
 
     void pi0_sim(const TLorentzVector beam_pi0);
     void photon_sim(const TLorentzVector beam_ph);
+    void geom_sim(const TVector3 beam);
+    void ResetClusters();
     void ResetTowerEnergy();
     void FillTowerEnergy( int sec, int iy, int iz, double e );
     double GetETwr( int sec, int iy, int iz );
     int GetNpeak();
-    bool CheckWarnMap( int sec, int iy, int iz );
     bool CheckWarnMap( int itower );
     bool InFiducial( int itower );
     bool IsGoodTower( int itower );
@@ -95,8 +96,8 @@ class AnaFastMC: public SubsysReco
     int sec_part[MAXPEAK];
     double eTwr[NSEC][NY][NZ];
 
-    PHPythiaHeader *phpythiaheader;
     PHPythiaContainer *phpythia;
+    PHPythiaContainer *phpythia_bg;
 
     Fun4AllHistoManager *hm;
     TH1 *h_pion;
