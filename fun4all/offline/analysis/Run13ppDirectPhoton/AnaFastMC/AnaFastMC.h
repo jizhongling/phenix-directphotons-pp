@@ -59,7 +59,7 @@ class AnaFastMC: public SubsysReco
     bool CheckWarnMap( int itower );
     bool InFiducial( int itower );
     bool IsGoodTower( int itower );
-    bool IsHotTower( int itower );
+    bool IsBadTower( int itower );
     bool GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,  
         int& sec, int& iz, int& iy, double& zz, double& yy, 
         double& phi0, double& ximp, double& yimp, double& zimp );

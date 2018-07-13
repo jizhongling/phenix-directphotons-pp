@@ -1060,7 +1060,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
     /* Skip if pointer identical to 'reference' particle
      * or on bad towers or lower than energy threshold */
     if( clus2->id() == cluster->id() ||
-        IsHotTower(clus2) ||
+        IsBadTower(clus2) ||
         clus2->ecore() < eClusMin )
       continue;
 
@@ -1101,7 +1101,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
      * or on bad towers or lower than energy threshold */
     if( clus3->id() == cluster1->id() ||
         clus3->id() == cluster2->id() ||
-        IsHotTower(clus3) ||
+        IsBadTower(clus3) ||
         clus3->ecore() < eClusMin )
       continue;
 
@@ -1217,7 +1217,7 @@ bool PhotonHistos::IsGoodTower(const emcClusterContent *cluster)
     return false;
 }
 
-bool PhotonHistos::IsHotTower(const emcClusterContent *cluster)
+bool PhotonHistos::IsBadTower(const emcClusterContent *cluster)
 {
   int arm = cluster->arm();
   int rawsector = cluster->sector();
@@ -1225,7 +1225,7 @@ bool PhotonHistos::IsHotTower(const emcClusterContent *cluster)
   int iypos = cluster->iypos();
   int izpos = cluster->izpos();
 
-  if( tower_status_nils[sector][iypos][izpos] == 50 )
+  if( tower_status_nils[sector][iypos][izpos] >= 50 )
     return true;
   else
     return false;

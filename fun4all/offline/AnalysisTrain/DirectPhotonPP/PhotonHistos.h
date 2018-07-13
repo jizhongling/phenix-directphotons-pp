@@ -78,7 +78,7 @@ class PhotonHistos: public SubsysReco
     bool TestPhoton(const emcClusterContent *cluster, double bbc_t0);
     bool InFiducial(const emcClusterContent *cluster);
     bool IsGoodTower(const emcClusterContent *cluster);
-    bool IsHotTower(const emcClusterContent *cluster);
+    bool IsBadTower(const emcClusterContent *cluster);
 
     /* Get warnmap status and spin pattern */
     int GetPattern(int crossing);

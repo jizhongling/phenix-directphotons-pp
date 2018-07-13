@@ -491,7 +491,7 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, double &econe_all, double &ec
           geom_sim(v3_part2);
 
           /* Test if particle is in acceptance and not on hot tower */
-          if( NPart == 1 && !IsHotTower(itw_part[0]) )
+          if( NPart == 1 && !IsBadTower(itw_part[0]) )
             econe_acc += energy;
         } // eClusMin
       } // cone_angle
@@ -980,12 +980,12 @@ bool AnaFastMC::IsGoodTower( int itower )
   return false;
 }
 
-bool AnaFastMC::IsHotTower( int itower )
+bool AnaFastMC::IsBadTower( int itower )
 {
   if( itower < 0 || itower >= n_twrs ) return false;
   int sec, iy, iz;
   anatools::TowerLocation(itower, sec, iy, iz);
-  if( tower_status_nils[sec][iy][iz] == 50 )
+  if( tower_status_nils[sec][iy][iz] >= 50 )
     return true;
   return false;
 }
