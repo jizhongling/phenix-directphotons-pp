@@ -37,11 +37,8 @@ class AnaPHPythiaHistos: public SubsysReco
     // Some constants
     static const double PI = 3.1415927;
 
-    // ROOT databsae with PDG properties
-    TDatabasePDG* pdg_db;
-
-    PHPythiaHeader *phpythiaheader;
     PHPythiaContainer *phpythia;
+    PHPythiaContainer *phpythia_bg;
 
     std::string outFileName;
     Fun4AllHistoManager *hm;

@@ -1,4 +1,4 @@
-void anaFastMC_PH(const int process = 0)
+void anaPHPythiaHistos(const int process = 0)
 {
   //gSystem->Load("libfun4allfuncs.so");	// framework only
   gSystem->Load("libfun4all.so");	// framework + reco modules
@@ -7,7 +7,7 @@ void anaFastMC_PH(const int process = 0)
   gSystem->Load("libPHPyTrigger.so");		// For PHPyTrigger derived classes
   gSystem->Load("libPHPyParticleSelect.so");	// For PHPyParticleSelect derived classes
   gSystem->Load("libsimreco.so");	// framework + reco modules
-  gSystem->Load("libAnaFastMC.so");
+  gSystem->Load("libAnaPHPythiaDirectPhoton.so");
 
   recoConsts *rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER",0);
@@ -45,10 +45,7 @@ void anaFastMC_PH(const int process = 0)
   //se->registerSubsystem( pselect );
 
   // Reconstruction Modules
-  enum MCMethod {FastMC, PHParticleGen};
-  AnaFastMC *my1 = new AnaFastMC("AnaFastMC");
-  my1->set_outfile( Form("../AnaFastMC-PH-histo%d.root",process) );
-  my1->set_mcmethod(PHParticleGen);
+  SubsysReco *my1 = new AnaPHPythiaHistos("AnaPHPythiaHistos", Form("histo%d.root",process));
   se->registerSubsystem(my1);
 
   // Real input from DST files

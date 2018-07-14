@@ -11,6 +11,12 @@ void draw_CrossSection_IsoPhoton()
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
 
+  // function for pT weight for direct photon
+  cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]*[4]", 0, 30);
+  cross_ph->SetParameters(255., 5.98, 0.273, 14.43, 1.);
+  double ndata = 0.;
+  double nfit = 0.;
+
   TGraphErrors *gr[4];  // PbScW, PbScE, PbGl, Combined
   int igp[4] = {};
   for(int part=0; part<4; part++)
@@ -99,6 +105,7 @@ void draw_CrossSection_IsoPhoton()
   const double eA = 0.04;
 
   double xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
+  double xIsoAcc[3][npT] = {}, IsoAcc[3][npT] = {}, eIsoAcc[3][npT] = {};
   double xTrigERT[3][npT] = {}, TrigERT[3][npT] = {}, eTrigERT[3][npT] = {};
   double xVeto[3][npT] = {}, Veto[3][npT] = {}, eVeto[3][npT] = {};
   double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
@@ -124,6 +131,7 @@ void draw_CrossSection_IsoPhoton()
   for(int part=0; part<3; part++)
   {
     ReadGraph<TGraphAsymmErrors>("data/Acceptance-photon.root", part, xAcc[part], Acc[part], eAcc[part]);
+    ReadGraph<TGraphAsymmErrors>("data/IsoAll2IsoAcc.root", part, xIsoAcc[part], IsoAcc[part], eIsoAcc[part]);
     ReadGraph<TGraphAsymmErrors>("data/ERTEff-photon.root", part/2, xTrigERT[part], TrigERT[part], eTrigERT[part]);
     ReadGraph<TGraphAsymmErrors>("data/SelfVeto.root", part, xVeto[part], Veto[part], eVeto[part]);
     ReadGraph<TGraphErrors>("data/MissingRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
@@ -179,6 +187,7 @@ void draw_CrossSection_IsoPhoton()
 
       xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
       int ipAcc = Get_ipt(xAcc[part], xx);
+      int ipIsoAcc = Get_ipt(xIsoAcc[part], xx);
       int ipTrigERT = Get_ipt(xTrigERT[part], xx);
       int ipVeto = Get_ipt(xVeto[part], xx);
       int ipMiss = Get_ipt(xMiss[part], xx);
@@ -210,10 +219,11 @@ void draw_CrossSection_IsoPhoton()
         endir *= Norm[part] * (1+eNorm[part]);
       }
       yy[part] = (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
-        * ndir / Acc[part][ipAcc] / TrigERT[part][ipTrigERT] / Prob[part/2][ipt]
+        * ndir / Acc[part][ipAcc] * IsoAcc[part][ipIsoAcc] / TrigERT[part][ipTrigERT] / Prob[part/2][ipt]
         / ToF[part] / Conv[part] / TrigBBC * Pile[part];
       eyy[part] = yy[part] * sqrt( pow(endir/ndir,2.)
           + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2.)
+          + pow(eIsoAcc[part][ipIsoAcc]/IsoAcc[part][ipIsoAcc],2.)
           + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2.)
           + pow(eProb/Prob[part/2][ipt],2.)
           + pow(eToF[part]/ToF[part],2.) + pow(eConv[part]/Conv[part],2.)
@@ -235,7 +245,13 @@ void draw_CrossSection_IsoPhoton()
       gr[3]->SetPointError(igp[3], 0., eybar);
       igp[3]++;
     }
+    if( ipt >= 12 )
+    {
+      ndata += ybar;
+      nfit += cross_ph->Eval(xx);
+    }
   } // ipt
+  cross_ph->SetParameter(4, ndata/nfit);
 
   mc(6, 2,1);
   legi(0, 0.4,0.7,0.7,0.9);
@@ -248,7 +264,10 @@ void draw_CrossSection_IsoPhoton()
     aset(gr[part], "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 6.,30., 1e-1, 1e4);
     style(gr[part], part+20, part+1);
     if(part%3==0)
+    {
       gr[part]->Draw("AP");
+      cross_ph->DrawCopy("LSAME");
+    }
     else
       gr[part]->Draw("P");
     if(part<3)

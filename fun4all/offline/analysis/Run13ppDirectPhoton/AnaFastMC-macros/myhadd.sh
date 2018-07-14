@@ -15,7 +15,7 @@ count=0
 for FILE in ${prename}*.root ; do
     files="${files} ${FILE}"
     (( ++count ))
-    if (( "${count}" >= "50" )) ; then
+    if (( "${count}" >= "100" )) ; then
         if [[ -f "total.root" ]] ; then
     	    hadd tmp.root total.root ${files}
         else

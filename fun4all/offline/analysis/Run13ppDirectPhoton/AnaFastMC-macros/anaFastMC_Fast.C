@@ -13,7 +13,7 @@ void anaFastMC_Fast(const int process = 0)
   se->Verbosity(0);
 
   // Reconstruction Modules
-  enum MCMethod {PHParticleGen, FastMC};
+  enum MCMethod {FastMC, PHParticleGen};
   AnaFastMC *my1 = new AnaFastMC("AnaFastMC");
   my1->set_outfile( Form("histos/AnaFastMC-Fast-histo%d.root",process) );
   my1->set_mcmethod(FastMC);

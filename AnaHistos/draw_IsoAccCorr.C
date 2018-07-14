@@ -1,11 +1,9 @@
-#include "DivideFunctions.h"
-
 void draw_IsoAccCorr()
 {
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
 
-  TGraphErrors *gr[3];
+  TGraphAsymmErrors *gr[3];
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo.root");
   THnSparse *hn_isoprompt = (THnSparse*)f->Get("hn_isoprompt");
@@ -21,9 +19,9 @@ void draw_IsoAccCorr()
     hn_isoprompt->GetAxis(2)->SetRange(2,2);
     TH1 *h_isoacc = hn_isoprompt->Projection(0);
 
-    gr[part] = DivideHisto(h_isoall, h_isoacc);
+    gr[part] = new TGraphAsymmErrors(h_isoall, h_isoacc);
     gr[part]->SetNameTitle(Form("gr_%d",part), "IsoAll/IsoAcc");
-    aset(gr[part], "p_{T} [GeV]","IsoAll/IsoAcc", 5.,30., 0.,1.1);
+    aset(gr[part], "p_{T} [GeV]","IsoAll/IsoAcc", 5.,30., 0.8,1.);
     style(gr[part], 20+part, 1+part);
     if(part==0)
       gr[part]->Draw("AP");
