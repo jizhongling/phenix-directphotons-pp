@@ -135,83 +135,15 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
 
 int AnaFastMC::process_event(PHCompositeNode *topNode)
 {
-  /* Use PHParticleGen input */
-  if( mcmethod == PHParticleGen )
-    PythiaInput(topNode);
-
-  /* OR: Use FastMC input (i.e. random number generator for pi0, eta and direct photon eta, phi, pt) */
-  else if( mcmethod == FastMC )
+  /* Use FastMC input (i.e. random number generator for pi0, eta and direct photon eta, phi, pt) */
+  if( mcmethod == FastMC )
     FastMCInput();
 
+  /* Use PHParticleGen input */
+  else if( mcmethod == PHParticleGen )
+    PythiaInput(topNode);
+
   return EVENT_OK;
-}
-
-void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
-{
-  /* Get PYTHIA Signal Particles */
-  phpythia = findNode::getClass<PHPythiaContainer>(topNode,"PHPythia");
-  if(!phpythia)
-  {
-    cout << PHWHERE << "Unable to get PHPythia, is Node missing?" << endl;
-    return;
-  }
-
-  /* Get PYTHIA Background Particles */
-  phpythia_bg = findNode::getClass<PHPythiaContainer>(topNode,"PHPythiaPyBg");
-  if(!phpythia_bg)
-  {
-    cout << PHWHERE << "Unable to get PHPythiaPyBg, is Node missing?" << endl;
-    return;
-  }
-
-  /* Loop over all signal particles */
-  int npart = phpythia->size();
-  for(int ipart=0; ipart<npart; ipart++)
-  {
-    TMCParticle *part = phpythia->getParticle(ipart);
-    TMCParticle *parent = phpythia->getParent(part);
-
-    /* Test if particle is a stable prompt photon
-     * and passes energy threshold */
-    if( part->GetKF() != 22 ||
-        part->GetKS() != 1 ||
-        part->GetEnergy() < eMin ||
-        ( parent && abs(parent->GetKF()) > 100 ) )
-      continue;
-
-    /* Convert particle into TVector3 */
-    TVector3 v3_part(part->GetPx(), part->GetPy(), part->GetPz());
-    double pt = v3_part.Pt();
-    double energy = part->GetEnergy();
-
-    /* Only consider high-pT photons */
-    if( pt < ptMin )
-      continue;
-
-    /* Fill itwr_part[] and sec_part[]
-     * and set NPart */
-    geom_sim(v3_part);
-
-    /* Test if particle is in fiducial */
-    if( !InFiducial(itw_part[0]) )
-      continue;
-
-    double econe_all, econe_acc;
-    SumETruth(part, econe_all, econe_acc);
-    double fill_hn_isoprompt[] = {pt, (double)sec_part[0], 0.};
-    if( econe_all < eratio * energy )
-    {
-      fill_hn_isoprompt[2] = 0.;
-      hn_isoprompt->Fill(fill_hn_isoprompt);
-    }
-    if( econe_acc < eratio * energy )
-    {
-      fill_hn_isoprompt[2] = 1.;
-      hn_isoprompt->Fill(fill_hn_isoprompt);
-    }
-  }
-
-  return;
 }
 
 void AnaFastMC::FastMCInput()
@@ -436,6 +368,74 @@ void AnaFastMC::FastMCInput()
   return;
 }
 
+void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
+{
+  /* Get PYTHIA Signal Particles */
+  phpythia = findNode::getClass<PHPythiaContainer>(topNode,"PHPythia");
+  if(!phpythia)
+  {
+    cout << PHWHERE << "Unable to get PHPythia, is Node missing?" << endl;
+    return;
+  }
+
+  /* Get PYTHIA Background Particles */
+  phpythia_bg = findNode::getClass<PHPythiaContainer>(topNode,"PHPythiaBG");
+  if(!phpythia_bg)
+  {
+    cout << PHWHERE << "Unable to get PHPythiaBG, is Node missing?" << endl;
+    return;
+  }
+
+  /* Loop over all signal particles */
+  int npart = phpythia->size();
+  for(int ipart=0; ipart<npart; ipart++)
+  {
+    TMCParticle *part = phpythia->getParticle(ipart);
+    TMCParticle *parent = phpythia->getParent(part);
+
+    /* Test if particle is a stable prompt photon
+     * and passes energy threshold */
+    if( part->GetKF() != 22 ||
+        part->GetKS() != 1 ||
+        part->GetEnergy() < eMin ||
+        ( parent && abs(parent->GetKF()) > 100 ) )
+      continue;
+
+    /* Convert particle into TVector3 */
+    TVector3 v3_part(part->GetPx(), part->GetPy(), part->GetPz());
+    double pt = v3_part.Pt();
+    double energy = part->GetEnergy();
+
+    /* Only consider high-pT photons */
+    if( pt < ptMin )
+      continue;
+
+    /* Fill itwr_part[] and sec_part[]
+     * and set NPart */
+    geom_sim(v3_part);
+
+    /* Test if particle is in fiducial */
+    if( !InFiducial(itw_part[0]) )
+      continue;
+
+    double econe_all, econe_acc;
+    SumETruth(part, econe_all, econe_acc);
+    double fill_hn_isoprompt[] = {pt, (double)sec_part[0], 0.};
+    if( econe_all < eratio * energy )
+    {
+      fill_hn_isoprompt[2] = 0.;
+      hn_isoprompt->Fill(fill_hn_isoprompt);
+    }
+    if( econe_acc < eratio * energy )
+    {
+      fill_hn_isoprompt[2] = 1.;
+      hn_isoprompt->Fill(fill_hn_isoprompt);
+    }
+  }
+
+  return;
+}
+
 int AnaFastMC::End(PHCompositeNode *topNode)
 {
   /* Write histogram output to ROOT file */
@@ -465,7 +465,7 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, double &econe_all, double &ec
     {
       TMCParticle *part2 = phpythiacont[icont]->getParticle(ipart2);
 
-      /* Only consider stable particles in signal sample
+      /* Only consider stable signal and background particles
        * skip if pointer identical to 'reference' particle */
       if( ( icont == 0 && part2 == pref ) ||
           part2->GetKS() != 1 )
@@ -543,20 +543,8 @@ void AnaFastMC::BookHistograms()
   phibin[iphi++] = PI*19/16 + 0.02;
   sort(phibin, phibin+nphi);
 
-  /* Use PHParticleGen input */
-  if( mcmethod == PHParticleGen )
-  {
-    const int nbins_hn_isoprompt[] = {npT, 8, 2};
-    const double xmin_hn_isoprompt[] = {0., -0.5, -0.5};
-    const double xmax_hn_isoprompt[] = {0., 7.5, 1.5};
-    hn_isoprompt = new THnSparseF("hn_isoprompt", "Isolated prompt photon count;p_{T} [GeV];sector;IsoInAcc;",
-        3, nbins_hn_isoprompt, xmin_hn_isoprompt, xmax_hn_isoprompt);
-    hn_isoprompt->SetBinEdges(0, pTbin);
-    hm->registerHisto(hn_isoprompt);
-  }
-
   /* Use FastMC input */
-  else if( mcmethod == FastMC )
+  if( mcmethod == FastMC )
   {
     h_pion = new TH1F("h_pion", "Total pion count;p_{T} [GeV];", npT, pTbin);
     h_pion->Sumw2();
@@ -614,6 +602,18 @@ void AnaFastMC::BookHistograms()
     hn_photon->SetBinEdges(1, pTbin);
     hn_photon->Sumw2();
     hm->registerHisto(hn_photon);
+  }
+
+  /* Use PHParticleGen input */
+  else if( mcmethod == PHParticleGen )
+  {
+    const int nbins_hn_isoprompt[] = {npT, 8, 2};
+    const double xmin_hn_isoprompt[] = {0., -0.5, -0.5};
+    const double xmax_hn_isoprompt[] = {0., 7.5, 1.5};
+    hn_isoprompt = new THnSparseF("hn_isoprompt", "Isolated prompt photon count;p_{T} [GeV];sector;IsoInAcc;",
+        3, nbins_hn_isoprompt, xmin_hn_isoprompt, xmax_hn_isoprompt);
+    hn_isoprompt->SetBinEdges(0, pTbin);
+    hm->registerHisto(hn_isoprompt);
   }
 
   return;
@@ -870,8 +870,7 @@ void AnaFastMC::geom_sim(const TVector3 beam)
   bool acc = GetImpactSectorTower(px,py,pz, sec,iz0,iy0,zz,yy,phi,ximp,yimp,zimp);
   if( acc ) {
     int itw = anatools::TowerID(sec, iy0, iz0);
-    if( itw >= 0 )
-    {
+    if( itw >= 0 ) {
       itw_part[NPart] = itw;
       sec_part[NPart] = sec;
       NPart++;

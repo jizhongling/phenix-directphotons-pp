@@ -21,7 +21,7 @@ void draw_Acceptance_Photon()
   for(int part=0; part<3; part++)
   {
     hn_photon->GetAxis(2)->SetRange(secl[part],sech[part]);
-    TH1 *h_pass = hn_photon->Projection(0);
+    TH1 *h_pass = hn_photon->Projection(1);
     gr[part]->Divide(h_pass, h_total, "n");
     delete h_pass;
   }

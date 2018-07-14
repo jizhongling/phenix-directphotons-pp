@@ -21,7 +21,7 @@ class TH3;
 class THnSparse;
 class TF1;
 
-enum MCMethod {PHParticleGen, FastMC};
+enum MCMethod {FastMC, PHParticleGen};
 
 class AnaFastMC: public SubsysReco
 {
@@ -38,9 +38,8 @@ class AnaFastMC: public SubsysReco
     void set_mcmethod(MCMethod method) { mcmethod = method; }
 
   protected:
-    void PythiaInput(PHCompositeNode *topNode);
     void FastMCInput();
-
+    void PythiaInput(PHCompositeNode *topNode);
     void SumETruth(const TMCParticle *pref, double &econe_all, double &econe_acc);
 
     void BookHistograms();

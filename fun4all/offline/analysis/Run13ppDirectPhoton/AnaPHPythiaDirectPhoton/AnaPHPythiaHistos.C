@@ -38,11 +38,8 @@ using namespace std;
 
 AnaPHPythiaHistos::AnaPHPythiaHistos(const string &name, const char *filename): SubsysReco(name)
 {
-  phpythia = 0;		// array of pythia particles
-  phpythiaheader = 0;	// pythia header
-
-  // Get PDGDatabase object
-  pdg_db = new TDatabasePDG();
+  phpythia = 0;		// array of signal pythia particles
+  phpythia_bg = 0;	// array of background pythia particles
 
   // Construct output file names
   outFileName = "histos/AnaPHPythiaHistos-";
@@ -72,7 +69,6 @@ int AnaPHPythiaHistos::End(PHCompositeNode *topNode)
   // Write histogram output to ROOT file
   hm->dumpHistos();
   delete hm;
-  delete pdg_db;
 
   return EVENT_OK;
 }
@@ -80,23 +76,23 @@ int AnaPHPythiaHistos::End(PHCompositeNode *topNode)
 // Process each event
 int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
 {
-  // Get PYTHIA Header
-  phpythiaheader = findNode::getClass<PHPythiaHeader>(topNode,"PHPythiaHeader");
-  if (!phpythiaheader)
-  {
-    cout << PHWHERE << "Unable to get PHPythiaHeader, is Node missing?" << endl;
-    return ABORTEVENT;
-  }
-
-  // Get PYTHIA Particles
+  /* Get PYTHIA Signal Particles */
   phpythia = findNode::getClass<PHPythiaContainer>(topNode,"PHPythia");
-  if (!phpythia)
+  if(!phpythia)
   {
     cout << PHWHERE << "Unable to get PHPythia, is Node missing?" << endl;
     return ABORTEVENT;
   }
 
-  // Loop over all particles & Fill output histograms
+  /* Get PYTHIA Background Particles */
+  phpythia_bg = findNode::getClass<PHPythiaContainer>(topNode,"PHPythiaBG");
+  if(!phpythia_bg)
+  {
+    cout << PHWHERE << "Unable to get PHPythiaBG, is Node missing?" << endl;
+    return ABORTEVENT;
+  }
+
+  /* Loop over all signal particles */
   int npart = phpythia->size();
   for (int ipart=0; ipart<npart; ipart++)
   {
@@ -191,41 +187,47 @@ void AnaPHPythiaHistos::BookHistograms()
 
 double AnaPHPythiaHistos::SumETruth(const TMCParticle *pref, double rcone)
 {
-  // Sum up all energy in cone around particle
+  /* Sum up all energy in cone around particle */
   double econe = 0;
 
-  // Get reference vector
+  /* Get reference vector */
   TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
   if( v3_pref.Pt() < 0.01 ) return econe;
   TVector2 v2_pref = v3_pref.EtaPhiVector();
 
-  int npart = phpythia->size();
-
-  for(int ipart2=0; ipart2<npart; ipart2++)
+  /* Loop over all signal and background particles */
+  PHPythiaContainer *phpythiacont[2] = {phpythia, phpythia_bg};
+  for(int icont=0; icont<2; icont++)
   {
-    TMCParticle *part2 = phpythia->getParticle(ipart2);
+    int npart = phpythiacont[icont]->size();
+    for(int ipart2=0; ipart2<npart; ipart2++)
+    {
+      TMCParticle *part2 = phpythiacont[icont]->getParticle(ipart2);
 
-    // Only consider stable particles, skip if pointer identical to 'reference' particle
-    if( part2 == pref || part2->GetKS() != 1 )
-      continue;
+      /* Only consider stable signal and background particles
+       * skip if pointer identical to 'reference' particle */
+      if( ( icont == 0 && part2 == pref ) ||
+          part2->GetKS() != 1 )
+        continue;
 
-    // Get particle vector
-    TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
-    if( v3_part2.Pt() < 0.01 ) continue;
-    TVector2 v2_part2 = v3_part2.EtaPhiVector();
+      /* Get particle vector */
+      TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
+      if( v3_part2.Pt() < 0.01 ) continue;
+      TVector2 v2_part2 = v3_part2.EtaPhiVector();
 
-    // Test if particle is in Central Arm acceptance
-    // and passes energy threshold
-    if( part2->GetEnergy() < 0.15 ||
-        abs(v2_part2.X()) > 0.35 ||
-        (abs(v2_part2.Y()) > PI/4. &&
-         abs(v2_part2.Y()) < PI*3./4.) )
-      continue;
+      /* Test if particle is in Central Arm acceptance
+       * and passes energy threshold */
+      if( part2->GetEnergy() < 0.15 ||
+          abs(v2_part2.X()) > 0.35 ||
+          (abs(v2_part2.Y()) > PI/4. &&
+           abs(v2_part2.Y()) < PI*3./4.) )
+        continue;
 
-    // Check if particle within cone
-    if( (v2_part2-v2_pref).Mod() < rcone )
-      econe += part2->GetEnergy();
-  }
+      /* Check if particle within cone */
+      if( (v2_part2-v2_pref).Mod() < rcone )
+        econe += part2->GetEnergy();
+    } // ipart2
+  } // icont
 
   return econe;
 }
@@ -234,18 +236,26 @@ void AnaPHPythiaHistos::FillCorrelation(const TMCParticle *pref, int type)
 {
   TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
 
-  int npart = phpythia->size();
-  for (int ipart2=0; ipart2<npart; ipart2++)
+  /* Loop over all signal and background particles */
+  PHPythiaContainer *phpythiacont[2] = {phpythia, phpythia_bg};
+  for(int icont=0; icont<2; icont++)
   {
-    TMCParticle *part2 = phpythia->getParticle(ipart2);
-
-    // Only consider stable particles, skip if pointer identical to 'reference' particle
-    if( part2 != pref && part2->GetKS() == 1 )
+    int npart = phpythiacont[icont]->size();
+    for(int ipart2=0; ipart2<npart; ipart2++)
     {
+      TMCParticle *part2 = phpythiacont[icont]->getParticle(ipart2);
+
+      /* Only consider stable signal and background particles
+       * skip if pointer identical to 'reference' particle */
+      if( ( icont == 0 && part2 == pref ) ||
+          part2->GetKS() != 1 )
+        continue;
+
+      /* Get particle vector */
       TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
 
-      // Test if particle is in Central Arm acceptance
-      // and passes energy threshold
+      /* Test if particle is in Central Arm acceptance
+       * and passes energy threshold */
       if( part2->GetEnergy() < 0.3 ||
           v3_part2.Pt() < 0.01 ||
           abs(v3_part2.Eta()) > 0.35 ||
