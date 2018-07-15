@@ -1,20 +1,11 @@
 void anaMissingRatio(const int process = 0)
 {
-  // Set up Fun4All libraries
-  gSystem->Load("libfun4all.so");
-  gSystem->Load("libfun4allfuncs.so");
+  gSystem->Load("libfun4all.so");	// framework + reco modules
   gSystem->Load("librecal.so");
-  gSystem->Load("libcteval.so");
-  gSystem->Load("libcompactCNT.so");
-  gSystem->Load("libemc.so");
   gSystem->Load("libemcEmbed4all.so");
   gSystem->Load("libMissingRatio.so");
 
   const int nThread = 20;
-  char dstFileName[1000];
-
-  Fun4AllServer *se = Fun4AllServer::instance();
-  se->Verbosity(0);
 
   // Setup recoConsts
   recoConsts *rc = recoConsts::instance();
@@ -22,11 +13,16 @@ void anaMissingRatio(const int process = 0)
   rc->set_IntFlag("EMCNEW_DEBUG", 0);  // set debugging verbosity level
   rc->set_IntFlag("EMCNEW_PI0VERBOUT", 2);  // 2 - write only clean pi->2g cases
 
-  // Register the master recal
+  // Server
+  Fun4AllServer *se = Fun4AllServer::instance();
+  se->Verbosity(0);
+
+  // Register Master Recalibrator
   MasterRecalibratorManager *mr = new MasterRecalibratorManager("MASTERRECALIBRATORMANAGER");
   se->registerSubsystem(mr);
 
   // Import simulated data
+  //se->registerSubsystem( new EmcGeaContainerImporter() );
   SubsysRecoStack *simimp = new EmcGeaContainerImporter();
   simimp->x_push_back( new EmcUnclusterizer() );
   EmcTowerScalerSmearer *emcsm = new EmcTowerScalerSmearer(1., 0.);
@@ -35,23 +31,23 @@ void anaMissingRatio(const int process = 0)
   simimp->x_push_back(emcsm);
   se->registerSubsystem(simimp);
 
-  // Clusterize data
+  // Reclusterize data
   se->registerSubsystem( new EmcEmbedReclusterizer("TOP", "TOP", "TOP", "") );
 
-  // Reconstruction Module
-  //se->registerSubsystem( new EmcGeaContainerImporter() );
+  // My Reconstruction Module
   //SubsysReco *my1 = new MissingRatio("MissingRatio", Form("histo%d.root",process));
   //SubsysReco *my1 = new PhotonEff("PhotonEff", Form("histo%d.root",process));
   SubsysReco *my1 = new Isolation("Isolation", Form("histo%d.root",process));
   se->registerSubsystem(my1);
 
-  // Input Manager
+  // Real input from DST files
   Fun4AllInputManager *in1 = new Fun4AllDstInputManager("DSTin1", "DST");
   se->registerInputManager(in1);
 
   // Loop over input DST files
   for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
   {
+    char dstFileName[1000];
     sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST-phpythia/simDST%d.root", thread);
 
     cout << "\nfileopen for " << dstFileName << endl; 
@@ -71,6 +67,6 @@ void anaMissingRatio(const int process = 0)
       cout << "\nAbnormal return: closeReturn from Fun4All fileclose = " << closeReturn << endl;
   }
 
-  // Write out the histogram file
+  // Write histograms
   se->End();
 }

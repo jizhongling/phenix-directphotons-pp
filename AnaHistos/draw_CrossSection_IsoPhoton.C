@@ -91,7 +91,8 @@ void draw_CrossSection_IsoPhoton()
   const double NBBC =  3.54e11;  // from rejection power
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
-  const double Pile[3] = {0.891, 0.891, 0.878};
+  //const double Pile[3] = {0.891, 0.891, 0.878};
+  const double Pile[3] = {0.905, 0.905, 0.865};
   const double ePile = 0.01;
   const double TrigBBC = 0.91;
   const double eTrigBBC = 0.01;
@@ -208,8 +209,8 @@ void draw_CrossSection_IsoPhoton()
         ipTrigERT = 0;
       double aMissPass = aMiss + aMerge * aBadPass;
       double eaMissPass = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2.) + pow(aMerge*eaBadPass,2.) );
-      double aMissAll = aMiss + aMerge;
-      double eaMissAll = sqrt( eaMiss*eaMiss + eaMerge*eaMerge );
+      double aMissAll = aMiss + aMerge * 2.;
+      double eaMissAll = sqrt( eaMiss*eaMiss + eaMerge*eaMerge*4. );
       double ndir = nphoton - ( nisoboth + aMissPass * nisopair ) - A * Veto[part][ipVeto] * ( 1. + aMissAll ) * nisopair;
       double endir = sqrt( nphoton + enisoboth*enisoboth + pow(eaMissPass*nisopair,2.) + pow(aMissPass*enisopair,2.) );
       if( endir != endir ) endir = sqrt( nphoton + enisoboth*enisoboth );

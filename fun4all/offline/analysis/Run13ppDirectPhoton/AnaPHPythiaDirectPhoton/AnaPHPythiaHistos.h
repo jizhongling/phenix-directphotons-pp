@@ -5,11 +5,11 @@
 #include <SubsysReco.h>
 
 class PHCompositeNode;
-class PHPythiaHeader;
 class PHPythiaContainer;
 class Fun4AllHistoManager;
+class TMCParticle;
+class TVector3;
 
-class TDatabasePDG;
 class TH1;
 class THnSparse;
 
@@ -19,28 +19,27 @@ class AnaPHPythiaHistos: public SubsysReco
     AnaPHPythiaHistos(const std::string &name = "AnaPHPythiaHistos", const char *filename = "histo.root");
     virtual ~AnaPHPythiaHistos();
 
-    // Methods Derived from SubsysReco
     int Init(PHCompositeNode *topNode);
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
 
   protected:
-    // Sum up truth energy within cone of fixed opening
-    // angle rcone around particle with vector vref
+    /* Sum up truth energy within cone of fixed opening
+     * angle rcone around particle with vector vref */
     double SumETruth(const TMCParticle* pref, double rcone);
 
-    // Fill two-particle correlation histogram
+    /* Fill two-particle correlation histogram */
     void FillCorrelation(const TMCParticle *pref, int type);
+
+    /* Test if particle is in Central Arm acceptance */
+    bool InAcceptance(const TVector3 &v3_part);
 
     void BookHistograms();
 
-    // Some constants
-    static const double PI = 3.1415927;
+    std::string outFileName;
 
     PHPythiaContainer *phpythia;
-    PHPythiaContainer *phpythia_bg;
 
-    std::string outFileName;
     Fun4AllHistoManager *hm;
     THnSparse *hn_photon;
     THnSparse *hn_corr;

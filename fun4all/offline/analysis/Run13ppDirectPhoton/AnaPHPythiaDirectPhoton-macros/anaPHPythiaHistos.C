@@ -1,4 +1,10 @@
-void anaPHPythiaHistos(const int process = 0)
+//#include <libgen.h>
+
+void anaPHPythiaHistos(
+  const int nevents = 1000, 
+  const char *outputname = "phpythia.root",
+  const char *oscar_outputname = "oscar.txt"
+  )
 {
   //gSystem->Load("libfun4allfuncs.so");	// framework only
   gSystem->Load("libfun4all.so");	// framework + reco modules
@@ -19,16 +25,15 @@ void anaPHPythiaHistos(const int process = 0)
 
   /////////////////////////////////////////////////////////////////
   //  Reconstruction Modules...
-
+  
   SubsysReco *sync = new SyncSimreco();
   se->registerSubsystem(sync);
 
   PHPythia *phpythia = new PHPythia();
-  //phpythia->SetConfigFile("pythia_nodecay.cfg");
-
+  
   // Set your own seed, otherwise, seeds from /dev/random
   //phpythia->SetSeed(1999);			
-
+  
   se->registerSubsystem(phpythia);
 
   //** You can force the generated particles to use a vertex read from a file,
@@ -36,20 +41,20 @@ void anaPHPythiaHistos(const int process = 0)
   //** this is needed for instance when you want to have matching vertices between 
   //** different types of simulated files, prior to sending that to PISA
   // se->registerSubsystem( new PHPyVertexShift( "PHPyVertexShift", "./events.txt") );
-
+  
   //** You can use dedicated triggers, derived from the PHPyTrigger base class
-  // se->registerSubsystem( new PHPyGammaCentralArmTrigger(1.) );
+  // se->registerSubsystem( new PHPyJPsiMuonTrigger() );
 
   //** You can select only particular particles to write out
-  //PHPyParticleSelect *pselect = new PHPySelectStable();
+  //PHPyParticleSelect *pselect = new PHPyParticleSelect();
   //se->registerSubsystem( pselect );
 
-  // Reconstruction Modules
-  SubsysReco *my1 = new AnaPHPythiaHistos("AnaPHPythiaHistos", Form("histo%d.root",process));
+  // My Reconstruction Module
+  SubsysReco *my1 = new AnaPHPythiaHistos("AnaPHPythiaHistos", outputname);
   se->registerSubsystem(my1);
 
-  // Real input from DST files
-  Fun4AllInputManager *in1 = new Fun4AllDstInputManager("DSTin1", "DST");
+  //** A dummy (null) input is needed for the Fun4All framework
+  Fun4AllDummyInputManager *in1 = new Fun4AllDummyInputManager("DSTin1", "DST");
   se->registerInputManager(in1);
 
   // DST output manager
@@ -64,24 +69,9 @@ void anaPHPythiaHistos(const int process = 0)
   // with following output manager, one can write the PHPythia output in an oscar formated output text file
   // PHPyOscarOutputManager *oscar_manager  = new PHPyOscarOutputManager( "OSCAR", oscar_outputname );
   // se->registerOutputManager(oscar_manager);
-
-  // Loop over input DST file
-  char dstFileName[1000];
-  sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/phpythia/phpythia%d.root", process);
-
-  cout << "\nfileopen for " << dstFileName << endl; 
-  int openReturn = se->fileopen("DSTin1", dstFileName);
-  if(openReturn)
-    cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl;
-
-  // Do the analysis for this DST file
-  se->run(0);
-
-  cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;
-  int closeReturn = se->fileclose("DSTin1");
-  if(closeReturn)
-    cout << "\nAbnormal return: closeReturn from Fun4All fileclose = " << closeReturn << endl;
-
-  // Write histograms
+  
+  // run over all events
+  se->run(nevents);  
   se->End();
 }
+
