@@ -24,7 +24,6 @@ void anaFastMC_PH(const int process = 0)
   se->registerSubsystem(sync);
 
   PHPythia *phpythia = new PHPythia();
-  //phpythia->SetConfigFile("pythia_nodecay.cfg");
 
   // Set your own seed, otherwise, seeds from /dev/random
   //phpythia->SetSeed(1999);			
@@ -38,13 +37,13 @@ void anaFastMC_PH(const int process = 0)
   // se->registerSubsystem( new PHPyVertexShift( "PHPyVertexShift", "./events.txt") );
 
   //** You can use dedicated triggers, derived from the PHPyTrigger base class
-  // se->registerSubsystem( new PHPyGammaCentralArmTrigger(1.) );
+  // se->registerSubsystem( new PHPyJPsiMuonTrigger() );
 
   //** You can select only particular particles to write out
-  //PHPyParticleSelect *pselect = new PHPySelectStable();
+  //PHPyParticleSelect *pselect = new PHPyParticleSelect();
   //se->registerSubsystem( pselect );
 
-  // Reconstruction Modules
+  // My Reconstruction Module
   enum MCMethod {FastMC, PHParticleGen};
   AnaFastMC *my1 = new AnaFastMC("AnaFastMC");
   my1->set_outfile( Form("../AnaFastMC-PH-histo%d.root",process) );
@@ -68,7 +67,7 @@ void anaFastMC_PH(const int process = 0)
   // PHPyOscarOutputManager *oscar_manager  = new PHPyOscarOutputManager( "OSCAR", oscar_outputname );
   // se->registerOutputManager(oscar_manager);
 
-  // Loop over input DST file
+  // Input DST file
   char dstFileName[1000];
   sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/phpythia/phpythia%d.root", process);
 

@@ -46,8 +46,8 @@ void draw_MissCorr()
 
       double aMissPass = aMiss + aMerge * aBadPass;
       double eaMissPass = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2.) + pow(aMerge*eaBadPass,2.) );
-      double aMissAll = aMiss + aMerge;
-      double eaMissAll = sqrt( eaMiss*eaMiss + eaMerge*eaMerge );
+      double aMissAll = aMiss + aMerge * 2.;
+      double eaMissAll = sqrt( eaMiss*eaMiss + eaMerge*eaMerge*4. );
       double aMissCorr = (1. + aMissPass) + A * (1. + aMissAll);
       double eaMissCorr = sqrt( pow(eA*(1.+aMissPass),2.) + pow((1.+A)*eaMissPass,2.) );
 

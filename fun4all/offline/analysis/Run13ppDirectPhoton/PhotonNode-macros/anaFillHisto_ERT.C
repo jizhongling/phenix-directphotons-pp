@@ -1,14 +1,11 @@
 void anaFillHisto_ERT(const int process = 0)
 {
-  // Set up Fun4All libraries
-  gSystem->Load("libfun4all.so");
-  gSystem->Load("libfun4allfuncs.so");
+  gSystem->Load("libfun4all.so");	// framework + reco modules
   gSystem->Load("libPhotonNode.so");
 
   const int nThread = 10;
   int thread = -1;
   int runNumber;
-  char dstFileName[1000];
 
   ifstream inFiles("/phenix/plhf/zji/taxi/Run13pp510ERT/runnumber.txt");
   if(!inFiles)
@@ -18,16 +15,19 @@ void anaFillHisto_ERT(const int process = 0)
   }
   cout << "\nUsing input files list..." << endl << endl;
 
+  recoConsts *rc = recoConsts::instance();
+  rc->set_IntFlag("RUNNUMBER",0);
+
   // Server
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(0);
 
-  // Reconstruction Module
+  // My Reconstruction Module
   FillHisto *my1 = new FillHisto("FillHisto_TAXI");
   my1->SelectERT();
   se->registerSubsystem(my1);
 
-  // Input Manager
+  // Real input from DST files
   Fun4AllInputManager *in1 = new Fun4AllDstInputManager("DSTin1", "DST");
   se->registerInputManager(in1);
 
@@ -37,6 +37,7 @@ void anaFillHisto_ERT(const int process = 0)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
+    char dstFileName[1000];
     sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/12357/data/PhotonNode-%d.root", runNumber);
 
     cout << "\nfileopen for " << dstFileName << endl; 
@@ -56,6 +57,6 @@ void anaFillHisto_ERT(const int process = 0)
       cout << "\nAbnormal return: closeReturn from Fun4All fileclose = " << closeReturn << endl;
   }
 
-  // Write out the histogram file
+  // Write histograms
   se->End();
 }

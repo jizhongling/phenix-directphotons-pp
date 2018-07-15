@@ -13,8 +13,8 @@
 #include <phool.h>
 #include <Fun4AllHistoManager.h>
 
-#include <PHPythiaHeader.h>
 #include <PHPythiaContainer.h>
+#include <PHPyCommon.h>
 
 #include <TPythia6.h>
 
@@ -52,8 +52,8 @@ const double mEta = 0.547862;
 const double mcorr = 0.993;
 
 /* Some cuts for photon identification */
+const double ptMin = 3.;
 const double eMin = 0.3;
-const double ptMin = 5.;
 const double AsymCut = 0.8;
 
 /* Some cuts for isolation cut */
@@ -62,14 +62,15 @@ const double eTrkMin = 0.2;
 const double eTrkMax = 15.;
 
 /* Isolation cut cone angle and energy fraction */
-const double cone_angle = 0.5;
-const double eratio = 0.1;
+double cone_angle = 0.5;
+double eratio = 0.1;
 
 AnaFastMC::AnaFastMC(const string &name):
   SubsysReco(name),
   outFileName("histos/AnaFastMC-"),
   mcmethod(FastMC),
   phpythia(NULL),
+  phpythia_bg(NULL),
   hm(NULL),
   h_pion(NULL),
   h_photon(NULL),
@@ -393,9 +394,9 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     TMCParticle *part = phpythia->getParticle(ipart);
     TMCParticle *parent = phpythia->getParent(part);
 
-    /* Test if particle is a stable prompt photon
+    /* Test if particle is a stable photon
      * and passes energy threshold */
-    if( part->GetKF() != 22 ||
+    if( part->GetKF() != PY_GAMMA ||
         part->GetKS() != 1 ||
         part->GetEnergy() < eMin ||
         ( parent && abs(parent->GetKF()) > 100 ) )
@@ -453,7 +454,6 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, double &econe_all, double &ec
 
   /* Get reference vector */
   TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
-  if( v3_pref.Pt() < 0.01 ) return;
   TVector2 v2_pref = v3_pref.EtaPhiVector();
 
   /* Loop over all signal and background particles */
@@ -465,18 +465,17 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, double &econe_all, double &ec
     {
       TMCParticle *part2 = phpythiacont[icont]->getParticle(ipart2);
 
-      /* Only consider stable signal and background particles
+      /* Only consider stable and interacting particles
        * skip if pointer identical to 'reference' particle */
-      if( ( icont == 0 && part2 == pref ) ||
-          part2->GetKS() != 1 )
+      int id = abs(part2->GetKF());
+      if( ( icont == 0 && part2 == pref ) || part2->GetKS() != 1 ||
+          id == PY_MU || id == PY_NU_E || id == PY_NU_MU )
         continue;
 
       /* Get particle vector */
       TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
-      double energy = part2->GetEnergy();
-
-      if( v3_part2.Pt() < 0.01 ) continue;
       TVector2 v2_part2 = v3_part2.EtaPhiVector();
+      double energy = part2->GetEnergy();
 
       /* Check if particle within cone */
       if( (v2_part2-v2_pref).Mod() < cone_angle )

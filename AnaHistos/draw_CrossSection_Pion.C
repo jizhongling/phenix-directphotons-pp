@@ -98,10 +98,10 @@ void draw_CrossSection_Pion()
     ReadGraph<TGraphAsymmErrors>("data/ERTEff-pion.root", part/2, xTrigERT[part], TrigERT[part], eTrigERT[part]);
     mc(part, 6,5);
   }
-  TrigERT[0][0] = TrigERT[1][0] = 0.951;
-  eTrigERT[0][0] = eTrigERT[1][0] = 0.004;
-  TrigERT[2][0] = 0.666;
-  eTrigERT[2][0] = 0.009;
+  TrigERT[0][0] = TrigERT[1][0] = 0.952;
+  eTrigERT[0][0] = eTrigERT[1][0] = 0.003;
+  TrigERT[2][0] = 0.661;
+  eTrigERT[2][0] = 0.008;
 
   for(int ipt=0; ipt<npT; ipt++)
   {

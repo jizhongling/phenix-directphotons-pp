@@ -15,7 +15,7 @@ mkdir proc$2
 cp ../$0:t:r.C ../$config proc$2
 
 cd proc$2
-set pt = `echo "5 + $2/2 * 0.1" | bc`
+set pt = `echo "3 + $2/2 * 0.1" | bc`
 sed -i "s/ckin 3 .*/ckin 3 $pt/" $config
 
 root -l -b -q $0:t:r.C\($2\)

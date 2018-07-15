@@ -1,9 +1,16 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstdlib>
-#include <ctime>
-#include <cmath>
+#include "AnaPHPythiaHistos.h"
+
+#include <PHIODataNode.h>
+#include <PHObject.h>
+#include <PHCompositeNode.h>
+#include <PHNodeIterator.h>
+#include <PHNodeReset.h>
+#include <Fun4AllReturnCodes.h>
+#include <Fun4AllHistoManager.h>
+#include <getClass.h>
+
+#include <PHPythiaContainer.h>
+#include <PHPyCommon.h>
 
 #include <TPythia6.h>
 
@@ -13,70 +20,54 @@
 #include <TMCParticle6.h>
 #endif
 
-#include <TDatabasePDG.h>
 #include <TMath.h>
 #include <TVector3.h>
 #include <TH1.h>
 #include <THnSparse.h>
 
-#include <PHIODataNode.h>
-#include <PHObject.h>
-#include <PHCompositeNode.h>
-#include <PHNodeIterator.h>
-#include <PHNodeReset.h>
-#include <PHTimeStamp.h>
-#include <Fun4AllReturnCodes.h>
-#include <Fun4AllHistoManager.h>
-#include <getClass.h>
-#include <TOAD.h>
-
-#include <PHPythiaHeader.h>
-#include <PHPythiaContainer.h>
-#include "AnaPHPythiaHistos.h"
+#include <cstdlib>
+#include <cmath>
+#include <iostream>
 
 using namespace std;
 
-AnaPHPythiaHistos::AnaPHPythiaHistos(const string &name, const char *filename): SubsysReco(name)
+/* Some constants */
+const double PI = TMath::Pi();
+
+/* Some cuts for photon identification */
+const double ptMin = 3.;
+const double eMin = 0.3;
+
+/* Some cuts for isolation cut */
+const double eClusMin = 0.15;
+const double eTrkMin = 0.2;
+const double eTrkMax = 15.;
+
+AnaPHPythiaHistos::AnaPHPythiaHistos(const string &name, const char *filename):
+  SubsysReco(name),
+  outFileName(filename),
+  phpythia(NULL),
+  hm(NULL),
+  hn_photon(NULL),
+  hn_corr(NULL)
 {
-  phpythia = 0;		// array of signal pythia particles
-  phpythia_bg = 0;	// array of background pythia particles
-
-  // Construct output file names
-  outFileName = "histos/AnaPHPythiaHistos-";
-  outFileName.append(filename);
-
-  hm = 0;
-  hn_photon = 0;
-  hn_corr = 0;
 }
 
 AnaPHPythiaHistos::~AnaPHPythiaHistos()
 {
 }
 
-// Done at the beginning of processing
 int AnaPHPythiaHistos::Init(PHCompositeNode *topNode)
 {
-  // Create and register histograms
+  /* Create histograms */
   BookHistograms();
 
   return EVENT_OK;
 }
 
-// Done at the end of processing
-int AnaPHPythiaHistos::End(PHCompositeNode *topNode)
-{
-  // Write histogram output to ROOT file
-  hm->dumpHistos();
-  delete hm;
-
-  return EVENT_OK;
-}
-
-// Process each event
 int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
 {
-  /* Get PYTHIA Signal Particles */
+  /* Get PYTHIA Particles */
   phpythia = findNode::getClass<PHPythiaContainer>(topNode,"PHPythia");
   if(!phpythia)
   {
@@ -84,49 +75,39 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
     return ABORTEVENT;
   }
 
-  /* Get PYTHIA Background Particles */
-  phpythia_bg = findNode::getClass<PHPythiaContainer>(topNode,"PHPythiaBG");
-  if(!phpythia_bg)
-  {
-    cout << PHWHERE << "Unable to get PHPythiaBG, is Node missing?" << endl;
-    return ABORTEVENT;
-  }
-
-  /* Loop over all signal particles */
+  /* Loop over all particles */
   int npart = phpythia->size();
   for (int ipart=0; ipart<npart; ipart++)
   {
     TMCParticle *part = phpythia->getParticle(ipart);
     TMCParticle *parent = phpythia->getParent(part);
 
-    // Convert particle into TVector3
-    double px = part->GetPx();
-    double py = part->GetPy();
-    double pz = part->GetPz();
-    TVector3 v3_part(px,py,pz);
+    /* Convert particle into TVector3 */
+    TVector3 v3_part(part->GetPx(), part->GetPy(), part->GetPz());
+    double pt = v3_part.Pt();
 
-    // Test if particle is in Central Arm acceptance
-    // and passes energy threshold
-    if( part->GetEnergy() < 0.3 ||
-        v3_part.Pt() < 0.01 ||
-        abs(v3_part.Eta()) > 0.35 ||
-        (abs(v3_part.Phi()) > PI/4. &&
-         abs(v3_part.Phi()) < PI*3./4.) )
+    /* Only consider high-pT particles 
+     * Test if particle passes energy threshold
+     * and in Central Arm acceptance */
+    if( pt < ptMin ||
+        part->GetEnergy() < eMin ||
+        !InAcceptance(v3_part) )
       continue;
 
-    // Test if particle is stable photon
-    if( part->GetKF() == 22 &&
+    /* Test if particle is stable photon */
+    if( part->GetKF() == PY_GAMMA &&
         part->GetKS() == 1 )
     {
-      // Test if particle is direct photon
+      /* Test if particle is direct photon */
       int direct = 0;
       if( parent &&
-          part->GetKF() == 22 &&
-          parent->GetKF() == 22 &&
+          part->GetKF() == PY_GAMMA &&
+          parent->GetKF() == PY_GAMMA &&
           parent->GetKS() == 21 &&
-          !(parent->GetParent()) )
+          !parent->GetParent() )
         direct = 1;
 
+      /* Vary isolation cone angles and cut energy ratios */
       for(int icone=0; icone<11; icone++)
         for(int ie=0; ie<20; ie++)
         {
@@ -137,28 +118,39 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
           if( econe < re * part->GetEnergy() )
             isolated = 1;
 
-          double fill_hn_photon[] = {v3_part.Pt(), rcone, re, (double)isolated, (double)direct};
+          double fill_hn_photon[] = {pt, rcone, re, (double)isolated, (double)direct};
           hn_photon->Fill(fill_hn_photon);
         }
 
+      /* Fill two particle phi correlations */
       FillCorrelation(part, 1-direct);
     } // photon
 
-    // Test if particle is pi0
-    if( part->GetKF() == 111 )
+    /* Test if particle is pi0 */
+    if( part->GetKF() == PY_PIZERO )
+      /* Fill two particle phi correlations */
       FillCorrelation(part, 2);
   }
 
   return EVENT_OK;
 }
 
+int AnaPHPythiaHistos::End(PHCompositeNode *topNode)
+{
+  /* Write histograms */
+  hm->dumpHistos();
+  delete hm;
+
+  return EVENT_OK;
+}
+
 void AnaPHPythiaHistos::BookHistograms()
 {
-  // Initialize histogram manager
+  /* Initialize histogram manager */
   hm = new Fun4AllHistoManager("HistoManager");
   hm->setOutfileName(outFileName);
 
-  // pT bins 
+  /* pT bins */
   const int npT = 30;
   const double pTbin[npT+1] = { 0.0,
     0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
@@ -192,81 +184,78 @@ double AnaPHPythiaHistos::SumETruth(const TMCParticle *pref, double rcone)
 
   /* Get reference vector */
   TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
-  if( v3_pref.Pt() < 0.01 ) return econe;
   TVector2 v2_pref = v3_pref.EtaPhiVector();
 
-  /* Loop over all signal and background particles */
-  PHPythiaContainer *phpythiacont[2] = {phpythia, phpythia_bg};
-  for(int icont=0; icont<2; icont++)
+  /* Loop over all particles */
+  int npart = phpythia->size();
+  for(int ipart2=0; ipart2<npart; ipart2++)
   {
-    int npart = phpythiacont[icont]->size();
-    for(int ipart2=0; ipart2<npart; ipart2++)
-    {
-      TMCParticle *part2 = phpythiacont[icont]->getParticle(ipart2);
+    TMCParticle *part2 = phpythia->getParticle(ipart2);
 
-      /* Only consider stable signal and background particles
-       * skip if pointer identical to 'reference' particle */
-      if( ( icont == 0 && part2 == pref ) ||
-          part2->GetKS() != 1 )
-        continue;
+    /* Only consider stable and interacting particles
+     * skip if pointer identical to 'reference' particle */
+    int id = abs(part2->GetKF());
+    if( part2 == pref || part2->GetKS() != 1 ||
+        id == PY_MU || id == PY_NU_E || id == PY_NU_MU )
+      continue;
 
-      /* Get particle vector */
-      TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
-      if( v3_part2.Pt() < 0.01 ) continue;
-      TVector2 v2_part2 = v3_part2.EtaPhiVector();
+    /* Get particle vector */
+    TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
+    TVector2 v2_part2 = v3_part2.EtaPhiVector();
 
-      /* Test if particle is in Central Arm acceptance
-       * and passes energy threshold */
-      if( part2->GetEnergy() < 0.15 ||
-          abs(v2_part2.X()) > 0.35 ||
-          (abs(v2_part2.Y()) > PI/4. &&
-           abs(v2_part2.Y()) < PI*3./4.) )
-        continue;
+    /* Test if particle is in Central Arm acceptance
+     * and passes energy threshold */
+    if( part2->GetEnergy() < eClusMin ||
+        !InAcceptance(v3_part2) )
+      continue;
 
-      /* Check if particle within cone */
-      if( (v2_part2-v2_pref).Mod() < rcone )
-        econe += part2->GetEnergy();
-    } // ipart2
-  } // icont
+    /* Check if particle within cone */
+    if( (v2_part2-v2_pref).Mod() < rcone )
+      econe += part2->GetEnergy();
+  } // ipart2
 
   return econe;
 }
 
 void AnaPHPythiaHistos::FillCorrelation(const TMCParticle *pref, int type)
 {
+  /* Get reference vector */
   TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
 
-  /* Loop over all signal and background particles */
-  PHPythiaContainer *phpythiacont[2] = {phpythia, phpythia_bg};
-  for(int icont=0; icont<2; icont++)
+  /* Loop over all particles */
+  int npart = phpythia->size();
+  for(int ipart2=0; ipart2<npart; ipart2++)
   {
-    int npart = phpythiacont[icont]->size();
-    for(int ipart2=0; ipart2<npart; ipart2++)
-    {
-      TMCParticle *part2 = phpythiacont[icont]->getParticle(ipart2);
+    TMCParticle *part2 = phpythia->getParticle(ipart2);
 
-      /* Only consider stable signal and background particles
-       * skip if pointer identical to 'reference' particle */
-      if( ( icont == 0 && part2 == pref ) ||
-          part2->GetKS() != 1 )
-        continue;
+    /* Only consider stable and interacting particles
+     * skip if pointer identical to 'reference' particle */
+    int id = abs(part2->GetKF());
+    if( part2 == pref || part2->GetKS() != 1 ||
+        id == PY_MU || id == PY_NU_E || id == PY_NU_MU )
+      continue;
 
-      /* Get particle vector */
-      TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
+    /* Get particle vector */
+    TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
 
-      /* Test if particle is in Central Arm acceptance
-       * and passes energy threshold */
-      if( part2->GetEnergy() < 0.3 ||
-          v3_part2.Pt() < 0.01 ||
-          abs(v3_part2.Eta()) > 0.35 ||
-          (abs(v3_part2.Phi()) > PI/4. &&
-           abs(v3_part2.Phi()) < PI*3./4.) )
-        continue;
+    /* Test if particle is in Central Arm acceptance
+     * and passes energy threshold */
+    if( part2->GetEnergy() < eMin ||
+        !InAcceptance(v3_part2) )
+      continue;
 
-      double fill_hn_corr[] = {v3_pref.Pt(), v3_part2.Pt(), abs(v3_pref.DeltaPhi(v3_part2)), (double)type};
-      hn_corr->Fill(fill_hn_corr);
-    }
-  }
+    double fill_hn_corr[] = {v3_pref.Pt(), v3_part2.Pt(), abs(v3_pref.DeltaPhi(v3_part2)), (double)type};
+    hn_corr->Fill(fill_hn_corr);
+  } // ipart2
 
   return;
+}
+
+bool AnaPHPythiaHistos::InAcceptance(const TVector3 &v3_part)
+{
+  if(  abs(v3_part.Eta()) < 0.35 &&
+      (abs(v3_part.Phi()) < PI/4. ||
+       abs(v3_part.Phi()) > PI*3./4.) )
+    return true;
+  return false;
 }
