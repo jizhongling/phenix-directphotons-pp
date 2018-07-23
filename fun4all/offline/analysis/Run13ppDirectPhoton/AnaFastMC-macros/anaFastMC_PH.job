@@ -2,7 +2,7 @@ Universe        = vanilla
 Notification    = Complete
 Executable      = anaFastMC_PH.csh
 Arguments       = $(Initialdir) $(Process)
-Requirements    = (CPU_Speed >= 1 && TotalDisk > 0)
+Requirements    = (CPU_Speed >= 2 && TotalDisk > 0)
 Rank		= CPU_Speed
 Image_Size      = 32M
 Priority        = +20

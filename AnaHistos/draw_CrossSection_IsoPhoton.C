@@ -169,7 +169,7 @@ void draw_CrossSection_IsoPhoton()
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
       // don't subtract background
       FitMinv(h_minv, nisoboth, enisoboth, false, 0.10,0.17);
-      //nisoboth /= bck[part/2][ipt] * meff[part/2][ipt];
+      nisoboth /= 1.1;
       delete h_minv;
 
       mcd(part+3, ipt+1);

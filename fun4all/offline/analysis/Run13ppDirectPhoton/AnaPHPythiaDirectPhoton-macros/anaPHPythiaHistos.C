@@ -1,10 +1,4 @@
-//#include <libgen.h>
-
-void anaPHPythiaHistos(
-  const int nevents = 1000, 
-  const char *outputname = "phpythia.root",
-  const char *oscar_outputname = "oscar.txt"
-  )
+void anaPHPythiaHistos(const int process = 0)
 {
   //gSystem->Load("libfun4allfuncs.so");	// framework only
   gSystem->Load("libfun4all.so");	// framework + reco modules
@@ -50,7 +44,7 @@ void anaPHPythiaHistos(
   //se->registerSubsystem( pselect );
 
   // My Reconstruction Module
-  SubsysReco *my1 = new AnaPHPythiaHistos("AnaPHPythiaHistos", outputname);
+  SubsysReco *my1 = new AnaPHPythiaHistos("AnaPHPythiaHistos", Form("histos/AnaPHPythia-histo%d.root",process));
   se->registerSubsystem(my1);
 
   //** A dummy (null) input is needed for the Fun4All framework
@@ -71,7 +65,6 @@ void anaPHPythiaHistos(
   // se->registerOutputManager(oscar_manager);
   
   // run over all events
-  se->run(nevents);  
+  se->run(1000000);  
   se->End();
 }
-

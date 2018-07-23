@@ -4,6 +4,7 @@ void draw_MissingRatio()
 {
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
+  const char *pname[3] = {"PbSc west", "PbSc east", "PbGl"};
 
   TFile *f_miss = new TFile("data/MissingRatio.root", "RECREATE");
   TFile *f_merge = new TFile("data/Merge-photon.root", "RECREATE");
@@ -15,6 +16,8 @@ void draw_MissingRatio()
 
   mc(0);
   mc(1);
+  legi(0, 0.4,0.6,0.7,0.9);
+  legi(1, 0.2,0.6,0.5,0.9);
 
   for(int part=0; part<3; part++)
   {
@@ -36,6 +39,8 @@ void draw_MissingRatio()
       gr_miss[part]->Draw("AP");
     else
       gr_miss[part]->Draw("P");
+    leg0->AddEntry(gr_miss[part], pname[part], "P");
+    leg0->Draw();
 
     f_miss->cd();
     gr_miss[part]->Write();
@@ -60,6 +65,8 @@ void draw_MissingRatio()
       gr_merge[part]->Draw("AP");
     else
       gr_merge[part]->Draw("P");
+    leg1->AddEntry(gr_miss[part], pname[part], "P");
+    leg1->Draw();
 
     f_merge->cd();
     gr_merge[part]->Write();

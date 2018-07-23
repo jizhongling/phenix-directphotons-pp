@@ -394,7 +394,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     TMCParticle *part = phpythia->getParticle(ipart);
     TMCParticle *parent = phpythia->getParent(part);
 
-    /* Test if particle is a stable photon
+    /* Test if particle is a stable prompt photon
      * and passes energy threshold */
     if( part->GetKF() != PY_GAMMA ||
         part->GetKS() != 1 ||

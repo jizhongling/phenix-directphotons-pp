@@ -1,50 +1,47 @@
 #include "Pileup.h"
 #include "BBCCounts.h"
 #include "ReadGraph.h"
-#include "Chi2Fit.h"
-#include "FitMinv.h"
-
-/* Get ipt for TGraph Xaxis gx */
-int Get_ipt(double *gx, double xx)
-{
-  for(int ipt=0; ipt<30; ipt++)
-    if( TMath::Abs(gx[ipt] - xx) < 0.2 )
-      return ipt;
-
-  cout << "Warning: No matching for pT = " << xx << ", 0 returned!" << endl;
-  return 0;
-}
 
 void anaPileup_Photon(const int process = 0)
 {
-  const int secl[2] = {1, 7};
-  const int sech[2] = {6, 8};
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
 
-  const int nThread = 20;
+  const int nThread = 100;
   int thread = -1;
-  int irun =0;
+  int irun = 0;
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
-  TGraphErrors *gr[npT*8];
-  TGraphErrors *gr_run[npT*8];
-  int igp[npT*8] = {};
-  for(int ipt=0; ipt<npT; ipt++)
-    for(int id=0; id<2; id++)
-      for(int ic=0; ic<2; ic++)
-        for(int is=0; is<2; is++)
-        {
-          int ig = ipt*8+id*4+ic*2+is;
-          mc(ig, 5,4);
-          gr[ig] = new TGraphErrors(nThread);
-          gr_run[ig] = new TGraphErrors(nThread);
-          gr[ig]->SetName(Form("gr_%d",ig));
-          gr_run[ig]->SetName(Form("gr_run_%d",ig));
-        }
+  int id = 0;
 
+  TGraphErrors *gr[npT*2*2*3];
+  TGraphErrors *gr_run[npT*2*2*3];
+  int igp[npT*2*2*3] = {};
+  for(int ipt=0; ipt<npT; ipt++)
+    for(int ic=0; ic<2; ic++)
+      for(int part=0; part<3; part++)
+      {
+        int ig = part + 3*ic + 2*3*id + 2*2*3*ipt;
+        gr[ig] = new TGraphErrors(nThread);
+        gr_run[ig] = new TGraphErrors(nThread);
+        gr[ig]->SetName(Form("gr_%d",ig));
+        gr_run[ig]->SetName(Form("gr_run_%d",ig));
+      }
+
+  const double A = 0.22;
+  const double eA = 0.04;
+  double xVeto[3][30] = {}, Veto[3][30] = {}, eVeto[3][30] = {};
   double xMiss[3][30] = {}, Miss[3][30] = {}, eMiss[3][30] = {};
+  double xMerge[3][30] = {}, Merge[3][30] = {}, eMerge[3][30] = {};
+  double xBadPass[3][30] = {}, BadPass[3][30] = {}, eBadPass[3][30] = {};
   for(int part=0; part<3; part++)
-    ReadGraph<TGraphErrors>("data/MissCorr.root", part, xMiss[part], Miss[part], eMiss[part]);
+  {
+    ReadGraph<TGraphAsymmErrors>("data/SelfVeto.root", part, xVeto[part], Veto[part], eVeto[part]);
+    ReadGraph<TGraphErrors>("data/MissingRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
+    ReadGraph<TGraphAsymmErrors>("data/Merge-photon.root", part, xMerge[part], Merge[part], eMerge[part]);
+    ReadGraph<TGraphErrors>("data/MergePassRate.root", part/2, xBadPass[part], BadPass[part], eBadPass[part]);
+  }
 
   ReadClockCounts();
 
@@ -53,113 +50,140 @@ void anaPileup_Photon(const int process = 0)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    TFile *f_ert = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
-    TFile *f_mb = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-MB/PhotonNode-%d.root",runnumber));
-    if( f_ert->IsZombie() || f_mb->IsZombie() ) continue;
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13664/data/PhotonHistos-%d.root",runnumber));
+    if( f->IsZombie() ) continue;
 
-    TH1 *h_events_ert = (TH1*)f_ert->Get("h_events");
-    TH1 *h_events_mb = (TH1*)f_mb->Get("h_events");
-    THnSparse *hn_1photon[2];
-    THnSparse *hn_2photon[2];
-    hn_1photon[0] = (THnSparse*)f_ert->Get("hn_1photon");
-    hn_1photon[1] = (THnSparse*)f_mb->Get("hn_1photon");
-    hn_2photon[0] = (THnSparse*)f_ert->Get("hn_2photon");
-    hn_2photon[1] = (THnSparse*)f_mb->Get("hn_2photon");
-    hn_1photon[0]->GetAxis(4)->SetRange(3,3);
-    hn_1photon[1]->GetAxis(4)->SetRange(1,1);
-    hn_2photon[0]->GetAxis(5)->SetRange(3,3);
-    hn_2photon[1]->GetAxis(5)->SetRange(1,1);
+    // h[ic][part]
+    TH1 *h_1photon[2][3];
+    TH2 *h2_isoboth[2][3];
+    TH2 *h2_isopair[2][3];
+
+    int bbc10cm = 1;
+    int evtype = 2;
+
+    TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
+    h_1photon_t->Reset();
+    for(int ic=0; ic<2; ic++)
+      for(int part=0; part<3; part++)
+      {
+        h_1photon[ic][part] = (TH1*)h_1photon_t->Clone(Form("h_1photon_ic%d_part%d",ic,part));
+        for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+          for(int pattern=0; pattern<3; pattern++)
+          {
+            int isolated = 1;
+            int cut = ic + 2;
+            int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm;
+            TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
+            h_1photon[ic][part]->Add(h_tmp);
+            delete h_tmp;
+          }
+        if(ic==1)
+          h_1photon[0][part]->Add(h_1photon[1][part]);
+      }
+
+    TH2 *h2_2photon_t = (TH2*)f->Get("h2_2photon_0");
+    h2_2photon_t->Reset();
+    for(int ic=0; ic<2; ic++)
+      for(int part=0; part<3; part++)
+      {
+        h2_isoboth[ic][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isoboth_ic%d_part%d",ic,part));
+        for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+          for(int pattern=0; pattern<3; pattern++)
+            for(int isopair=0; isopair<2; isopair++)
+            {
+              int isoboth = 1;
+              int cut = ic + 2;
+              int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
+              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
+              h2_isoboth[ic][part]->Add(h2_tmp);
+              delete h2_tmp;
+            }
+        if(ic==1)
+          h2_isoboth[0][part]->Add(h2_isoboth[1][part]);
+      }
+
+    for(int ic=0; ic<2; ic++)
+      for(int part=0; part<3; part++)
+      {
+        h2_isopair[ic][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isopair_ic%d_part%d",ic,part));
+        for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+          for(int pattern=0; pattern<3; pattern++)
+            for(int isoboth=0; isoboth<2; isoboth++)
+            {
+              int isopair = 1;
+              int cut = ic + 2;
+              int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
+              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
+              h2_isopair[ic][part]->Add(h2_tmp);
+              delete h2_tmp;
+            }
+        if(ic==1)
+          h2_isopair[0][part]->Add(h2_isopair[1][part]);
+      }
 
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
     ULong_t scaledown = GetERT4x4cScaledown(runnumber) + 1;
 
-    double nev[2];
-    //nev[0] = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );
-    nev[0] = nmb / scaledown;
-    nev[1] = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm") );
-
-    TF1 *fn_fit = new TF1("fn_fit", "gaus(0) + pol2(3)", 0.06, 0.25);
-    TF1 *fn_bg = new TF1("fn_bg", "pol2", 0.06, 0.25);
+    double nev = nmb / scaledown;
 
     for(int ipt=0; ipt<npT; ipt++)
-      for(int id=0; id<2; id++)
-      {
-        double Mbar[3] = {}, eMbar[3] = {};
+      for(int ic=0; ic<2; ic++)
         for(int part=0; part<3; part++)
         {
-          int iptL = Get_ipt(xMiss[part], pTbinL[id][ipt]+0.25);
-          Chi2Fit(pThigh[id][ipt]-pTlow[id][ipt], &Miss[part][iptL], &eMiss[part][iptL], Mbar[part], eMbar[part]);
-        }
-        for(int ic=0; ic<2; ic++)
-          for(int is=0; is<2; is++)
+          int ig = part + 3*ic + 2*3*id + 2*2*3*ipt;
+
+          double nphoton = h_1photon[ic][part]->Integral(pTlow[id][ipt], pThigh[id][ipt]);
+          double nisoboth = h2_isoboth[ic][part]->ProjectionY("h_minv_isoboth", pTlow[id][ipt], pThigh[id][ipt])->Integral(111,160);
+          double nisopair = h2_isopair[ic][part]->ProjectionY("h_minv_isopair", pTlow[id][ipt], pThigh[id][ipt])->Integral(111,160);
+          nisoboth /= 1.1;
+          nisopair /= 1.1;
+
+          double xpT = pTbinC[id][ipt];
+          int ipVeto = Get_ipt(xVeto[part], xpT);
+          double aVeto = Veto[part][ipVeto];
+          int ipMiss = Get_ipt(xMiss[part], xpT);
+          double aMiss = Miss[part][ipMiss];
+          int ipMerge = Get_ipt(xMerge[part], xpT);
+          double aMerge = Merge[part][ipMerge];
+          int ipBadPass = Get_ipt(xBadPass[part], xpT);
+          double aBadPass = BadPass[part][ipBadPass];
+          if(ipt<23)
+            aBadPass = 0.;
+          double aMissPass = aMiss + aMerge * aBadPass;
+          double aMissAll = aMiss + aMerge * 2.;
+          //double ndir = nphoton - ( nisoboth + aMissPass * nisopair ) - A * aVeto * ( 1. + aMissAll ) * nisopair;
+          //double endir = sqrt( nphoton + nisoboth + pow(aMissPass + A * aVeto * ( 1. + aMissAll ), 2.) * nisopair );
+          double ndir = nphoton;
+          double endir = sqrt(nphoton);
+
+          double xx = (double)nmb / (double)nclock;
+          double yy = ndir / nev;
+          double eyy = endir / nev;
+          if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
           {
-            int ig = ipt*8+id*4+ic*2+is;
-            mcd(ig, irun+1);
+            gr[ig]->SetPoint(igp[ig], xx, yy);
+            gr[ig]->SetPointError(igp[ig], 0., eyy);
+            gr_run[ig]->SetPoint(igp[ig], runnumber, yy);
+            gr_run[ig]->SetPointError(igp[ig], 0., eyy);
+            igp[ig]++;
+          }
+        } // ipt, id, ic, part
 
-            double nphoton, npion, enpion;
-
-            hn_1photon[id]->GetAxis(3)->SetRange(ic+3,ic+3);
-            hn_1photon[id]->GetAxis(1)->SetRange(pTlow[id][ipt], pThigh[id][ipt]);
-
-            TH1 *h_photon = hn_1photon[id]->Projection(0);
-            nphoton = h_photon->Integral(secl[is],sech[is]);
-            delete h_photon;
-
-            hn_2photon[id]->GetAxis(4)->SetRange(ic+3,ic+3);
-            hn_2photon[id]->GetAxis(0)->SetRange(secl[is],sech[is]);
-            hn_2photon[id]->GetAxis(1)->SetRange(pTlow[id][ipt], pThigh[id][ipt]);
-
-            TH1 *h_minv = hn_2photon[id]->Projection(2);
-            h_minv->Rebin(10);
-            h_minv->Scale(0.5);
-            h_minv->SetTitle(Form("#%d",runnumber));
-            FitMinv(h_minv, npion, enpion);
-            delete h_minv;
-
-            double aMiss, eaMiss;
-            if(is==0)
-            {
-              Chi2Fit(2, Mbar, eMbar, aMiss, eaMiss);
-            }
-            else
-            {
-              aMiss = Mbar[2];
-              eaMiss = eMbar[2];
-            }
-            aMiss = 1.;
-
-            double xx = (double)nmb / (double)nclock;
-            double yy = ( nphoton - aMiss*npion*2. ) / nev[id];
-            double eyy = sqrt( nphoton + pow(eaMiss*npion*2.,2.) + pow(aMiss*enpion*2.,2.) ) / nev[id];
-            if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
-            {
-              gr[ig]->SetPoint(igp[ig], xx, yy);
-              gr[ig]->SetPointError(igp[ig], 0., eyy);
-              gr_run[ig]->SetPoint(igp[ig], runnumber, yy);
-              gr_run[ig]->SetPointError(igp[ig], 0., eyy);
-              igp[ig]++;
-            }
-          } // ic, is
-      } // ipt, id
-
-    delete f_ert;
-    delete f_mb;
+    delete f;
     irun++;
   }
 
   TFile *f_out = new TFile(Form("pileup/Pileup-photon-%d.root",process), "RECREATE");
   for(int ipt=0; ipt<npT; ipt++)
-    for(int id=0; id<2; id++)
-      for(int ic=0; ic<2; ic++)
-        for(int is=0; is<2; is++)
-        {
-          int ig = ipt*8+id*4+ic*2+is;
-          mcw( ig, Form("proc%d-data%d-cond%d-pt%d-%d", process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
-          gr[ig]->Set(igp[ig]);
-          gr_run[ig]->Set(igp[ig]);
-          gr[ig]->Write();
-          gr_run[ig]->Write();
-        }
+    for(int ic=0; ic<2; ic++)
+      for(int part=0; part<3; part++)
+      {
+        int ig = part + 3*ic + 2*3*id + 2*2*3*ipt;
+        gr[ig]->Set(igp[ig]);
+        gr_run[ig]->Set(igp[ig]);
+        gr[ig]->Write();
+        gr_run[ig]->Write();
+      }
   f_out->Close();
 }
