@@ -7,12 +7,15 @@ void draw_MergePassRate()
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
   THnSparse *hn_merge = (THnSparse*)f->Get("hn_merge");
 
-  mc(0, 2,4);
+  //mc(0, 2,4);
+  mc();
+  mcd();
+  legi(0, 0.3,0.7,0.6,0.9);
 
-  for(int ieta=0; ieta<8; ieta++)
+  for(int ieta=7; ieta<8; ieta++)
     for(int part=0; part<2; part++)
     {
-      mcd(0, ieta+1);
+      //mcd(0, ieta+1);
       hn_merge->GetAxis(3)->SetRange(ieta+1-ieta/7*7,ieta+1-ieta/7*3);  // |eta|
       hn_merge->GetAxis(1)->SetRange(secl[part],sech[part]);  // sector
 
@@ -30,16 +33,23 @@ void draw_MergePassRate()
         gr->Write();
       }
       gr->SetTitle( Form("|#eta|: %.2f - %.2f",(ieta-ieta/7*7)*0.05,(ieta+1-ieta/7*3)*0.05) );
-      aset(gr, "p_{T} [GeV]","Bad Pass", 10.,30., 0.,1.);
+      aset(gr, "p_{T} [GeV]","Bad Pass", 18.,30., 0.,0.4);
       style(gr, part+20, part+1);
       if(part==0)
+      {
+        leg0->AddEntry(gr, "PbSc", "P");
         gr->Draw("AP");
+      }
       else
+      {
+        leg0->AddEntry(gr, "PbGl", "P");
         gr->Draw("P");
+      }
 
       delete h_total;
       delete h_passed;
     }
+  leg0->Draw();
 
   c0->Print("plots/MergePassRate.pdf");
   f_out->Close();

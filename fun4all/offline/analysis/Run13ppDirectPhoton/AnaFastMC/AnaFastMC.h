@@ -40,7 +40,7 @@ class AnaFastMC: public SubsysReco
   protected:
     void FastMCInput();
     void PythiaInput(PHCompositeNode *topNode);
-    void SumETruth(const TMCParticle *pref, double &econe_all, double &econe_acc);
+    void SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe_all, double &econe_acc);
 
     void BookHistograms();
     void ReadTowerStatus(const std::string &filename);
@@ -108,10 +108,10 @@ class AnaFastMC: public SubsysReco
     THnSparse* hn_pion;
     THnSparse* hn_missing;
     THnSparse *hn_photon;
-    THnSparse *hn_isoprompt;
 
     TF1 *cross_pi0;
     TF1 *cross_ph;
+    double weight_pythia;
 };
 
 #endif	/* __ANAFASTMC_H__ */

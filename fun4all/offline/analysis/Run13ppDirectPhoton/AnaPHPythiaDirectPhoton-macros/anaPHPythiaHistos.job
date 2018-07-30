@@ -1,7 +1,7 @@
 Universe        = vanilla
 Notification    = Complete
-Executable      = anaPHPythiaHistos.csh
-Arguments       = $(Initialdir) $(Process)
+Executable      = /phenix/u/zji/bin/condor-root.csh
+Arguments       = $(Initialdir) anaPHPythiaHistos.C $(Process)
 Requirements    = (CPU_Speed >= 2 && TotalDisk > 0)
 Rank		= CPU_Speed
 Image_Size      = 32M

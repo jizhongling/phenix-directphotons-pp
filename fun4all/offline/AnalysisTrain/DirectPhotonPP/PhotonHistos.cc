@@ -55,6 +55,7 @@ const int NZ = 96;
 const double eMin = 0.3;
 const double probMin = 0.02;
 const double tofMax = 10.;
+const double tofMaxIso = 50.;
 const double AsymCut = 0.8;
 
 /* Some cuts for isolation cut */
@@ -722,20 +723,18 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
           double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
           double minv = anatools::GetInvMass(cluster1, cluster2);
 
-          int cut = 0;
+          int tof = 0;
+          int prob = 0;
           if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax &&
               abs( cluster2->tofcorr() - bbc_t0 ) < tofMax )
-            cut = 1;
+            tof = 1;
           if( cluster1->prob_photon() > probMin &&
               cluster2->prob_photon() > probMin )
-            cut = 2;
-          if( TestPhoton(cluster1, bbc_t0) &&
-              TestPhoton(cluster2, bbc_t0) )
-            cut = 3;
+            prob = 1;
 
           if(sector >= 0 && sector <= 7)
           {
-            int ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm;
+            int ih = sector + 8*pattern + 3*8*tof + 2*3*8*prob + 2*2*3*8*evtype + 3*2*2*3*8*bbc10cm;
             h2_pion[ih]->Fill(tot_pT, minv);
           }
         } // IsGoodTower and asymmetry cut
@@ -797,20 +796,19 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
       if( datatype == ERT && !trig )
         continue;
 
-      double econeEM = SumEEmcal(cluster1, data_emccontainer);
+      double econeEM = SumEEmcal(cluster1, data_emccontainer, bbc_t0);
       double econeTrk =  SumPTrack(cluster1, data_tracks);
       double econe = econeEM + econeTrk;
       int isolated = 0;
       if( econe < eratio * cluster1->ecore() )
         isolated = 1;
 
-      int cut = 0;
+      int tof = 0;
+      int prob = 0;
       if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax )
-        cut = 1;
+        tof = 1;
       if( cluster1->prob_photon() > probMin )
-        cut = 2;
-      if( TestPhoton(cluster1, bbc_t0) )
-        cut = 3;
+        prob = 1;
 
       if( evtype == 2 && part >= 0 &&
           pT > 5. && pT < 10. &&
@@ -822,7 +820,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
 
       if(sector >= 0 && sector <= 7)
       {
-        int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm;
+        int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm;
         h_1photon[ih]->Fill(pT);
       }
 
@@ -833,7 +831,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
           if( !IsGoodTower(cluster2) || cluster2->ecore() < eMin ) continue;
           double minv = anatools::GetInvMass(cluster1, cluster2);
 
-          double econeEM2 = SumEEmcal(cluster2, data_emccontainer);
+          double econeEM2 = SumEEmcal(cluster2, data_emccontainer, bbc_t0);
           double econeTrk2 =  SumPTrack(cluster2, data_tracks);
           double econe2 = econeEM2 + econeTrk2;
           int isoboth = 0;
@@ -841,7 +839,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
             isoboth = 1;
 
           double econeEMPair1, econeEMPair2;
-          SumEEmcal(cluster1, cluster2, data_emccontainer, econeEMPair1, econeEMPair2);
+          SumEEmcal(cluster1, cluster2, data_emccontainer, bbc_t0, econeEMPair1, econeEMPair2);
           double econePair1 = econeEMPair1 + econeTrk;
           double econePair2 = econeEMPair2 + econeTrk2;
           int isopair = 0;
@@ -849,20 +847,18 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
               econePair2 < eratio * cluster2->ecore() )
             isopair = 1;
 
-          int cut = 0;
+          int tof = 0;
+          int prob = 0;
           if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax &&
               abs( cluster2->tofcorr() - bbc_t0 ) < tofMax )
-            cut = 1;
+            tof = 1;
           if( cluster1->prob_photon() > probMin && 
               cluster2->prob_photon() > probMin )
-            cut = 2;
-          if( TestPhoton(cluster1, bbc_t0) &&
-              TestPhoton(cluster2, bbc_t0) )
-            cut = 3;
+            prob = 1;
 
           if(sector >= 0 && sector <= 7)
           {
-            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
+            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm;
             h2_2photon[ih]->Fill(pT, minv);
           }
         } // j loop
@@ -1015,7 +1011,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store pi0 information */
-  // ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm < 2*3*4*3*8
+  // ih = sector + 8*pattern + 3*8*tof + 2*3*8*prob + 2*2*3*8*evtype + 3*2*2*3*8*bbc10cm < 2*3*2*2*3*8
   for(int ih=0; ih<nh_pion; ih++)
   {
     h2_pion[ih] = new TH2F(Form("h2_pion_%d",ih), "#pi^{0} spectrum;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);
@@ -1023,7 +1019,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store single photon information */
-  // ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm < 2*3*4*2*3*8
+  // ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm < 2*3*2*2*2*3*8
   for(int ih=0; ih<nh_1photon; ih++)
   {
     h_1photon[ih] = new TH1F(Form("h_1photon_%d",ih), "Single photon spectrum;p_{T} [GeV];", npT,pTbin);
@@ -1031,7 +1027,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store two photons information */
-  // ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm < 2*3*4*2*2*3*8
+  // ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm < 2*3*2*2*2*2*3*8
   for(int ih=0; ih<nh_2photon; ih++)
   {
     h2_2photon[ih] = new TH2F(Form("h2_2photon_%d",ih), "Two photons spectrum;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);
@@ -1041,7 +1037,7 @@ void PhotonHistos::BookHistograms()
   return;
 }
 
-double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont)
+double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont, double bbc_t0)
 { 
   /* Sum up all energy in cone around particle without one cluster */
   double econe = 0.;
@@ -1061,6 +1057,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
      * or on bad towers or lower than energy threshold */
     if( clus2->id() == cluster->id() ||
         IsBadTower(clus2) ||
+        abs( clus2->tofcorr() - bbc_t0 ) > tofMaxIso ||
         clus2->ecore() < eClusMin )
       continue;
 
@@ -1078,7 +1075,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
 }
 
 void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2,
-    const emcClusterContainer *cluscont, double &econe1, double &econe2)
+    const emcClusterContainer *cluscont, double bbc_t0, double &econe1, double &econe2)
 { 
   /* Sum up all energy in cone around particle without two clusters */
   econe1 = 0.;
@@ -1102,6 +1099,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
     if( clus3->id() == cluster1->id() ||
         clus3->id() == cluster2->id() ||
         IsBadTower(clus3) ||
+        abs( clus3->tofcorr() - bbc_t0 ) > tofMaxIso ||
         clus3->ecore() < eClusMin )
       continue;
 

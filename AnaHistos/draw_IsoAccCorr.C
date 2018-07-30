@@ -31,6 +31,11 @@ void draw_IsoAccCorr()
     delete h_isoall;
     delete h_isoacc;
   }
+  legi(0, 0.2,0.6,0.5,0.9);
+  leg0->AddEntry(gr[0], "PbSc west", "P");
+  leg0->AddEntry(gr[1], "PbSc east", "P");
+  leg0->AddEntry(gr[2], "PbGl", "P");
+  leg0->Draw();
 
   c0->Print("plots/IsoAll2IsoAcc.pdf");
   TFile *f_out = new TFile("data/IsoAll2IsoAcc.root", "RECREATE");

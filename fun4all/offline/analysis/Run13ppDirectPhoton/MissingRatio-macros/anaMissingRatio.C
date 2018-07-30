@@ -35,9 +35,9 @@ void anaMissingRatio(const int process = 0)
   se->registerSubsystem( new EmcEmbedReclusterizer("TOP", "TOP", "TOP", "") );
 
   // My Reconstruction Module
-  //SubsysReco *my1 = new MissingRatio("MissingRatio", Form("histo%d.root",process));
+  SubsysReco *my1 = new MissingRatio("MissingRatio", Form("histo%d.root",process));
   //SubsysReco *my1 = new PhotonEff("PhotonEff", Form("histo%d.root",process));
-  SubsysReco *my1 = new Isolation("Isolation", Form("histo%d.root",process));
+  //SubsysReco *my1 = new Isolation("Isolation", Form("histo%d.root",process));
   se->registerSubsystem(my1);
 
   // Real input from DST files
@@ -48,7 +48,7 @@ void anaMissingRatio(const int process = 0)
   for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
   {
     char dstFileName[1000];
-    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST-phpythia/simDST%d.root", thread);
+    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST-phparticlegen/simDST%d.root", thread);
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DSTin1", dstFileName);

@@ -68,9 +68,9 @@ class PhotonHistos: public SubsysReco
 
     /* Sum energy in cone around the reference particle
      * for isolated photon and isolated pair */
-    double SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont);
+    double SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont, double bbc_t0);
     void SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2,
-        const emcClusterContainer *cluscont, double &econe1, double &econe2);
+        const emcClusterContainer *cluscont, double bbc_t0, double &econe1, double &econe2);
     double SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *tracks);
 
     /* Check event type, photon cuts and tower status */
@@ -100,9 +100,9 @@ class PhotonHistos: public SubsysReco
     static const int nh_ert = 2*6*8;
     static const int nh_etwr = 16*8*2*8;
     static const int nh_eta_phi = 2*3;
-    static const int nh_pion = 2*3*4*3*8;
-    static const int nh_1photon = 2*3*4*2*3*8;
-    static const int nh_2photon = 2*3*4*2*2*3*8;
+    static const int nh_pion = 2*3*2*2*3*8;
+    static const int nh_1photon = 2*3*2*2*2*3*8;
+    static const int nh_2photon = 2*3*2*2*2*2*3*8;
 
     /* Tower status for warnmap */
     int tower_status_nils[8][48][96];
