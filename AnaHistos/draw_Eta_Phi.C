@@ -49,7 +49,7 @@ void draw_Eta_Phi()
     h_eta_sim->Draw("HIST SAME");
   }
 
-  for(int part=0; part<3; part++)
+  for(int part=2; part>=0; part--)
   {
     mcd(0, part+9);
     TH1 *h_eta_data =(TH1*)h2_eta_phi_data[part]->ProjectionX()->Clone("h_eta_data");
@@ -82,7 +82,7 @@ void draw_Eta_Phi()
     style(h_phi_data);
     double max_phi = h_phi_data->GetMaximum();
     h_phi_data->SetMaximum(1.1*max_phi);
-    if(part < 2)
+    if(part != 1)
       h_phi_data->Draw("E");
     else
       h_phi_data->Draw("E SAME");

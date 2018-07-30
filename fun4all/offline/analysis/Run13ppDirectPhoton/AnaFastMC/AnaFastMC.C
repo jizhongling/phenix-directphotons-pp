@@ -420,7 +420,11 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     /* Fill Vpart[], itwr_part[] and sec_part[]
      * and set NPart and NPeak */
     photon_sim(pE_part);
+
+    /* Copy parameters for reconstructed photon */
     bool InAcc = InFiducial(itw_part[0]);
+    int sec1 = sec_part[0];
+    TLorentzVector pE_reco(Vpart[0]);
 
     /* Get isolation cone energy */
     double econe_all, econe_acc;
@@ -433,10 +437,9 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     /* Fill histogram for isolated prompt photons in accpetance */
     if( InAcc && econe_acc < eratio * energy )
     {
-      /* Parameters for direct photon */
-      int sec1 = sec_part[0];
-      double e1 = Vpart[0].E();
-      double ptsim = Vpart[0].Pt();
+      /* Parameters for isolated prompt photon */
+      double e1 = pE_reco.E();
+      double ptsim = pE_reco.Pt();
 
       /* For eta and phi distribution and acceptance */
       if(e1 > eMin)
@@ -447,12 +450,12 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
         else if(sec1 < 6) part = 1;
         else if(sec1 < 8) part = 2;
 
-        double eta = Vpart[0].Eta();
-        double phi = Vpart[0].Phi();
+        double eta = pE_reco.Eta();
+        double phi = pE_reco.Phi();
         if(sec1 >= 4)
         {
-          Vpart[0].RotateZ(-PI);
-          phi = Vpart[0].Phi() + PI;
+          pE_reco.RotateZ(-PI);
+          phi = pE_reco.Phi() + PI;
         }
 
         if( part >= 0 && ptsim > 5. && ptsim < 10. )
