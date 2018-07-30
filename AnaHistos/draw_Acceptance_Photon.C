@@ -37,7 +37,7 @@ void draw_Acceptance_Photon()
   for(int part=0; part<3; part++)
   {
     gr[part]->SetTitle("Photon acceptance");
-    aset(gr[part], "p_{T} [GeV]","acceptance", 2.,30., 0.,0.2);
+    aset(gr[part], "p_{T} [GeV]","acceptance", 2.,30., 0.,0.4);
     style(gr[part], part+20, part+1);
     if(part==0)
       gr[part]->Draw("AP");

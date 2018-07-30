@@ -27,7 +27,8 @@ void draw_CrossSection_Pion()
   TH2 *h2_pion[3][3];
 
   int bbc10cm = 1;
-  int cut = 3;
+  int tof = 1;
+  int prob = 1;
 
   TH2 *h2_pion_t = (TH2*)f->Get("h2_pion_0");
   h2_pion_t->Reset();
@@ -38,7 +39,7 @@ void draw_CrossSection_Pion()
       for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
         for(int pattern=0; pattern<3; pattern++)
         {
-          int ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm;
+          int ih = sector + 8*pattern + 3*8*tof + 2*3*8*prob + 2*2*3*8*evtype + 3*2*2*3*8*bbc10cm;
           TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
           h2_pion[evtype][part]->Add(h2_tmp);
           delete h2_tmp;

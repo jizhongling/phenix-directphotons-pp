@@ -33,7 +33,8 @@ void draw_CrossSection_IsoPhoton()
   TH2 *h2_isopair[3][3];
 
   int bbc10cm = 1;
-  int cut = 3;
+  int tof = 1;
+  int prob = 1;
 
   TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
   h_1photon_t->Reset();
@@ -45,7 +46,7 @@ void draw_CrossSection_IsoPhoton()
         for(int pattern=0; pattern<3; pattern++)
         {
           int isolated = 1;
-          int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm;
+          int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm;
           TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
           h_1photon[evtype][part]->Add(h_tmp);
           delete h_tmp;
@@ -63,7 +64,7 @@ void draw_CrossSection_IsoPhoton()
           for(int isopair=0; isopair<2; isopair++)
           {
             int isoboth = 1;
-            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
+            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm;
             TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
             h2_isoboth[evtype][part]->Add(h2_tmp);
             delete h2_tmp;
@@ -79,7 +80,7 @@ void draw_CrossSection_IsoPhoton()
           for(int isoboth=0; isoboth<2; isoboth++)
           {
             int isopair = 1;
-            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
+            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm;
             TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
             h2_isopair[evtype][part]->Add(h2_tmp);
             delete h2_tmp;
@@ -92,7 +93,8 @@ void draw_CrossSection_IsoPhoton()
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
   //const double Pile[3] = {0.891, 0.891, 0.878};
-  const double Pile[3] = {0.905, 0.905, 0.865};
+  //const double Pile[3] = {0.905, 0.905, 0.865};
+  const double Pile[3] = {1.27, 1.29, 1.11};
   const double ePile = 0.01;
   const double TrigBBC = 0.91;
   const double eTrigBBC = 0.01;
@@ -106,7 +108,6 @@ void draw_CrossSection_IsoPhoton()
   const double eA = 0.04;
 
   double xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
-  double xIsoAcc[3][npT] = {}, IsoAcc[3][npT] = {}, eIsoAcc[3][npT] = {};
   double xTrigERT[3][npT] = {}, TrigERT[3][npT] = {}, eTrigERT[3][npT] = {};
   double xVeto[3][npT] = {}, Veto[3][npT] = {}, eVeto[3][npT] = {};
   double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
@@ -132,7 +133,6 @@ void draw_CrossSection_IsoPhoton()
   for(int part=0; part<3; part++)
   {
     ReadGraph<TGraphAsymmErrors>("data/Acceptance-photon.root", part, xAcc[part], Acc[part], eAcc[part]);
-    ReadGraph<TGraphAsymmErrors>("data/IsoAll2IsoAcc.root", part, xIsoAcc[part], IsoAcc[part], eIsoAcc[part]);
     ReadGraph<TGraphAsymmErrors>("data/ERTEff-photon.root", part/2, xTrigERT[part], TrigERT[part], eTrigERT[part]);
     ReadGraph<TGraphAsymmErrors>("data/SelfVeto.root", part, xVeto[part], Veto[part], eVeto[part]);
     ReadGraph<TGraphErrors>("data/MissingRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
@@ -188,7 +188,6 @@ void draw_CrossSection_IsoPhoton()
 
       xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
       int ipAcc = Get_ipt(xAcc[part], xx);
-      int ipIsoAcc = Get_ipt(xIsoAcc[part], xx);
       int ipTrigERT = Get_ipt(xTrigERT[part], xx);
       int ipVeto = Get_ipt(xVeto[part], xx);
       int ipMiss = Get_ipt(xMiss[part], xx);
@@ -220,11 +219,10 @@ void draw_CrossSection_IsoPhoton()
         endir *= Norm[part] * (1+eNorm[part]);
       }
       yy[part] = (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
-        * ndir / Acc[part][ipAcc] /* IsoAcc[part][ipIsoAcc] */ / TrigERT[part][ipTrigERT] / Prob[part/2][ipt]
+        * ndir / Acc[part][ipAcc] / TrigERT[part][ipTrigERT] / Prob[part/2][ipt]
         / ToF[part] / Conv[part] / TrigBBC * Pile[part];
       eyy[part] = yy[part] * sqrt( pow(endir/ndir,2.)
           + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2.)
-          + pow(eIsoAcc[part][ipIsoAcc]/IsoAcc[part][ipIsoAcc],2.)
           + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2.)
           + pow(eProb/Prob[part/2][ipt],2.)
           + pow(eToF[part]/ToF[part],2.) + pow(eConv[part]/Conv[part],2.)

@@ -59,6 +59,7 @@ void anaPileup_Photon(const int process = 0)
 
     int bbc10cm = 1;
     int evtype = 2;
+    int prob = 1;
 
     TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
     h_1photon_t->Reset();
@@ -70,8 +71,8 @@ void anaPileup_Photon(const int process = 0)
           for(int pattern=0; pattern<3; pattern++)
             for(int isolated=0; isolated<2; isolated++)
             {
-              int cut = ic + 2;
-              int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm;
+              int tof = ic;
+              int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm;
               TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
               h_1photon[ic][part]->Add(h_tmp);
               delete h_tmp;
@@ -91,8 +92,8 @@ void anaPileup_Photon(const int process = 0)
             for(int isoboth=0; isoboth<2; isoboth++)
               for(int isopair=0; isopair<2; isopair++)
               {
-                int cut = ic + 2;
-                int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
+                int tof = ic;
+                int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm;
                 TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
                 h2_2photon[ic][part]->Add(h2_tmp);
                 delete h2_tmp;
