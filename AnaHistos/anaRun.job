@@ -1,7 +1,7 @@
 Universe        = vanilla
 Notification    = Complete
 Executable      = /phenix/u/zji/bin/condor-root.csh
-Arguments       = $(Initialdir) anaPileup_Photon.C $(Process)
+Arguments       = $(Initialdir) anaPileup_IsoPhoton.C $(Process)
 Requirements    = (CPU_Speed >= 1 && TotalDisk > 0)
 Rank		= CPU_Speed
 Image_Size      = 32M

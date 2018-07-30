@@ -86,7 +86,7 @@ void draw_CrossSection_IsoPhoton()
           }
     }
 
-  const double DeltaEta = 1.0;
+  const double DeltaEta = 0.5;
   //const double NBBC =  3.59e11;  // from DAQ
   const double NBBC =  3.54e11;  // from rejection power
   const double XBBC = 32.51e9;
@@ -220,7 +220,7 @@ void draw_CrossSection_IsoPhoton()
         endir *= Norm[part] * (1+eNorm[part]);
       }
       yy[part] = (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
-        * ndir / Acc[part][ipAcc] * IsoAcc[part][ipIsoAcc] / TrigERT[part][ipTrigERT] / Prob[part/2][ipt]
+        * ndir / Acc[part][ipAcc] /* IsoAcc[part][ipIsoAcc] */ / TrigERT[part][ipTrigERT] / Prob[part/2][ipt]
         / ToF[part] / Conv[part] / TrigBBC * Pile[part];
       eyy[part] = yy[part] * sqrt( pow(endir/ndir,2.)
           + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2.)

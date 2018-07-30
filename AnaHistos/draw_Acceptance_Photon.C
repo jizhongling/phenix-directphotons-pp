@@ -13,7 +13,7 @@ void draw_Acceptance_Photon()
     gr[part]->SetName(Form("gr_%d",part));
   }
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo.root");
 
   TH1 *h_total = (TH1*)f->Get("h_photon");
   THnSparse *hn_photon = (THnSparse*)f->Get("hn_photon");
@@ -21,9 +21,12 @@ void draw_Acceptance_Photon()
   for(int part=0; part<3; part++)
   {
     hn_photon->GetAxis(2)->SetRange(secl[part],sech[part]);
-    TH1 *h_pass = hn_photon->Projection(1);
-    gr[part]->Divide(h_pass, h_total, "n");
-    delete h_pass;
+    TH1 *h_passed = hn_photon->Projection(1);
+    for(int binx=1; binx<=h_total->GetNbinsX(); binx++)
+      if( h_passed->GetBinContent(binx) > h_total->GetBinContent(binx) )
+        h_passed->SetBinContent(binx, h_total->GetBinContent(binx));
+    gr[part]->Divide(h_passed, h_total, "n");
+    delete h_passed;
   }
 
   mc();

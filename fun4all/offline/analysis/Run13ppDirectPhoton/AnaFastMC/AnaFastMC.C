@@ -55,6 +55,7 @@ const double mcorr = 0.993;
 const double ptMin = 3.;
 const double eMin = 0.3;
 const double AsymCut = 0.8;
+const double etaMax = 0.25;
 
 /* Some cuts for isolation cut */
 const double eClusMin = 0.15;
@@ -78,8 +79,7 @@ AnaFastMC::AnaFastMC(const string &name):
   h3_isoeta(NULL),
   hn_pion(NULL),
   hn_missing(NULL),
-  hn_photon(NULL),
-  hn_isoprompt(NULL)
+  hn_photon(NULL)
 {
   /* Initialize histograms */
   for(int part=0; part<3; part++)
@@ -100,12 +100,19 @@ AnaFastMC::AnaFastMC(const string &name):
       }
 
   /* Function for pT weight for pi0 */
-  cross_pi0 = new TF1("cross_pi0", "x*(1/(1+exp((x-[5])/[6]))*[0]/pow(1+x/[1],[2])+(1-1/(1+exp((x-[5])/[6])))*[3]/pow(x,[4]))", 0, 30);
+  cross_pi0 = new TF1("cross_pi0", "x*(1/(1+exp((x-[5])/[6]))*[0]/pow(1+x/[1],[2])+(1-1/(1+exp((x-[5])/[6])))*[3]/pow(x,[4]))", 0.1, 100.);
   cross_pi0->SetParameters(2.02819e+04, 4.59173e-01, 7.51170e+00, 1.52867e+01, 7.22708e+00, 2.15396e+01, 3.65471e+00);
 
-  // function for pT weight for direct photon
-  cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]", 0, 30);
+  /* Function for pT weight for direct photon */
+  cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]", 0.1, 100.);
   cross_ph->SetParameters(255., 5.98, 0.273, 14.43);
+
+  /* Set Pythia weight */
+  //int process = 0;
+  //sscanf(Name(), "AnaFastMC%d", &process);
+  //double pt_start = 3 + process/2 * 0.1;
+  //weight_pythia = cross_ph->Integral(pt_start, 50.);
+  weight_pythia = 1.;
 
   NPart = 0;
   NPeak = 0;
@@ -380,12 +387,12 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
   }
 
   /* Get PYTHIA Background Particles */
-  phpythia_bg = findNode::getClass<PHPythiaContainer>(topNode,"PHPythiaBG");
-  if(!phpythia_bg)
-  {
-    cout << PHWHERE << "Unable to get PHPythiaBG, is Node missing?" << endl;
-    return;
-  }
+  //phpythia_bg = findNode::getClass<PHPythiaContainer>(topNode,"PHPythiaBG");
+  //if(!phpythia_bg)
+  //{
+  //  cout << PHWHERE << "Unable to get PHPythiaBG, is Node missing?" << endl;
+  //  return;
+  //}
 
   /* Loop over all signal particles */
   int npart = phpythia->size();
@@ -402,37 +409,61 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
         ( parent && abs(parent->GetKF()) > 100 ) )
       continue;
 
-    /* Convert particle into TVector3 */
-    TVector3 v3_part(part->GetPx(), part->GetPy(), part->GetPz());
-    double pt = v3_part.Pt();
-    double energy = part->GetEnergy();
+    /* Convert particle into TLorentzVector */
+    TLorentzVector pE_part(part->GetPx(), part->GetPy(), part->GetPz(), part->GetEnergy());
+    double pt = pE_part.Pt();
+    double energy = pE_part.E();
 
     /* Only consider high-pT photons */
     if( pt < ptMin )
       continue;
 
-    /* Fill itwr_part[] and sec_part[]
-     * and set NPart */
-    geom_sim(v3_part);
+    /* Fill Vpart[], itwr_part[] and sec_part[]
+     * and set NPart and NPeak */
+    photon_sim(pE_part);
+    bool InAcc = InFiducial(itw_part[0]);
 
-    /* Test if particle is in fiducial */
-    if( !InFiducial(itw_part[0]) )
-      continue;
-
+    /* Get isolation cone energy */
     double econe_all, econe_acc;
-    SumETruth(part, econe_all, econe_acc);
-    double fill_hn_isoprompt[] = {pt, (double)sec_part[0], 0.};
-    if( econe_all < eratio * energy )
+    SumETruth(part, InAcc, econe_all, econe_acc);
+
+    /* Fill histogram for all isolated prompt photons */
+    if( abs(pE_part.Eta()) < etaMax && econe_all < eratio * energy )
+      h_photon->Fill(pt, weight_pythia);
+
+    /* Fill histogram for isolated prompt photons in accpetance */
+    if( InAcc && econe_acc < eratio * energy )
     {
-      fill_hn_isoprompt[2] = 0.;
-      hn_isoprompt->Fill(fill_hn_isoprompt);
-    }
-    if( econe_acc < eratio * energy )
-    {
-      fill_hn_isoprompt[2] = 1.;
-      hn_isoprompt->Fill(fill_hn_isoprompt);
-    }
-  }
+      /* Parameters for direct photon */
+      int sec1 = sec_part[0];
+      double e1 = Vpart[0].E();
+      double ptsim = Vpart[0].Pt();
+
+      /* For eta and phi distribution and acceptance */
+      if(e1 > eMin)
+      {
+        int part = -1;
+        if(sec1 < 0) part = -1;
+        else if(sec1 < 4) part = 0;
+        else if(sec1 < 6) part = 1;
+        else if(sec1 < 8) part = 2;
+
+        double eta = Vpart[0].Eta();
+        double phi = Vpart[0].Phi();
+        if(sec1 >= 4)
+        {
+          Vpart[0].RotateZ(-PI);
+          phi = Vpart[0].Phi() + PI;
+        }
+
+        if( part >= 0 && ptsim > 5. && ptsim < 10. )
+          h2_photon_eta_phi[part]->Fill(-eta, phi, weight_pythia);
+
+        double fill_hn_photon[] = {pt, ptsim, (double)sec1};
+        hn_photon->Fill(fill_hn_photon, weight_pythia);
+      } // e1
+    } // InFiducial
+  } // ipart
 
   return;
 }
@@ -446,7 +477,7 @@ int AnaFastMC::End(PHCompositeNode *topNode)
   return EVENT_OK;
 }
 
-void AnaFastMC::SumETruth(const TMCParticle *pref, double &econe_all, double &econe_acc)
+void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe_all, double &econe_acc)
 {
   /* Sum up all energy in cone around particle */
   econe_all = 0.;
@@ -458,7 +489,7 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, double &econe_all, double &ec
 
   /* Loop over all signal and background particles */
   PHPythiaContainer *phpythiacont[2] = {phpythia, phpythia_bg};
-  for(int icont=0; icont<2; icont++)
+  for(int icont=0; icont<1; icont++)
   {
     int npart = phpythiacont[icont]->size();
     for(int ipart2=0; ipart2<npart; ipart2++)
@@ -483,7 +514,7 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, double &econe_all, double &ec
         econe_all += energy;
 
         /* Test if particle passes energy threshold */
-        if( energy > eClusMin )
+        if( prefInAcc && energy > eClusMin )
         {
           /* Fill itwr_part[] and sec_part[]
            * and set NPart */
@@ -549,18 +580,11 @@ void AnaFastMC::BookHistograms()
     h_pion->Sumw2();
     hm->registerHisto(h_pion);
 
-    h_photon = new TH1F("h_photon", "Total photon count;p_{T} [GeV];", npT, pTbin);
-    h_photon->Sumw2();
-    hm->registerHisto(h_photon);
-
     for(int part=0; part<3; part++)
     {
       h2_pion_eta_phi[part] = new TH2F(Form("h2_pion_eta_phi_part%d",part), "Pion #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
-      h2_photon_eta_phi[part] = new TH2F(Form("h2_photon_eta_phi_part%d",part), "Photon #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
       h2_pion_eta_phi[part]->Sumw2();
-      h2_photon_eta_phi[part]->Sumw2();
       hm->registerHisto(h2_pion_eta_phi[part]);
-      hm->registerHisto(h2_photon_eta_phi[part]);
     }
 
     h3_isopi0 = new TH3F("h3_isopi0", "Self veto for #pi^{0};p_{T} [GeV];sector;isolated;",
@@ -592,28 +616,32 @@ void AnaFastMC::BookHistograms()
     hn_missing->Sumw2();
     hm->registerHisto(hn_missing);
 
-    const int nbins_hn_photon[] = {npT, npT, 8};
-    const double xmin_hn_photon[] = {0., 0., -0.5};
-    const double xmax_hn_photon[] = {0., 0., 7.5};
-    hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;",
-        3, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
-    hn_photon->SetBinEdges(0, pTbin);
-    hn_photon->SetBinEdges(1, pTbin);
-    hn_photon->Sumw2();
-    hm->registerHisto(hn_photon);
   }
 
-  /* Use PHParticleGen input */
-  else if( mcmethod == PHParticleGen )
+  /* Use FastMC and PHParticleGen input */
+  h_photon = new TH1F("h_photon", "Total photon count;p_{T} [GeV];", npT, pTbin);
+  if( mcmethod == FastMC )
+    h_photon->Sumw2();
+  hm->registerHisto(h_photon);
+
+  for(int part=0; part<3; part++)
   {
-    const int nbins_hn_isoprompt[] = {npT, 8, 2};
-    const double xmin_hn_isoprompt[] = {0., -0.5, -0.5};
-    const double xmax_hn_isoprompt[] = {0., 7.5, 1.5};
-    hn_isoprompt = new THnSparseF("hn_isoprompt", "Isolated prompt photon count;p_{T} [GeV];sector;IsoInAcc;",
-        3, nbins_hn_isoprompt, xmin_hn_isoprompt, xmax_hn_isoprompt);
-    hn_isoprompt->SetBinEdges(0, pTbin);
-    hm->registerHisto(hn_isoprompt);
+    h2_photon_eta_phi[part] = new TH2F(Form("h2_photon_eta_phi_part%d",part), "Photon #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
+    if( mcmethod == FastMC )
+      h2_photon_eta_phi[part]->Sumw2();
+    hm->registerHisto(h2_photon_eta_phi[part]);
   }
+
+  const int nbins_hn_photon[] = {npT, npT, 8};
+  const double xmin_hn_photon[] = {0., 0., -0.5};
+  const double xmax_hn_photon[] = {0., 0., 7.5};
+  hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;",
+      3, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
+  hn_photon->SetBinEdges(0, pTbin);
+  hn_photon->SetBinEdges(1, pTbin);
+  if( mcmethod == FastMC )
+    hn_photon->Sumw2();
+  hm->registerHisto(hn_photon);
 
   return;
 }

@@ -7,7 +7,7 @@ void draw_Pileup_Photon()
   const char *mname[2] = {"pol1", "log"};
   const char *cname[6] = {"PbScW without ToF", "PbScE without ToF", "PbGl without ToF", "PbScW with ToF", "PbScE with ToF", "PbGl with ToF"};
 
-  TFile *f_out = new TFile("data/Pileup-photon-fit.root", "RECREATE");
+  TFile *f_out = new TFile("data/Pileup-isophoton-fit.root", "RECREATE");
 
   int id = 0;
 
@@ -22,7 +22,7 @@ void draw_Pileup_Photon()
 
   for(int i=0; i<10; i++)
   {
-    TFile *f = new TFile(Form("pileup/Pileup-photon-%d.root",i));
+    TFile *f = new TFile(Form("pileup/Pileup-isophoton-%d.root",i));
     if( f->IsZombie() ) continue;
 
     for(int ipt=0; ipt<npT; ipt++)
@@ -144,8 +144,8 @@ void draw_Pileup_Photon()
     }
 
   f_out->Close();
-  c1->Print("plots/Pileup-photon-ratio-ERT.pdf");
-  c2->Print("plots/Pileup-photon-ratio-MB.pdf");
-  c3->Print("plots/ToFEff-photon-ERT.pdf");
-  c4->Print("plots/ToFEff-photon-MB.pdf");
+  c1->Print("plots/Pileup-isophoton-ratio-ERT.pdf");
+  c2->Print("plots/Pileup-isophoton-ratio-MB.pdf");
+  c3->Print("plots/ToFEff-isophoton-ERT.pdf");
+  c4->Print("plots/ToFEff-isophoton-MB.pdf");
 }

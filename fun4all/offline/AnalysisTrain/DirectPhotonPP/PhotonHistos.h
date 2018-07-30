@@ -68,9 +68,9 @@ class PhotonHistos: public SubsysReco
 
     /* Sum energy in cone around the reference particle
      * for isolated photon and isolated pair */
-    double SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont);
+    double SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont, double bbc_t0);
     void SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2,
-        const emcClusterContainer *cluscont, double &econe1, double &econe2);
+        const emcClusterContainer *cluscont, double bbc_t0, double &econe1, double &econe2);
     double SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *tracks);
 
     /* Check event type, photon cuts and tower status */

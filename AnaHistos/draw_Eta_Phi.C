@@ -5,8 +5,8 @@ void draw_Eta_Phi()
 
   const int phibin[9] = {2, 2+19, 2+19*2, 2+19*3, 4+19*4, 4+19*5, 4+19*6, 4+19*6+25, 4+19*6+25*2};
 
-  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
-  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-histo.root");
+  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo.root");
 
   mc(0, 4,5);
 
@@ -14,8 +14,11 @@ void draw_Eta_Phi()
   TH2 *h2_eta_phi_sim[3];
   for(int part=0; part<3; part++)
   {
-    h2_eta_phi_data[part] = (TH2*)f_data->Get( Form("h2_photon_eta_phi_part%d",part) );
     h2_eta_phi_sim[part] = (TH2*)f_sim->Get( Form("h2_photon_eta_phi_part%d",part) );
+    h2_eta_phi_data[part] = (TH2*)f_data->Get( Form("h2_eta_phi_%d",part+3) );
+    //TH2 *h2_tmp = (TH2*)f_data->Get( Form("h2_eta_phi_%d",part+3) );
+    //h2_eta_phi_data[part]->Add(h2_tmp);
+    //delete h2_tmp;
 
     for(int binx=1; binx<=h2_eta_phi_data[part]->GetNbinsX(); binx++)
       for(int biny=1; biny<=h2_eta_phi_data[part]->GetNbinsY(); biny++)
@@ -35,10 +38,13 @@ void draw_Eta_Phi()
     TH1 *h_eta_data =(TH1*)h2_eta_phi_data[part]->ProjectionX("_px",phibin[sec],phibin[sec+1])->Clone("h_eta_data");
     TH1 *h_eta_sim = (TH1*)h2_eta_phi_sim[part]->ProjectionX("_px",phibin[sec],phibin[sec+1])->Clone("h_eta_sim");
     double scale = h_eta_data->Integral(0,-1) / h_eta_sim->Integral(0,-1);
+    if(part==2) scale *= 0.011/0.008;
     h_eta_sim->Scale(scale);
     h_eta_data->SetTitle( Form("#eta dist., sector %d",sec) );
     aset(h_eta_data);
     style(h_eta_data);
+    double max_eta = h_eta_sim->GetMaximum();
+    h_eta_data->SetMaximum(1.1*max_eta);
     h_eta_data->Draw("E");
     h_eta_sim->Draw("HIST SAME");
   }
@@ -62,6 +68,12 @@ void draw_Eta_Phi()
     TH1 *h_phi_sim = (TH1*)h2_eta_phi_sim[part]->ProjectionY()->Clone("h_phi_sim");
     double scale = h_phi_data->Integral(0,-1) / h_phi_sim->Integral(0,-1);
     h_phi_sim->Scale(scale);
+    if(part == 2)
+    {
+      double sc2gl = 0.011 / 0.008;
+      h_phi_data->Scale(sc2gl);
+      h_phi_sim->Scale(sc2gl);
+    }
     h_phi_data->SetTitle( Form("#phi dist., part %d",part) );
     if(part == 0)
       aset(h_phi_data, "","", -0.6,1.);
@@ -87,5 +99,5 @@ void draw_Eta_Phi()
     h2_eta_phi_sim[part]->Draw("COLZ");
   }
 
-  c0->Print("plots/DirphEtaPhi-masked.pdf");
+  c0->Print("plots/DirphEtaPhi-isolated.pdf");
 }

@@ -55,6 +55,7 @@ const int NZ = 96;
 const double eMin = 0.3;
 const double probMin = 0.02;
 const double tofMax = 10.;
+const double tofMaxIso = 50.;
 const double AsymCut = 0.8;
 
 /* Some cuts for isolation cut */
@@ -795,7 +796,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
       if( datatype == ERT && !trig )
         continue;
 
-      double econeEM = SumEEmcal(cluster1, data_emccontainer);
+      double econeEM = SumEEmcal(cluster1, data_emccontainer, bbc_t0);
       double econeTrk =  SumPTrack(cluster1, data_tracks);
       double econe = econeEM + econeTrk;
       int isolated = 0;
@@ -830,7 +831,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
           if( !IsGoodTower(cluster2) || cluster2->ecore() < eMin ) continue;
           double minv = anatools::GetInvMass(cluster1, cluster2);
 
-          double econeEM2 = SumEEmcal(cluster2, data_emccontainer);
+          double econeEM2 = SumEEmcal(cluster2, data_emccontainer, bbc_t0);
           double econeTrk2 =  SumPTrack(cluster2, data_tracks);
           double econe2 = econeEM2 + econeTrk2;
           int isoboth = 0;
@@ -838,7 +839,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
             isoboth = 1;
 
           double econeEMPair1, econeEMPair2;
-          SumEEmcal(cluster1, cluster2, data_emccontainer, econeEMPair1, econeEMPair2);
+          SumEEmcal(cluster1, cluster2, data_emccontainer, bbc_t0, econeEMPair1, econeEMPair2);
           double econePair1 = econeEMPair1 + econeTrk;
           double econePair2 = econeEMPair2 + econeTrk2;
           int isopair = 0;
@@ -1036,7 +1037,7 @@ void PhotonHistos::BookHistograms()
   return;
 }
 
-double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont)
+double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont, double bbc_t0)
 { 
   /* Sum up all energy in cone around particle without one cluster */
   double econe = 0.;
@@ -1056,6 +1057,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
      * or on bad towers or lower than energy threshold */
     if( clus2->id() == cluster->id() ||
         IsBadTower(clus2) ||
+        abs( clus2->tofcorr() - bbc_t0 ) > tofMaxIso ||
         clus2->ecore() < eClusMin )
       continue;
 
@@ -1073,7 +1075,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
 }
 
 void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2,
-    const emcClusterContainer *cluscont, double &econe1, double &econe2)
+    const emcClusterContainer *cluscont, double bbc_t0, double &econe1, double &econe2)
 { 
   /* Sum up all energy in cone around particle without two clusters */
   econe1 = 0.;
@@ -1097,6 +1099,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
     if( clus3->id() == cluster1->id() ||
         clus3->id() == cluster2->id() ||
         IsBadTower(clus3) ||
+        abs( clus3->tofcorr() - bbc_t0 ) > tofMaxIso ||
         clus3->ecore() < eClusMin )
       continue;
 

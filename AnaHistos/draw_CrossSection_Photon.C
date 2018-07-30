@@ -68,8 +68,8 @@ void draw_CrossSection_Photon()
   const double NBBC =  3.54e11;  // from rejection power
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
-  //const double Pile[3] = {0.891, 0.891, 0.878};
-  const double Pile[3] = {0.905, 0.905, 0.865};
+  const double Pile[3] = {0.894, 0.886, 0.920};
+  //const double Pile[3] = {0.905, 0.905, 0.865};
   const double ePile = 0.01;
   const double TrigBBC = 0.91;
   const double eTrigBBC = 0.01;

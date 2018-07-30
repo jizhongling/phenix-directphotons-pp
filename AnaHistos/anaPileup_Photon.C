@@ -31,13 +31,11 @@ void anaPileup_Photon(const int process = 0)
 
   const double A = 0.22;
   const double eA = 0.04;
-  double xVeto[3][30] = {}, Veto[3][30] = {}, eVeto[3][30] = {};
   double xMiss[3][30] = {}, Miss[3][30] = {}, eMiss[3][30] = {};
   double xMerge[3][30] = {}, Merge[3][30] = {}, eMerge[3][30] = {};
   double xBadPass[3][30] = {}, BadPass[3][30] = {}, eBadPass[3][30] = {};
   for(int part=0; part<3; part++)
   {
-    ReadGraph<TGraphAsymmErrors>("data/SelfVeto.root", part, xVeto[part], Veto[part], eVeto[part]);
     ReadGraph<TGraphErrors>("data/MissingRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
     ReadGraph<TGraphAsymmErrors>("data/Merge-photon.root", part, xMerge[part], Merge[part], eMerge[part]);
     ReadGraph<TGraphErrors>("data/MergePassRate.root", part/2, xBadPass[part], BadPass[part], eBadPass[part]);
@@ -53,10 +51,11 @@ void anaPileup_Photon(const int process = 0)
     TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13664/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() ) continue;
 
+    TH1 *h_events = (TH1*)f->Get("h_events");
+
     // h[ic][part]
     TH1 *h_1photon[2][3];
-    TH2 *h2_isoboth[2][3];
-    TH2 *h2_isopair[2][3];
+    TH2 *h2_2photon[2][3];
 
     int bbc10cm = 1;
     int evtype = 2;
@@ -69,14 +68,14 @@ void anaPileup_Photon(const int process = 0)
         h_1photon[ic][part] = (TH1*)h_1photon_t->Clone(Form("h_1photon_ic%d_part%d",ic,part));
         for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
           for(int pattern=0; pattern<3; pattern++)
-          {
-            int isolated = 1;
-            int cut = ic + 2;
-            int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm;
-            TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
-            h_1photon[ic][part]->Add(h_tmp);
-            delete h_tmp;
-          }
+            for(int isolated=0; isolated<2; isolated++)
+            {
+              int cut = ic + 2;
+              int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*cut + 4*2*3*8*evtype + 3*4*2*3*8*bbc10cm;
+              TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
+              h_1photon[ic][part]->Add(h_tmp);
+              delete h_tmp;
+            }
         if(ic==1)
           h_1photon[0][part]->Add(h_1photon[1][part]);
       }
@@ -86,45 +85,27 @@ void anaPileup_Photon(const int process = 0)
     for(int ic=0; ic<2; ic++)
       for(int part=0; part<3; part++)
       {
-        h2_isoboth[ic][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isoboth_ic%d_part%d",ic,part));
-        for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
-          for(int pattern=0; pattern<3; pattern++)
-            for(int isopair=0; isopair<2; isopair++)
-            {
-              int isoboth = 1;
-              int cut = ic + 2;
-              int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
-              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
-              h2_isoboth[ic][part]->Add(h2_tmp);
-              delete h2_tmp;
-            }
-        if(ic==1)
-          h2_isoboth[0][part]->Add(h2_isoboth[1][part]);
-      }
-
-    for(int ic=0; ic<2; ic++)
-      for(int part=0; part<3; part++)
-      {
-        h2_isopair[ic][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isopair_ic%d_part%d",ic,part));
+        h2_2photon[ic][part] = (TH2*)h2_2photon_t->Clone(Form("h2_2photon_ic%d_part%d",ic,part));
         for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
           for(int pattern=0; pattern<3; pattern++)
             for(int isoboth=0; isoboth<2; isoboth++)
-            {
-              int isopair = 1;
-              int cut = ic + 2;
-              int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
-              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
-              h2_isopair[ic][part]->Add(h2_tmp);
-              delete h2_tmp;
-            }
+              for(int isopair=0; isopair<2; isopair++)
+              {
+                int cut = ic + 2;
+                int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*cut + 4*2*2*3*8*evtype + 3*4*2*2*3*8*bbc10cm;
+                TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
+                h2_2photon[ic][part]->Add(h2_tmp);
+                delete h2_tmp;
+              }
         if(ic==1)
-          h2_isopair[0][part]->Add(h2_isopair[1][part]);
+          h2_2photon[0][part]->Add(h2_2photon[1][part]);
       }
 
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
     ULong_t scaledown = GetERT4x4cScaledown(runnumber) + 1;
 
+    //double nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("ert_c_10cm") );
     double nev = nmb / scaledown;
 
     for(int ipt=0; ipt<npT; ipt++)
@@ -134,14 +115,10 @@ void anaPileup_Photon(const int process = 0)
           int ig = part + 3*ic + 2*3*id + 2*2*3*ipt;
 
           double nphoton = h_1photon[ic][part]->Integral(pTlow[id][ipt], pThigh[id][ipt]);
-          double nisoboth = h2_isoboth[ic][part]->ProjectionY("h_minv_isoboth", pTlow[id][ipt], pThigh[id][ipt])->Integral(111,160);
-          double nisopair = h2_isopair[ic][part]->ProjectionY("h_minv_isopair", pTlow[id][ipt], pThigh[id][ipt])->Integral(111,160);
-          nisoboth /= 1.1;
-          nisopair /= 1.1;
+          double npion = h2_2photon[ic][part]->ProjectionY("h_minv", pTlow[id][ipt], pThigh[id][ipt])->Integral(111,160);
+          npion /= 1.1;
 
           double xpT = pTbinC[id][ipt];
-          int ipVeto = Get_ipt(xVeto[part], xpT);
-          double aVeto = Veto[part][ipVeto];
           int ipMiss = Get_ipt(xMiss[part], xpT);
           double aMiss = Miss[part][ipMiss];
           int ipMerge = Get_ipt(xMerge[part], xpT);
@@ -152,10 +129,8 @@ void anaPileup_Photon(const int process = 0)
             aBadPass = 0.;
           double aMissPass = aMiss + aMerge * aBadPass;
           double aMissAll = aMiss + aMerge * 2.;
-          //double ndir = nphoton - ( nisoboth + aMissPass * nisopair ) - A * aVeto * ( 1. + aMissAll ) * nisopair;
-          //double endir = sqrt( nphoton + nisoboth + pow(aMissPass + A * aVeto * ( 1. + aMissAll ), 2.) * nisopair );
-          double ndir = nphoton;
-          double endir = sqrt(nphoton);
+          double ndir = nphoton - aMissPass * npion - A * ( 1. + aMissAll ) * npion;
+          double endir = sqrt( nphoton + pow(aMissPass + A * ( 1. + aMissAll ), 2.) * npion );
 
           double xx = (double)nmb / (double)nclock;
           double yy = ndir / nev;
