@@ -108,11 +108,10 @@ AnaFastMC::AnaFastMC(const string &name):
   cross_ph->SetParameters(255., 5.98, 0.273, 14.43);
 
   /* Set Pythia weight */
-  //int process = 0;
-  //sscanf(Name(), "AnaFastMC%d", &process);
-  //double pt_start = 3 + process/2 * 0.1;
-  //weight_pythia = cross_ph->Integral(pt_start, 50.);
-  weight_pythia = 1.;
+  int process = 0;
+  sscanf(Name(), "AnaFastMC%d", &process);
+  double pt_start = 3 + process/2 * 0.1;
+  weight_pythia = cross_ph->Integral(pt_start, 50.);
 
   NPart = 0;
   NPeak = 0;
@@ -387,12 +386,12 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
   }
 
   /* Get PYTHIA Background Particles */
-  //phpythia_bg = findNode::getClass<PHPythiaContainer>(topNode,"PHPythiaBG");
-  //if(!phpythia_bg)
-  //{
-  //  cout << PHWHERE << "Unable to get PHPythiaBG, is Node missing?" << endl;
-  //  return;
-  //}
+  phpythia_bg = findNode::getClass<PHPythiaContainer>(topNode,"PHPythiaBG");
+  if(!phpythia_bg)
+  {
+    cout << PHWHERE << "Unable to get PHPythiaBG, is Node missing?" << endl;
+    return;
+  }
 
   /* Loop over all signal particles */
   int npart = phpythia->size();
@@ -489,7 +488,7 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe
 
   /* Loop over all signal and background particles */
   PHPythiaContainer *phpythiacont[2] = {phpythia, phpythia_bg};
-  for(int icont=0; icont<1; icont++)
+  for(int icont=0; icont<2; icont++)
   {
     int npart = phpythiacont[icont]->size();
     for(int ipart2=0; ipart2<npart; ipart2++)
@@ -620,15 +619,13 @@ void AnaFastMC::BookHistograms()
 
   /* Use FastMC and PHParticleGen input */
   h_photon = new TH1F("h_photon", "Total photon count;p_{T} [GeV];", npT, pTbin);
-  if( mcmethod == FastMC )
-    h_photon->Sumw2();
+  h_photon->Sumw2();
   hm->registerHisto(h_photon);
 
   for(int part=0; part<3; part++)
   {
     h2_photon_eta_phi[part] = new TH2F(Form("h2_photon_eta_phi_part%d",part), "Photon #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
-    if( mcmethod == FastMC )
-      h2_photon_eta_phi[part]->Sumw2();
+    h2_photon_eta_phi[part]->Sumw2();
     hm->registerHisto(h2_photon_eta_phi[part]);
   }
 
@@ -639,8 +636,7 @@ void AnaFastMC::BookHistograms()
       3, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
   hn_photon->SetBinEdges(0, pTbin);
   hn_photon->SetBinEdges(1, pTbin);
-  if( mcmethod == FastMC )
-    hn_photon->Sumw2();
+  hn_photon->Sumw2();
   hm->registerHisto(hn_photon);
 
   return;
