@@ -47,6 +47,7 @@ using namespace std;
 
 /* Some constants */
 const double PI = TMath::Pi();
+const TVector2 v2_2PI(0., 2.*PI);
 const int NSEC = 8;
 const int NY = 48;
 const int NZ = 96;
@@ -1067,7 +1068,10 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
     TVector2 v2_part2 = pE_part2.EtaPhiVector();
 
     /* Check if cluster within cone */
-    if( (v2_part2-v2_pref).Mod() < cone_angle )
+    TVector2 v2_diff(v2_part2 - v2_pref);
+    if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+    else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+    if( v2_diff.Mod() < cone_angle )
       econe += clus2->ecore();
   }
 
@@ -1109,9 +1113,15 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
     TVector2 v2_part3 = pE_part3.EtaPhiVector();
 
     /* Check if cluster within cone */
-    if( (v2_part3-v2_pref1).Mod() < cone_angle )
+    TVector2 v2_diff(v2_part3 - v2_pref1);
+    if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+    else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+    if( v2_diff.Mod() < cone_angle )
       econe1 += clus3->ecore();
-    if( (v2_part3-v2_pref2).Mod() < cone_angle )
+    v2_diff = v2_part3 - v2_pref2;
+    if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+    else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+    if( v2_diff.Mod() < cone_angle )
       econe2 += clus3->ecore();
   }
 
@@ -1150,7 +1160,10 @@ double PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentral
     TVector2 v2_track = v3_track.EtaPhiVector();
 
     /* Add track energy from clusters within cone range */
-    if( (v2_track-v2_pref).Mod() < cone_angle )
+    TVector2 v2_diff(v2_track - v2_pref);
+    if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+    else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+    if( v2_diff.Mod() < cone_angle )
       econe += mom;
   }
 

@@ -32,6 +32,10 @@
 
 using namespace std;
 
+// some constants
+const double PI = TMath::Pi();
+const TVector2 v2_2PI(0., 2.*PI);
+
 // global constants
 const int PHOTON_PID = 1;
 const int POSITRON_PID = 2;
@@ -275,7 +279,10 @@ double Isolation::SumEEmcal(const AnaTrk *anatrk, double rcone)
     TVector2 v2_part2 = pE_part2.EtaPhiVector();
 
     // Check if cluster within cone
-    if( (v2_part2-v2_pref).Mod() < rcone )
+    TVector2 v2_diff(v2_part2 - v2_pref);
+    if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+    else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+    if( v2_diff.Mod() < rcone )
       econe += emcclus2->ecore();
   }
 
@@ -317,7 +324,10 @@ double Isolation::SumPTrack(const AnaTrk *anatrk, const PHCentralTrack *tracks, 
     TVector2 v2_part2 = v3_part2.EtaPhiVector();
 
     // Check if particle within cone
-    if( (v2_part2-v2_pref).Mod() < rcone )
+    TVector2 v2_diff(v2_part2 - v2_pref);
+    if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+    else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+    if( v2_diff.Mod() < rcone )
       econe += mom;
   }
 

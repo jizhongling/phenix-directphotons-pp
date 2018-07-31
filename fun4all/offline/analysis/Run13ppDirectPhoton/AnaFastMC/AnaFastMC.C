@@ -45,6 +45,7 @@ using namespace std;
 
 /* Some constants */
 const double PI = TMath::Pi();
+const TVector2 v2_2PI(0., 2.*PI);
 const double mPi0 = 0.1349770;
 const double mEta = 0.547862;
 
@@ -511,7 +512,10 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe
       double energy = part2->GetEnergy();
 
       /* Check if particle within cone */
-      if( (v2_part2-v2_pref).Mod() < cone_angle )
+      TVector2 v2_diff(v2_part2 - v2_pref);
+      if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+      else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+      if( v2_diff.Mod() < cone_angle )
       {
         econe_all += energy;
 

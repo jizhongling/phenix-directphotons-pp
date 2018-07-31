@@ -33,6 +33,7 @@ using namespace std;
 
 /* Some constants */
 const double PI = TMath::Pi();
+const TVector2 v2_2PI(0., 2.*PI);
 
 /* Some cuts for photon identification */
 const double ptMin = 3.;
@@ -210,7 +211,10 @@ double AnaPHPythiaHistos::SumETruth(const TMCParticle *pref, double rcone)
       continue;
 
     /* Check if particle within cone */
-    if( (v2_part2-v2_pref).Mod() < rcone )
+    TVector2 v2_diff(v2_part2 - v2_pref);
+    if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+    else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+    if( v2_diff.Mod() < rcone )
       econe += part2->GetEnergy();
   } // ipart2
 
