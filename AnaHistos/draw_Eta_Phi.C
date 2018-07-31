@@ -22,10 +22,16 @@ void draw_Eta_Phi()
 
     for(int binx=1; binx<=h2_eta_phi_data[part]->GetNbinsX(); binx++)
       for(int biny=1; biny<=h2_eta_phi_data[part]->GetNbinsY(); biny++)
+      {
         if( h2_eta_phi_data[part]->GetBinContent(binx,biny) <= 0. )
           h2_eta_phi_sim[part]->SetBinContent(binx,biny,0.);
+        //if( biny >= 130 && biny <= 132 )
+        //{
+        //  h2_eta_phi_data[part]->SetBinContent(binx,biny,0.);
+        //  h2_eta_phi_sim[part]->SetBinContent(binx,biny,0.);
+        //}
+      }
   }
-
 
   for(int sec=0; sec<8; sec++)
   {
@@ -74,6 +80,12 @@ void draw_Eta_Phi()
       h_phi_data->Scale(sc2gl);
       h_phi_sim->Scale(sc2gl);
     }
+    //for(int binx=1; binx<=h_phi_data->GetNbinsX(); binx++)
+    //  if( h_phi_data->GetBinContent(binx) > 15000. )
+    //  {
+    //    h_phi_data->SetBinContent(binx,0.);
+    //    h_phi_sim->SetBinContent(binx,0.);
+    //  }
     h_phi_data->SetTitle( Form("#phi dist., part %d",part) );
     if(part == 0)
       aset(h_phi_data, "","", -0.6,1.);
