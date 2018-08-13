@@ -92,10 +92,8 @@ void draw_CrossSection_IsoPhoton()
   const double NBBC =  3.54e11;  // from rejection power
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
-  //const double Pile[3] = {0.891, 0.891, 0.878};
-  //const double Pile[3] = {0.905, 0.905, 0.865};
-  const double Pile[3] = {1.27, 1.29, 1.11};
-  const double ePile = 0.01;
+  const double Pile[3] = {1.27, 1.32, 1.23};
+  const double ePile = 0.02;
   const double TrigBBC = 0.91;
   const double eTrigBBC = 0.01;
   const double ToF[3] = {0.992, 0.992, 0.997};
@@ -104,7 +102,7 @@ void draw_CrossSection_IsoPhoton()
   const double eConv[3] = {0.027, 0.023, 0.023};
   const double Norm[3] = {0.321, 0.314, 0.243};
   const double eNorm[3] = {0.005, 0.006, 0.005};
-  const double A = 0.22;
+  const double A = 0.28;
   const double eA = 0.04;
 
   double xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
