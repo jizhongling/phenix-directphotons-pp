@@ -722,11 +722,12 @@ void AnaFastMC::ReadSashaWarnmap(const string &filename)
     tower_status_sasha[sector][biny][binz] = status;
 
     // mark edge towers
-    if( anatools::Edge_cg(sector, biny, binz) )
+    if( anatools::Edge_cg(sector, biny, binz) &&
+        status == 0 )
       tower_status_sasha[sector][biny][binz] = 20;
     // mark fiducial arm
     if( anatools::ArmEdge_cg(sector, biny, binz) &&
-        tower_status_sasha[sector][biny][binz] == 0 )
+        status == 0 )
       tower_status_sasha[sector][biny][binz] = 30;
   }
 
@@ -1014,7 +1015,9 @@ bool AnaFastMC::IsBadTower( int itower )
   if( itower < 0 || itower >= n_twrs ) return false;
   int sec, iy, iz;
   anatools::TowerLocation(itower, sec, iy, iz);
-  if( tower_status_nils[sec][iy][iz] >= 50 )
+  //if( tower_status_nils[sec][iy][iz] >= 50 )
+  if( tower_status_sasha[sec][iy][iz] > 0 &&
+      tower_status_sasha[sec][iy][iz] < 20 )
     return true;
   return false;
 }

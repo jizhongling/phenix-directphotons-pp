@@ -32,19 +32,20 @@ namespace anatools
   {
     // Check if shower center of gravity (maximal energy tower) belongs 
     // to edge tower defined by parameter "ncut"
-    const int ncut = 10; // Number of edge towers
+    const int ncutPbSc = 10; // Number of edge towers for PbSc
+    const int ncutPbGl = 12; // Number of edge towers for PbGl
 
     if( sec < 0 || sec > 7 ) return true;
     if( sec < 6 )
     {
-      if( iz < ncut || iz > 71-ncut ) return true;
-      if( sec == 0 && iy < ncut ) return true;
-      if( ( sec == 3 || sec == 4 ) && iy > 35-ncut ) return true;
+      if( iz < ncutPbSc || iz > 71-ncutPbSc ) return true;
+      if( sec == 0 && iy < ncutPbSc ) return true;
+      if( ( sec == 3 || sec == 4 ) && iy > 35-ncutPbSc ) return true;
     }
     else
     {
-      if( iz < ncut || iz > 95-ncut ) return true;
-      if( sec == 7 && iy < ncut ) return true;
+      if( iz < ncutPbGl || iz > 95-ncutPbGl ) return true;
+      if( sec == 7 && iy < ncutPbGl ) return true;
     }
     return false;
   }
