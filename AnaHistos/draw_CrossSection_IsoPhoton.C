@@ -35,6 +35,7 @@ void draw_CrossSection_IsoPhoton()
   int bbc10cm = 1;
   int tof = 1;
   int prob = 1;
+  int ival = 3;
 
   TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
   h_1photon_t->Reset();
@@ -46,7 +47,7 @@ void draw_CrossSection_IsoPhoton()
         for(int pattern=0; pattern<3; pattern++)
         {
           int isolated = 1;
-          int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm;
+          int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm + 2*3*2*2*2*3*8*ival;
           TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
           h_1photon[evtype][part]->Add(h_tmp);
           delete h_tmp;
@@ -64,7 +65,7 @@ void draw_CrossSection_IsoPhoton()
           for(int isopair=0; isopair<2; isopair++)
           {
             int isoboth = 1;
-            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm;
+            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm + 2*3*2*2*2*2*3*8*ival;
             TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
             h2_isoboth[evtype][part]->Add(h2_tmp);
             delete h2_tmp;
@@ -80,7 +81,7 @@ void draw_CrossSection_IsoPhoton()
           for(int isoboth=0; isoboth<2; isoboth++)
           {
             int isopair = 1;
-            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm;
+            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm + 2*3*2*2*2*2*3*8*ival;
             TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
             h2_isopair[evtype][part]->Add(h2_tmp);
             delete h2_tmp;
@@ -92,8 +93,9 @@ void draw_CrossSection_IsoPhoton()
   const double NBBC =  3.54e11;  // from rejection power
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
-  const double Pile[3] = {1.27, 1.32, 1.23};
-  const double ePile = 0.02;
+  //const double Pile[3] = {1.27, 1.32, 1.23};
+  const double Pile[3] = {1.04, 1.07, 1.02};
+  const double ePile = 0.01;
   const double TrigBBC = 0.91;
   const double eTrigBBC = 0.01;
   const double ToF[3] = {0.992, 0.992, 0.997};
