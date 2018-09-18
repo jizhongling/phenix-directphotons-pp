@@ -12,6 +12,7 @@ class PHCompositeNode;
 class PHPythiaHeader;
 class PHPythiaContainer;
 class TMCParticle;
+class TDatabasePDG;
 
 class Fun4AllHistoManager;
 class TFile;
@@ -47,9 +48,9 @@ class AnaFastMC: public SubsysReco
     void ReadSashaWarnmap(const std::string &filename);
     void ReadSimWarnmap(const std::string &filename);
 
-    void pi0_sim(const TLorentzVector beam_pi0);
-    void photon_sim(const TLorentzVector beam_ph);
-    void geom_sim(const TVector3 beam);
+    void pi0_sim(const TLorentzVector &beam_pi0);
+    void photon_sim(const TLorentzVector &beam_ph);
+    void geom_sim(const TVector3 &beam);
     void ResetClusters();
     void ResetTowerEnergy();
     void FillTowerEnergy( int sec, int iy, int iz, double e );
@@ -59,13 +60,14 @@ class AnaFastMC: public SubsysReco
     bool InFiducial( int itower );
     bool IsGoodTower( int itower );
     bool IsBadTower( int itower );
-    bool GetImpactSectorTower(Double_t px, Double_t py, Double_t pz,  
+    bool InDCAcceptance( const TVector3 &v3_part );
+    bool GetImpactSectorTower(double px, double py, double pz,  
         int& sec, int& iz, int& iy, double& zz, double& yy, 
-        double& phi0, double& ximp, double& yimp, double& zimp );
-    bool GetShower(Double_t px, Double_t py, Double_t pz, double& eout, int& itw );
-    bool Gamma_En(Double_t px, Double_t py, Double_t pz, double& eout, int& itw,
+        double& phi0, double& ximp, double& yimp, double& zimp);
+    bool GetShower(double px, double py, double pz, double& eout, int& itw);
+    bool Gamma_En(double px, double py, double pz, double& eout, int& itw,
         double& ximp, double& yimp, double& zimp);
-    bool Gamma_Pos(Double_t& px, Double_t& py, Double_t& pz );
+    bool Gamma_Pos(double& px, double& py, double& pz);
 
     std::string outFileName;
     MCMethod mcmethod;
@@ -97,6 +99,8 @@ class AnaFastMC: public SubsysReco
 
     PHPythiaContainer *phpythia;
     PHPythiaContainer *phpythia_bg;
+
+    TDatabasePDG *pdg_db;
 
     Fun4AllHistoManager *hm;
     TH1 *h_pion;

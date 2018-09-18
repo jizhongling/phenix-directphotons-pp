@@ -29,6 +29,8 @@
 #include <TLorentzVector.h>
 #include <TRandom.h>
 #include <TGenPhaseSpace.h>
+#include <TDatabasePDG.h>
+#include <TParticlePDG.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
@@ -60,8 +62,8 @@ const double etaMax = 0.25;
 
 /* Some cuts for isolation cut */
 const double eClusMin = 0.15;
-const double eTrkMin = 0.2;
-const double eTrkMax = 15.;
+const double pTrkMin = 0.2;
+const double pTrkMax = 15.;
 
 /* Isolation cut cone angle and energy fraction */
 double cone_angle = 0.5;
@@ -73,6 +75,7 @@ AnaFastMC::AnaFastMC(const string &name):
   mcmethod(FastMC),
   phpythia(NULL),
   phpythia_bg(NULL),
+  pdg_db(NULL),
   hm(NULL),
   h_pion(NULL),
   h_photon(NULL),
@@ -137,6 +140,9 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
   ReadTowerStatus("Warnmap_Run13pp510.txt");
   ReadSashaWarnmap("warn_all_run13pp500gev.dat");
   ReadSimWarnmap("dead_eff_run13pp500gev.dat");
+
+  /* Get PDGDatabase object */
+  pdg_db = new TDatabasePDG();
 
   return EVENT_OK;
 }
@@ -519,16 +525,32 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe
       {
         econe_all += energy;
 
-        /* Test if particle passes energy threshold */
-        if( prefInAcc && energy > eClusMin )
+        /* Reference particle should in acceptance */
+        if( prefInAcc )
         {
-          /* Fill itwr_part[] and sec_part[]
-           * and set NPart */
-          geom_sim(v3_part2);
+          TParticlePDG *pdg_part2 = pdg_db->GetParticle( part2->GetKF() );
 
-          /* Test if particle is in acceptance and not on hot tower */
-          if( NPart == 1 && !IsBadTower(itw_part[0]) )
-            econe_acc += energy;
+          /* For neutral particles sum energy in EMCal */
+          if( pdg_part2->Charge() == 0 && energy > eClusMin )
+          {
+            /* Fill itwr_part[] and sec_part[]
+             * and set NPart */
+            geom_sim(v3_part2);
+
+            /* Test if particle is in acceptance and not on hot tower */
+            if( NPart == 1 && !IsBadTower(itw_part[0]) )
+              econe_acc += energy;
+          }
+
+          /* For charged particles sum momentum in DC */
+          else if( pdg_part2->Charge() != 0 )
+          {
+            double mom = v3_part2.Mag();
+            /* Test if particle is in DC acceptance */
+            if( mom > pTrkMin && mom < pTrkMax &&
+                InDCAcceptance(v3_part2) )
+              econe_acc += mom;
+          } // charge
         } // eClusMin
       } // cone_angle
     } // ipart2
@@ -723,11 +745,11 @@ void AnaFastMC::ReadSashaWarnmap(const string &filename)
 
     // mark edge towers
     if( anatools::Edge_cg(sector, biny, binz) &&
-        status == 0 )
+        tower_status_sasha[sector][biny][binz] == 0 )
       tower_status_sasha[sector][biny][binz] = 20;
     // mark fiducial arm
     if( anatools::ArmEdge_cg(sector, biny, binz) &&
-        status == 0 )
+        tower_status_sasha[sector][biny][binz] == 0 )
       tower_status_sasha[sector][biny][binz] = 30;
   }
 
@@ -768,7 +790,7 @@ void AnaFastMC::ReadSimWarnmap(const string &filename)
   return;
 }
 
-void AnaFastMC::pi0_sim(const TLorentzVector beam_pi0)
+void AnaFastMC::pi0_sim(const TLorentzVector &beam_pi0)
 {
   // Initialize parameters
   ResetClusters();
@@ -841,7 +863,7 @@ void AnaFastMC::pi0_sim(const TLorentzVector beam_pi0)
   return;
 }
 
-void AnaFastMC::photon_sim(const TLorentzVector beam_ph)
+void AnaFastMC::photon_sim(const TLorentzVector &beam_ph)
 {
   // Initialize parameters
   ResetClusters();
@@ -884,7 +906,7 @@ void AnaFastMC::photon_sim(const TLorentzVector beam_ph)
   return;
 }
 
-void AnaFastMC::geom_sim(const TVector3 beam)
+void AnaFastMC::geom_sim(const TVector3 &beam)
 {
   // Initialize parameters
   ResetClusters();
@@ -1018,6 +1040,19 @@ bool AnaFastMC::IsBadTower( int itower )
   //if( tower_status_nils[sec][iy][iz] >= 50 )
   if( tower_status_sasha[sec][iy][iz] > 0 &&
       tower_status_sasha[sec][iy][iz] < 20 )
+    return true;
+  return false;
+}
+
+bool AnaFastMC::InDCAcceptance( const TVector3 &v3_part )
+{
+  double eta = v3_part.Eta();
+  double phi = v3_part.Phi();
+  if( abs(eta) < 0.35 &&
+      ( ( phi > -PI*3./16. && phi < PI*5./16. ) ||
+        ( phi > PI*11./16. || phi < -PI*13./16. )
+      )
+    )
     return true;
   return false;
 }

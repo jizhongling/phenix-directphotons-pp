@@ -55,6 +55,10 @@ class PhotonHistos: public SubsysReco
     int FillTowerEnergy(const emcClusterContainer *data_emccontainer, const emcTowerContainer *data_emctwrcontainer,
         const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
 
+    /* Study DC track quality */
+    int FillTrackQuality(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
+        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
+
     /* Count pi0 yield */
     int FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
         const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, const int evtype);
@@ -74,9 +78,10 @@ class PhotonHistos: public SubsysReco
         const PHCentralTrack *tracks, double bbc_t0, double &econe1, double &econe2);
     void SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *tracks, double econe[]);
 
-    /* Check event type, photon cuts and tower status */
+    /* Check event type, photon cuts, charge veto and tower status */
     bool IsEventType(const int evtype, const TrigLvl1 *data_triggerlvl1);
     bool TestPhoton(const emcClusterContent *cluster, double bbc_t0);
+    bool DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *tracks);
     bool InFiducial(const emcClusterContent *cluster);
     bool IsGoodTower(const emcClusterContent *cluster);
     bool IsBadTower(const emcClusterContent *cluster);
@@ -100,6 +105,8 @@ class PhotonHistos: public SubsysReco
     static const int nh_bbc = 2*8;
     static const int nh_ert = 2*6*8;
     static const int nh_etwr = 16*8*2*8;
+    static const int nh_dcpart = 2*2*64;
+    static const int nh_dcquality = 64;
     static const int nh_eta_phi = 4*2*3;
     static const int nh_pion = 2*3*2*2*3*8;
     static const int nh_1photon = 4*2*3*2*2*2*3*8;
@@ -128,6 +135,9 @@ class PhotonHistos: public SubsysReco
     TH1 *h_ert[nh_ert];
     TH2 *h2_ert_pion[nh_ert];
     TH3 *h3_etwr[nh_etwr];
+    TH2 *h2_dcsd[nh_dcpart];
+    TH2 *h2_alphaboard[nh_dcpart];
+    TH3 *h3_dclive[nh_dcquality];
     TH2 *h2_eta_phi[nh_eta_phi];
     TH2 *h2_pion[nh_pion];
     TH1 *h_1photon[nh_1photon];

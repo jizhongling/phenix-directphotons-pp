@@ -74,7 +74,7 @@ void draw_Pileup_Photon()
           mg[ig]->Draw("AP");  // must before GetXaxis()
           mg[ig]->SetTitle(cname[cond]);
           mg[ig]->GetXaxis()->SetTitle("Nmb/Nclock");
-          mg[ig]->GetYaxis()->SetTitle("Npi0/Nevent");
+          mg[ig]->GetYaxis()->SetTitle("N#gamma/Nevent");
           mg[ig]->GetXaxis()->SetLimits(0., 0.2);  // Do not use SetRangeUser()
           //mg[ig]->GetYaxis()->SetRangeUser(0., 1e-3);  // Do not use SetLimits()
 
