@@ -36,6 +36,8 @@
 #include <TH2.h>
 #include <TH3.h>
 
+//#define NDEBUG
+#include <cassert>
 #include <cstdlib>
 #include <cmath>
 #include <string>
@@ -61,8 +63,8 @@ const double AsymCut = 0.8;
 
 /* Some cuts for isolation cut */
 const double eClusMin = 0.15;
-const double eTrkMin = 0.2;
-const double eTrkMax = 15.;
+const double pTrkMin = 0.2;
+const double pTrkMax = 15.;
 
 /* Isolation cut cone angle and energy fraction */
 const double cone_angle = 0.5;
@@ -115,6 +117,13 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   }
   for(int ih=0; ih<nh_etwr; ih++)
     h3_etwr[ih] = NULL;
+  for(int ih=0; ih<nh_dcpart; ih++)
+  {
+    h2_dcsd[ih] = NULL;
+    h2_alphaboard[ih] = NULL;
+  }
+  for(int ih=0; ih<nh_dcquality; ih++)
+    h3_dclive[ih] = NULL;
   for(int ih=0; ih<nh_eta_phi; ih++)
     h2_eta_phi[ih] = NULL;
   for(int ih=0; ih<nh_pion; ih++)
@@ -272,6 +281,9 @@ int PhotonHistos::process_event(PHCompositeNode *topNode)
 
   /* Fill EMCal cluster energy distribution on towers */
   FillTowerEnergy(data_emccontainer_raw, data_emctwrcontainer, data_global, data_triggerlvl1);
+
+  /* Fill DC track quality information */
+  FillTrackQuality(data_emccontainer, data_tracks, data_global, data_triggerlvl1);
 
   for(int itype=0; itype<3; itype++)
   {
@@ -668,6 +680,63 @@ int PhotonHistos::FillTowerEnergy(const emcClusterContainer *data_emccontainer, 
   return EVENT_OK;
 }
 
+int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
+    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1)
+{
+  /* Check trigger */
+  int evtype = 2;  // ERT_4x4c
+  if( !IsEventType(evtype, data_triggerlvl1) )
+    return DISCARDEVENT;
+
+  /* Get event global parameters */
+  double bbc_z = data_global->getBbcZVertex();
+  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
+
+  int npart = data_tracks->get_npart();
+
+  for(int i=0; i<npart; i++)
+  {
+    unsigned quality = data_tracks->get_quality(i);
+    double mom = data_tracks->get_mom(i);
+    if( quality > 63 || mom != mom ||
+        mom < pTrkMin || mom > pTrkMax )
+      continue;
+
+    double dcphi = data_tracks->get_phi(i);
+    double dczed = data_tracks->get_zed(i);
+    double dcalpha = data_tracks->get_alpha(i);
+    int dcarm = data_tracks->get_dcarm(i);
+    int dcns = dczed > 0. ? 0 : 1;
+    int dcwe = dcarm == 0 ? 1 : 0;
+    double dcsdphi = data_tracks->get_emcsdphi(i);
+    double dcsdz = data_tracks->get_emcsdz(i);
+    double dcboard = 0.;
+    if( dcwe == 0 )
+      dcboard = ( 0.573231 - dcphi -  0.0046 * cos( dcphi + 0.05721 ) ) / 0.01963496;
+    else
+      dcboard = ( 3.72402 - dcphi + 0.008047 * cos( dcphi + 0.87851 ) ) / 0.01963496;
+
+    /* emcsdphi and emcsdz distributions */
+    int emcid = data_tracks->get_emcid(i);
+    emcClusterContent *cluster = data_emccontainer->findCluster(emcid);
+    if( cluster && cluster->ecore() > 5. )
+    {
+      int ih = dcns + 2*dcwe + 2*2*quality;
+      h2_dcsd[ih]->Fill(dcsdphi, dcsdz);
+    }
+
+    /* alpha-board */
+    int ih = dcns + 2*dcwe + 2*2*quality;
+    h2_alphaboard[ih]->Fill(dcalpha, dcboard);
+
+    /* DC+PC1 live area */
+    ih = quality;
+    h3_dclive[ih]->Fill(dczed, dcphi, mom);
+  }
+
+  return EVENT_OK;
+}
+
 int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
     const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, const int evtype)
 {
@@ -772,7 +841,8 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
   {
     emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
     if( InFiducial(cluster1) &&
-        cluster1->ecore() > eMin )
+        cluster1->ecore() > eMin &&
+        !DCChargeVeto(cluster1,data_tracks) )
     {
       int sector = anatools::GetSector(cluster1);
       int part = -1;
@@ -839,7 +909,10 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
         if(j != i)
         {
           emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
-          if( !IsGoodTower(cluster2) || cluster2->ecore() < eMin ) continue;
+          if( !IsGoodTower(cluster2) ||
+              cluster2->ecore() < eMin ||
+              DCChargeVeto(cluster2,data_tracks) )
+            continue;
           double minv = anatools::GetInvMass(cluster1, cluster2);
 
           int isoboth[4] = {};
@@ -1023,6 +1096,24 @@ void PhotonHistos::BookHistograms()
     hm->registerHisto(h3_etwr[ih]);
   }
   
+  /* Track quality study */
+  // ih = dcns + 2*dcwe + 2*2*quality < 2*2*64
+  for(int ih=0; ih<nh_dcpart; ih++)
+  {
+    h2_dcsd[ih] = new TH2F(Form("h2_dcsd_%d",ih), "EMCal and DC standard deviation;sdphi;sdz;", 100,-10.,10., 100,-10.,10.);
+    hm->registerHisto(h2_dcsd[ih]);
+    h2_alphaboard[ih] = new TH2F(Form("h2_alphaboard_%d",ih), "DC #alpha-board;#alpha;board;", 60,-0.6,0.6, 80,0.,80.);
+    hm->registerHisto(h2_alphaboard[ih]);
+
+  }
+
+  // ih = quality < 64
+  for(int ih=0; ih<nh_dcquality; ih++)
+  {
+    h3_dclive[ih] = new TH3F(Form("h3_dclive_%d",ih), "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV]", 90,0.,900., 50,-1.,4., 30,0.,15.);
+    hm->registerHisto(h3_dclive[ih]);
+  }
+
   /* Eta and phi distribution */
   // ih = part + 3*isolated + 2*3*ival < 4*2*3
   for(int ih=0; ih<nh_eta_phi; ih++)
@@ -1084,14 +1175,8 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
       continue;
 
     /* 3 sigma charge veto */
-    int itrk_clus = clus2->emctrk();
-    if( itrk_clus >= 0 )
-    {
-      double dcsdphi = tracks->get_emcsdphi(itrk_clus);
-      double dcsdz = tracks->get_emcsdz(itrk_clus);
-      if( dcsdphi < 3. && dcsdz < 3. )
-        continue;
-    }
+    if( DCChargeVeto(clus2,tracks) )
+      continue;
 
     /* Get cluster vector */
     TLorentzVector pE_part2 = anatools::Get_pE(clus2);
@@ -1139,14 +1224,8 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
       continue;
 
     /* 3 sigma charge veto */
-    int itrk_clus = clus3->emctrk();
-    if( itrk_clus >= 0 )
-    {
-      double dcsdphi = tracks->get_emcsdphi(itrk_clus);
-      double dcsdz = tracks->get_emcsdz(itrk_clus);
-      if( dcsdphi < 3. && dcsdz < 3. )
-        continue;
-    }
+    if( DCChargeVeto(clus3,tracks) )
+      continue;
 
     /* Get cluster vector */
     TLorentzVector pE_part3 = anatools::Get_pE(clus3);
@@ -1194,7 +1273,7 @@ void PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentralTr
       continue;
 
     /* Test if track passes the momentum cuts */
-    if( mom < eTrkMin || mom > eTrkMax )
+    if( mom < pTrkMin || mom > pTrkMax )
       continue;
 
     /* Get track vector */
@@ -1246,6 +1325,20 @@ bool PhotonHistos::TestPhoton(const emcClusterContent *cluster, double bbc_t0)
     return true;
   else
     return false;
+}
+
+bool PhotonHistos::DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *tracks)
+{
+  /* 3 sigma charge veto */
+  int itrk_clus = cluster->emctrk();
+  if( itrk_clus >= 0 )
+  {
+    double dcsdphi = tracks->get_emcsdphi(itrk_clus);
+    double dcsdz = tracks->get_emcsdz(itrk_clus);
+    if( dcsdphi < 3. && dcsdz < 3. )
+      return true;
+  }
+  return false;
 }
 
 bool PhotonHistos::InFiducial(const emcClusterContent *cluster)
@@ -1408,11 +1501,11 @@ void PhotonHistos::ReadSashaWarnmap(const string &filename)
 
     /* Mark edge towers */
     if( anatools::Edge_cg(sector, biny, binz) &&
-        status == 0 )
+        tower_status_sasha[sector][biny][binz] == 0 )
       tower_status_sasha[sector][biny][binz] = 20;
     /* Mark fiducial arm */
     if( anatools::ArmEdge_cg(sector, biny, binz) &&
-        status == 0 )
+        tower_status_sasha[sector][biny][binz] == 0 )
       tower_status_sasha[sector][biny][binz] = 30;
   }
 

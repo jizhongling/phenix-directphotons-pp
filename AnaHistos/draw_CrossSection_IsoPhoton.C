@@ -35,7 +35,7 @@ void draw_CrossSection_IsoPhoton()
   int bbc10cm = 1;
   int tof = 1;
   int prob = 1;
-  int ival = 3;
+  int ival = 1;
 
   TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
   h_1photon_t->Reset();
@@ -94,8 +94,9 @@ void draw_CrossSection_IsoPhoton()
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
   //const double Pile[3] = {1.27, 1.32, 1.23};
-  const double Pile[3] = {1.04, 1.07, 1.02};
-  const double ePile = 0.01;
+  //const double Pile[3] = {1.04, 1.07, 1.02};
+  const double Pile[3] = {1.11, 1.11, 1.08};
+  const double ePile = 0.02;
   const double TrigBBC = 0.91;
   const double eTrigBBC = 0.01;
   const double ToF[3] = {0.992, 0.992, 0.997};

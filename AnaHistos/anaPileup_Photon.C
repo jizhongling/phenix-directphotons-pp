@@ -48,7 +48,7 @@ void anaPileup_Photon(const int process = 0)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13664/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13806/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() ) continue;
 
     TH1 *h_events = (TH1*)f->Get("h_events");
@@ -60,6 +60,7 @@ void anaPileup_Photon(const int process = 0)
     int bbc10cm = 1;
     int evtype = 2;
     int prob = 1;
+    int ival = 1;
 
     TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
     h_1photon_t->Reset();
@@ -72,7 +73,7 @@ void anaPileup_Photon(const int process = 0)
             for(int isolated=0; isolated<2; isolated++)
             {
               int tof = ic;
-              int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm;
+              int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm + 2*3*2*2*2*3*8*ival;
               TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
               h_1photon[ic][part]->Add(h_tmp);
               delete h_tmp;
@@ -93,7 +94,7 @@ void anaPileup_Photon(const int process = 0)
               for(int isopair=0; isopair<2; isopair++)
               {
                 int tof = ic;
-                int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm;
+                int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm + 2*3*2*2*2*2*3*8*ival;
                 TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
                 h2_2photon[ic][part]->Add(h2_tmp);
                 delete h2_tmp;
