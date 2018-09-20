@@ -31,6 +31,7 @@ void draw_CrossSection_Pion()
   int prob = 1;
 
   TH2 *h2_pion_t = (TH2*)f->Get("h2_pion_0");
+  h2_pion_t = (TH2*)h2_pion_t->Clone();
   h2_pion_t->Reset();
   for(int evtype=1; evtype<3; evtype++)
     for(int part=0; part<3; part++)
@@ -157,13 +158,13 @@ void draw_CrossSection_Pion()
         / Acc[part][ipAcc] / Merge[part][ipMerge]
         / TrigERT[part][ipTrigERT] / Prob[part/2][ipt]
         / ToF[part] / Conv[part] / TrigBBC * Pile[part];
-      eyy[part] = yy[part] * sqrt( pow(enpion/npion,2.)
-          + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2.)
-          + pow(eMerge[part][ipMerge]/Merge[part][ipMerge],2.)
-          + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2.)
-          + pow(eProb/Prob[part/2][ipt],2.)
-          + pow(eToF[part]/ToF[part],2.) + pow(eConv[part]/Conv[part],2.)
-          //+ pow(eTrigBBC/TrigBBC,2.) + pow(ePile/Pile[part],2.) + pow(eXBBC/XBBC,2.)
+      eyy[part] = yy[part] * sqrt( pow(enpion/npion,2)
+          + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2)
+          + pow(eMerge[part][ipMerge]/Merge[part][ipMerge],2)
+          + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2)
+          + pow(eProb/Prob[part/2][ipt],2)
+          + pow(eToF[part]/ToF[part],2) + pow(eConv[part]/Conv[part],2)
+          //+ pow(eTrigBBC/TrigBBC,2) + pow(ePile/Pile[part],2) + pow(eXBBC/XBBC,2)
           );
       if( yy[part] > 0. && eyy[part] > 0. && eyy[part] < TMath::Infinity() )
       {

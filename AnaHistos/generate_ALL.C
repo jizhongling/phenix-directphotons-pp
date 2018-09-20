@@ -183,9 +183,9 @@ void generate_ALL(int Process = 0)
             float R = (float)bbc_same[icr] / bbc_opposite[icr];
             float eR = R * sqrt( 1./yield_same + 1./yield_opposite );
             ALL[itype][ipart][icr][ipt][ir] = ( yield_same - R * yield_opposite ) / ( yield_same + R * yield_opposite ) / ( pb * py );
-            eALL[itype][ipart][icr][ipt][ir] = sqrt( pow( 2. * R * yield_same * yield_opposite / (pb * py) / pow(yield_same + R * yield_opposite, 2.) , 2. )
-                * pow( 1./yield_same + 1./yield_opposite + (eR*eR)/(R*R), 2.)
-                + ( (epb*epb)/(pb*pb) + (epy*epy)/(py*py) ) * pow(ALL[itype][ipart][icr][ipt][ir], 2.) );
+            eALL[itype][ipart][icr][ipt][ir] = sqrt( pow( 2. * R * yield_same * yield_opposite / (pb * py) / pow(yield_same + R * yield_opposite, 2) , 2 )
+                * pow( 1./yield_same + 1./yield_opposite + (eR*eR)/(R*R), 2 )
+                + ( (epb*epb)/(pb*pb) + (epy*epy)/(py*py) ) * pow(ALL[itype][ipart][icr][ipt][ir], 2) );
           }
 
     delete spinpat;

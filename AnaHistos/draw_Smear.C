@@ -43,7 +43,7 @@ TGraphErrors* CreateGraph(TFile *f, const int criteria, int ispion)
     if( missing > 0. && nomissing > 0. )
     {
       y[i] = missing / nomissing;
-      ey[i] = y[i] * sqrt( pow(emissing/missing,2.) + pow(enomissing/nomissing,2.) );
+      ey[i] = y[i] * sqrt( pow(emissing/missing,2) + pow(enomissing/nomissing,2) );
     }
   }
 

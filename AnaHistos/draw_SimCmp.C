@@ -92,7 +92,7 @@ void DrawCmp(TObjArray *Glist)
     for(int ipt=0; ipt<30; ipt++)
     {
       rgy[part][ipt] = ( gy[3+part][ipt] - gy[part][ipt] ) / gy[part][ipt];
-      ergy[part][ipt] = (gy[3+part][ipt]/gy[part][ipt]) * sqrt( pow(egy[3+part][ipt]/gy[3+part][ipt],2.) + pow(egy[part][ipt]/gy[part][ipt],2.) );
+      ergy[part][ipt] = (gy[3+part][ipt]/gy[part][ipt]) * sqrt( pow(egy[3+part][ipt]/gy[3+part][ipt],2) + pow(egy[part][ipt]/gy[part][ipt],2) );
     }
     gr_ratio[part] =  new TGraphErrors(30, gx, rgy[part], 0, ergy[part]);
   }

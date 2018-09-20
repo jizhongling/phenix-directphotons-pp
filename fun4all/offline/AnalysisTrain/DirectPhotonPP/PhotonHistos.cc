@@ -1110,7 +1110,7 @@ void PhotonHistos::BookHistograms()
   // ih = quality < 64
   for(int ih=0; ih<nh_dcquality; ih++)
   {
-    h3_dclive[ih] = new TH3F(Form("h3_dclive_%d",ih), "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV]", 90,0.,900., 50,-1.,4., 30,0.,15.);
+    h3_dclive[ih] = new TH3F(Form("h3_dclive_%d",ih), "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV]", 100,-100.,100., 50,-1.,4., 30,0.,15.);
     hm->registerHisto(h3_dclive[ih]);
   }
 

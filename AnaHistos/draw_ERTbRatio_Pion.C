@@ -41,7 +41,7 @@ void draw_ERTbRatio_Pion()
     delete h_minv;
 
     double ratio = npion_ertc / npion_ertb;
-    double eratio = ratio * sqrt( pow(enpion_ertc/npion_ertc,2.) + pow(enpion_ertb/npion_ertb,2.) );
+    double eratio = ratio * sqrt( pow(enpion_ertc/npion_ertc,2) + pow(enpion_ertb/npion_ertb,2) );
 
     cout << "Part " << part << ", ratio = " << ratio << ", eratio = " << eratio << endl;
   }

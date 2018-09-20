@@ -9,7 +9,7 @@ void anaPileup(const int process = 0)
 
   const int nThread = 20;
   int thread = -1;
-  int irun =0;
+  int irun = 0;
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 

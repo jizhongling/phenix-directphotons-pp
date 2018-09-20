@@ -58,7 +58,7 @@ void anaToFEff_Photon(const int process = 0)
       double yy, eyyl, eyyh;
       if( !GetEfficiency(nt,np, yy,eyyl,eyyh) )
       {
-        eyyl = yy * sqrt( pow(ent/nt,2.) + pow(enp/np,2.) );
+        eyyl = yy * sqrt( pow(ent/nt,2) + pow(enp/np,2) );
         eyyh = 0.;
       }
       if( yy >= 0. && eyyl >= 0. && eyyl < TMath::Infinity() )

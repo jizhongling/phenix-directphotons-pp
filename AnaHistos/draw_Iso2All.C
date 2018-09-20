@@ -3,61 +3,72 @@
 #include "FitMinv.h"
 #include "Chi2Fit.h"
 
-void draw_CrossSection_IsoPhoton()
+void draw_Iso2All()
 {
   const double PI = TMath::Pi();
 
-  const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
 
-  // function for pT weight for direct photon
-  cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]*[4]", 0, 30);
-  cross_ph->SetParameters(255., 5.98, 0.273, 14.43, 1.);
-  double ndata = 0.;
-  double nfit = 0.;
-
-  TGraphErrors *gr[4];  // PbScW, PbScE, PbGl, Combined
-  int igp[4] = {};
-  for(int part=0; part<4; part++)
+  TGraphErrors *gr[2];
+  int igp[2] = {};
+  for(int iph=0; iph<2; iph++)
   {
-    gr[part] = new TGraphErrors(npT);
-    gr[part]->SetName(Form("gr_%d",part));
+    gr[iph] = new TGraphErrors(npT);
+    gr[iph]->SetName(Form("gr_%d",iph));
   }
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
-  // h[evtype][part]
-  TH1 *h_1photon[3][3];
+  // h[isolated][evtype][part]
+  TH1 *h_1photon[2][3][3];
+  TH2 *h2_2photon[3][3];
   TH2 *h2_isoboth[3][3];
   TH2 *h2_isopair[3][3];
 
   int bbc10cm = 1;
   int tof = 1;
   int prob = 1;
-  int ival = 1;
+  int ival = 3;
 
   TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
-  h_1photon_t = (TH1*)h_1photon_t->Clone();
   h_1photon_t->Reset();
+  for(int isolated=0; isolated<2; isolated++)
+    for(int evtype=1; evtype<3; evtype++)
+      for(int part=0; part<3; part++)
+      {
+        h_1photon[isolated][evtype][part] = (TH1*)h_1photon_t->Clone(Form("h_1photon_iso%d_type%d_part%d",isolated,evtype,part));
+        for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+          for(int pattern=0; pattern<3; pattern++)
+          {
+            int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm + 2*3*2*2*2*3*8*ival;
+            TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
+            h_1photon[isolated][evtype][part]->Add(h_tmp);
+            delete h_tmp;
+          }
+        if(isolated==1)
+          h_1photon[0][evtype][part]->Add(h_1photon[1][evtype][part]);
+      }
+
+  TH2 *h2_2photon_t = (TH2*)f->Get("h2_2photon_0");
+  h2_2photon_t->Reset();
+
   for(int evtype=1; evtype<3; evtype++)
     for(int part=0; part<3; part++)
     {
-      h_1photon[evtype][part] = (TH1*)h_1photon_t->Clone(Form("h_1photon_type%d_part%d",evtype,part));
+      h2_2photon[evtype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_2photon_type%d_part%d",evtype,part));
       for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
         for(int pattern=0; pattern<3; pattern++)
-        {
-          int isolated = 1;
-          int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm + 2*3*2*2*2*3*8*ival;
-          TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
-          h_1photon[evtype][part]->Add(h_tmp);
-          delete h_tmp;
-        }
+          for(int isopair=0; isopair<2; isopair++)
+            for(int isoboth=0; isoboth<2; isoboth++)
+            {
+              int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm + 2*3*2*2*2*2*3*8*ival;
+              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
+              h2_2photon[evtype][part]->Add(h2_tmp);
+              delete h2_tmp;
+            }
     }
 
-  TH2 *h2_2photon_t = (TH2*)f->Get("h2_2photon_0");
-  h2_2photon_t = (TH2*)h2_2photon_t->Clone();
-  h2_2photon_t->Reset();
   for(int evtype=1; evtype<3; evtype++)
     for(int part=0; part<3; part++)
     {
@@ -90,28 +101,14 @@ void draw_CrossSection_IsoPhoton()
           }
     }
 
-  const double DeltaEta = 0.5;
-  //const double NBBC =  3.59e11;  // from DAQ
-  const double NBBC =  3.54e11;  // from rejection power
-  const double XBBC = 32.51e9;
-  const double eXBBC = 3.24e9;
-  //const double Pile[3] = {1.27, 1.32, 1.23};
-  //const double Pile[3] = {1.04, 1.07, 1.02};
-  const double Pile[3] = {1.11, 1.11, 1.08};
+  const double Pile[3] = {0.905, 0.905, 0.865};
+  //const double IsoPile[3] = {1.27, 1.32, 1.23};
+  //const double IsoPile[3] = {1.04, 1.07, 1.02};
+  const double IsoPile[3] = {1.11, 1.11, 1.08};
   const double ePile = 0.02;
-  const double TrigBBC = 0.91;
-  const double eTrigBBC = 0.01;
-  const double ToF[3] = {0.992, 0.992, 0.997};
-  const double eToF[3] = {0.002, 0.002, 0.002};
-  const double Conv[3] = {0.849, 0.959, 0.959};
-  const double eConv[3] = {0.027, 0.023, 0.023};
-  const double Norm[3] = {0.321, 0.314, 0.243};
-  const double eNorm[3] = {0.005, 0.006, 0.005};
   const double A = 0.28;
   const double eA = 0.04;
 
-  double xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
-  double xTrigERT[3][npT] = {}, TrigERT[3][npT] = {}, eTrigERT[3][npT] = {};
   double xVeto[3][npT] = {}, Veto[3][npT] = {}, eVeto[3][npT] = {};
   double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
   double xMerge[3][npT] = {}, Merge[3][npT] = {}, eMerge[3][npT] = {};
@@ -127,31 +124,17 @@ void draw_CrossSection_IsoPhoton()
     { 1, 1, 0.95, 0.97, 0.975, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.995, 0.995, 0.99, 0.99, 0.98, 0.98, 0.98, 0.98, 1, 1 }
   };
 
-  double Prob[2][npT] = {
-    { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96 },
-    { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97 }
-  };
-  double eProb = 0.02;
-
   for(int part=0; part<3; part++)
   {
-    ReadGraph<TGraphAsymmErrors>("data/Acceptance-photon.root", part, xAcc[part], Acc[part], eAcc[part]);
-    ReadGraph<TGraphAsymmErrors>("data/ERTEff-photon.root", part/2, xTrigERT[part], TrigERT[part], eTrigERT[part]);
     ReadGraph<TGraphAsymmErrors>("data/SelfVeto.root", part, xVeto[part], Veto[part], eVeto[part]);
     ReadGraph<TGraphErrors>("data/MissingRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
     ReadGraph<TGraphAsymmErrors>("data/Merge-photon.root", part, xMerge[part], Merge[part], eMerge[part]);
     ReadGraph<TGraphErrors>("data/MergePassRate.root", part/2, xBadPass[part], BadPass[part], eBadPass[part]);
-    mc(part, 6,5);
-    mc(part+3, 6,5);
   }
-  TrigERT[0][0] = TrigERT[1][0] = 0.948;
-  eTrigERT[0][0] = eTrigERT[1][0] = 0.004;
-  TrigERT[2][0] = 0.651;
-  eTrigERT[2][0] = 0.008;
 
   for(int ipt=2; ipt<npT; ipt++)
   {
-    double xx, yy[3], eyy[3];
+    double xx, yy[2][3], eyy[2][3];
 
     for(int part=0; part<3; part++)
     {
@@ -161,11 +144,24 @@ void draw_CrossSection_IsoPhoton()
       else  // >14GeV use ERT_4x4b
         evtype = 1;
 
-      double nphoton = h_1photon[evtype][part]->GetBinContent(ipt+1);
+      double nphoton = h_1photon[0][evtype][part]->GetBinContent(ipt+1);
+      double nisophoton = h_1photon[1][evtype][part]->GetBinContent(ipt+1);
 
       TH1 *h_minv;
 
-      mcd(part, ipt+1);
+      double npion = 1., enpion = 1.;
+      h_minv = (TH1*)h2_2photon[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
+      h_minv->Rebin(10);
+      h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
+      if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
+        FitMinv(h_minv, npion, enpion, true, 0.11,0.16);
+      else if(ipt < 23)  // <16GeV subtract background
+        FitMinv(h_minv, npion, enpion, true, 0.10,0.17);
+      else  // >16GeV don't subtract background
+        FitMinv(h_minv, npion, enpion, false, 0.10,0.17);
+      npion /= bck[part/2][ipt] * meff[part/2][ipt];
+      delete h_minv;
+
       double nisoboth = 1., enisoboth = 1.;
       h_minv = (TH1*)h2_isoboth[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
@@ -175,7 +171,6 @@ void draw_CrossSection_IsoPhoton()
       nisoboth /= 1.1;
       delete h_minv;
 
-      mcd(part+3, ipt+1);
       double nisopair = 1., enisopair = 1.;
       h_minv = (TH1*)h2_isopair[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
@@ -190,8 +185,6 @@ void draw_CrossSection_IsoPhoton()
       delete h_minv;
 
       xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      int ipAcc = Get_ipt(xAcc[part], xx);
-      int ipTrigERT = Get_ipt(xTrigERT[part], xx);
       int ipVeto = Get_ipt(xVeto[part], xx);
       int ipMiss = Get_ipt(xMiss[part], xx);
       double aMiss = Miss[part][ipMiss];
@@ -207,91 +200,56 @@ void draw_CrossSection_IsoPhoton()
         aBadPass = 0.;
         eaBadPass = 0.;
       }
-      if(ipt >= 20)
-        ipTrigERT = 0;
       double aMissPass = aMiss + aMerge * aBadPass;
       double eaMissPass = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2) + pow(aMerge*eaBadPass,2) );
       double aMissAll = aMiss + aMerge * 2.;
       double eaMissAll = sqrt( eaMiss*eaMiss + eaMerge*eaMerge*4. );
-      double ndir = nphoton - ( nisoboth + aMissPass * nisopair ) - A * Veto[part][ipVeto] * ( 1. + aMissAll ) * nisopair;
-      double endir = sqrt( nphoton + enisoboth*enisoboth + pow(eaMissPass*nisopair,2) + pow(aMissPass*enisopair,2) );
-      if( endir != endir ) endir = sqrt( nphoton + enisoboth*enisoboth );
-      if(ipt >= 22)  // >14GeV use ERT_4x4b
-      {
-        ndir *= Norm[part];
-        endir *= Norm[part] * (1+eNorm[part]);
-      }
-      yy[part] = (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
-        * ndir / Acc[part][ipAcc] / TrigERT[part][ipTrigERT] / Prob[part/2][ipt]
-        / ToF[part] / Conv[part] / TrigBBC * Pile[part];
-      eyy[part] = yy[part] * sqrt( pow(endir/ndir,2)
-          + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2)
-          + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2)
-          + pow(eProb/Prob[part/2][ipt],2)
-          + pow(eToF[part]/ToF[part],2) + pow(eConv[part]/Conv[part],2)
-          //+ pow(eTrigBBC/TrigBBC,2) + pow(ePile/Pile[part],2) + pow(eXBBC/XBBC,2)
-          );
-      if( yy[part] > 0. && eyy[part] > 0. && eyy[part] < TMath::Infinity() )
-      {
-        gr[part]->SetPoint(igp[part], xx, yy[part]);
-        gr[part]->SetPointError(igp[part], 0., eyy[part]);
-        igp[part]++;
-      }
+
+      double npi0 = npion + aMissPass * npion;
+      double enpi0 = sqrt( pow(eaMissPass*npion,2) + pow((1.+aMissPass)*enpion,2) );
+      double nisopi0 = nisoboth + aMissPass * nisopair;
+      double enisopi0 = sqrt( enisoboth*enisoboth + pow(eaMissPass*nisopair,2) + pow(aMissPass*enisopair,2) );
+      //yy[0][part] = ( nisopi0 * IsoPile[part] ) / ( npi0 * Pile[part] );
+      yy[0][part] = nisopair / npion;
+      eyy[0][part] = yy[0][part] * sqrt( pow(enisopi0/nisopi0,2) + pow(enpi0/npi0,2) + pow(ePile/Pile[part],2) + pow(ePile/IsoPile[part],2) );
+
+      double ndir = nphoton - aMissPass * npion - A * ( 1. + aMissAll ) * npion;
+      double endir = sqrt( nphoton + pow((1.+A)*(1.+aMissPass)*enpion,2) + pow((1.+A)*eaMissPass*npion,2) );
+      double nisodir = nisophoton - ( nisoboth + aMissPass * nisopair ) - A * Veto[part][ipVeto] * ( 1. + aMissAll ) * nisopair;
+      double enisodir = sqrt( nisophoton + enisoboth*enisoboth + pow(eaMissPass*nisopair,2) + pow(aMissPass*enisopair,2) );
+      if( enisodir != enisodir ) enisodir = sqrt( nisophoton + enisoboth*enisoboth );
+      yy[1][part] = ( nisodir * IsoPile[part] ) / ( ndir * Pile[part] );
+      eyy[1][part] = yy[1][part] * sqrt( pow(endir/ndir,2) + pow(enisodir/nisodir,2) + pow(ePile/Pile[part],2) + pow(ePile/IsoPile[part],2) );
     } // part
 
-    double ybar, eybar;
-    Chi2Fit(3, yy, eyy, ybar, eybar);
-    if( ybar > 0. && eybar > 0. && eybar < TMath::Infinity() )
+    for(int iph=0; iph<2; iph++)
     {
-      gr[3]->SetPoint(igp[3], xx, ybar);
-      gr[3]->SetPointError(igp[3], 0., eybar);
-      igp[3]++;
-    }
-    if( ipt >= 12 )
-    {
-      ndata += ybar;
-      nfit += cross_ph->Eval(xx);
-    }
+      double ybar, eybar;
+      Chi2Fit(3, yy[iph], eyy[iph], ybar, eybar);
+      if( ybar > 0. && eybar > 0. && eybar < TMath::Infinity() )
+      {
+        gr[iph]->SetPoint(igp[iph], xx, ybar);
+        gr[iph]->SetPointError(igp[iph], 0., eybar);
+        igp[iph]++;
+      }
+    } // iph
   } // ipt
-  cross_ph->SetParameter(4, ndata/nfit);
 
-  mc(6, 2,1);
-  legi(0, 0.4,0.7,0.7,0.9);
-
-  for(int part=0; part<4; part++)
+  mc();
+  mcd();
+  legi(0, 0.2,0.7,0.4,0.9);
+  for(int iph=0; iph<2; iph++)
   {
-    gr[part]->Set(igp[part]);
-    mcd(6, part/3+1);
-    gPad->SetLogy();
-    aset(gr[part], "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 6.,30., 1e-1, 1e4);
-    style(gr[part], part+20, part+1);
-    if(part%3==0)
-    {
-      gr[part]->Draw("AP");
-      cross_ph->DrawCopy("LSAME");
-    }
+    gr[iph]->Set(igp[iph]);
+    aset(gr[iph], "p_{T} [GeV]", "Iso/All", 6.,30., 0.,1.4);
+    style(gr[iph], iph+20, iph+1);
+    if(iph==0)
+      gr[iph]->Draw("AP");
     else
-      gr[part]->Draw("P");
-    if(part<3)
-      leg0->AddEntry(gr[part], pname[part], "P");
+      gr[iph]->Draw("P");
   }
-
-  gr[0]->SetTitle("Separated");
-  gr[3]->SetTitle("Combined");
-  mcd(6, 1);
+  leg0->AddEntry(gr[0], "#pi^{0}", "P");
+  leg0->AddEntry(gr[1], "#gamma_{dir}", "P");
   leg0->Draw();
-  mcd(6, 2);
-  c6->Print("plots/CrossSection-isophoton.pdf");
-
-  TFile *f_out = new TFile("data/CrossSection-isophoton.root", "RECREATE");
-  for(int part=0; part<4; part++)
-  {
-    if(part<3)
-    {
-      mcw( part, Form("Minv-isoboth-part%d",part) );
-      mcw( part+3, Form("Minv-isopair-part%d",part) );
-    }
-    gr[part]->Write();
-  }
-  f_out->Close();
+  c0->Print("plots/Iso2All-pair-notrack.pdf");
 }

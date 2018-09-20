@@ -83,11 +83,11 @@ void draw_ERTbRatio_Photon()
       double eaMiss = eMiss[part][ipMiss];
 
       double ndir_ertc = nphoton_ertc - aMiss*npion_ertc*2.;
-      double endir_ertc = sqrt( nphoton_ertc + pow(eaMiss*npion_ertc*2.,2.) + pow(aMiss*enpion_ertc*2.,2.) );
+      double endir_ertc = sqrt( nphoton_ertc + pow(eaMiss*npion_ertc*2.,2) + pow(aMiss*enpion_ertc*2.,2) );
       double ndir_ertb = nphoton_ertb - aMiss*npion_ertb*2.;
-      double endir_ertb = sqrt( nphoton_ertb + pow(eaMiss*npion_ertb*2.,2.) + pow(aMiss*enpion_ertb*2.,2.) );
+      double endir_ertb = sqrt( nphoton_ertb + pow(eaMiss*npion_ertb*2.,2) + pow(aMiss*enpion_ertb*2.,2) );
       double ratio = ndir_ertc / ndir_ertb;
-      double eratio = ratio * sqrt( pow(endir_ertc/ndir_ertc,2.) + pow(endir_ertb/ndir_ertb,2.) );
+      double eratio = ratio * sqrt( pow(endir_ertc/ndir_ertc,2) + pow(endir_ertb/ndir_ertb,2) );
 
       if(eratio > 0.)
       {
