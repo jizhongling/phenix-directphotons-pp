@@ -30,6 +30,7 @@ void draw_CrossSection_Photon()
   int prob = 1;
 
   TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
+  h_1photon_t = (TH1*)h_1photon_t->Clone();
   h_1photon_t->Reset();
   for(int evtype=1; evtype<3; evtype++)
     for(int part=0; part<3; part++)
@@ -47,6 +48,7 @@ void draw_CrossSection_Photon()
     }
 
   TH2 *h2_2photon_t = (TH2*)f->Get("h2_2photon_0");
+  h2_2photon_t = (TH2*)h2_2photon_t->Clone();
   h2_2photon_t->Reset();
   for(int evtype=1; evtype<3; evtype++)
     for(int part=0; part<3; part++)
@@ -150,7 +152,7 @@ void draw_CrossSection_Photon()
       if(ipt >= 20)
         ipTrigERT = 0;
       double ndir = nphoton - Miss[part][ipMiss] * npion;
-      double endir = sqrt( nphoton + pow(eMiss[part][ipMiss]*npion,2.) + pow(Miss[part][ipMiss]*enpion,2.) );
+      double endir = sqrt( nphoton + pow(eMiss[part][ipMiss]*npion,2) + pow(Miss[part][ipMiss]*enpion,2) );
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
         ndir *= Norm[part];
@@ -159,12 +161,12 @@ void draw_CrossSection_Photon()
       yy[part] = (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
         * ndir / Acc[part][ipAcc] / TrigERT[part][ipTrigERT] / Prob[part/2][ipt]
         / ToF[part] / Conv[part] / TrigBBC * Pile[part];
-      eyy[part] = yy[part] * sqrt( pow(endir/ndir,2.)
-          + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2.)
-          + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2.)
-          + pow(eProb/Prob[part/2][ipt],2.)
-          + pow(eToF[part]/ToF[part],2.) + pow(eConv[part]/Conv[part],2.)
-          //+ pow(eTrigBBC/TrigBBC,2.) + pow(ePile/Pile[part],2.) + pow(eXBBC/XBBC,2.)
+      eyy[part] = yy[part] * sqrt( pow(endir/ndir,2)
+          + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2)
+          + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2)
+          + pow(eProb/Prob[part/2][ipt],2)
+          + pow(eToF[part]/ToF[part],2) + pow(eConv[part]/Conv[part],2)
+          //+ pow(eTrigBBC/TrigBBC,2) + pow(ePile/Pile[part],2) + pow(eXBBC/XBBC,2)
           );
       if( yy[part] > 0. && eyy[part] > 0. && eyy[part] < TMath::Infinity() )
       {

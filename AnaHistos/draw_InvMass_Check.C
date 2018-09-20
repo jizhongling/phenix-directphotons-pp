@@ -38,7 +38,7 @@ void draw_InvMass_Check()
       delete h_tmp;
 
       M[part][ipt] = sqrt( 2. * E1[part][ipt] * E2[part][ipt] ) * Theta[part][ipt];
-      eM[part][ipt] = sqrt( pow(eE1[part][ipt]/E1[part][ipt],2.) + pow(eE2[part][ipt]/E2[part][ipt],2.) + pow(eTheta[part][ipt]/Theta[part][ipt],2.) ) / 2.;
+      eM[part][ipt] = sqrt( pow(eE1[part][ipt]/E1[part][ipt],2) + pow(eE2[part][ipt]/E2[part][ipt],2) + pow(eTheta[part][ipt]/Theta[part][ipt],2) ) / 2.;
     }
   }
 
@@ -66,7 +66,7 @@ void draw_InvMass_Check()
       gr[part][igr]->GetXaxis()->SetTitle("p_{T} [GeV]");
       gr[part][igr]->SetMarkerStyle(20);
       gr[part][igr]->SetMarkerColor(1);
-      gr[part][igr]->SetMarkerSize(2.);
+      gr[part][igr]->SetMarkerSize(2);
       gr[part][igr]->Draw("AP");
     }
 

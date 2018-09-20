@@ -97,7 +97,7 @@ void draw_Pileup_Photon()
         {
           double xx = ( pTbin[id][ipt-1] + pTbin[id][ipt] ) / 2.;
           double yy = p0[1] / mean[1];
-          double eyy = yy * sqrt( pow(emean[1]/mean[1],2.) + pow(ep0[1]/p0[1],2.) );
+          double eyy = yy * sqrt( pow(emean[1]/mean[1],2) + pow(ep0[1]/p0[1],2) );
           if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
           {
             gr_ratio[igr]->SetPoint(igp[igr], xx, yy);
@@ -106,7 +106,7 @@ void draw_Pileup_Photon()
           }
 
           yy = p0[1] / p0[0];
-          eyy = yy * sqrt( pow(ep0[0]/p0[0],2.) + pow(ep0[1]/p0[1],2.) );
+          eyy = yy * sqrt( pow(ep0[0]/p0[0],2) + pow(ep0[1]/p0[1],2) );
           if( yy > 0. && eyy > 0. && eyy < 1. )
           {
             gr_tof[igr]->SetPoint(igp2[igr], xx, yy);

@@ -38,7 +38,7 @@ void draw_CrossSectionCmp_Pion()
       if(part < 3)
       {
         yy = ( gy[part][ip1] - gy[3][ip2] ) / gy[3][ip2];
-        eyy = TMath::Abs(yy+1.) * sqrt( pow(egy[part][ip1]/gy[part][ip1],2.) + pow(egy[3][ip2]/gy[3][ip2],2.) );
+        eyy = TMath::Abs(yy+1.) * sqrt( pow(egy[part][ip1]/gy[part][ip1],2) + pow(egy[3][ip2]/gy[3][ip2],2) );
       }
       else
       {

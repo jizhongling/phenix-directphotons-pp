@@ -52,7 +52,7 @@ void draw_Acceptance_Sasha()
       {
         double npion = h_pt->Integral(ipt+1,ipt+1);
         h_sig->SetBinContent(ipt+1, npion);
-        h_sig->SetBinError( ipt+1, sqrt(npion) * cross->Eval(ipt/2.) );
+        h_sig->SetBinError( ipt+1, sqrt(npion) * cross->Eval(ipt/2) );
       }
       TGraphErrors *gr1 = DivideHisto(h_sig, h_tot);
       delete h_pt;
@@ -65,7 +65,7 @@ void draw_Acceptance_Sasha()
       //{
       //  double npion = h_pt->Integral(ipt+1,ipt+1);
       //  h_sig->SetBinContent(ipt+1, npion);
-      //  h_sig->SetBinError( ipt+1, sqrt(npion) * cross->Eval(ipt/2.) );
+      //  h_sig->SetBinError( ipt+1, sqrt(npion) * cross->Eval(ipt/2) );
       //}
       //TGraphErrors *gr2 = DivideHisto(h_sig, h_tot2);
       //delete h_pt;
