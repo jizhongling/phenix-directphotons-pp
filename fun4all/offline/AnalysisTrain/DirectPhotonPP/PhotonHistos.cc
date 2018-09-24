@@ -117,13 +117,15 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   }
   for(int ih=0; ih<nh_etwr; ih++)
     h3_etwr[ih] = NULL;
-  for(int ih=0; ih<nh_dcpart; ih++)
+  for(int ih=0; ih<nh_dcpartqual; ih++)
   {
-    h2_dcsd[ih] = NULL;
+    h3_dcdphiz[ih] = NULL;
     h2_alphaboard[ih] = NULL;
   }
   for(int ih=0; ih<nh_dcquality; ih++)
     h3_dclive[ih] = NULL;
+  for(int ih=0; ih<nh_dcpart; ih++)
+    h2_emcdphiz[ih] = NULL;
   for(int ih=0; ih<nh_eta_phi; ih++)
     h2_eta_phi[ih] = NULL;
   for(int ih=0; ih<nh_pion; ih++)
@@ -693,45 +695,60 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
   if( abs(bbc_z) > 30. ) return DISCARDEVENT;
 
   int npart = data_tracks->get_npart();
-
-  for(int i=0; i<npart; i++)
+  for(int itrk=0; itrk<npart; itrk++)
   {
-    unsigned quality = data_tracks->get_quality(i);
-    double mom = data_tracks->get_mom(i);
+    unsigned quality = data_tracks->get_quality(itrk);
+    double mom = data_tracks->get_mom(itrk);
     if( quality > 63 || mom != mom ||
         mom < pTrkMin || mom > pTrkMax )
       continue;
 
-    double dcphi = data_tracks->get_phi(i);
-    double dczed = data_tracks->get_zed(i);
-    double dcalpha = data_tracks->get_alpha(i);
-    int dcarm = data_tracks->get_dcarm(i);
+    /* phi and zed distributions */
+    double dcphi = data_tracks->get_phi(itrk);
+    double dczed = data_tracks->get_zed(itrk);
+    double dcalpha = data_tracks->get_alpha(itrk);
+    int dcarm = data_tracks->get_dcarm(itrk);
     int dcns = dczed > 0. ? 0 : 1;
     int dcwe = dcarm == 0 ? 1 : 0;
-    double dcsdphi = data_tracks->get_emcsdphi(i);
-    double dcsdz = data_tracks->get_emcsdz(i);
     double dcboard = 0.;
     if( dcwe == 0 )
       dcboard = ( 0.573231 - dcphi -  0.0046 * cos( dcphi + 0.05721 ) ) / 0.01963496;
     else
       dcboard = ( 3.72402 - dcphi + 0.008047 * cos( dcphi + 0.87851 ) ) / 0.01963496;
 
-    /* emcsdphi and emcsdz distributions */
-    int emcid = data_tracks->get_emcid(i);
-    emcClusterContent *cluster = data_emccontainer->findCluster(emcid);
-    if( cluster && cluster->ecore() > 5. )
-    {
-      int ih = dcns + 2*dcwe + 2*2*quality;
-      h2_dcsd[ih]->Fill(dcsdphi, dcsdz);
-    }
+    /* emcdphi and emcdz distributions */
+    int ih = dcns + 2*dcwe + 2*2*quality;
+    double dcdphi = data_tracks->get_emcdphi(itrk);
+    double dcdz = data_tracks->get_emcdz(itrk);
+    h3_dcdphiz[ih]->Fill(dcdphi, dcdz, mom);
 
     /* alpha-board */
-    int ih = dcns + 2*dcwe + 2*2*quality;
-    h2_alphaboard[ih]->Fill(dcalpha, dcboard);
+    ih = dcns + 2*dcwe + 2*2*quality;
+    h2_alphaboard[ih]->Fill(dcboard, dcalpha);
 
     /* DC+PC1 live area */
     ih = quality;
     h3_dclive[ih]->Fill(dczed, dcphi, mom);
+  }
+
+  unsigned ncluster = data_emccontainer->size();
+  for(unsigned iclus=0; iclus<ncluster; iclus++)
+  {
+    emcClusterContent *cluster = data_emccontainer->getCluster(iclus);
+    if( cluster->ecore() > 5. )
+    {
+      int itrk_match = GetEmcMatchTrack(cluster, data_tracks);
+      if( itrk_match >= 0 )
+      {
+        double dcphi = data_tracks->get_phi(itrk_match);
+        double dczed = data_tracks->get_zed(itrk_match);
+        int dcarm = data_tracks->get_dcarm(itrk_match);
+        int dcns = dczed > 0. ? 0 : 1;
+        int dcwe = dcarm == 0 ? 1 : 0;
+        int ih = dcns + 2*dcwe;
+        h2_emcdphiz[ih]->Fill(dczed, dcphi);
+      }
+    }
   }
 
   return EVENT_OK;
@@ -1098,20 +1115,26 @@ void PhotonHistos::BookHistograms()
   
   /* Track quality study */
   // ih = dcns + 2*dcwe + 2*2*quality < 2*2*64
-  for(int ih=0; ih<nh_dcpart; ih++)
+  for(int ih=0; ih<nh_dcpartqual; ih++)
   {
-    h2_dcsd[ih] = new TH2F(Form("h2_dcsd_%d",ih), "EMCal and DC standard deviation;sdphi;sdz;", 100,-10.,10., 100,-10.,10.);
-    hm->registerHisto(h2_dcsd[ih]);
-    h2_alphaboard[ih] = new TH2F(Form("h2_alphaboard_%d",ih), "DC #alpha-board;#alpha;board;", 60,-0.6,0.6, 80,0.,80.);
+    h3_dcdphiz[ih] = new TH3F(Form("h3_dcdphiz_%d",ih), "EMCal and DC phi and z deviation;dphi [rad];dz [cm];mom [GeV];", 100,-0.2,0.2, 120,-60.,60., 10,0.,15);
+    hm->registerHisto(h3_dcdphiz[ih]);
+    h2_alphaboard[ih] = new TH2F(Form("h2_alphaboard_%d",ih), "DC #alpha-board;board;#alpha;", 80,0.,80., 120,-0.6,0.6);
     hm->registerHisto(h2_alphaboard[ih]);
-
   }
 
   // ih = quality < 64
   for(int ih=0; ih<nh_dcquality; ih++)
   {
-    h3_dclive[ih] = new TH3F(Form("h3_dclive_%d",ih), "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV]", 100,-100.,100., 50,-1.,4., 30,0.,15.);
+    h3_dclive[ih] = new TH3F(Form("h3_dclive_%d",ih), "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV]", 200,-100.,100., 50,-1.,4., 30,0.,15.);
     hm->registerHisto(h3_dclive[ih]);
+  }
+
+  // ih = dcns + 2*dcwe < 2*2
+  for(int ih=0; ih<nh_dcpart; ih++)
+  {
+    h2_emcdphiz[ih] = new TH2F(Form("h2_emcdphiz_%d",ih), "EMCal and DC phi and z deviation;dphi [rad];dz [cm];", 100,-0.2,0.2, 120,-60.,60.);
+    hm->registerHisto(h2_emcdphiz[ih]);
   }
 
   /* Eta and phi distribution */
@@ -1150,7 +1173,7 @@ void PhotonHistos::BookHistograms()
 }
 
 double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont,
-    const PHCentralTrack *tracks, double bbc_t0)
+    const PHCentralTrack *data_tracks, double bbc_t0)
 { 
   /* Sum up all energy in cone around particle without one cluster */
   double econe = 0.;
@@ -1175,7 +1198,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
       continue;
 
     /* 3 sigma charge veto */
-    if( DCChargeVeto(clus2,tracks) )
+    if( DCChargeVeto(clus2,data_tracks) )
       continue;
 
     /* Get cluster vector */
@@ -1195,7 +1218,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
 }
 
 void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2,
-    const emcClusterContainer *cluscont, const PHCentralTrack *tracks, double bbc_t0, double &econe1, double &econe2)
+    const emcClusterContainer *cluscont, const PHCentralTrack *data_tracks, double bbc_t0, double &econe1, double &econe2)
 { 
   /* Sum up all energy in cone around particle without two clusters */
   econe1 = 0.;
@@ -1224,7 +1247,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
       continue;
 
     /* 3 sigma charge veto */
-    if( DCChargeVeto(clus3,tracks) )
+    if( DCChargeVeto(clus3,data_tracks) )
       continue;
 
     /* Get cluster vector */
@@ -1248,7 +1271,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
   return;
 }
 
-void PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *tracks, double econe[])
+void PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks, double econe[])
 { 
   /* Sum up all energy in cone around particle */
   for(int ival=0; ival<4; ival++)
@@ -1259,15 +1282,15 @@ void PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentralTr
   if( pE_pref.Pt() < 0.01 ) return;
   TVector2 v2_pref = pE_pref.EtaPhiVector();
 
-  int npart = tracks->get_npart();
+  int npart = data_tracks->get_npart();
 
   for(int i=0; i<npart; i++)
   {
-    int quality = tracks->get_quality(i);
-    double px = tracks->get_px(i);
-    double py = tracks->get_py(i);
-    double pz = tracks->get_pz(i);
-    double mom = tracks->get_mom(i);
+    int quality = data_tracks->get_quality(i);
+    double px = data_tracks->get_px(i);
+    double py = data_tracks->get_py(i);
+    double pz = data_tracks->get_pz(i);
+    double mom = data_tracks->get_mom(i);
     //cout << px << "\t" << py << "\t" << pz << "\t" << mom << endl;
     if( px != px || py != py || pz != pz || mom != mom )
       continue;
@@ -1327,18 +1350,14 @@ bool PhotonHistos::TestPhoton(const emcClusterContent *cluster, double bbc_t0)
     return false;
 }
 
-bool PhotonHistos::DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *tracks)
+bool PhotonHistos::DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *data_tracks)
 {
   /* 3 sigma charge veto */
-  int itrk_clus = cluster->emctrk();
-  if( itrk_clus >= 0 )
-  {
-    double dcsdphi = tracks->get_emcsdphi(itrk_clus);
-    double dcsdz = tracks->get_emcsdz(itrk_clus);
-    if( dcsdphi < 3. && dcsdz < 3. )
-      return true;
-  }
-  return false;
+  int itrk_match = GetEmcMatchTrack(cluster, data_tracks);
+  if( itrk_match >= 0 )
+    return true;
+  else 
+    return false;
 }
 
 bool PhotonHistos::InFiducial(const emcClusterContent *cluster)
@@ -1401,6 +1420,54 @@ int PhotonHistos::GetPattern(int crossing)
   pattern += 1;
 
   return pattern;
+}
+
+int PhotonHistos::GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks)
+{
+  const double mommin = 3.;
+  const double dphimatch = 3. * 0.005;
+
+  int itrk_match = -1;
+  double dzmin = 9999.;
+  double mommax = 0.;
+
+  int npart = data_tracks->get_npart();
+  for(int itrk=0; itrk<npart; itrk++)
+  {
+    unsigned quality = data_tracks->get_quality(itrk);
+    double mom = data_tracks->get_mom(itrk);
+    if( quality <= 3 || mom != mom || mom < mommin )
+      continue;
+
+    double dcdphi = data_tracks->get_emcdphi(itrk);
+    double dcdz = data_tracks->get_emcdz(itrk);
+    if( dcdphi < dphimatch )
+    {
+      if( itrk_match != -1 )
+      {
+        if( abs(dcdz) < 8. && abs(dcdz) < dzmin )
+        {
+          itrk_match = itrk;
+          dzmin = abs(dcdz);
+          mommax = mom;
+        }
+        else if( dzmin >= 8. && mom > mommax )
+        {
+          itrk_match = itrk;
+          dzmin = abs(dcdz);
+          mommax = mom;
+        }
+      }
+      else
+      {
+        itrk_match = itrk;
+        dzmin = abs(dcdz);
+        mommax = mom;
+      }
+    }
+  }
+
+  return itrk_match;
 }
 
 void PhotonHistos::EMCRecalibSetup()

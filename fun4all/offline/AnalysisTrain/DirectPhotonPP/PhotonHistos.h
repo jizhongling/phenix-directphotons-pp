@@ -73,21 +73,22 @@ class PhotonHistos: public SubsysReco
     /* Sum energy in cone around the reference particle
      * for isolated photon and isolated pair */
     double SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont,
-        const PHCentralTrack *tracks, double bbc_t0);
+        const PHCentralTrack *data_tracks, double bbc_t0);
     void SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2, const emcClusterContainer *cluscont,
-        const PHCentralTrack *tracks, double bbc_t0, double &econe1, double &econe2);
-    void SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *tracks, double econe[]);
+        const PHCentralTrack *data_tracks, double bbc_t0, double &econe1, double &econe2);
+    void SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks, double econe[]);
 
     /* Check event type, photon cuts, charge veto and tower status */
     bool IsEventType(const int evtype, const TrigLvl1 *data_triggerlvl1);
     bool TestPhoton(const emcClusterContent *cluster, double bbc_t0);
-    bool DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *tracks);
+    bool DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
     bool InFiducial(const emcClusterContent *cluster);
     bool IsGoodTower(const emcClusterContent *cluster);
     bool IsBadTower(const emcClusterContent *cluster);
 
-    /* Get warnmap status and spin pattern */
+    /* Get warnmap status, spin pattern and EMCal associated track */
     int GetPattern(int crossing);
+    int GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
 
     /* Setup energy and ToF calibrator and read warnmap */
     void EMCRecalibSetup();
@@ -105,8 +106,9 @@ class PhotonHistos: public SubsysReco
     static const int nh_bbc = 2*8;
     static const int nh_ert = 2*6*8;
     static const int nh_etwr = 16*8*2*8;
-    static const int nh_dcpart = 2*2*64;
+    static const int nh_dcpartqual = 2*2*64;
     static const int nh_dcquality = 64;
+    static const int nh_dcpart = 2*2;
     static const int nh_eta_phi = 4*2*3;
     static const int nh_pion = 2*3*2*2*3*8;
     static const int nh_1photon = 4*2*3*2*2*2*3*8;
@@ -135,9 +137,10 @@ class PhotonHistos: public SubsysReco
     TH1 *h_ert[nh_ert];
     TH2 *h2_ert_pion[nh_ert];
     TH3 *h3_etwr[nh_etwr];
-    TH2 *h2_dcsd[nh_dcpart];
-    TH2 *h2_alphaboard[nh_dcpart];
+    TH3 *h3_dcdphiz[nh_dcpartqual];
+    TH2 *h2_alphaboard[nh_dcpartqual];
     TH3 *h3_dclive[nh_dcquality];
+    TH2 *h2_emcdphiz[nh_dcpart];
     TH2 *h2_eta_phi[nh_eta_phi];
     TH2 *h2_pion[nh_pion];
     TH1 *h_1photon[nh_1photon];
