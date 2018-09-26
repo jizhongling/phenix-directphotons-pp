@@ -7,7 +7,7 @@ set -o nounset
 set -o pipefail
 
 outdir="$(pwd)/histos-TAXI"
-cd "$SPIN/taxi/Run13pp510ERT/13888/data"
+cd "$SPIN/taxi/Run13pp510ERT/13912/data"
 
 prename="PhotonHistos-"
 NFiles=10

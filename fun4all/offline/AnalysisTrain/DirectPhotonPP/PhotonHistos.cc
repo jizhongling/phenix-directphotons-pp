@@ -707,12 +707,11 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
     double dcphi = data_tracks->get_phi(itrk);
     double dczed = data_tracks->get_zed(itrk);
     double dcalpha = data_tracks->get_alpha(itrk);
-    int dcarm = data_tracks->get_dcarm(itrk);
     int dcns = dczed > 0. ? 0 : 1;
-    int dcwe = dcarm == 0 ? 1 : 0;
+    int dcwe = dcphi < PI/2. ? 0 : 1;
     double dcboard = 0.;
     if( dcwe == 0 )
-      dcboard = ( 0.573231 - dcphi -  0.0046 * cos( dcphi + 0.05721 ) ) / 0.01963496;
+      dcboard = ( 0.573231 + dcphi - 0.0046 * cos( dcphi + 0.05721 ) ) / 0.01963496;
     else
       dcboard = ( 3.72402 - dcphi + 0.008047 * cos( dcphi + 0.87851 ) ) / 0.01963496;
 
@@ -740,13 +739,22 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
       int itrk_match = GetEmcMatchTrack(cluster, data_tracks);
       if( itrk_match >= 0 )
       {
-        double dcphi = data_tracks->get_phi(itrk_match);
         double dczed = data_tracks->get_zed(itrk_match);
         int dcarm = data_tracks->get_dcarm(itrk_match);
         int dcns = dczed > 0. ? 0 : 1;
         int dcwe = dcarm == 0 ? 1 : 0;
+
+        double pemcx = data_tracks->get_pemcx(itrk_match);
+        double pemcy = data_tracks->get_pemcy(itrk_match);
+        double pemcz = data_tracks->get_pemcz(itrk_match);
+        double emcx = cluster->x();
+        double emcy = cluster->y();
+        double emcz = cluster->z();
+        double dcdphi = atan2(emcy,emcx) - atan2(pemcy,pemcx);
+        double dcdz = emcz - pemcz;
+
         int ih = dcns + 2*dcwe;
-        h2_emcdphiz[ih]->Fill(dczed, dcphi);
+        h2_emcdphiz[ih]->Fill(dcdphi, dcdz);
       }
     }
   }

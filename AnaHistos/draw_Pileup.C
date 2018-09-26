@@ -31,7 +31,7 @@ void draw_Pileup()
           {
             int ig = ipt*8+id*4+ic*2+is;
             TGraphErrors *gr = (TGraphErrors*)f->Get(Form("gr_%d",ig));
-            if( gr->GetN() > 0)
+            if( gr->GetN() > 0 )
               mg[ig]->Add(gr);
           }
   }
