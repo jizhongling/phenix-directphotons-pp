@@ -707,12 +707,11 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
     double dcphi = data_tracks->get_phi(itrk);
     double dczed = data_tracks->get_zed(itrk);
     double dcalpha = data_tracks->get_alpha(itrk);
-    int dcarm = data_tracks->get_dcarm(itrk);
     int dcns = dczed > 0. ? 0 : 1;
-    int dcwe = dcarm == 0 ? 1 : 0;
+    int dcwe = dcphi < PI/2. ? 0 : 1;
     double dcboard = 0.;
     if( dcwe == 0 )
-      dcboard = ( 0.573231 - dcphi -  0.0046 * cos( dcphi + 0.05721 ) ) / 0.01963496;
+      dcboard = ( 0.573231 + dcphi - 0.0046 * cos( dcphi + 0.05721 ) ) / 0.01963496;
     else
       dcboard = ( 3.72402 - dcphi + 0.008047 * cos( dcphi + 0.87851 ) ) / 0.01963496;
 
@@ -729,6 +728,13 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
     /* DC+PC1 live area */
     ih = quality;
     h3_dclive[ih]->Fill(dczed, dcphi, mom);
+
+    int charge = data_tracks->get_charge(itrk);
+    double px = data_tracks->get_px(itrk);
+    double py = data_tracks->get_py(itrk);
+    double pt = sqrt( px*px + py*py );
+    double prod = -charge * pt * dcalpha;
+    h_prod->Fill(prod);
   }
 
   unsigned ncluster = data_emccontainer->size();
@@ -740,13 +746,22 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
       int itrk_match = GetEmcMatchTrack(cluster, data_tracks);
       if( itrk_match >= 0 )
       {
-        double dcphi = data_tracks->get_phi(itrk_match);
         double dczed = data_tracks->get_zed(itrk_match);
         int dcarm = data_tracks->get_dcarm(itrk_match);
         int dcns = dczed > 0. ? 0 : 1;
         int dcwe = dcarm == 0 ? 1 : 0;
+
+        double pemcx = data_tracks->get_pemcx(itrk_match);
+        double pemcy = data_tracks->get_pemcy(itrk_match);
+        double pemcz = data_tracks->get_pemcz(itrk_match);
+        double emcx = cluster->x();
+        double emcy = cluster->y();
+        double emcz = cluster->z();
+        double dcdphi = atan2(emcy,emcx) - atan2(pemcy,pemcx);
+        double dcdz = emcz - pemcz;
+
         int ih = dcns + 2*dcwe;
-        h2_emcdphiz[ih]->Fill(dczed, dcphi);
+        h2_emcdphiz[ih]->Fill(dcdphi, dcdz);
       }
     }
   }
@@ -1107,7 +1122,8 @@ void PhotonHistos::BookHistograms()
   // ih = sector + 8*collision + 2*8*cut + 8*2*8*trig < 16*8*2*8
   for(int ih=0; ih<nh_etwr; ih++)
   {
-    h3_etwr[ih] = new TH3F(Form("h3_etwr_%d",ih), "Tower energy;p_{T} [GeV];iy;iz;", npT,0.,0., 7,-3.5,3.5, 7,-3.5,3.5);
+    h3_etwr[ih] = new TH3F(Form("h3_etwr_%d",ih), "Tower energy;p_{T} [GeV];iy;iz;",
+        npT,0.,0., 7,-3.5,3.5, 7,-3.5,3.5);
     h3_etwr[ih]->GetXaxis()->Set(npT, pTbin);
     h3_etwr[ih]->Sumw2();
     hm->registerHisto(h3_etwr[ih]);
@@ -1117,7 +1133,8 @@ void PhotonHistos::BookHistograms()
   // ih = dcns + 2*dcwe + 2*2*quality < 2*2*64
   for(int ih=0; ih<nh_dcpartqual; ih++)
   {
-    h3_dcdphiz[ih] = new TH3F(Form("h3_dcdphiz_%d",ih), "EMCal and DC phi and z deviation;dphi [rad];dz [cm];mom [GeV];", 100,-0.2,0.2, 120,-60.,60., 10,0.,15);
+    h3_dcdphiz[ih] = new TH3F(Form("h3_dcdphiz_%d",ih), "EMCal and DC phi and z deviation;dphi [rad];dz [cm];mom [GeV];",
+        100,-0.2,0.2, 120,-60.,60., 30,0.,15.);
     hm->registerHisto(h3_dcdphiz[ih]);
     h2_alphaboard[ih] = new TH2F(Form("h2_alphaboard_%d",ih), "DC #alpha-board;board;#alpha;", 80,0.,80., 120,-0.6,0.6);
     hm->registerHisto(h2_alphaboard[ih]);
@@ -1126,14 +1143,19 @@ void PhotonHistos::BookHistograms()
   // ih = quality < 64
   for(int ih=0; ih<nh_dcquality; ih++)
   {
-    h3_dclive[ih] = new TH3F(Form("h3_dclive_%d",ih), "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV]", 200,-100.,100., 50,-1.,4., 30,0.,15.);
+    h3_dclive[ih] = new TH3F(Form("h3_dclive_%d",ih), "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV]",
+        200,-100.,100., 50,-1.,4., 30,0.,15.);
     hm->registerHisto(h3_dclive[ih]);
   }
+
+  h_prod = new TH1F("h_prod", "Minus charge times pT times alpha;-charge*pT*#alpha [GeV]", 200,0.,0.2);
+  hm->registerHisto(h_prod);
 
   // ih = dcns + 2*dcwe < 2*2
   for(int ih=0; ih<nh_dcpart; ih++)
   {
-    h2_emcdphiz[ih] = new TH2F(Form("h2_emcdphiz_%d",ih), "EMCal and DC phi and z deviation;dphi [rad];dz [cm];", 100,-0.2,0.2, 120,-60.,60.);
+    h2_emcdphiz[ih] = new TH2F(Form("h2_emcdphiz_%d",ih), "EMCal and DC phi and z deviation;dphi [rad];dz [cm];",
+        100,-0.2,0.2, 120,-60.,60.);
     hm->registerHisto(h2_emcdphiz[ih]);
   }
 

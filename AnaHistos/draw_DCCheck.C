@@ -1,34 +1,36 @@
+#include "MultiGraph.h"
+
 void draw_DCCheck()
 {
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
-  // h2[ns][we]
-  TH2 *h2_sd[2][2];
+  // h2/h3[ns][we]
+  TH3 *h3_dphiz[2][2];
   TH2 *h2_board[2][2];
 
-  TH2 *h2_sd_t = (TH2*)f->Get("h2_dcsd_0");
+  TH3 *h3_dphiz_t = (TH3*)f->Get("h3_dcdphiz_0");
   TH2 *h2_board_t = (TH2*)f->Get("h2_alphaboard_0");
   TH3 *h3_live = (TH3*)f->Get("h3_dclive_0");
-  h2_sd_t = (TH2*)h2_sd_t->Clone();
+  h3_dphiz_t = (TH3*)h3_dphiz_t->Clone();
   h2_board_t = (TH2*)h2_board_t->Clone();
   h3_live = (TH3*)h3_live->Clone();
-  h2_sd_t->Reset();
+  h3_dphiz_t->Reset();
   h2_board_t->Reset();
   h3_live->Reset();
 
   for(int ns=0; ns<2; ns++)
     for(int we=0; we<2; we++)
     {
-      h2_sd[ns][we] = (TH2*)h2_sd_t->Clone( Form("h2_sd_ns%d_we_%d",ns,we) );
+      h3_dphiz[ns][we] = (TH3*)h3_dphiz_t->Clone( Form("h3_dphiz_ns%d_we_%d",ns,we) );
       h2_board[ns][we] = (TH2*)h2_board_t->Clone( Form("h2_board_ns%d_we_%d",ns,we) );
       for(int qual=4; qual<64; qual++)
       {
         int ih = ns + 2*we + 2*2*qual;
-        TH2 *h2_sd_tmp = (TH2*)f->Get( Form("h2_dcsd_%d",ih) );
+        TH3 *h3_dphiz_tmp = (TH3*)f->Get( Form("h3_dcdphiz_%d",ih) );
         TH2 *h2_board_tmp = (TH2*)f->Get( Form("h2_alphaboard_%d",ih) );
-        h2_sd[ns][we]->Add(h2_sd_tmp);
+        h3_dphiz[ns][we]->Add(h3_dphiz_tmp);
         h2_board[ns][we]->Add(h2_board_tmp);
-        delete h2_sd_tmp;
+        delete h3_dphiz_tmp;
         delete h2_board_tmp;
       }
     }
@@ -45,7 +47,7 @@ void draw_DCCheck()
   for(int ns=0; ns<2; ns++)
     for(int we=0; we<2; we++)
     {
-      mcd(0, ns+2*we+1);
+      mcd(0, 2*ns+we+1);
       TString NS = ns ? "S" : "N";
       TString WE = we ? "E" : "W";
       h2_board[ns][we]->SetTitle(NS+WE);
@@ -54,7 +56,110 @@ void draw_DCCheck()
 
   mc(1);
   mcd(1);
-
   h3_live->GetZaxis()->SetRange(3,-1);
-  h3_live->Project3D("yx")->Draw();
+  h3_live->Project3D("yx")->Draw("COLZ");
+
+  TF1 *f_fit = new TF1("f_fit", "gaus(0)+pol2(3)", -100., 100.);
+  for(int id=0; id<2; id++)
+  {
+    mc(id+2, 2,2);
+    for(int ns=0; ns<2; ns++)
+      for(int we=0; we<2; we++)
+      {
+        TString ax = id ? "y" : "x";
+        TString NS = ns ? "S" : "N";
+        TString WE = we ? "E" : "W";
+
+        mcd(id+2, 2*ns+we+1);
+        h3_dphiz[ns][we]->GetZaxis()->SetRange(5,15);
+        TH1 *h_diff = h3_dphiz[ns][we]->Project3D(ax);
+        double max = h_diff->GetMaximum();
+        double sigma = id ? 3.3 : 0.005;
+        double par[10] = {max,0.,sigma, 0.,0.,0.};
+        f_fit->SetParameters(par);
+        h_diff->Fit(f_fit, "Q0","", -5.*sigma,5.*sigma);
+        sigma = f_fit->GetParameter(2);
+        h_diff->GetXaxis()->SetRangeUser(-3.*sigma,3.*sigma);
+        cout << NS+WE+" RMS: " << h_diff->GetRMS() << endl;
+
+        h_diff->GetXaxis()->SetRange(0,-1);
+        h_diff->SetTitle(NS+WE);
+        aset(h_diff);
+        f_fit->SetLineColor(kRed);
+        h_diff->DrawCopy();
+        f_fit->DrawCopy("SAME");
+      }
+  }
+
+  TMultiGraph *mg[2][2];  // mg[ns][we]
+  for(int ns=0; ns<2; ns++)
+    for(int we=0; we<2; we++)
+      mg[ns][we] = new TMultiGraph();
+
+  for(int i=0; i<44; i++)
+  {
+    TFile *f = new TFile(Form("histos/DCCheck-%d.root",i));
+    if( f->IsZombie() ) continue;
+    for(int ns=0; ns<2; ns++)
+      for(int we=0; we<2; we++)
+      {
+        TGraph *gr = (TGraph*)f->Get( Form("gr_yield_ns%d_we%d",ns,we) );
+        gr->SetMarkerStyle(20);
+        if( gr->GetN() > 0 )
+          mg[ns][we]->Add(gr);
+      }
+  }
+
+  mc(4, 2,2);
+  for(int ns=0; ns<2; ns++)
+    for(int we=0; we<2; we++)
+    {
+      mcd(4, 2*ns+we+1);
+      TString NS = ns ? "S" : "N";
+      TString WE = we ? "E" : "W";
+      mg[ns][we]->Draw("AP");  // must before GetXaxis()
+      mg[ns][we]->SetTitle(NS+WE);
+      mg[ns][we]->GetXaxis()->SetTitle("runnumber");
+      mg[ns][we]->GetYaxis()->SetTitle("Ntrack/Nevent");
+      //mg[ns][we]->GetXaxis()->SetLimits(387000., 398200.);  // Do not use SetRangeUser()
+      mg[ns][we]->GetYaxis()->SetRangeUser(0., 1.5);  // Do not use SetLimits()
+
+      double mean, sigma;
+      GetMeanSigma<TGraphErrors>(mg[ns][we], mean, sigma);
+      double ylow = mean - 5. * sigma;
+      TLine *line = new TLine;
+      line->SetLineColor(kRed);
+      line->DrawLine(387000.,mean,398200.,mean);
+      line->SetLineColor(kGreen);
+      line->DrawLine(387000.,ylow,398200.,ylow);
+
+      TGraphErrors *gr1;
+      TIter iter( mg[ns][we]->GetListOfGraphs() );
+      while( gr1 = (TGraphErrors*)iter.Next() )
+      {
+        int N = gr1->GetN();
+        if( N <= 0 ) continue;
+        for(int i=0; i<N; i++)
+        {
+          double xx, yy;
+          gr1->GetPoint(i, xx, yy);
+          if( yy < ylow )
+            cout << xx << " ";
+        }
+      }
+    }
+  cout << endl;
+
+  mc(5, 2,1);
+  TFile *f_combine = new TFile("histos/DCCheck.root");
+  TH2 *h2_phi[2];  // h2_phi[ns]
+  for(int ns=0; ns<2; ns++)
+  {
+    mcd(5, ns+1);
+    TString name = ns ? "h2_phi_zm" : "h2_phi_zp";
+    TString title = ns ? "DC phi vs run in South" : "DC phi vs run in North";
+    h2_phi[ns] = (TH2*)f_combine->Get(name);
+    h2_phi[ns]->SetTitle(title);
+    h2_phi[ns]->Draw("COLZ");
+  }
 }
