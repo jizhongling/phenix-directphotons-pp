@@ -1,3 +1,5 @@
+#include "MultiGraph.h"
+
 void draw_DCCheck()
 {
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
@@ -69,24 +71,17 @@ void draw_DCCheck()
         TString WE = we ? "E" : "W";
 
         mcd(id+2, 2*ns+we+1);
-        h3_dphiz[ns][we]->GetZaxis()->SetRange(3,14);
+        h3_dphiz[ns][we]->GetZaxis()->SetRange(5,15);
         TH1 *h_diff = h3_dphiz[ns][we]->Project3D(ax);
-        if(id==0)
-        {
-          double par[10] = {6e6,0.,0.005, 0.,0.,0.};
-          f_fit->SetParameters(par);
-          h_diff->Fit(f_fit, "Q0","", -0.025,0.025);
-          h_diff->GetXaxis()->SetRangeUser(-0.015,0.015);
-        }
-        else
-        {
-          double par[10] = {1.5e6,0.,5., 0.,0.,0.};
-          f_fit->SetParameters(par);
-          h_diff->Fit(f_fit, "Q0","", -15.,15.);
-          h_diff->GetXaxis()->SetRangeUser(-10,10.);
-        }
-
+        double max = h_diff->GetMaximum();
+        double sigma = id ? 3.3 : 0.005;
+        double par[10] = {max,0.,sigma, 0.,0.,0.};
+        f_fit->SetParameters(par);
+        h_diff->Fit(f_fit, "Q0","", -5.*sigma,5.*sigma);
+        sigma = f_fit->GetParameter(2);
+        h_diff->GetXaxis()->SetRangeUser(-3.*sigma,3.*sigma);
         cout << NS+WE+" RMS: " << h_diff->GetRMS() << endl;
+
         h_diff->GetXaxis()->SetRange(0,-1);
         h_diff->SetTitle(NS+WE);
         aset(h_diff);
@@ -128,7 +123,32 @@ void draw_DCCheck()
       mg[ns][we]->GetYaxis()->SetTitle("Ntrack/Nevent");
       //mg[ns][we]->GetXaxis()->SetLimits(387000., 398200.);  // Do not use SetRangeUser()
       mg[ns][we]->GetYaxis()->SetRangeUser(0., 1.5);  // Do not use SetLimits()
+
+      double mean, sigma;
+      GetMeanSigma<TGraphErrors>(mg[ns][we], mean, sigma);
+      double ylow = mean - 5. * sigma;
+      TLine *line = new TLine;
+      line->SetLineColor(kRed);
+      line->DrawLine(387000.,mean,398200.,mean);
+      line->SetLineColor(kGreen);
+      line->DrawLine(387000.,ylow,398200.,ylow);
+
+      TGraphErrors *gr1;
+      TIter iter( mg[ns][we]->GetListOfGraphs() );
+      while( gr1 = (TGraphErrors*)iter.Next() )
+      {
+        int N = gr1->GetN();
+        if( N <= 0 ) continue;
+        for(int i=0; i<N; i++)
+        {
+          double xx, yy;
+          gr1->GetPoint(i, xx, yy);
+          if( yy < ylow )
+            cout << xx << " ";
+        }
+      }
     }
+  cout << endl;
 
   mc(5, 2,1);
   TFile *f_combine = new TFile("histos/DCCheck.root");

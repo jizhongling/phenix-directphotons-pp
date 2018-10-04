@@ -2,6 +2,29 @@
 
 const char *dname[2] = {"NarrowVTX", "NoVTX"};
 
+void draw_BBCCounts()
+{
+  const char *fname[2] = {"runlist", "runlistSasha"};
+  ReadClockCounts();
+
+  for(int id=0; id<2; id++)
+  {
+    ULong_t sum_db = 0;
+
+    int runnumber;
+    ifstream fin( Form("/phenix/plhf/zji/taxi/Run13pp510MinBias/%s.txt",fname[id]) );
+
+    while( fin >> runnumber )
+    {
+      //ULong_t N_bbc_live = GetBBCNarrowLive(runnumber) / ( GetERT4x4cScaledown(runnumber) + 1 );
+      ULong_t N_bbc_live = GetERT4x4cScaled(runnumber) / ( GetERT4x4cScaledown(runnumber) + 1 );
+      sum_db += N_bbc_live;
+    }
+
+    cout << "BBCCounts for " << fname[id] << ": " << sum_db << endl;
+  }
+}
+
 void draw_Ratio()
 {
   // NoVTX, NarrowVTX, MB
@@ -16,7 +39,7 @@ void draw_Ratio()
   TH1 *h_r10cm[2];
   h_r10cm[0] = new TH1F("h_r10cm_0", "BBC10cm/BBCNarrow", 100, 0.45, 0.65);
   h_r10cm[1] = new TH1F("h_r10cm_1", "BBC10cm/BBCNoVTX", 100, 0.07, 0.27);
-  
+
   TH1 *h_rej[2];
   for(int id=0; id<2; id++)
     h_rej[id] = new TH1F(Form("h_rej_%d",id), Form("Rejection power from %s",dname[id]), 1600, 0.5, 1600.5);

@@ -6,11 +6,11 @@ void anaDCCheck(const int process = 0)
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
-  TGraph *gr_yield[2][2];  // gr[ns][we]
+  TGraphErrors *gr_yield[2][2];  // gr[ns][we]
   for(int ns=0; ns<2; ns++)
     for(int we=0; we<2; we++)
     {
-      gr_yield[ns][we] = new TGraph(nThread);
+      gr_yield[ns][we] = new TGraphErrors(nThread);
       gr_yield[ns][we]->SetName( Form("gr_yield_ns%d_we%d",ns,we) );
     }
 
@@ -44,7 +44,11 @@ void anaDCCheck(const int process = 0)
       for(int we=0; we<2; we++)
       {
         double nyield = h3_live->Integral(101-100*ns,200-100*ns, 1+25*we,25+25*we, 0,-1);
-        gr_yield[ns][we]->SetPoint(irun, (double)runnumber, nyield/nev);
+        double xx = runnumber;
+        double yy = nyield / nev;
+        double eyy = yy * sqrt( 1./nyield + 1./nev );
+        gr_yield[ns][we]->SetPoint(irun, xx, yy);
+        gr_yield[ns][we]->SetPointError(irun, 0., eyy);
       }
 
     for(int ns=0; ns<2; ns++)

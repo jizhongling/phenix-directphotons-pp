@@ -62,7 +62,7 @@ double GetMeanError(TMultiGraph *mg, double &mean, double &emean)
       double xx, yy;
       gr->GetPoint(i, xx, yy);
       double eyy = gr->GetErrorY(i);
-      if( eyy > 0. && eyy < TMath::Infinity() )
+      if( eyy == eyy && eyy > 0. )
       {
         sumN++;
         sumw += 1./eyy/eyy;
@@ -77,4 +77,56 @@ double GetMeanError(TMultiGraph *mg, double &mean, double &emean)
 
   double chi2 = sumN > 1 ? ( sumy2 - sumw*mean*mean ) / ( sumN - 1 ) : 0.;
   return chi2;
+}
+
+template <class GraphType>
+void GetMeanSigma(TMultiGraph *mg, double &mean, double &sigma)
+{
+  int sumN = 0;
+  double sumy = 0.;
+  double sumy2 = 0.;
+
+  GraphType *gr;
+  TIter iter( mg->GetListOfGraphs() );
+  while( gr = (TGraphErrors*)iter.Next() )
+  {
+    int N = gr->GetN();
+    if( N <= 0 ) continue;
+    for(int i=0; i<N; i++)
+    {
+      double xx, yy;
+      gr->GetPoint(i, xx, yy);
+      if( xx == xx && yy == yy )
+      {
+        sumN++;
+        sumy += yy;
+        sumy2 += yy*yy;
+      }
+    }
+  }
+
+  mean = sumy/sumN;
+  sigma = sumN > 1 ? sqrt( ( sumy2 - sumN*mean*mean ) / ( sumN - 1 ) ) : 0.;
+  return;
+}
+
+void RemoveBadPoints(TMultiGraph *mg)
+{
+  TGraphErrors *gr;
+  TIter iter( mg->GetListOfGraphs() );
+  while( gr = (TGraphErrors*)iter.Next() )
+  {
+    int N = gr->GetN();
+    if( N <= 0 ) continue;
+    for(int i=0; i<N; i++)
+    {
+      double xx, yy;
+      gr->GetPoint(i, xx, yy);
+      double eyy = gr->GetErrorY(i);
+      if( xx != xx || yy != yy || eyy != eyy || eyy <= 0. )
+        gr->RemovePoint(i);
+    }
+  }
+
+  return;
 }

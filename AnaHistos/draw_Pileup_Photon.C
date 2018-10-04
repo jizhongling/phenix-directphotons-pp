@@ -20,7 +20,7 @@ void draw_Pileup_Photon()
         mg[ig] = new TMultiGraph();
       }
 
-  for(int i=0; i<10; i++)
+  for(int i=0; i<9; i++)
   {
     TFile *f = new TFile(Form("pileup/Pileup-isophoton-%d.root",i));
     if( f->IsZombie() ) continue;

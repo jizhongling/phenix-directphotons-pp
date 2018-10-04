@@ -140,6 +140,7 @@ class PhotonHistos: public SubsysReco
     TH3 *h3_dcdphiz[nh_dcpartqual];
     TH2 *h2_alphaboard[nh_dcpartqual];
     TH3 *h3_dclive[nh_dcquality];
+    TH1 *h_prod;
     TH2 *h2_emcdphiz[nh_dcpart];
     TH2 *h2_eta_phi[nh_eta_phi];
     TH2 *h2_pion[nh_pion];
