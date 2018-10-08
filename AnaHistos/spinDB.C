@@ -22,8 +22,8 @@ int main()
   spin_out.SetUserName("phnxrc");
   spin_out.SetTableName("spin");
 
-  long long bbc15_total = 0;
-  long long bbc30_total = 0;
+  ULong64_t bbc15_total = 0;
+  ULong64_t bbc30_total = 0;
 
   for(int ir=0; ir<nrun; ir++)
   {
@@ -32,8 +32,8 @@ int main()
     spin_out.StoreDBContent(runnumber[ir], runnumber[ir], qa_level);
     spin_out.GetDBContentStore(spin_cont, runnumber[ir]);
 
-    long long bbc15 = 0; 
-    long long bbc30 = 0;
+    ULong64_t bbc15 = 0; 
+    ULong64_t bbc30 = 0;
     for(int i=0; i<120; i++)
     {
       bbc15 += spin_cont.GetScalerBbcVertexCut(i);

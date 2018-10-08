@@ -50,7 +50,7 @@ void anaPileup(const int process = 0)
 
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
-    ULong_t scaledown = GetERT4x4cScaledown(runnumber) + 1;
+    ULong64_t scaledown = GetERT4x4cScaledown(runnumber) + 1;
     
     double nev[2];
     //nev[0] = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );

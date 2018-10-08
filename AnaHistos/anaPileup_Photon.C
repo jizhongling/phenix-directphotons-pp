@@ -105,7 +105,7 @@ void anaPileup_Photon(const int process = 0)
 
     ULong64_t nclock = GetClockLive(runnumber);
     ULong64_t nmb = GetBBCNarrowLive(runnumber);
-    ULong_t scaledown = GetERT4x4cScaledown(runnumber) + 1;
+    ULong64_t scaledown = GetERT4x4cScaledown(runnumber) + 1;
 
     //double nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("ert_c_10cm") );
     double nev = nmb / scaledown;

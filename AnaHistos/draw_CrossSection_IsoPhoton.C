@@ -92,7 +92,7 @@ void draw_CrossSection_IsoPhoton()
 
   const double DeltaEta = 0.5;
   //const double NBBC =  3.59e11;  // from DAQ
-  const double NBBC =  3.54e11; //* 0.788552;  // from rejection power
+  const double NBBC =  3.54e11 * 0.9867835;  // from rejection power
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
   const double Pile[3] = {1.16, 1.16, 1.10};

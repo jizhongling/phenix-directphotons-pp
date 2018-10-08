@@ -5,7 +5,7 @@
 
 #define NVAL 9
 #define NRUN 1020
-unsigned long long n_db[NVAL][NRUN];
+ULong64_t n_db[NVAL][NRUN];
 
 void ReadClockCounts()
 {
@@ -17,9 +17,9 @@ void ReadClockCounts()
   TFile *fin = new TFile("data/clock-counts.root");
   TTree *t1 = (TTree*)fin->Get("t1");
 
-  long long runno, clock, bbcnovtx_live, bbcnarrow_live;
-  int bbcnovtx_scaledown, bbcnarrow_scaledown;
-  int erta_scaledown, ertb_scaledown, ertc_scaledown;
+  ULong64_t runno, clock, bbcnovtx_live, bbcnarrow_live;
+  ULong64_t bbcnovtx_scaledown, bbcnarrow_scaledown;
+  ULong64_t erta_scaledown, ertb_scaledown, ertc_scaledown;
 
   t1->SetBranchAddress("runnumber", &runno);
   t1->SetBranchAddress("clock_live", &clock);
@@ -50,7 +50,7 @@ void ReadClockCounts()
   return;
 }
 
-unsigned long long GetClockLive(unsigned runnumber)
+ULong64_t GetClockLive(ULong64_t runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(runnumber == n_db[0][i])
@@ -59,7 +59,7 @@ unsigned long long GetClockLive(unsigned runnumber)
   return 0;
 }
 
-unsigned long long GetBBCNovtxLive(unsigned runnumber)
+ULong64_t GetBBCNovtxLive(ULong64_t runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(runnumber == n_db[0][i])
@@ -68,7 +68,7 @@ unsigned long long GetBBCNovtxLive(unsigned runnumber)
   return 0;
 }
 
-unsigned long long GetBBCNarrowLive(unsigned runnumber)
+ULong64_t GetBBCNarrowLive(ULong64_t runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(runnumber == n_db[0][i])
@@ -77,7 +77,7 @@ unsigned long long GetBBCNarrowLive(unsigned runnumber)
   return 0;
 }
 
-unsigned long GetBBCNovtxScaledown(unsigned runnumber)
+ULong64_t GetBBCNovtxScaledown(ULong64_t runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(runnumber == n_db[0][i])
@@ -86,7 +86,7 @@ unsigned long GetBBCNovtxScaledown(unsigned runnumber)
   return 0;
 }
 
-unsigned long GetBBCNarrowScaledown(unsigned runnumber)
+ULong64_t GetBBCNarrowScaledown(ULong64_t runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(runnumber == n_db[0][i])
@@ -95,7 +95,7 @@ unsigned long GetBBCNarrowScaledown(unsigned runnumber)
   return 0;
 }
 
-unsigned long GetERT4x4aScaledown(unsigned runnumber)
+ULong64_t GetERT4x4aScaledown(ULong64_t runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(runnumber == n_db[0][i])
@@ -104,7 +104,7 @@ unsigned long GetERT4x4aScaledown(unsigned runnumber)
   return 0;
 }
 
-unsigned long GetERT4x4bScaledown(unsigned runnumber)
+ULong64_t GetERT4x4bScaledown(ULong64_t runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(runnumber == n_db[0][i])
@@ -113,7 +113,7 @@ unsigned long GetERT4x4bScaledown(unsigned runnumber)
   return 0;
 }
 
-unsigned long GetERT4x4cScaledown(unsigned runnumber)
+ULong64_t GetERT4x4cScaledown(ULong64_t runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(runnumber == n_db[0][i])
