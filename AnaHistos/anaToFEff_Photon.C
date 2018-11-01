@@ -22,7 +22,7 @@ void anaToFEff_Photon(const int process = 0)
     gr[part]->SetName(Form("gr_%d",part));
   }
 
-  ReadClockCounts();
+  DataBase *db = new DataBase();
 
   while( fin >> runnumber )
   {
@@ -42,8 +42,8 @@ void anaToFEff_Photon(const int process = 0)
     axis_type->SetRange(3,3);
     axis_pt->SetRange(26,30);
 
-    ULong64_t nclock = GetClockLive(runnumber);
-    ULong64_t nmb = GetBBCNovtxLive(runnumber);
+    ULong64_t nclock = db->GetClockLive(runnumber);
+    ULong64_t nmb = db->GetBBCNovtxLive(runnumber);
 
     for(int part=0; part<2; part++)
     {

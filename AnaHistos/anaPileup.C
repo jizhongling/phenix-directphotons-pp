@@ -29,7 +29,7 @@ void anaPileup(const int process = 0)
           gr_run[ig]->SetName(Form("gr_run_%d",ig));
         }
 
-  ReadClockCounts();
+  DataBase *db = new DataBase();
 
   while( fin >> runnumber )
   {
@@ -48,9 +48,9 @@ void anaPileup(const int process = 0)
     hn_pion[0]->GetAxis(4)->SetRange(3,3);
     hn_pion[1]->GetAxis(4)->SetRange(1,1);
 
-    ULong64_t nclock = GetClockLive(runnumber);
-    ULong64_t nmb = GetBBCNarrowLive(runnumber);
-    ULong64_t scaledown = GetERT4x4cScaledown(runnumber) + 1;
+    ULong64_t nclock = db->GetClockLive(runnumber);
+    ULong64_t nmb = db->GetBBCNarrowLive(runnumber);
+    ULong64_t scaledown = db->GetERT4x4cScaledown(runnumber) + 1;
     
     double nev[2];
     //nev[0] = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );

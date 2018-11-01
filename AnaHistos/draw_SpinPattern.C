@@ -1,8 +1,6 @@
-void draw_SpinPattern()
+void draw_SpinPattern(const int process = 0)
 {
   gSystem->Load("libuspin.so");
-
-  const int runnumber = 391870;
 
   SpinDBOutput spin_out;
   SpinDBContent spin_cont;
@@ -12,83 +10,104 @@ void draw_SpinPattern()
   spin_out.SetUserName("phnxrc");
   spin_out.SetTableName("spin");
 
-  /* Retrieve entry from Spin DB */
-  int qa_level = spin_out.GetDefaultQA(runnumber);
-  spin_out.StoreDBContent(runnumber, runnumber, qa_level);
-  spin_out.GetDBContentStore(spin_cont, runnumber);
+  const int nThread = 1020;
+  int thread = -1;
+  int runnumber;
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510ERT/runnumber.txt");
 
-  string pattern;
-  if( spin_out.CheckRunRow(runnumber,qa_level) == 1 &&
-      spin_cont.GetRunNumber() == runnumber )
-    for(int ib=0; ib<120; ib++)
-    {
-      int blue = spin_cont.GetSpinPatternBlue(ib);
-      int yellow = spin_cont.GetSpinPatternYellow(ib);
-      int value = blue * yellow;
-      if(value == 1)  pattern += "S";
-      else if(value==-1) pattern += "O";
-      else pattern += "N";
-    }
-  cout << pattern << endl;
+  const char *pattern_list[5] = {"SOOSSOO", "OSSOOSS", "SSOO", "OOSS", "NONE"};
+  vector<int> assoc_run[5];
 
-  vector<int> SOOSSOO;
-  vector<int> OSSOOSS;
-  vector<int> SSOO;
-  vector<int> OOSS;
+  TFile *f_out = new TFile("data/SpinPattern.root", "RECREATE");
+  TTree *t1 = new TTree("t1", "Spin pattern");
+  char pattern[10];
+  double pb[3];  // pb, pbstat, pbsyst
+  double py[3];  // py, pystat, pysyst
+  double rlum[2];  // N++/N+- for even and odd crossings
+  int pol[120];  // same: 1; opposite: -1; other: 0
+  t1->Branch("runnumber", &runnumber, "runnumber/I");
+  t1->Branch("pattern", &pattern, "pattern/C");
+  t1->Branch("blue_pol", &pb, "pb[3]/D");
+  t1->Branch("yellow_pol", &py, "py[3]/D");
+  t1->Branch("rel_lum", &rlum, "rlum[2]/D");
+  t1->Branch("polarization", &pol, "pol[120]/I");
 
-  size_t found = -1;
-  while(true)
+  while( fin >> runnumber )
   {
-    found = pattern.find("SOOSSOO", found+1);
-    if(found != string::npos)
-    {
-      SOOSSOO.push_back(found);
-      continue;
-    }
-    break;
+    thread++;
+    if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
+
+    /* Retrieve entry from Spin DB */
+    int qa_level = spin_out.GetDefaultQA(runnumber);
+    spin_out.StoreDBContent(runnumber, runnumber, qa_level);
+    spin_out.GetDBContentStore(spin_cont, runnumber);
+
+    spin_cont.GetPolarizationBlue(1, pb[0], pb[1], pb[2]);
+    spin_cont.GetPolarizationYellow(1, py[0], py[1], py[2]);
+
+    string pat[2];  // for even and odd crossings
+    ULong64_t lum_same[2] = {};  // for even and odd crossings
+    ULong64_t lum_opp[2] = {};  // for even and odd crossings
+
+    if( spin_out.CheckRunRow(runnumber,qa_level) == 1 &&
+        spin_cont.GetRunNumber() == runnumber )
+      for(int ib=0; ib<120; ib++)
+      {
+        int blue = spin_cont.GetSpinPatternBlue(ib);
+        int yellow = spin_cont.GetSpinPatternYellow(ib);
+        int value = blue * yellow;
+        ULong64_t bbc_narrow = spin_cont.GetScalerBbcNoCut(ib);
+        char cond = 'N';
+        if(value == 1)
+        {
+          cond = 'S';
+          lum_same[ib%2] += bbc_narrow;
+        }
+        else if(value == -1)
+        {
+          cond = 'O';
+          lum_opp[ib%2] += bbc_narrow;
+        }
+        else
+          value = 0;
+        pat[ib%2] += cond;
+        pol[ib] = value;
+      }
+
+    for(int itype=0; itype<2; itype++)
+      rlum[itype] = (double)lum_same[itype] / (double)lum_opp[itype];
+
+    size_t pattern_start[4] = {};
+    for(int ipat=0; ipat<4; ipat++)
+      pattern_start[ipat] = pat[0].find(pattern_list[ipat]);
+
+    int assoc_pattern = 4;
+    size_t min_start = string::npos;
+    for(int ipat=0; ipat<4; ipat++)
+      if(pattern_start[ipat] < min_start)
+      {
+        assoc_pattern = ipat;
+        min_start = pattern_start[ipat];
+      }
+
+    if(min_start != string::npos)
+      assoc_run[assoc_pattern].push_back(runnumber);
+    strcpy(pattern, pattern_list[assoc_pattern]);
+
+    cout << runnumber << ": " << pat[0] << "\t";
+    for(int ipat=0; ipat<4; ipat++)
+      cout << pattern_start[ipat] << " ";
+    cout << "\n" << runnumber << ": " << pat[1] << endl;
+    t1->Fill();
   }
 
-  found = -1;
-  while(true)
+  for(int ipat=0; ipat<4; ipat++)
   {
-    found = pattern.find("OSSOOSS", found+1);
-    if(found != string::npos)
-    {
-      OSSOOSS.push_back(found);
-      continue;
-    }
-    break;
+    cout << pattern_list[ipat] << ": ";
+    for(size_t i=0; i<assoc_run[ipat].size(); i++)
+      cout << assoc_run[ipat].at(i) << " ";
+    cout << endl;
   }
-
-  found = -1;
-  while(true)
-  {
-    found = pattern.find("SSOO", found+1);
-    if(found != string::npos)
-    {
-      SSOO.push_back(found);
-      continue;
-    }
-    break;
-  }
-
-  found = -1;
-  while(true)
-  {
-    found = pattern.find("OOSS", found+1);
-    if(found != string::npos)
-    {
-      OOSS.push_back(found);
-      continue;
-    }
-    break;
-  }
-
-  vector<int>::iterator ip;
-  for( ip = SSOO.begin(); ip != SSOO.end(); ip++ )
-    cout << *ip << " ";
-  cout << endl;
-  for( ip = OOSS.begin(); ip != OOSS.end(); ip++ )
-    cout << *ip << " ";
-  cout << endl;
+  t1->Write();
+  f_out->Close();
 }

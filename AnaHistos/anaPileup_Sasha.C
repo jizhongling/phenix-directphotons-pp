@@ -18,7 +18,7 @@ void anaPileup_Sasha(const int process = 0)
     gr[ig]->SetName(Form("gr_%d",ig));
   }
 
-  ReadClockCounts();
+  DataBase *db = new DataBase();
 
   while( fin >> runnumber )
   {
@@ -52,8 +52,8 @@ void anaPileup_Sasha(const int process = 0)
     TF1 *fn_fit = new TF1("fn_fit", "gaus+pol2(3)", 0.06, 0.25);
     TF1 *fn_bg = new TF1("fn_bg", "pol2", 0.06, 0.25);
 
-    ULong64_t nclock = GetClockLive(runnumber);
-    ULong64_t nmb = GetBBCNarrowLive(runnumber);
+    ULong64_t nclock = db->GetClockLive(runnumber);
+    ULong64_t nmb = db->GetBBCNarrowLive(runnumber);
     double nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx_10cm") );
 
     for(int ic=0; ic<2; ic++)

@@ -126,7 +126,7 @@ void draw_DCCheck()
 
       double mean, sigma;
       GetMeanSigma<TGraphErrors>(mg[ns][we], mean, sigma);
-      double ylow = mean - 5. * sigma;
+      double ylow = mean - 3. * sigma;
       TLine *line = new TLine;
       line->SetLineColor(kRed);
       line->DrawLine(387000.,mean,398200.,mean);

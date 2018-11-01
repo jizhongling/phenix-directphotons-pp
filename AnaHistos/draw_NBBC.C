@@ -5,7 +5,7 @@ const char *dname[2] = {"NarrowVTX", "NoVTX"};
 void draw_BBCCounts()
 {
   const char *fname[2] = {"runlist", "runlistSasha"};
-  ReadClockCounts();
+  DataBase *db = new DataBase();
 
   for(int id=0; id<2; id++)
   {
@@ -16,7 +16,7 @@ void draw_BBCCounts()
 
     while( fin >> runnumber )
     {
-      ULong64_t N_bbc_live = GetBBCNarrowLive(runnumber) / ( GetERT4x4cScaledown(runnumber) + 1 );
+      ULong64_t N_bbc_live = db->GetBBCNarrowLive(runnumber) / ( db->GetERT4x4cScaledown(runnumber) + 1 );
       sum_db += N_bbc_live;
     }
 
@@ -150,7 +150,7 @@ void draw_NBBC()
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
-  ReadClockCounts();
+  DataBase *db = new DataBase();
 
   while( fin >> runnumber )
   {
@@ -164,13 +164,13 @@ void draw_NBBC()
     TH1 *h_events_ert = (TH1*)f_ert->Get("h_events");
     TH1 *h_events_mb = (TH1*)f_mb->Get("h_events");
 
-    ULong64_t N_bbc_live = GetBBCNarrowLive(runnumber) / ( GetERT4x4cScaledown(runnumber) + 1 );
+    ULong64_t N_bbc_live = db->GetBBCNarrowLive(runnumber) / ( db->GetERT4x4cScaledown(runnumber) + 1 );
     double N_r_bbc = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow") );
     double N_r_10cm = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm") );
     double r10cm = N_r_10cm / N_r_bbc;
     //double N_db = (double)N_bbc_live * r10cm;
     //double re2N_db = 1./N_bbc_live + 1./N_r_bbc + 1./N_r_10cm;
-    double N_db = N_r_10cm * ( GetBBCNarrowScaledown(runnumber) + 1 ) / ( GetERT4x4cScaledown(runnumber) + 1 );
+    double N_db = N_r_10cm * ( db->GetBBCNarrowScaledown(runnumber) + 1 ) / ( db->GetERT4x4cScaledown(runnumber) + 1 );
     double re2N_db = 1./N_r_10cm;
     sum_db += N_db;
 

@@ -27,7 +27,7 @@ void anaBBCEff_Pion(const int process = 0)
       gr[ig]->SetName(Form("gr_%d",ig));
     }
 
-  ReadClockCounts();
+  DataBase *db = new DataBase();
 
   while( fin >> runnumber )
   {
@@ -43,8 +43,8 @@ void anaBBCEff_Pion(const int process = 0)
     TAxis *axis_minv = hn_trig->GetAxis(2);
     TAxis *axis_cond = hn_trig->GetAxis(3);
 
-    ULong64_t nclock = GetClockLive(runnumber);
-    ULong64_t nmb = GetBBCNovtxLive(runnumber);
+    ULong64_t nclock = db->GetClockLive(runnumber);
+    ULong64_t nmb = db->GetBBCNovtxLive(runnumber);
 
     for(int part=0; part<2; part++)
     {
