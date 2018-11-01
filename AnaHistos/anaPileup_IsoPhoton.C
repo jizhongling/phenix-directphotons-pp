@@ -43,7 +43,7 @@ void anaPileup_IsoPhoton(const int process = 0)
     ReadGraph<TGraphErrors>("data/MergePassRate.root", part/2, xBadPass[part], BadPass[part], eBadPass[part]);
   }
 
-  ReadClockCounts();
+  DataBase *db = new DataBase();
 
   while( fin >> runnumber )
   {
@@ -63,7 +63,7 @@ void anaPileup_IsoPhoton(const int process = 0)
     int bbc10cm = 1;
     int evtype = 2;
     int prob = 1;
-    int ival = 0;
+    int ival = 1;
 
     TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
     h_1photon_t->Reset();
@@ -125,12 +125,12 @@ void anaPileup_IsoPhoton(const int process = 0)
           h2_isopair[0][part]->Add(h2_isopair[1][part]);
       }
 
-    ULong64_t nclock = GetClockLive(runnumber);
-    ULong64_t nmb = GetBBCNarrowLive(runnumber);
-    ULong64_t scaledown = GetERT4x4cScaledown(runnumber) + 1;
+    ULong64_t nclock = db->GetClockLive(runnumber);
+    ULong64_t nmb = db->GetBBCNarrowLive(runnumber);
+    ULong64_t scaledown = db->GetERT4x4cScaledown(runnumber) + 1;
 
-    //double nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("ert_c_10cm") );
-    double nev = nmb / scaledown;
+    double nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("ert_c_10cm") );
+    //double nev = nmb / scaledown;
 
     for(int ipt=0; ipt<npT; ipt++)
       for(int ic=0; ic<2; ic++)

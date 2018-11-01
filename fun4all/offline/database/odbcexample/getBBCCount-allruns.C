@@ -68,6 +68,7 @@ int main()
   ULong64_t erta_scaledown;
   ULong64_t ertb_scaledown;
   ULong64_t ertc_scaledown;
+  ULong64_t ertc_sum = 0;
 
   TFile *fout = new TFile("clock-counts.root", "RECREATE");
   TTree *t1 = new TTree("t1", "Clock and BBC counts");
@@ -147,6 +148,7 @@ int main()
       {
         entry_count[4]++;
         ertc_scaledown = rs->getLong(5);
+        ertc_sum += rs->getLong(26);
       }
       else if( name.str().compare(0, 5, "CLOCK") == 0 )
       {
@@ -165,6 +167,7 @@ int main()
     if( entry_count[ien] > 0 )
       cout << entry_count[ien] << " ";
   cout << endl;
+  cout << "ERT4x4c Sum: " << ertc_sum << endl;
 
   delete t1;
   delete fout;

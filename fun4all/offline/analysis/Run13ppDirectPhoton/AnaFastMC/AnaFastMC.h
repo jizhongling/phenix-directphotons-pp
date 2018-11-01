@@ -105,6 +105,8 @@ class AnaFastMC: public SubsysReco
     Fun4AllHistoManager *hm;
     TH1 *h_pion;
     TH1 *h_photon;
+    TH1 *h_isophoton;
+    TH1 *h_isolated;
     TH2 *h2_pion_eta_phi[3];
     TH2 *h2_photon_eta_phi[3];
     TH3 *h3_isopi0;
@@ -112,6 +114,8 @@ class AnaFastMC: public SubsysReco
     THnSparse* hn_pion;
     THnSparse* hn_missing;
     THnSparse *hn_photon;
+    THnSparse *hn_geom;
+    THnSparse *hn_isolated;
 
     TF1 *cross_pi0;
     TF1 *cross_ph;

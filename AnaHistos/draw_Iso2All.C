@@ -29,7 +29,7 @@ void draw_Iso2All()
   int bbc10cm = 1;
   int tof = 1;
   int prob = 1;
-  int ival = 0;
+  int ival = 1;
 
   TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
   h_1photon_t->Reset();
@@ -175,7 +175,7 @@ void draw_Iso2All()
       h_minv = (TH1*)h2_isopair[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
-      if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
+      if(ipt < 20)  // <10GeV +- 25MeV; >10GeV +- 35MeV
         FitMinv(h_minv, nisopair, enisopair, true, 0.11,0.16);
       else if(ipt < 23)  // <16GeV subtract background
         FitMinv(h_minv, nisopair, enisopair, true, 0.10,0.17);
