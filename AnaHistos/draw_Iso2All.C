@@ -29,7 +29,7 @@ void draw_Iso2All()
   int bbc10cm = 1;
   int tof = 1;
   int prob = 1;
-  int ival = 1;
+  int ival = 3;
 
   TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
   h_1photon_t->Reset();
@@ -251,5 +251,5 @@ void draw_Iso2All()
   leg0->AddEntry(gr[0], "#pi^{0}", "P");
   leg0->AddEntry(gr[1], "#gamma_{dir}", "P");
   leg0->Draw();
-  c0->Print("plots/Iso2All-pair.pdf");
+  c0->Print("plots/Iso2All-notrack.pdf");
 }

@@ -24,13 +24,13 @@ void draw_SpinPattern(const int process = 0)
   double pb[3];  // pb, pbstat, pbsyst
   double py[3];  // py, pystat, pysyst
   double rlum[2];  // N++/N+- for even and odd crossings
-  int pol[120];  // same: 1; opposite: -1; other: 0
+  double erlum[2];  // uncertainty for rlum
   t1->Branch("runnumber", &runnumber, "runnumber/I");
   t1->Branch("pattern", &pattern, "pattern/C");
   t1->Branch("blue_pol", &pb, "pb[3]/D");
   t1->Branch("yellow_pol", &py, "py[3]/D");
   t1->Branch("rel_lum", &rlum, "rlum[2]/D");
-  t1->Branch("polarization", &pol, "pol[120]/I");
+  t1->Branch("error_rel_lum", &erlum, "erlum[2]/D");
 
   while( fin >> runnumber )
   {
@@ -71,11 +71,13 @@ void draw_SpinPattern(const int process = 0)
         else
           value = 0;
         pat[ib%2] += cond;
-        pol[ib] = value;
       }
 
     for(int itype=0; itype<2; itype++)
+    {
       rlum[itype] = (double)lum_same[itype] / (double)lum_opp[itype];
+      erlum[itype] = rlum[itype] * sqrt(1./(double)lum_same[itype] + 1./(double)lum_opp[itype]);
+    }
 
     size_t pattern_start[4] = {};
     for(int ipat=0; ipat<4; ipat++)
