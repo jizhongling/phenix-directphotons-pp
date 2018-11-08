@@ -110,9 +110,9 @@ class PhotonHistos: public SubsysReco
     static const int nh_dcquality = 64;
     static const int nh_dcpart = 2*2;
     static const int nh_eta_phi = 4*2*3;
-    static const int nh_pion = 2*3*2*2*3*8;
-    static const int nh_1photon = 4*2*3*2*2*2*3*8;
-    static const int nh_2photon = 4*2*3*2*2*2*2*3*8;
+    static const int nh_pion = 2*3*2*2*3*2*8;
+    static const int nh_1photon = 4*2*3*2*2*2*3*2*8;
+    static const int nh_2photon = 4*2*3*2*2*2*2*3*2*8;
 
     /* Tower status for warnmap */
     int tower_status_nils[8][48][96];

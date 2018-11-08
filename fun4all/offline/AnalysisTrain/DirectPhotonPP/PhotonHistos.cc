@@ -100,6 +100,7 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
       }
 
   h_events = NULL;
+  h_prod = NULL;
   for(int ih=0; ih<nh_calib; ih++)
   {
     h2_tof[ih] = NULL;
@@ -788,6 +789,8 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
 
   /* Get crossing number */
   int crossing = data_triggerlvl1->get_lvl1_clock_cross();
+  int crossing_shift = spinpattern->get_crossing_shift();
+  int evenodd = ( crossing + crossing_shift ) % 2;
   int pattern = GetPattern(crossing);
 
   unsigned ncluster = data_emccontainer->size();
@@ -836,7 +839,7 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
 
           if(sector >= 0 && sector <= 7)
           {
-            int ih = sector + 8*pattern + 3*8*tof + 2*3*8*prob + 2*2*3*8*evtype + 3*2*2*3*8*bbc10cm;
+            int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*tof + 2*3*2*8*prob + 2*2*3*2*8*evtype + 3*2*2*3*2*8*bbc10cm;
             h2_pion[ih]->Fill(tot_pT, minv);
           }
         } // IsGoodTower and asymmetry cut
@@ -865,6 +868,8 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
 
   /* Get crossing number */
   int crossing = data_triggerlvl1->get_lvl1_clock_cross();
+  int crossing_shift = spinpattern->get_crossing_shift();
+  int evenodd = ( crossing + crossing_shift ) % 2;
   int pattern = GetPattern(crossing);
 
   unsigned ncluster = data_emccontainer->size();
@@ -932,7 +937,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
       {
         for(int ival=0; ival<4; ival++)
         {
-          int ih = sector + 8*pattern + 3*8*isolated[ival] + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm + 2*3*2*2*2*3*8*ival;
+          int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated[ival] + 2*3*2*8*tof + 2*2*3*2*8*prob + 2*2*2*3*2*8*evtype + 3*2*2*2*3*2*8*bbc10cm + 2*3*2*2*2*3*2*8*ival;
           h_1photon[ih]->Fill(pT);
         }
       }
@@ -983,7 +988,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
           {
             for(int ival=0; ival<4; ival++)
             {
-              int ih = sector + 8*pattern + 3*8*isoboth[ival] + 2*3*8*isopair[ival] + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm + 2*3*2*2*2*2*3*8*ival;
+              int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isoboth[ival] + 2*3*2*8*isopair[ival] + 2*2*3*2*8*tof + 2*2*2*3*2*8*prob + 2*2*2*2*3*2*8*evtype + 3*2*2*2*2*3*2*8*bbc10cm + 2*3*2*2*2*2*3*2*8*ival;
               h2_2photon[ih]->Fill(pT, minv);
             }
           }
@@ -1168,7 +1173,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store pi0 information */
-  // ih = sector + 8*pattern + 3*8*tof + 2*3*8*prob + 2*2*3*8*evtype + 3*2*2*3*8*bbc10cm < 2*3*2*2*3*8
+  // ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*tof + 2*3*2*8*prob + 2*2*3*2*8*evtype + 3*2*2*3*2*8*bbc10cm < 2*3*2*2*3*2*8
   for(int ih=0; ih<nh_pion; ih++)
   {
     h2_pion[ih] = new TH2F(Form("h2_pion_%d",ih), "#pi^{0} spectrum;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);
@@ -1176,7 +1181,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store single photon information */
-  // ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm + 2*3*2*2*2*3*8*ival < 4*2*3*2*2*2*3*8
+  // ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated + 2*3*2*8*tof + 2*2*3*2*8*prob + 2*2*2*3*2*8*evtype + 3*2*2*2*3*2*8*bbc10cm + 2*3*2*2*2*3*2*8*ival < 4*2*3*2*2*2*3*2*8
   for(int ih=0; ih<nh_1photon; ih++)
   {
     h_1photon[ih] = new TH1F(Form("h_1photon_%d",ih), "Single photon spectrum;p_{T} [GeV];", npT,pTbin);
@@ -1184,7 +1189,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store two photons information */
-  // ih = sector + 8*pattern + 3*8*isoboth[ival] + 2*3*8*isopair[ival] + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm + 2*3*2*2*2*2*3*8*ival < 4*2*3*2*2*2*2*3*8
+  // ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isoboth[ival] + 2*3*2*8*isopair[ival] + 2*2*3*2*8*tof + 2*2*2*3*2*8*prob + 2*2*2*2*3*2*8*evtype + 3*2*2*2*2*3*2*8*bbc10cm + 2*3*2*2*2*2*3*2*8*ival < 4*2*3*2*2*2*2*3*2*8
   for(int ih=0; ih<nh_2photon; ih++)
   {
     h2_2photon[ih] = new TH2F(Form("h2_2photon_%d",ih), "Two photons spectrum;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);

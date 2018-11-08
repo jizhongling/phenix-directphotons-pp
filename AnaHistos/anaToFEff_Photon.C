@@ -61,7 +61,7 @@ void anaToFEff_Photon(const int process = 0)
         eyyl = yy * sqrt( pow(ent/nt,2) + pow(enp/np,2) );
         eyyh = 0.;
       }
-      if( yy >= 0. && eyyl >= 0. && eyyl < TMath::Infinity() )
+      if( !TMath::IsNaN(yy) && !TMath::IsNaN(eyyl) && eyyl >= 0. )
       {
         gr[part]->SetPoint(igp[part], xx, yy);
         gr[part]->SetPointError(igp[part], 0.,0., eyyl,eyyh);

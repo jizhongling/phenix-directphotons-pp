@@ -137,7 +137,7 @@ void anaPileup_Photon(const int process = 0)
           double xx = (double)nmb / (double)nclock;
           double yy = ndir / nev;
           double eyy = endir / nev;
-          if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
+          if( !TMath::IsNaN(yy) && !TMath::IsNaN(eyy) && eyy > 0. )
           {
             gr[ig]->SetPoint(igp[ig], xx, yy);
             gr[ig]->SetPointError(igp[ig], 0., eyy);
