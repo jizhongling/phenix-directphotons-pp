@@ -134,7 +134,7 @@ void draw_CrossSection_IsoPhoton()
 
   for(int part=0; part<3; part++)
   {
-    ReadGraph<TGraphAsymmErrors>("data/Acceptance-photon.root", part, xAcc[part], Acc[part], eAcc[part]);
+    ReadGraph<TGraphAsymmErrors>("data/Acceptance-isophoton.root", part, xAcc[part], Acc[part], eAcc[part]);
     ReadGraph<TGraphAsymmErrors>("data/ERTEff-photon.root", part/2, xTrigERT[part], TrigERT[part], eTrigERT[part]);
     ReadGraph<TGraphAsymmErrors>("data/SelfVeto.root", part, xVeto[part], Veto[part], eVeto[part]);
     ReadGraph<TGraphErrors>("data/MissingRatio.root", part, xMiss[part], Miss[part], eMiss[part]);

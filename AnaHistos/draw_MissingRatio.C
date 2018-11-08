@@ -16,7 +16,8 @@ void draw_MissingRatio()
 
   mc(0);
   mc(1);
-  legi(0, 0.4,0.6,0.7,0.9);
+  legi(0, 0.2,0.8,0.9,0.9);
+  leg0->SetNColumns(3);
   legi(1, 0.2,0.6,0.5,0.9);
 
   for(int part=0; part<3; part++)
@@ -33,7 +34,7 @@ void draw_MissingRatio()
 
     gr_miss[part] = DivideHisto(h_1photon, h_2photon);
     gr_miss[part]->SetNameTitle(Form("gr_%d",part), "Missing Ratio");
-    aset(gr_miss[part], "p_{T} [GeV]","R", 5.,30., 0.3,1.3);
+    aset(gr_miss[part], "p_{T} [GeV]","R", 5.,30., 0.,1.5);
     style(gr_miss[part], 20+part, 1+part);
     if(part==0)
       gr_miss[part]->Draw("AP");
