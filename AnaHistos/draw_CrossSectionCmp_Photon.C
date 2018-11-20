@@ -45,7 +45,7 @@ void draw_CrossSectionCmp_Photon()
         eyy = egy[3][ip2] / sasha;
       }
 
-      if( !TMath::IsNaN(yy) && !TMath::IsNaN(eyy) && eyy > 0. )
+      if( TMath::Finite(yy+eyy) && eyy > 0. )
       {
         gr_parts[part]->SetPoint(igp_parts[part], xx, yy);
         gr_parts[part]->SetPointError(igp_parts[part], 0., eyy);

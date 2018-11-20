@@ -281,7 +281,11 @@ void AnaFastMC::FastMCInput()
         npeak = NPeak;
       }
 
-      double fill_hn_missing[] = {pt, Vpart[iph].Pt(), (double)sec_part[iph], (double)npart, (double)npeak};
+      double ptsim = pt;
+      if(NPart == 2)
+        ptsim = (Vpart[0] + Vpart[1]).Pt();
+
+      double fill_hn_missing[] = {ptsim, Vpart[iph].Pt(), (double)sec_part[iph], (double)npart, (double)npeak};
       hn_missing->Fill(fill_hn_missing, weight_pi0);
 
       if( npart == 1 )

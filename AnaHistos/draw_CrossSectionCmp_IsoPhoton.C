@@ -30,7 +30,7 @@ void draw_CrossSectionCmp_IsoPhoton()
       double yy = ( gy[part][ip1] - gy[3][ip2] ) / gy[3][ip2];
       double eyy = TMath::Abs(yy+1.) * sqrt( pow(egy[part][ip1]/gy[part][ip1],2) + pow(egy[3][ip2]/gy[3][ip2],2) );
 
-      if( !TMath::IsNaN(yy) && !TMath::IsNaN(eyy) && eyy > 0. )
+      if( TMath::Finite(yy+eyy) && eyy > 0. )
       {
         gr_parts[part]->SetPoint(igp_parts[part], xx, yy);
         gr_parts[part]->SetPointError(igp_parts[part], 0., eyy);

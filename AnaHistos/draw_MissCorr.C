@@ -7,7 +7,9 @@ void draw_MissCorr()
   TGraphErrors *gr[3];
   int igp[3] = {};
 
-  const double A = 0.22;
+  const double Conv[3] = {0.849, 0.959, 0.959};
+  const double eConv[3] = {0.027, 0.023, 0.023};
+  const double A = 0.24;
   const double eA = 0.04;
 
   double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
@@ -26,7 +28,7 @@ void draw_MissCorr()
     ReadGraph<TGraphAsymmErrors>("data/Merge-photon.root", part, xMerge[part], Merge[part], eMerge[part]);
     ReadGraph<TGraphErrors>("data/MergePassRate.root", part/2, xBadPass[part], BadPass[part], eBadPass[part]);
 
-    for(int ipt=0; ipt<30; ipt++)
+    for(int ipt=0; ipt<npT; ipt++)
     {
       double xpT = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
       int ipMiss = Get_ipt(xMiss[part], xpT);

@@ -83,7 +83,7 @@ void anaPileup(const int process = 0)
             double xx = (double)nmb / (double)nclock;
             double yy = npion / nev[id];
             double eyy = enpion / nev[id];
-            if( !TMath::IsNaN(yy) && !TMath::IsNaN(eyy) && eyy > 0. )
+            if( TMath::Finite(yy+eyy) && eyy > 0. )
             {
               gr[ig]->SetPoint(igp[ig], xx, yy);
               gr[ig]->SetPointError(igp[ig], 0., eyy);

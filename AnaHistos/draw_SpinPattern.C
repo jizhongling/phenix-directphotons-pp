@@ -17,6 +17,8 @@ void draw_SpinPattern(const int process = 0)
 
   const char *pattern_list[5] = {"SOOSSOO", "OSSOOSS", "SSOO", "OOSS", "NONE"};
   vector<int> assoc_run[5];
+  for(int ipat=0; ipat<5; ipat++)
+    assoc_run[ipat].clear();
 
   TFile *f_out = new TFile("data/SpinPattern.root", "RECREATE");
   TTree *t1 = new TTree("t1", "Spin pattern");

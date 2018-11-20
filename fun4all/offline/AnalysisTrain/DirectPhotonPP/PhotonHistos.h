@@ -60,7 +60,7 @@ class PhotonHistos: public SubsysReco
         const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
 
     /* Count pi0 yield */
-    int FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
+    int FillPi0Spectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
         const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, const int evtype);
 
     /* Count direct photon yield */
@@ -77,6 +77,8 @@ class PhotonHistos: public SubsysReco
     void SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2, const emcClusterContainer *cluscont,
         const PHCentralTrack *data_tracks, double bbc_t0, double &econe1, double &econe2);
     void SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks, double econe[]);
+    void SumEPi0(const emcClusterContent *cluster1, const emcClusterContent *cluster2, const emcClusterContainer *cluscont,
+        const PHCentralTrack *data_tracks, double bbc_t0, double econe[]);
 
     /* Check event type, photon cuts, charge veto and tower status */
     bool IsEventType(const int evtype, const TrigLvl1 *data_triggerlvl1);
@@ -101,6 +103,11 @@ class PhotonHistos: public SubsysReco
     enum DataType {MB, ERT};
     DataType datatype;
 
+    /* Number of warnmap array */
+    static const int NSEC = 8;
+    static const int NY = 48;
+    static const int NZ = 96;
+
     /* Number of histogram array */
     static const int nh_calib = 2*8;
     static const int nh_bbc = 2*8;
@@ -110,13 +117,13 @@ class PhotonHistos: public SubsysReco
     static const int nh_dcquality = 64;
     static const int nh_dcpart = 2*2;
     static const int nh_eta_phi = 4*2*3;
-    static const int nh_pion = 2*3*2*2*3*2*8;
+    static const int nh_pion = 4*2*2*3*2*2*3*2*8;
     static const int nh_1photon = 4*2*3*2*2*2*3*2*8;
     static const int nh_2photon = 4*2*3*2*2*2*2*3*2*8;
 
     /* Tower status for warnmap */
-    int tower_status_nils[8][48][96];
-    int tower_status_sasha[8][48][96];
+    int tower_status_nils[NSEC][NY][NZ];
+    int tower_status_sasha[NSEC][NY][NZ];
 
     /* EMCal recalibrator and spin information*/
     EmcLocalRecalibrator *emcrecalib;
@@ -145,7 +152,7 @@ class PhotonHistos: public SubsysReco
     TH2 *h2_eta_phi[nh_eta_phi];
     TH2 *h2_pion[nh_pion];
     TH1 *h_1photon[nh_1photon];
-    TH2 *h2_2photon[nh_2photon];
+    TH3 *h3_2photon[nh_2photon];
 };
 
 #endif /* __PHOTONHISTOS_H__ */

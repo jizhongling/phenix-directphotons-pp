@@ -36,23 +36,15 @@
 #include <TH2.h>
 #include <TH3.h>
 
-//#define NDEBUG
-#include <cassert>
-#include <cstdlib>
-#include <cmath>
-#include <string>
-#include <algorithm>
 #include <iostream>
 #include <fstream>
 
 using namespace std;
 
 /* Some constants */
+const double epsilon = TMath::Limits<float>::Epsilon();
 const double PI = TMath::Pi();
-const TVector2 v2_2PI(0., 2.*PI);
-const int NSEC = 8;
-const int NY = 48;
-const int NZ = 96;
+const TVector2 v2_2PI(0.,2.*PI);
 
 /* Some cuts for photon identification */
 const double eMin = 0.3;
@@ -134,7 +126,7 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   for(int ih=0; ih<nh_1photon; ih++)
     h_1photon[ih] = NULL;
   for(int ih=0; ih<nh_2photon; ih++)
-    h2_2photon[ih] = NULL;
+    h3_2photon[ih] = NULL;
 }
 
 PhotonHistos::~PhotonHistos()
@@ -294,7 +286,7 @@ int PhotonHistos::process_event(PHCompositeNode *topNode)
     FillERTEfficiency(data_emccontainer, data_global, data_triggerlvl1, data_ert, itype);
 
     /* Analyze photon for pi0 event */
-    FillPi0Spectrum(data_emccontainer, data_global, data_triggerlvl1, data_ert, itype);
+    FillPi0Spectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
 
     /* Analyze photon for direct photon event */
     FillPhotonSpectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
@@ -770,7 +762,7 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
   return EVENT_OK;
 }
 
-int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
+int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
     const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, const int evtype)
 {
   /* Check trigger */
@@ -827,6 +819,14 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
 
           double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
           double minv = anatools::GetInvMass(cluster1, cluster2);
+          double tot_E = cluster1->ecore() + cluster2->ecore();
+
+          int isolated[4] = {};
+          double econe[4];
+          SumEPi0(cluster1, cluster2, data_emccontainer, data_tracks, bbc_t0, econe);
+          for(int ival=0; ival<4; ival++)
+            if( econe[ival] < eratio * tot_E )
+              isolated[ival] = 1;
 
           int tof = 0;
           int prob = 0;
@@ -838,10 +838,11 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer,
             prob = 1;
 
           if(sector >= 0 && sector <= 7)
-          {
-            int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*tof + 2*3*2*8*prob + 2*2*3*2*8*evtype + 3*2*2*3*2*8*bbc10cm;
-            h2_pion[ih]->Fill(tot_pT, minv);
-          }
+            for(int ival=0; ival<4; ival++)
+            {
+              int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated[ival] + 2*3*2*8*tof + 2*2*3*2*8*prob + 2*2*2*3*2*8*evtype + 2*3*2*2*3*2*8*bbc10cm + 2*2*3*2*2*3*2*8*ival;
+              h2_pion[ih]->Fill(tot_pT, minv);
+            }
         } // IsGoodTower and asymmetry cut
       } // j loop
   } // i loop
@@ -891,7 +892,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
       TLorentzVector pE = anatools::Get_pE(cluster1);
       double pT = pE.Pt();
       double eta = 9999.;
-      if( pT > 0.01 )
+      if( pT > epsilon )
         eta = pE.Eta();
       double phi = pE.Phi();
       if(sector >= 4)
@@ -925,22 +926,18 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
       if( evtype == 2 && part >= 0 &&
           pT > 5. && pT < 10. &&
           TestPhoton(cluster1, bbc_t0) )
-      {
         for(int ival=0; ival<4; ival++)
         {
           int ih = part + 3*isolated[ival] + 2*3*ival;
           h2_eta_phi[ih]->Fill(eta, phi);
         }
-      }
 
       if(sector >= 0 && sector <= 7)
-      {
         for(int ival=0; ival<4; ival++)
         {
           int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated[ival] + 2*3*2*8*tof + 2*2*3*2*8*prob + 2*2*2*3*2*8*evtype + 3*2*2*2*3*2*8*bbc10cm + 2*3*2*2*2*3*2*8*ival;
           h_1photon[ih]->Fill(pT);
         }
-      }
 
       for(unsigned j=0; j<ncluster; j++)
         if(j != i)
@@ -950,6 +947,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
               cluster2->ecore() < eMin ||
               DCChargeVeto(cluster2,data_tracks) )
             continue;
+          double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
           double minv = anatools::GetInvMass(cluster1, cluster2);
 
           int isoboth[4] = {};
@@ -985,13 +983,11 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
             prob = 1;
 
           if(sector >= 0 && sector <= 7)
-          {
             for(int ival=0; ival<4; ival++)
             {
               int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isoboth[ival] + 2*3*2*8*isopair[ival] + 2*2*3*2*8*tof + 2*2*2*3*2*8*prob + 2*2*2*2*3*2*8*evtype + 3*2*2*2*2*3*2*8*bbc10cm + 2*3*2*2*2*2*3*2*8*ival;
-              h2_2photon[ih]->Fill(pT, minv);
+              h3_2photon[ih]->Fill(pT, tot_pT, minv);
             }
-          }
         } // j loop
     } // check photon1
   } // i loop
@@ -1129,11 +1125,11 @@ void PhotonHistos::BookHistograms()
   {
     h3_etwr[ih] = new TH3F(Form("h3_etwr_%d",ih), "Tower energy;p_{T} [GeV];iy;iz;",
         npT,0.,0., 7,-3.5,3.5, 7,-3.5,3.5);
-    h3_etwr[ih]->GetXaxis()->Set(npT, pTbin);
+    h3_etwr[ih]->GetXaxis()->Set(npT,pTbin);
     h3_etwr[ih]->Sumw2();
     hm->registerHisto(h3_etwr[ih]);
   }
-  
+
   /* Track quality study */
   // ih = dcns + 2*dcwe + 2*2*quality < 2*2*64
   for(int ih=0; ih<nh_dcpartqual; ih++)
@@ -1173,7 +1169,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store pi0 information */
-  // ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*tof + 2*3*2*8*prob + 2*2*3*2*8*evtype + 3*2*2*3*2*8*bbc10cm < 2*3*2*2*3*2*8
+  // ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated + 2*3*2*8*tof + 2*2*3*2*8*prob + 2*2*2*3*2*8*evtype + 2*3*2*2*3*2*8*bbc10cm + 2*2*3*2*2*3*2*8*ival < 4*2*2*3*2*2*3*2*8
   for(int ih=0; ih<nh_pion; ih++)
   {
     h2_pion[ih] = new TH2F(Form("h2_pion_%d",ih), "#pi^{0} spectrum;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);
@@ -1192,8 +1188,9 @@ void PhotonHistos::BookHistograms()
   // ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isoboth[ival] + 2*3*2*8*isopair[ival] + 2*2*3*2*8*tof + 2*2*2*3*2*8*prob + 2*2*2*2*3*2*8*evtype + 3*2*2*2*2*3*2*8*bbc10cm + 2*3*2*2*2*2*3*2*8*ival < 4*2*3*2*2*2*2*3*2*8
   for(int ih=0; ih<nh_2photon; ih++)
   {
-    h2_2photon[ih] = new TH2F(Form("h2_2photon_%d",ih), "Two photons spectrum;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);
-    hm->registerHisto(h2_2photon[ih]);
+    h3_2photon[ih] = new TH3F(Form("h3_2photon_%d",ih), "Two photons spectrum;p_{T} [GeV];m_{inv} [GeV];", npT,0.,0., npT,0.,0., 300,0.,0.3);
+    h3_2photon[ih]->SetBins(npT,pTbin, npT,pTbin);
+    hm->registerHisto(h3_2photon[ih]);
   }
 
   return;
@@ -1207,7 +1204,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
 
   /* Get reference vector */
   TLorentzVector pE_pref = anatools::Get_pE(cluster);
-  if( pE_pref.Pt() < 0.01 ) return econe;
+  if( pE_pref.Pt() < epsilon ) return econe;
   TVector2 v2_pref = pE_pref.EtaPhiVector();
 
   int nclus = cluscont->size();
@@ -1230,7 +1227,7 @@ double PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcCluste
 
     /* Get cluster vector */
     TLorentzVector pE_part2 = anatools::Get_pE(clus2);
-    if( pE_part2.Pt() < 0.01 ) continue;
+    if( pE_part2.Pt() < epsilon ) continue;
     TVector2 v2_part2 = pE_part2.EtaPhiVector();
 
     /* Check if cluster within cone */
@@ -1254,7 +1251,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
   /* Get reference vector */
   TLorentzVector pE_pref1 = anatools::Get_pE(cluster1);
   TLorentzVector pE_pref2 = anatools::Get_pE(cluster2);
-  if( pE_pref1.Pt() < 0.01 || pE_pref2.Pt() < 0.01 ) return;
+  if( pE_pref1.Pt() < epsilon || pE_pref2.Pt() < epsilon ) return;
   TVector2 v2_pref1 = pE_pref1.EtaPhiVector();
   TVector2 v2_pref2 = pE_pref2.EtaPhiVector();
 
@@ -1279,7 +1276,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
 
     /* Get cluster vector */
     TLorentzVector pE_part3 = anatools::Get_pE(clus3);
-    if( pE_part3.Pt() < 0.01 ) continue;
+    if( pE_part3.Pt() < epsilon ) continue;
     TVector2 v2_part3 = pE_part3.EtaPhiVector();
 
     /* Check if cluster within cone */
@@ -1306,7 +1303,7 @@ void PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentralTr
 
   /* Get reference vector */
   TLorentzVector pE_pref = anatools::Get_pE(cluster);
-  if( pE_pref.Pt() < 0.01 ) return;
+  if( pE_pref.Pt() < epsilon ) return;
   TVector2 v2_pref = pE_pref.EtaPhiVector();
 
   int npart = data_tracks->get_npart();
@@ -1318,8 +1315,7 @@ void PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentralTr
     double py = data_tracks->get_py(i);
     double pz = data_tracks->get_pz(i);
     double mom = data_tracks->get_mom(i);
-    //cout << px << "\t" << py << "\t" << pz << "\t" << mom << endl;
-    if( px != px || py != py || pz != pz || mom != mom )
+    if( !TMath::Finite(px+py+pz+mom) )
       continue;
 
     /* Test if track passes the momentum cuts */
@@ -1328,7 +1324,7 @@ void PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentralTr
 
     /* Get track vector */
     TVector3 v3_track(px, py, pz);
-    if( v3_track.Pt() < 0.01 ) continue;
+    if( v3_track.Pt() < epsilon ) continue;
     TVector2 v2_track = v3_track.EtaPhiVector();
 
     /* Add track energy from clusters within cone range */
@@ -1344,6 +1340,92 @@ void PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentralTr
         econe[2] += mom;
     }
   }
+
+  return;
+}
+
+void PhotonHistos::SumEPi0(const emcClusterContent *cluster1, const emcClusterContent *cluster2,
+    const emcClusterContainer *cluscont, const PHCentralTrack *data_tracks, double bbc_t0, double econe[])
+{ 
+  /* Sum up all energy in cone around pi0 */
+  double econeEM = 0.;
+  for(int ival=0; ival<4; ival++)
+    econe[ival] = 0.;
+
+  /* Get reference vector */
+  TLorentzVector pE_pref = anatools::Get_pE(cluster1) + anatools::Get_pE(cluster2);
+  if( pE_pref.Pt() < epsilon ) return;
+  TVector2 v2_pref = pE_pref.EtaPhiVector();
+
+  int nclus = cluscont->size();
+
+  for (int iclus=0; iclus<nclus; iclus++)
+  {
+    emcClusterContent *clus3 = cluscont->getCluster(iclus);
+
+    /* Skip if pointer identical to any of the two 'reference' particles
+     * or on bad towers or lower than energy threshold */
+    if( clus3->id() == cluster1->id() ||
+        clus3->id() == cluster2->id() ||
+        IsBadTower(clus3) ||
+        abs( clus3->tofcorr() - bbc_t0 ) > tofMaxIso ||
+        clus3->ecore() < eClusMin )
+      continue;
+
+    /* 3 sigma charge veto */
+    if( DCChargeVeto(clus3,data_tracks) )
+      continue;
+
+    /* Get cluster vector */
+    TLorentzVector pE_part3 = anatools::Get_pE(clus3);
+    if( pE_part3.Pt() < epsilon ) continue;
+    TVector2 v2_part3 = pE_part3.EtaPhiVector();
+
+    /* Check if cluster within cone */
+    TVector2 v2_diff(v2_part3 - v2_pref);
+    if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+    else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+    if( v2_diff.Mod() < cone_angle )
+      econeEM += clus3->ecore();
+  }
+
+  int npart = data_tracks->get_npart();
+
+  for(int i=0; i<npart; i++)
+  {
+    int quality = data_tracks->get_quality(i);
+    double px = data_tracks->get_px(i);
+    double py = data_tracks->get_py(i);
+    double pz = data_tracks->get_pz(i);
+    double mom = data_tracks->get_mom(i);
+    if( !TMath::Finite(px+py+pz+mom) )
+      continue;
+
+    /* Test if track passes the momentum cuts */
+    if( mom < pTrkMin || mom > pTrkMax )
+      continue;
+
+    /* Get track vector */
+    TVector3 v3_track(px, py, pz);
+    if( v3_track.Pt() < epsilon ) continue;
+    TVector2 v2_track = v3_track.EtaPhiVector();
+
+    /* Add track energy from clusters within cone range */
+    TVector2 v2_diff(v2_track - v2_pref);
+    if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+    else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+    if( v2_diff.Mod() < cone_angle )
+    {
+      econe[0] += mom;
+      if( quality > 3 )
+        econe[1] += mom;
+      if( quality == 63 || quality == 31 || quality == 51 )
+        econe[2] += mom;
+    }
+  }
+
+  for(int ival=0; ival<4; ival++)
+    econe[ival] += econeEM;
 
   return;
 }

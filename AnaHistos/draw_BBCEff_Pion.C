@@ -57,7 +57,7 @@ void draw_BBCEff_Pion()
         eyyl = yy * sqrt( pow(ent/nt,2) + pow(enp/np,2) );
         eyyh = 0.;
       }
-      if( !TMath::IsNaN(yy) && !TMath::IsNaN(eyyl) && eyyl >= 0. )
+      if( TMath::Finite(yy+eyyl) && eyyl >= 0. )
       {
         gr[part]->SetPoint(igp[part], xx, yy);
         gr[part]->SetPointError(igp[part], 0.,0., eyyl,eyyh);

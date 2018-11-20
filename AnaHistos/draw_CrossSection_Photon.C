@@ -72,7 +72,6 @@ void draw_CrossSection_Photon()
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
   const double Pile[3] = {0.894, 0.886, 0.920};
-  //const double Pile[3] = {0.905, 0.905, 0.865};
   const double ePile = 0.01;
   const double TrigBBC = 0.91;
   const double eTrigBBC = 0.01;
@@ -82,7 +81,7 @@ void draw_CrossSection_Photon()
   const double eConv[3] = {0.027, 0.023, 0.023};
   const double Norm[3] = {0.321, 0.314, 0.243};
   const double eNorm[3] = {0.005, 0.006, 0.005};
-  const double A = 0.22;
+  const double A = 0.24;
   const double eA = 0.04;
 
   double xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
@@ -151,7 +150,7 @@ void draw_CrossSection_Photon()
       int ipMiss = Get_ipt(xMiss[part], xx);
       if(ipt >= 20)
         ipTrigERT = 0;
-      double ndir = nphoton - Miss[part][ipMiss] * npion;
+      double ndir = nphoton - Miss[part][ipMiss] / Conv[part] * npion;
       double endir = sqrt( nphoton + pow(eMiss[part][ipMiss]*npion,2) + pow(Miss[part][ipMiss]*enpion,2) );
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
