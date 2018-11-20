@@ -52,7 +52,7 @@ void draw_BBCEff_Pion_Pileup()
       double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
       double yy = fn_pol1->GetParameter(0);
       double eyy = fn_pol1->GetParError(0) * scale;
-      if( !TMath::IsNaN(yy) && !TMath::IsNaN(eyy) && eyy > 0. )
+      if( TMath::Finite(yy+eyy) && eyy > 0. )
       {
         gr_trig[part]->SetPoint(igp[part], xx, yy);
         gr_trig[part]->SetPointError(igp[part], 0., eyy);

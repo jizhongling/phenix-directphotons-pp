@@ -55,7 +55,7 @@ void anaBBCEff_Photon(const int process = 0)
           eyyl = yy * sqrt( pow(ent/nt,2) + pow(enp/np,2) );
           eyyh = 0.;
         }
-        if( !TMath::IsNaN(yy) && !TMath::IsNaN(eyyl) && eyyl >= 0. )
+        if( TMath::Finite(yy+eyyl) && eyyl >= 0. )
         {
           gr[ig]->SetPoint(igp[ig], xx, yy);
           gr[ig]->SetPointError(igp[ig], 0.,0., eyyl,eyyh);

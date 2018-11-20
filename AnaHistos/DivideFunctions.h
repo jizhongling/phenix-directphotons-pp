@@ -1,11 +1,8 @@
 TGraphErrors *DivideHisto(TH1 *h1, TH1 *h2, double kh1 = 1., double kh2 = 1.)
 {
   int gn = h1->GetXaxis()->GetNbins();
-
-  vector<double> gx;
-  vector<double> gy;
-  vector<double> egx;
-  vector<double> egy;
+  TGraphErrors *graph = new TGraphErrors(gn);
+  int igp = 0;
 
   for(int i=0; i<gn; i++)
   {
@@ -18,29 +15,29 @@ TGraphErrors *DivideHisto(TH1 *h1, TH1 *h2, double kh1 = 1., double kh2 = 1.)
 
     if( h1y > 0. && h2y > 0. )
     {
-      gx.push_back( h1x );
-      gy.push_back( h1y / h2y );
-      egx.push_back( eh1x );
-      egy.push_back( gy[i] * sqrt( pow(eh1y/h1y,2.) + pow(eh2y/h2y,2.) ) );
+      double gx = h1x;
+      double gy = h1y / h2y;
+      double egx = eh1x;
+      double egy = gy * sqrt( pow(eh1y/h1y,2) + pow(eh2y/h2y,2) );
+
+      graph->SetPoint(igp, gx, gy);
+      graph->SetPointError(igp, egx, egy);
+      igp++;
     }
   }
 
-  TGraphErrors *graph = new TGraphErrors( gx.size(), &(gx[0]), &(gy[0]), &(egx[0]), &(egy[0]) );
+  graph->Set(igp);
   return graph;
 }
 
 TGraphErrors *DivideGraph(TGraphErrors *gr1, TGraphErrors *gr2)
 {
   int gn = gr1->GetN();
-  double *gx = new double[gn];
-  double *gy = new double[gn];
-  double *egx = new double[gn];
-  double *egy = new double[gn];
+  TGraphErrors *graph = new TGraphErrors(gn);
+  int igp = 0;
 
   for(int i=0; i<gn; i++)
   {
-    gx[i] = gy[i] = egx[i] = egy[i] = 0.;
-
     double g1x, g1y, g2x, g2y;
     gr1->GetPoint(i, g1x, g1y);
     gr2->GetPoint(i, g2x, g2y);
@@ -50,14 +47,18 @@ TGraphErrors *DivideGraph(TGraphErrors *gr1, TGraphErrors *gr2)
 
     if( g1y > 0. && g2y > 0. )
     {
-      gx[i] = g1x;
-      gy[i] = g1y / g2y;
-      egx[i] = eg1x;
-      egy[i] = gy[i] * sqrt( pow(eg1y/g1y,2.) + pow(eg2y/g2y,2.) );
+      double gx = g1x;
+      double gy = g1y / g2y;
+      double egx = eg1x;
+      double egy = gy * sqrt( pow(eg1y/g1y,2) + pow(eg2y/g2y,2) );
+
+      graph->SetPoint(igp, gx, gy);
+      graph->SetPointError(igp, egx, egy);
+      igp++;
     }
   }
 
-  TGraphErrors *graph = new TGraphErrors(gn, gx, gy, egx, egy);
+  graph->Set(igp);
   return graph;
 }
 

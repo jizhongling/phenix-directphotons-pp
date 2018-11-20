@@ -76,7 +76,7 @@ void anaRawALL(const int process = 0)
         double eALL = sqrt( pow(2.*r*npp*npm/pb[0]/py[0],2) / pow(npp+r*npm,4) * (1./npp+1./npm+er*er/r/r)
             + (pow(pb[1]/pb[0],2)+pow(py[1]/py[0],2)) * ALL*ALL );
 
-        if( !TMath::IsNaN(ALL) && !TMath::IsNaN(eALL) && eALL > 0. )
+        if( TMath::Finite(ALL+eALL) && eALL > 0. )
         {
           int ig = ipt + npT*icr + 2*npT*spin_pattern;
           gr[ig]->SetPoint(igp[ig], (double)runnumber, ALL);

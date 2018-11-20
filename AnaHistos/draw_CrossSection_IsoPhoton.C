@@ -92,8 +92,8 @@ void draw_CrossSection_IsoPhoton()
 
   const double DeltaEta = 0.5;
   //const double NBBC =  3.59e11;  // from DAQ
-  //const double NBBC =  3.54e11 * 0.9867835;  // from rejection power
-  const double NBBC =  3.59e11 * 0.971602;  // from rejection power
+  //const double NBBC =  3.54e11;  // from rejection power
+  const double NBBC =  3.59e11 * 0.971602;  // from DAQ with DC 3 sigma
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
   const double Pile[3] = {1.10, 1.10, 1.03};
@@ -102,11 +102,12 @@ void draw_CrossSection_IsoPhoton()
   const double eTrigBBC = 0.01;
   const double ToF[3] = {0.992, 0.992, 0.997};
   const double eToF[3] = {0.002, 0.002, 0.002};
+  const double ConvPion[3] = {0.720, 0.919, 0.919};
   const double Conv[3] = {0.849, 0.959, 0.959};
   const double eConv[3] = {0.027, 0.023, 0.023};
   const double Norm[3] = {0.321, 0.314, 0.243};
   const double eNorm[3] = {0.005, 0.006, 0.005};
-  const double A = 0.28;
+  const double A = 0.24;
   const double eA = 0.04;
 
   double xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
@@ -209,8 +210,10 @@ void draw_CrossSection_IsoPhoton()
       if(ipt >= 20)
         ipTrigERT = 0;
       double aMissPass = aMiss + aMerge * aBadPass;
+      aMissPass *= Conv[part]/ConvPion[part];
       double eaMissPass = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2) + pow(aMerge*eaBadPass,2) );
       double aMissAll = aMiss + aMerge * 2.;
+      aMissAll *= Conv[part]/ConvPion[part];
       double eaMissAll = sqrt( eaMiss*eaMiss + eaMerge*eaMerge*4. );
       double ndir = nphoton - ( nisoboth + aMissPass * nisopair ) - A * Veto[part][ipVeto] * ( 1. + aMissAll ) * nisopair;
       double endir = sqrt( nphoton + enisoboth*enisoboth + pow(eaMissPass*nisopair,2) + pow(aMissPass*enisopair,2) );

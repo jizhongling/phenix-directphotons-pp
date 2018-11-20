@@ -10,7 +10,7 @@ void draw_MergePassRate()
   //mc(0, 2,4);
   mc();
   mcd();
-  legi(0, 0.3,0.7,0.6,0.9);
+  legi(0, 0.5,0.7,0.8,0.9);
 
   for(int ieta=7; ieta<8; ieta++)
     for(int part=0; part<2; part++)
@@ -33,7 +33,7 @@ void draw_MergePassRate()
         gr->Write();
       }
       gr->SetTitle( Form("|#eta|: %.2f - %.2f",(ieta-ieta/7*7)*0.05,(ieta+1-ieta/7*3)*0.05) );
-      aset(gr, "p_{T} [GeV]","Bad Pass", 18.,30., 0.,0.4);
+      aset(gr, "p_{T} [GeV]","Bad Pass", 5.,30., 0.,1.1);
       style(gr, part+20, part+1);
       if(part==0)
       {
