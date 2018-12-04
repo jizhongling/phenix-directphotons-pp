@@ -107,8 +107,9 @@ void draw_SpinPattern(const int process = 0)
 
   for(int ipat=0; ipat<4; ipat++)
   {
-    cout << pattern_list[ipat] << ": ";
-    for(size_t i=0; i<assoc_run[ipat].size(); i++)
+    size_t ngroup = assoc_run[ipat].size();
+    cout << pattern_list[ipat] << "(" << ngroup <<"): ";
+    for(size_t i=0; i<ngroup; i++)
       cout << assoc_run[ipat].at(i) << " ";
     cout << endl;
   }
