@@ -6,7 +6,7 @@ double Chi2Fit(int n, double *x, double *ex, double &xbar, double &exbar)
   double sumx2 = 0.;
 
   for(int i=0; i<n; i++)
-    if( ex[i] > 0. && ex[i] < TMath::Infinity() )
+    if( TMath::Finite(ex[i]) && ex[i] > 0. )
     {
       sumN++;
       sumw += 1./ex[i]/ex[i];

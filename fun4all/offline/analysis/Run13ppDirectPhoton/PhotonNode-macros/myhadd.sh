@@ -7,7 +7,7 @@ set -o nounset
 set -o pipefail
 
 outdir="$(pwd)/histos-TAXI"
-cd "$SPIN/taxi/Run13pp510ERT/13912/data"
+cd "$SPIN/taxi/Run13pp510ERT/14245/data"
 
 prename="PhotonHistos-"
 NFiles=10
@@ -25,6 +25,6 @@ while read -d " " runnumber ; do
   fi
   files="${files} ${prename}${runnumber}.root"
   (( ++count ))
-done < "$PLHF/taxi/Run13pp510MinBias/runlist.txt"
+done < "$PLHF/taxi/Run13pp510MinBias/runlist-DC3sigma.txt"
 
 hadd -f "${outdir}/${prename}$1.root" ${files}
