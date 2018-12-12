@@ -1,3 +1,4 @@
+#include "QueryTree.h"
 #include "DivideFunctions.h"
 
 void draw_MissingRatio()
@@ -6,8 +7,10 @@ void draw_MissingRatio()
   const int sech[3] = {4, 6, 8};
   const char *pname[3] = {"PbSc west", "PbSc east", "PbGl"};
 
-  TFile *f_miss = new TFile("data/MissingRatio.root", "RECREATE");
-  TFile *f_merge = new TFile("data/Merge-photon.root", "RECREATE");
+  QueryTree *qt_miss = new QueryTree("data/MissingRatio.root", "RECREATE");
+  QueryTree *qt_merge1 = new QueryTree("data/Merge-1photon.root", "RECREATE");
+  QueryTree *qt_merge2 = new QueryTree("data/Merge-2photon.root", "RECREATE");
+
   TGraphErrors *gr_miss[3];
   TGraphErrors *gr_merge[6];
 
@@ -32,6 +35,7 @@ void draw_MissingRatio()
     hn_missing->GetAxis(4)->SetRange(2,2);
     TH1 *h_1photon = hn_missing->Projection(1);
 
+    qt_miss->Fill(h_1photon, h_2photon, part);
     gr_miss[part] = DivideHisto(h_1photon, h_2photon);
     gr_miss[part]->SetNameTitle(Form("gr_%d",part), "Missing Ratio");
     aset(gr_miss[part], "p_{T}^{1#gamma} [GeV]","R", 5.,30., 0.,1.5);
@@ -43,8 +47,6 @@ void draw_MissingRatio()
     leg0->AddEntry(gr_miss[part], pname[part], "P");
     leg0->Draw();
 
-    f_miss->cd();
-    gr_miss[part]->Write();
     delete h_2photon;
     delete h_1photon;
 
@@ -58,6 +60,7 @@ void draw_MissingRatio()
     mcd(1, 1);
     gPad->SetLogy();
 
+    qt_merge2->Fill(h_merged, h_separated, part, 0.5, 1.);
     gr_merge[part] = DivideHisto(h_merged, h_separated, 0.5, 1.);
     gr_merge[part]->SetNameTitle(Form("gr_%d",part), "Merging Ratio");
     aset(gr_merge[part], "p_{T}^{2#gamma} [GeV]","Merging ratio", 5.,30., 1e-4,10.);
@@ -69,8 +72,6 @@ void draw_MissingRatio()
     leg1->AddEntry(gr_merge[part], pname[part], "P");
     leg1->Draw();
 
-    f_merge->cd();
-    gr_merge[part]->Write();
     delete h_separated;
     delete h_merged;
 
@@ -84,6 +85,7 @@ void draw_MissingRatio()
     hn_missing->GetAxis(4)->SetRange(2,2);
     h_merged = hn_missing->Projection(1);
 
+    qt_merge1->Fill(h_merged, h_separated, part, 0.5, 1.);
     gr_merge[part+3] = DivideHisto(h_merged, h_separated);
     gr_merge[part+3]->SetNameTitle(Form("gr_%d",part+3), "Converted Merging Ratio");
     aset(gr_merge[part+3], "p_{T}^{1#gamma} [GeV]","Converted merging ratio", 5.,30., 1e-4,10.);
@@ -93,14 +95,13 @@ void draw_MissingRatio()
     else
       gr_merge[part+3]->Draw("P");
 
-    f_merge->cd();
-    gr_merge[part+3]->Write();
     delete h_separated;
     delete h_merged;
   }
 
   c0->Print("plots/MissingRatio.pdf");
   c1->Print("plots/Merge-photon.pdf");
-  f_miss->Close();
-  f_merge->Close();
+  qt_miss->Write();
+  qt_merge1->Write();
+  qt_merge2->Write();
 }
