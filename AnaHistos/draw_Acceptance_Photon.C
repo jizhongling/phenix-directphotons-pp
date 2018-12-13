@@ -1,10 +1,13 @@
 #include "GlobalVars.h"
+#include "QueryTree.h"
 
 void draw_Acceptance_Photon()
 {
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
+
+  QueryTree *qt_acc = new QueryTree("data/Acceptance-photon.root", "RECREATE");
 
   TGraphAsymmErrors *gr_acc[3];
   for(int part=0; part<3; part++)
@@ -21,6 +24,7 @@ void draw_Acceptance_Photon()
   {
     hn_photon->GetAxis(2)->SetRange(secl[part],sech[part]);
     TH1 *h_passed = hn_photon->Projection(1);
+    qt_acc->Fill(h_passed, h_total, part);
     gr_acc[part]->Divide(h_passed, h_total, "n");
     delete h_passed;
   }
@@ -44,9 +48,5 @@ void draw_Acceptance_Photon()
   leg0->Draw();
 
   c0->Print("plots/Acceptance-photon.pdf");
-
-  TFile *f_out = new TFile("data/Acceptance-photon.root", "RECREATE");
-  for(int part=0; part<3; part++)
-    gr_acc[part]->Write();
-  f_out->Close();
+  qt_acc->Write();
 }

@@ -1,9 +1,12 @@
 #include "GlobalVars.h"
+#include "QueryTree.h"
 
 void draw_ERTEff_Photon()
 {
   const int secl[2] = {1, 7};
   const int sech[2] = {6, 8};
+
+  QueryTree *qt_ert = new QueryTree("data/ERTEff-photon.root", "RECREATE");
 
   TGraphAsymmErrors *gr[2];
   for(int part=0; part<2; part++)
@@ -36,6 +39,7 @@ void draw_ERTEff_Photon()
       }
     }
     h_ert[part][0]->Add(h_ert[part][1]);
+    qt_ert->Fill(h_ert[part][1], h_ert[part][0], part);
     gr[part]->Divide(h_ert[part][1], h_ert[part][0]);
   }
 
@@ -66,9 +70,5 @@ void draw_ERTEff_Photon()
   leg0->Draw();
 
   c0->Print("plots/ERTEff-photon.pdf");
-
-  TFile *f_out = new TFile("data/ERTEff-photon.root", "RECREATE");
-  for(int part=0; part<2; part++)
-    gr[part]->Write();
-  f_out->Close();
+  qt_ert->Write();
 }

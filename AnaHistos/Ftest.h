@@ -35,4 +35,8 @@ void Ftest(const int ngroup, const vector<double> *data, const vector<double> *e
 
   F = s1squre / s2squre;
   p = 1. - TMath::FDistI(F, d1, d2);
+
+  delete[] n;
+  delete[] bar;
+  delete[] ebar;
 }

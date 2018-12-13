@@ -1,5 +1,5 @@
 #include "GlobalVars.h"
-#include "ReadGraph.h"
+#include "QueryTree.h"
 #include "FitMinv.h"
 #include "Chi2Fit.h"
 
@@ -22,14 +22,12 @@ void draw_Iso2All()
 
   // h[isolated][evtype][part]
   TH1 *h_1photon[2][3][3];
-  TH2 *h2_2photon[3][3];
-  TH2 *h2_isoboth[3][3];
-  TH2 *h2_isopair[3][3];
+  TH2 *h2_pion[2][3][3];
 
   int bbc10cm = 1;
   int tof = 1;
   int prob = 1;
-  int ival = 3;
+  int ival = 1;
 
   TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
   h_1photon_t->Reset();
@@ -39,67 +37,38 @@ void draw_Iso2All()
       {
         h_1photon[isolated][evtype][part] = (TH1*)h_1photon_t->Clone(Form("h_1photon_iso%d_type%d_part%d",isolated,evtype,part));
         for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
-          for(int pattern=0; pattern<3; pattern++)
-          {
-            int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm + 2*3*2*2*2*3*8*ival;
-            TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
-            h_1photon[isolated][evtype][part]->Add(h_tmp);
-            delete h_tmp;
-          }
+          for(int evenodd=0; evenodd<2; evenodd++)
+            for(int pattern=0; pattern<3; pattern++)
+            {
+              int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated + 2*3*2*8*evtype + 3*2*3*2*8*bbc10cm + 2*3*2*3*2*8*ival;
+              TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
+              h_1photon[isolated][evtype][part]->Add(h_tmp);
+              delete h_tmp;
+            }
         if(isolated==1)
           h_1photon[0][evtype][part]->Add(h_1photon[1][evtype][part]);
       }
 
-  TH2 *h2_2photon_t = (TH2*)f->Get("h2_2photon_0");
-  h2_2photon_t->Reset();
+  TH2 *h2_pion_t = (TH2*)f->Get("h2_pion_0");
+  h2_pion_t->Reset();
 
-  for(int evtype=1; evtype<3; evtype++)
-    for(int part=0; part<3; part++)
-    {
-      h2_2photon[evtype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_2photon_type%d_part%d",evtype,part));
-      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
-        for(int pattern=0; pattern<3; pattern++)
-          for(int isopair=0; isopair<2; isopair++)
-            for(int isoboth=0; isoboth<2; isoboth++)
+  for(int isolated=0; isolated<2; isolated++)
+    for(int evtype=1; evtype<3; evtype++)
+      for(int part=0; part<3; part++)
+      {
+        h2_pion[isolated][evtype][part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_iso%d_type%d_part%d",isolated,evtype,part));
+        for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+          for(int evenodd=0; evenodd<2; evenodd++)
+            for(int pattern=0; pattern<3; pattern++)
             {
-              int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm + 2*3*2*2*2*2*3*8*ival;
-              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
-              h2_2photon[evtype][part]->Add(h2_tmp);
+              int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated + 2*3*2*8*tof + 2*2*3*2*8*prob + 2*2*2*3*2*8*evtype + 2*3*2*2*3*2*8*bbc10cm + 2*2*3*2*2*3*2*8*ival;
+              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
+              h2_pion[isolated][evtype][part]->Add(h2_tmp);
               delete h2_tmp;
             }
-    }
-
-  for(int evtype=1; evtype<3; evtype++)
-    for(int part=0; part<3; part++)
-    {
-      h2_isoboth[evtype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isoboth_type%d_part%d",evtype,part));
-      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
-        for(int pattern=0; pattern<3; pattern++)
-          for(int isopair=0; isopair<2; isopair++)
-          {
-            int isoboth = 1;
-            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm + 2*3*2*2*2*2*3*8*ival;
-            TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
-            h2_isoboth[evtype][part]->Add(h2_tmp);
-            delete h2_tmp;
-          }
-    }
-
-  for(int evtype=1; evtype<3; evtype++)
-    for(int part=0; part<3; part++)
-    {
-      h2_isopair[evtype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isopair_type%d_part%d",evtype,part));
-      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
-        for(int pattern=0; pattern<3; pattern++)
-          for(int isoboth=0; isoboth<2; isoboth++)
-          {
-            int isopair = 1;
-            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm + 2*3*2*2*2*2*3*8*ival;
-            TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
-            h2_isopair[evtype][part]->Add(h2_tmp);
-            delete h2_tmp;
-          }
-    }
+        if(isolated==1)
+          h2_pion[0][evtype][part]->Add(h2_pion[0][evtype][part]);
+      }
 
   const double Pile[3] = {0.905, 0.905, 0.865};
   //const double IsoPile[3] = {1.27, 1.32, 1.23};
@@ -124,13 +93,13 @@ void draw_Iso2All()
     { 1, 1, 0.95, 0.97, 0.975, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.995, 0.995, 0.99, 0.99, 0.98, 0.98, 0.98, 0.98, 1, 1 }
   };
 
-  for(int part=0; part<3; part++)
-  {
-    ReadGraph<TGraphAsymmErrors>("data/SelfVeto.root", part, xVeto[part], Veto[part], eVeto[part]);
-    ReadGraph<TGraphErrors>("data/MissingRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
-    ReadGraph<TGraphAsymmErrors>("data/Merge-photon.root", part, xMerge[part], Merge[part], eMerge[part]);
-    ReadGraph<TGraphErrors>("data/MergePassRate.root", part/2, xBadPass[part], BadPass[part], eBadPass[part]);
-  }
+  //for(int part=0; part<3; part++)
+  //{
+  //  ReadGraph<TGraphAsymmErrors>("data/SelfVeto.root", part, xVeto[part], Veto[part], eVeto[part]);
+  //  ReadGraph<TGraphErrors>("data/MissingRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
+  //  ReadGraph<TGraphAsymmErrors>("data/Merge-photon.root", part, xMerge[part], Merge[part], eMerge[part]);
+  //  ReadGraph<TGraphErrors>("data/MergePassRate.root", part/2, xBadPass[part], BadPass[part], eBadPass[part]);
+  //}
 
   for(int ipt=2; ipt<npT; ipt++)
   {
@@ -150,7 +119,7 @@ void draw_Iso2All()
       TH1 *h_minv;
 
       double npion = 1., enpion = 1.;
-      h_minv = (TH1*)h2_2photon[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
+      h_minv = (TH1*)h2_pion[0][evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
       if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
@@ -162,64 +131,25 @@ void draw_Iso2All()
       npion /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
-      double nisoboth = 1., enisoboth = 1.;
-      h_minv = (TH1*)h2_isoboth[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
+      double nisopion = 1., enisopion = 1.;
+      h_minv = (TH1*)h2_pion[1][evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
-      // don't subtract background
-      FitMinv(h_minv, nisoboth, enisoboth, false, 0.10,0.17);
-      nisoboth /= 1.1;
-      delete h_minv;
-
-      double nisopair = 1., enisopair = 1.;
-      h_minv = (TH1*)h2_isopair[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
-      h_minv->Rebin(10);
-      h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
-      if(ipt < 20)  // <10GeV +- 25MeV; >10GeV +- 35MeV
-        FitMinv(h_minv, nisopair, enisopair, true, 0.11,0.16);
+      if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
+        FitMinv(h_minv, nisopion, enisopion, true, 0.11,0.16);
       else if(ipt < 23)  // <16GeV subtract background
-        FitMinv(h_minv, nisopair, enisopair, true, 0.10,0.17);
+        FitMinv(h_minv, nisopion, enisopion, true, 0.10,0.17);
       else  // >16GeV don't subtract background
-        FitMinv(h_minv, nisopair, enisopair, false, 0.10,0.17);
-      nisopair /= bck[part/2][ipt] * meff[part/2][ipt];
+        FitMinv(h_minv, nisopion, enisopion, false, 0.10,0.17);
+      nisopion /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
       xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      int ipVeto = Get_ipt(xVeto[part], xx);
-      int ipMiss = Get_ipt(xMiss[part], xx);
-      double aMiss = Miss[part][ipMiss];
-      double eaMiss = eMiss[part][ipMiss];
-      int ipMerge = Get_ipt(xMerge[part], xx);
-      double aMerge = Merge[part][ipMerge];
-      double eaMerge = eMerge[part][ipMerge];
-      int ipBadPass = Get_ipt(xBadPass[part], xx);
-      double aBadPass = BadPass[part][ipBadPass];
-      double eaBadPass = eBadPass[part][ipBadPass];
-      if(ipt<23)
-      {
-        aBadPass = 0.;
-        eaBadPass = 0.;
-      }
-      double aMissPass = aMiss + aMerge * aBadPass;
-      double eaMissPass = sqrt( eaMiss*eaMiss + pow(eaMerge*aBadPass,2) + pow(aMerge*eaBadPass,2) );
-      double aMissAll = aMiss + aMerge * 2.;
-      double eaMissAll = sqrt( eaMiss*eaMiss + eaMerge*eaMerge*4. );
+      yy[0][part] = nisopion / npion;
+      eyy[0][part] = yy[0][part] * sqrt( pow(enisopion/nisopion,2) + pow(enpion/npion,2) );
 
-      double npi0 = npion + aMissPass * npion;
-      double enpi0 = sqrt( pow(eaMissPass*npion,2) + pow((1.+aMissPass)*enpion,2) );
-      double nisopi0 = nisoboth + aMissPass * nisopair;
-      double enisopi0 = sqrt( enisoboth*enisoboth + pow(eaMissPass*nisopair,2) + pow(aMissPass*enisopair,2) );
-      //yy[0][part] = ( nisopi0 * IsoPile[part] ) / ( npi0 * Pile[part] );
-      yy[0][part] = nisopair / npion;
-      eyy[0][part] = yy[0][part] * sqrt( pow(enisopi0/nisopi0,2) + pow(enpi0/npi0,2) + pow(ePile/Pile[part],2) + pow(ePile/IsoPile[part],2) );
-
-      double ndir = nphoton - aMissPass * npion - A * ( 1. + aMissAll ) * npion;
-      double endir = sqrt( nphoton + pow((1.+A)*(1.+aMissPass)*enpion,2) + pow((1.+A)*eaMissPass*npion,2) );
-      double nisodir = nisophoton - ( nisoboth + aMissPass * nisopair ) - A * Veto[part][ipVeto] * ( 1. + aMissAll ) * nisopair;
-      double enisodir = sqrt( nisophoton + enisoboth*enisoboth + pow(eaMissPass*nisopair,2) + pow(aMissPass*enisopair,2) );
-      if( enisodir != enisodir ) enisodir = sqrt( nisophoton + enisoboth*enisoboth );
-      yy[1][part] = ( nisodir * IsoPile[part] ) / ( ndir * Pile[part] );
-      eyy[1][part] = yy[1][part] * sqrt( pow(endir/ndir,2) + pow(enisodir/nisodir,2) + pow(ePile/Pile[part],2) + pow(ePile/IsoPile[part],2) );
+      yy[1][part] = nisophoton / nphoton;
+      eyy[1][part] = yy[1][part] * sqrt( 1./nisophoton + 1./nphoton );
     } // part
 
     for(int iph=0; iph<2; iph++)
@@ -238,10 +168,10 @@ void draw_Iso2All()
   mc();
   mcd();
   legi(0, 0.2,0.7,0.4,0.9);
-  for(int iph=0; iph<2; iph++)
+  for(int iph=0; iph<1; iph++)
   {
     gr[iph]->Set(igp[iph]);
-    aset(gr[iph], "p_{T} [GeV]", "Iso/All", 6.,30., 0.,1.4);
+    aset(gr[iph], "p_{T} [GeV]", "Iso/All", 6.,30., 0.,1.1);
     style(gr[iph], iph+20, iph+1);
     if(iph==0)
       gr[iph]->Draw("AP");
@@ -249,7 +179,7 @@ void draw_Iso2All()
       gr[iph]->Draw("P");
   }
   leg0->AddEntry(gr[0], "#pi^{0}", "P");
-  leg0->AddEntry(gr[1], "#gamma_{dir}", "P");
+  //leg0->AddEntry(gr[1], "#gamma_{dir}", "P");
   leg0->Draw();
-  c0->Print("plots/Iso2All-notrack.pdf");
+  c0->Print("plots/Iso2All-lowq.pdf");
 }
