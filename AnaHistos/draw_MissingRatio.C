@@ -85,7 +85,7 @@ void draw_MissingRatio()
     hn_missing->GetAxis(4)->SetRange(2,2);
     h_merged = hn_missing->Projection(1);
 
-    qt_merge1->Fill(h_merged, h_separated, part, 0.5, 1.);
+    qt_merge1->Fill(h_merged, h_separated, part);
     gr_merge[part+3] = DivideHisto(h_merged, h_separated);
     gr_merge[part+3]->SetNameTitle(Form("gr_%d",part+3), "Converted Merging Ratio");
     aset(gr_merge[part+3], "p_{T}^{1#gamma} [GeV]","Converted merging ratio", 5.,30., 1e-4,10.);

@@ -105,7 +105,7 @@ void draw_CrossSection_Photon()
 
   QueryTree *qt_acc = new QueryTree("data/Acceptance-photon.root");
   QueryTree *qt_ert = new QueryTree("data/ERTEff-photon.root");
-  QueryTree *qt_miss = new QueryTree("data/MissingRatio.root");
+  QueryTree *qt_misscorr = new QueryTree("data/MissCorr.root");
   QueryTree *qt_mergecorr1 = new QueryTree("data/MergeCorr-1photon.root");
   QueryTree *qt_mergecorr2 = new QueryTree("data/MergeCorr-2photon.root");
 
@@ -173,18 +173,18 @@ void draw_CrossSection_Photon()
       n2photon2pt /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
-      double xx, Acc, eAcc, TrigERT, eTrigERT, Miss, eMiss, MergeCorr2, eMergeCorr2, MergeCorr1, eMergeCorr1;
+      double Acc, eAcc, TrigERT, eTrigERT, MissCorr, eMissCorr, MergeCorr2, eMergeCorr2, MergeCorr1, eMergeCorr1;
       qt_acc->Query(ipt, part, xx, Acc, eAcc);
       qt_ert->Query(ipt, part/2, xx, TrigERT, eTrigERT);
-      qt_miss->Query(ipt, part, xx, Miss, eMiss);
+      qt_misscorr->Query(ipt, part, xx, MissCorr, eMissCorr);
       qt_mergecorr1->Query(ipt, part, xx, MergeCorr1, eMergeCorr1);
       qt_mergecorr2->Query(ipt, part, xx, MergeCorr2, eMergeCorr2);
 
       if(ipt >= 20)
       {
-        if(part<2)
+        if(part < 2)
         {
-          TrigERT = 0.948;
+          TrigERT = 0.949;
           eTrigERT = 0.004;
         }
         else
@@ -194,8 +194,8 @@ void draw_CrossSection_Photon()
         }
       }
 
-      double ndir = nphoton - ( Miss + MergeCorr1 ) * n2photon - MergeCorr2 * n2photon2pt;
-      double endir = sqrt( nphoton + pow((eMiss+eMergeCorr1)*n2photon,2) + pow((Miss+MergeCorr2)*en2photon,2) + pow(eMergeCorr2*n2photon2pt,2) + pow(MergeCorr2*en2photon2pt,2) );
+      double ndir = nphoton - ( MissCorr + MergeCorr1 ) * n2photon - MergeCorr2 * n2photon2pt;
+      double endir = sqrt( nphoton + pow((eMissCorr+eMergeCorr1)*n2photon,2) + pow((MissCorr+MergeCorr2)*en2photon,2) + pow(eMergeCorr2*n2photon2pt,2) + pow(MergeCorr2*en2photon2pt,2) );
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
         ndir *= Norm[part];

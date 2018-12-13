@@ -69,6 +69,14 @@ bool QueryTree::Query(const int ipt, const int part,
     error = field2.Atof();
     delete row;
     delete res;
+    if( !TMath::Finite(value + error) )
+    {
+      cout << _name << " at pt " << xpt << " in part " << part
+        << ": not finite value = " << value << " and/or error = " << error << endl; 
+      value = 0.;
+      error = 0.;
+      return false;
+    }
     return true;
   }
 
@@ -111,7 +119,7 @@ void QueryTree::Fill(const TH1 *h1, const TH1 *h2, const int part,
       _xpt = h1->GetXaxis()->GetBinCenter(ipt+1);
       _value = h1y / h2y;
       _error = _value * sqrt( pow(eh1y/h1y,2) + pow(eh2y/h2y,2) );
-      _tree->Fill();
+      _tree->Fill(); 
     }
   }
 }
