@@ -1,4 +1,5 @@
 #include "GlobalVars.h"
+#include "QueryTree.h"
 #include "FitMinv.h"
 #include "GetEfficiency.h"
 
@@ -10,14 +11,7 @@ void draw_Acceptance_Pion()
 
   SetWeight();
 
-  TGraphAsymmErrors *gr[3];
-  int igp[3] = {};
-  for(int part=0; part<3; part++)
-  {
-    gr[part] = new TGraphAsymmErrors(npT);
-    gr[part]->SetName(Form("gr_%d",part));
-    mc(part, 6,5);
-  }
+  QueryTree *qt_acc = new QueryTree("data/Acceptance-pion.root", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-histo.root");
 
@@ -33,8 +27,8 @@ void draw_Acceptance_Pion()
   for(int part=0; part<3; part++)
     for(int ipt=0; ipt<npT; ipt++)
     {
-      double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      double ww = cross_pi0->Eval(xx);
+      double xpt = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      double ww = cross_pi0->Eval(xpt);
 
       TH1 *h_tt = (TH1*)h_total->Clone();
       h_tt->Scale(1./ww);
@@ -63,12 +57,8 @@ void draw_Acceptance_Pion()
         eyyl = yy * sqrt( pow(ent/nt,2) + pow(enp/np,2) );
         eyyh = 0.;
       }
-      if( TMath::Finite(yy+eyyl) && eyyl >= 0. )
-      {
-        gr[part]->SetPoint(igp[part], xx, yy);
-        gr[part]->SetPointError(igp[part], 0.,0., eyyl,eyyh);
-        igp[part]++;
-      }
+      if( TMath::Finite(yy+eyyl+eyyh) )
+        qt_acc->Fill(ipt, part, xpt, yy, eyyl, eyyh);
     }
 
 
@@ -79,15 +69,15 @@ void draw_Acceptance_Pion()
 
   for(int part=0; part<3; part++)
   {
-    gr[part]->Set(igp[part]);
-    gr[part]->SetTitle("#pi^{0} acceptance");
-    aset(gr[part], "p_{T} [GeV]","acceptance", 0.,30., 0.,0.12);
-    style(gr[part], part+20, part+1);
+    TGraphAsymmErrors *gr = qt_acc->GraphAsymm(part);
+    gr->SetTitle("#pi^{0} acceptance");
+    aset(gr, "p_{T} [GeV]","acceptance", 0.,30., 0.,0.12);
+    style(gr, part+20, part+1);
     if(part==0)
-      gr[part]->Draw("AP");
+      gr->Draw("AP");
     else
-      gr[part]->Draw("P");
-    leg0->AddEntry(gr[part], pname[part], "P");
+      gr->Draw("P");
+    leg0->AddEntry(gr, pname[part], "P");
     TGraph *gr_sasha =  new TGraph( Form("data/sasha-acc-part%d.txt",part) );
     gr_sasha->Draw("C");
   }
@@ -95,11 +85,8 @@ void draw_Acceptance_Pion()
   leg0->Draw();
   c3->Print("plots/Acceptance-pion.pdf");
 
-  TFile *f_out = new TFile("data/Acceptance-pion.root", "RECREATE");
+  qt_acc->Write();
   for(int part=0; part<3; part++)
-  {
     mcw( part, Form("part%d",part) );
-    gr[part]->Write();
-  }
-  f_out->Close();
+  qt_acc->Close();
 }

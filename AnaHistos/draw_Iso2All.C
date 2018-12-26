@@ -5,10 +5,30 @@
 
 void draw_Iso2All()
 {
-  const double PI = TMath::Pi();
-
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
+
+  const double PI = TMath::Pi();
+  const double Pile[3] = {0.905, 0.905, 0.865};
+  const double IsoPile[3] = {1.11, 1.11, 1.08};
+  const double ePile = 0.02;
+  const double A = 0.24;
+  const double eA = 0.04;
+
+  const double bck[2][npT] = {
+    { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.10, 1.15, 1.20, 1.30,  1, 1, 1 },
+    { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.08, 1.08, 1.11, 1.11, 1.11, 1.11, 1.11 }
+  };
+
+  const double meff[2][npT] = {
+    { 1, 1, 0.96, 0.97, 0.98, 0.985, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.985, 0.995, 0.995, 0.99, 0.98, 0.95, 1,1,1,1,1, },
+    { 1, 1, 0.95, 0.97, 0.975, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.995, 0.995, 0.99, 0.99, 0.98, 0.98, 0.98, 0.98, 1, 1 }
+  };
+
+  QueryTree *qt_acc = new QueryTree("data/Acceptance-photon.root");
+  QueryTree *qt_misscorr = new QueryTree("data/MissCorr.root");
+  QueryTree *qt_mergecorr1 = new QueryTree("data/MergeCorr-1photon.root");
+  QueryTree *qt_mergecorr2 = new QueryTree("data/MergeCorr-2photon.root");
 
   TGraphErrors *gr[2];
   int igp[2] = {};
@@ -70,40 +90,9 @@ void draw_Iso2All()
           h2_pion[0][evtype][part]->Add(h2_pion[0][evtype][part]);
       }
 
-  const double Pile[3] = {0.905, 0.905, 0.865};
-  //const double IsoPile[3] = {1.27, 1.32, 1.23};
-  //const double IsoPile[3] = {1.04, 1.07, 1.02};
-  const double IsoPile[3] = {1.11, 1.11, 1.08};
-  const double ePile = 0.02;
-  const double A = 0.28;
-  const double eA = 0.04;
-
-  double xVeto[3][npT] = {}, Veto[3][npT] = {}, eVeto[3][npT] = {};
-  double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
-  double xMerge[3][npT] = {}, Merge[3][npT] = {}, eMerge[3][npT] = {};
-  double xBadPass[3][npT] = {}, BadPass[3][npT] = {}, eBadPass[3][npT] = {};
-
-  double bck[2][npT] = {
-    { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.10, 1.15, 1.20, 1.30,  1, 1, 1 },
-    { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.08, 1.08, 1.11, 1.11, 1.11, 1.11, 1.11 }
-  };
-
-  double meff[2][npT] = {
-    { 1, 1, 0.96, 0.97, 0.98, 0.985, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.985, 0.995, 0.995, 0.99, 0.98, 0.95, 1,1,1,1,1, },
-    { 1, 1, 0.95, 0.97, 0.975, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.995, 0.995, 0.99, 0.99, 0.98, 0.98, 0.98, 0.98, 1, 1 }
-  };
-
-  //for(int part=0; part<3; part++)
-  //{
-  //  ReadGraph<TGraphAsymmErrors>("data/SelfVeto.root", part, xVeto[part], Veto[part], eVeto[part]);
-  //  ReadGraph<TGraphErrors>("data/MissingRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
-  //  ReadGraph<TGraphAsymmErrors>("data/Merge-photon.root", part, xMerge[part], Merge[part], eMerge[part]);
-  //  ReadGraph<TGraphErrors>("data/MergePassRate.root", part/2, xBadPass[part], BadPass[part], eBadPass[part]);
-  //}
-
   for(int ipt=2; ipt<npT; ipt++)
   {
-    double xx, yy[2][3], eyy[2][3];
+    double xpt, yy[2][3], eyy[2][3];
 
     for(int part=0; part<3; part++)
     {
@@ -144,7 +133,12 @@ void draw_Iso2All()
       nisopion /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
-      xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      double Acc, eAcc, MissCorr, eMissCorr, MergeCorr1, eMergeCorr1, MergeCorr2, eMergeCorr2;
+      qt_acc->Query(ipt, part, xpt, Acc, eAcc);
+      qt_misscorr->Query(ipt, part, xpt, MissCorr, eMissCorr);
+      qt_mergecorr1->Query(ipt, part, xpt, MergeCorr1, eMergeCorr1);
+      qt_mergecorr2->Query(ipt, part, xpt, MergeCorr2, eMergeCorr2);
+
       yy[0][part] = nisopion / npion;
       eyy[0][part] = yy[0][part] * sqrt( pow(enisopion/nisopion,2) + pow(enpion/npion,2) );
 
@@ -156,9 +150,9 @@ void draw_Iso2All()
     {
       double ybar, eybar;
       Chi2Fit(3, yy[iph], eyy[iph], ybar, eybar);
-      if( ybar > 0. && eybar > 0. && eybar < TMath::Infinity() )
+      if( TMath::Finite(ybar+eybar) )
       {
-        gr[iph]->SetPoint(igp[iph], xx, ybar);
+        gr[iph]->SetPoint(igp[iph], xpt, ybar);
         gr[iph]->SetPointError(igp[iph], 0., eybar);
         igp[iph]++;
       }
@@ -168,7 +162,7 @@ void draw_Iso2All()
   mc();
   mcd();
   legi(0, 0.2,0.7,0.4,0.9);
-  for(int iph=0; iph<1; iph++)
+  for(int iph=0; iph<2; iph++)
   {
     gr[iph]->Set(igp[iph]);
     aset(gr[iph], "p_{T} [GeV]", "Iso/All", 6.,30., 0.,1.1);
@@ -179,7 +173,7 @@ void draw_Iso2All()
       gr[iph]->Draw("P");
   }
   leg0->AddEntry(gr[0], "#pi^{0}", "P");
-  //leg0->AddEntry(gr[1], "#gamma_{dir}", "P");
+  leg0->AddEntry(gr[1], "#gamma_{dir}", "P");
   leg0->Draw();
   c0->Print("plots/Iso2All-lowq.pdf");
 }

@@ -1,16 +1,3 @@
-#include <TFile.h>
-#include <THnSparse.h>
-#include <TH1D.h>
-#include <TCanvas.h>
-#include <TStyle.h>
-#include <TAxis.h>
-#include <TLatex.h>
-#include <TLine.h>
-
-#include <cstdio>
-
-using namespace std;
-
 void draw_InvMass()
 {
   TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510ERT/8511/data/total.root");

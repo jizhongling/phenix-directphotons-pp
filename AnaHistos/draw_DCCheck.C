@@ -1,3 +1,4 @@
+#include "QueryTree.h"
 #include "MultiGraph.h"
 
 void draw_DCCheck()
@@ -91,41 +92,24 @@ void draw_DCCheck()
       }
   }
 
-  TMultiGraph *mg[2][2];  // mg[ns][we]
-  for(int ns=0; ns<2; ns++)
-    for(int we=0; we<2; we++)
-      mg[ns][we] = new TMultiGraph();
-
-  for(int i=0; i<44; i++)
-  {
-    TFile *f = new TFile(Form("histos/DCCheck-%d.root",i));
-    if( f->IsZombie() ) continue;
-    for(int ns=0; ns<2; ns++)
-      for(int we=0; we<2; we++)
-      {
-        TGraph *gr = (TGraph*)f->Get( Form("gr_yield_ns%d_we%d",ns,we) );
-        gr->SetMarkerStyle(20);
-        if( gr->GetN() > 0 )
-          mg[ns][we]->Add(gr);
-      }
-  }
+  QueryTree *qt_dc = new QueryTree("data/DCCheck.root");
 
   mc(4, 2,2);
   for(int ns=0; ns<2; ns++)
     for(int we=0; we<2; we++)
     {
-      mcd(4, 2*ns+we+1);
+      int ig = we + 2*ns;
+      mcd(4, ig+1);
       TString NS = ns ? "S" : "N";
       TString WE = we ? "E" : "W";
-      mg[ns][we]->Draw("AP");  // must before GetXaxis()
-      mg[ns][we]->SetTitle(NS+WE);
-      mg[ns][we]->GetXaxis()->SetTitle("runnumber");
-      mg[ns][we]->GetYaxis()->SetTitle("Ntrack/Nevent");
-      //mg[ns][we]->GetXaxis()->SetLimits(387000., 398200.);  // Do not use SetRangeUser()
-      mg[ns][we]->GetYaxis()->SetRangeUser(0., 1.5);  // Do not use SetLimits()
+      TGraphErrors *gr = qt_dc->Graph(ig);
+      gr->SetTitle(NS+WE);
+      aset(gr, "runnumber","Ntrack/Nevent", 387000.,398200., 0.,0.5);
+      style(gr, 20, 1);
+      gr->Draw("AP");
 
       double mean, sigma;
-      GetMeanSigma<TGraphErrors>(mg[ns][we], mean, sigma);
+      GetMeanSigma<TGraphErrors>(gr, mean, sigma);
       double ylow = mean - 3. * sigma;
       TLine *line = new TLine;
       line->SetLineColor(kRed);
@@ -133,25 +117,20 @@ void draw_DCCheck()
       line->SetLineColor(kGreen);
       line->DrawLine(387000.,ylow,398200.,ylow);
 
-      TGraphErrors *gr1;
-      TIter iter( mg[ns][we]->GetListOfGraphs() );
-      while( gr1 = (TGraphErrors*)iter.Next() )
+      int N = gr->GetN();
+      for(int i=0; i<N; i++)
       {
-        int N = gr1->GetN();
-        if( N <= 0 ) continue;
-        for(int i=0; i<N; i++)
-        {
-          double xx, yy;
-          gr1->GetPoint(i, xx, yy);
-          if( yy < ylow )
-            cout << xx << " ";
-        }
+        double xx, yy;
+        gr->GetPoint(i, xx, yy);
+        if( yy < ylow )
+          cout << xx << " ";
       }
     }
   cout << endl;
+  qt_dc->Close();
 
   mc(5, 2,1);
-  TFile *f_combine = new TFile("histos/DCCheck.root");
+  TFile *f_combine = new TFile("data/DCCheck.root");
   TH2 *h2_phi[2];  // h2_phi[ns]
   for(int ns=0; ns<2; ns++)
   {

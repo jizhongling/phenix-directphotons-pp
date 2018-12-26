@@ -1,45 +1,25 @@
 #include "Pileup.h"
+#include "QueryTree.h"
 #include "DataBase.h"
-#include "ReadGraph.h"
 
 void anaPileup_Photon(const int process = 0)
 {
-  const int secl[3] = {1, 5, 7};
-  const int sech[3] = {4, 6, 8};
-
   const int nThread = 100;
   int thread = -1;
-  int irun = 0;
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
-  int id = 0;
+  const int secl[3] = {1, 5, 7};
+  const int sech[3] = {4, 6, 8};
 
-  TGraphErrors *gr[npT*2*2*3];
-  TGraphErrors *gr_run[npT*2*2*3];
-  int igp[npT*2*2*3] = {};
-  for(int ipt=0; ipt<npT; ipt++)
-    for(int ic=0; ic<2; ic++)
-      for(int part=0; part<3; part++)
-      {
-        int ig = part + 3*ic + 2*3*id + 2*2*3*ipt;
-        gr[ig] = new TGraphErrors(nThread);
-        gr_run[ig] = new TGraphErrors(nThread);
-        gr[ig]->SetName(Form("gr_%d",ig));
-        gr_run[ig]->SetName(Form("gr_run_%d",ig));
-      }
-
-  const double A = 0.22;
+  const double A = 0.24;
   const double eA = 0.04;
-  double xMiss[3][30] = {}, Miss[3][30] = {}, eMiss[3][30] = {};
-  double xMerge[3][30] = {}, Merge[3][30] = {}, eMerge[3][30] = {};
-  double xBadPass[3][30] = {}, BadPass[3][30] = {}, eBadPass[3][30] = {};
-  for(int part=0; part<3; part++)
-  {
-    ReadGraph<TGraphErrors>("data/MissingRatio.root", part, xMiss[part], Miss[part], eMiss[part]);
-    ReadGraph<TGraphAsymmErrors>("data/Merge-photon.root", part, xMerge[part], Merge[part], eMerge[part]);
-    ReadGraph<TGraphErrors>("data/MergePassRate.root", part/2, xBadPass[part], BadPass[part], eBadPass[part]);
-  }
+
+  QueryTree *qt_pile = new QueryTree(Form("histos/Pileup-photon-%d.root",process), "RECREATE");
+
+  QueryTree *qt_misscorr = new QueryTree("data/MissCorr.root");
+  QueryTree *qt_merge1 = new QueryTree("data/MergeCorr-1photon.root");
+  QueryTree *qt_merge2 = new QueryTree("data/MergeCorr-2photon.root");
 
   DataBase *db = new DataBase();
 
@@ -110,6 +90,7 @@ void anaPileup_Photon(const int process = 0)
     //double nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("ert_c_10cm") );
     double nev = nmb / scaledown;
 
+    int id = 0;
     for(int ipt=0; ipt<npT; ipt++)
       for(int ic=0; ic<2; ic++)
         for(int part=0; part<3; part++)
@@ -120,47 +101,23 @@ void anaPileup_Photon(const int process = 0)
           double npion = h2_2photon[ic][part]->ProjectionY("h_minv", pTlow[id][ipt], pThigh[id][ipt])->Integral(111,160);
           npion /= 1.1;
 
-          double xpT = pTbinC[id][ipt];
-          int ipMiss = Get_ipt(xMiss[part], xpT);
-          double aMiss = Miss[part][ipMiss];
-          int ipMerge = Get_ipt(xMerge[part], xpT);
-          double aMerge = Merge[part][ipMerge];
-          int ipBadPass = Get_ipt(xBadPass[part], xpT);
-          double aBadPass = BadPass[part][ipBadPass];
-          if(ipt<23)
-            aBadPass = 0.;
-          double aMissPass = aMiss + aMerge * aBadPass;
-          double aMissAll = aMiss + aMerge * 2.;
-          double ndir = nphoton - aMissPass * npion - A * ( 1. + aMissAll ) * npion;
-          double endir = sqrt( nphoton + pow(aMissPass + A * ( 1. + aMissAll ), 2) * npion );
+          double xpt, MissCorr, eMissCorr, MergeCorr1, eMergeCorr1, MergeCorr2, eMergeCorr2, Veto, eVeto;
+          qt_misscorr->Query(ipt, part, xpt, MissCorr, eMissCorr);
+          qt_mergecorr1->Query(ipt, part, xpt, MergeCorr1, eMergeCorr1);
+          qt_mergecorr2->Query(ipt, part, xpt, MergeCorr2, eMergeCorr2);
+
+          double ndir = nphoton - MissPass * npion - A * ( 1. + MissAll ) * npion;
+          double endir = sqrt( nphoton + pow(MissPass + A * ( 1. + MissAll ), 2) * npion );
 
           double xx = (double)nmb / (double)nclock;
           double yy = ndir / nev;
           double eyy = endir / nev;
-          if( TMath::Finite(yy+eyy) && eyy > 0. )
-          {
-            gr[ig]->SetPoint(igp[ig], xx, yy);
-            gr[ig]->SetPointError(igp[ig], 0., eyy);
-            gr_run[ig]->SetPoint(igp[ig], runnumber, yy);
-            gr_run[ig]->SetPointError(igp[ig], 0., eyy);
-            igp[ig]++;
-          }
+          if( TMath::Finite(yy+eyy) )
+            qt_pile->Fill(runnumber, ig, xx, yy, eyy);
         } // ipt, id, ic, part
 
     delete f;
-    irun++;
   }
 
-  TFile *f_out = new TFile(Form("pileup/Pileup-photon-%d.root",process), "RECREATE");
-  for(int ipt=0; ipt<npT; ipt++)
-    for(int ic=0; ic<2; ic++)
-      for(int part=0; part<3; part++)
-      {
-        int ig = part + 3*ic + 2*3*id + 2*2*3*ipt;
-        gr[ig]->Set(igp[ig]);
-        gr_run[ig]->Set(igp[ig]);
-        gr[ig]->Write();
-        gr_run[ig]->Write();
-      }
-  f_out->Close();
+  qt_pile->Save();
 }

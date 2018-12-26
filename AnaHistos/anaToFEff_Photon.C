@@ -12,7 +12,7 @@ void anaToFEff_Photon(const int process = 0)
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
-  TFile *f_out = new TFile(Form("pileup/ToF-photon-%d.root",process), "RECREATE");
+  TFile *f_out = new TFile(Form("histos/ToF-photon-%d.root",process), "RECREATE");
 
   TGraphAsymmErrors *gr[2];
   int igp[2] = {};
@@ -61,7 +61,7 @@ void anaToFEff_Photon(const int process = 0)
         eyyl = yy * sqrt( pow(ent/nt,2) + pow(enp/np,2) );
         eyyh = 0.;
       }
-      if( TMath::Finite(yy+eyyl) && eyyl >= 0. )
+      if( TMath::Finite(yy+eyyl+eyyh) )
       {
         gr[part]->SetPoint(igp[part], xx, yy);
         gr[part]->SetPointError(igp[part], 0.,0., eyyl,eyyh);

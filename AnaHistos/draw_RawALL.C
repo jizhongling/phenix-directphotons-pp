@@ -1,4 +1,5 @@
 #include "GlobalVars.h"
+#include "QueryTree.h"
 #include "Ftest.h"
 
 void draw_RawALL()
@@ -44,42 +45,9 @@ void draw_RawALL()
   }
   fout_txt.close();
 
-  TFile *f_out = new TFile("data/RawALL.root", "RECREATE");
+  QueryTree *qt_all = new QueryTree("data/RawALL.root", "RECREATE");
 
-  TMultiGraph *mg[4*2*npT/ngroup];
-  for(int pattern=0; pattern<4; pattern++)
-    for(int icr=0; icr<2; icr++)
-      for(int ipt=0; ipt<npT/ngroup; ipt++)
-      {
-        int ig = ipt + npT/ngroup*icr + 2*npT/ngroup*pattern;
-        mg[ig] = new TMultiGraph();
-      }
-
-  for(int i=0; i<20; i++)
-  {
-    TFile *f = new TFile(Form("histos/raw-asym-%d.root",i));
-    if( f->IsZombie() ) continue;
-
-    for(int pattern=0; pattern<4; pattern++)
-      for(int icr=0; icr<2; icr++)
-        for(int ipt=0; ipt<npT/ngroup; ipt++)
-        {
-          int ig = ipt + npT/ngroup*icr + 2*npT/ngroup*pattern;
-          TGraphErrors *gr = (TGraphErrors*)f->Get(Form("gr_%d",ig));
-          if( gr->GetN() > 0)
-            mg[ig]->Add(gr);
-        }
-  }
-
-  TGraphErrors *gr_all[4*2];
-  int igp[4*2] = {};
-  for(int pattern=0; pattern<4; pattern++)
-    for(int icr=0; icr<2; icr++)
-    {
-      int igr = icr + 2*pattern;
-      gr_all[igr] = new TGraphErrors(npT/ngroup);
-      mc(igr, 6,5);
-    }
+  QueryTree *qt_asym = new QueryTree("data/raw-asym.root");
 
   TF1 *fn_mean = new TF1("fn_mean", "pol0");
 
@@ -91,31 +59,24 @@ void draw_RawALL()
       for(int ipt=0; ipt<npT/ngroup; ipt++)
       {
         int ig = ipt + npT/ngroup*icr + 2*npT/ngroup*pattern;
-        if( !mg[ig]->GetListOfGraphs() ) continue;
 
         mcd(igr, ipt+1);
-        mg[ig]->Draw("AP");  // must before GetXaxis()
-        mg[ig]->SetTitle(Form("p_{T}: %.1f-%.1f GeV",pTbin[ipt*ngroup],pTbin[(ipt+1)*ngroup]));
-        mg[ig]->GetXaxis()->SetTitle("runnumber");
-        mg[ig]->GetYaxis()->SetTitle("A_{LL}");
-        //mg[ig]->GetXaxis()->SetLimits(386700., 398200.);  // Do not use SetRangeUser()
-        //mg[ig]->GetYaxis()->SetRangeUser(-1., 1.);  // Do not use SetLimits()
+        TGraphErrors *gr = qt_asym->Graph(ig); 
+        gr->SetTitle(Form("p_{T}: %.1f-%.1f GeV",pTbin[ipt*ngroup],pTbin[(ipt+1)*ngroup]));
+        aset(gr, "runnumber","A_{LL}", 386700.,398200., -1.,1.);
+        style(gr, 20, 1);
+        gr->Draw("AP");  // must before GetXaxis()
 
-        mg[ig]->Fit(fn_mean, "Q");
+        gr->Fit(fn_mean, "Q");
         double mean = fn_mean->GetParameter(0);
         double emean = fn_mean->GetParError(0);
 
-        if( TMath::Finite(mean+emean) && emean > 0. )
+        if( TMath::Finite(mean+emean) )
         {
           double xpt = ( pTbin[ipt*ngroup] + pTbin[(ipt+1)*ngroup] ) / 2.;
-          gr_all[igr]->SetPoint(igp[igr], xpt, mean);
-          gr_all[igr]->SetPointError(igp[igr], 0., emean);
-          igp[igr]++;
+          qt_all->Fill(ipt, igr, xpt, mean, emean);
         }
       }
-
-      f_out->cd();
-      mcw( igr, Form("pattern%d-cross%d", pattern, icr) );
     }
 
   mc(8);
@@ -127,21 +88,27 @@ void draw_RawALL()
     for(int icr=0; icr<2; icr++)
     {
       int igr = icr + 2*pattern;
-      if(igp[igr] <= 0) continue;
-      gr_all[igr]->Set(igp[igr]);
+      TGraphErrors *gr_all = qt_all->Graph(igr);
 
-      gr_all[igr]->SetTitle("Raw A_{LL}");
-      aset(gr_all[igr], "p_{T} [GeV]","A_{LL}", 0.,30., -1.,1.);
-      style(gr_all[igr], 1, 1+igr);
-      gr_all[igr]->SetMarkerSize(0.);
+      gr_all->SetTitle("Raw A_{LL}");
+      aset(gr_all, "p_{T} [GeV]","A_{LL}", 0.,30., -1.,1.);
+      style(gr_all, 1, 1+igr);
+      gr_all->SetMarkerSize(0.);
       if(igr==0)
-        gr_all[igr]->Draw("AP");
+        gr_all->Draw("AP");
       else
-        gr_all[igr]->Draw("P");
-      leg0->AddEntry(gr_all[igr], Form("%s %s",pattern_list[pattern],crossing_list[icr]), "L");
+        gr_all->Draw("P");
+      leg0->AddEntry(gr_all, Form("%s %s",pattern_list[pattern],crossing_list[icr]), "L");
     }
   leg0->Draw();
   c8->Print("plots/RawALL.pdf");
 
-  f_out->Close();
+  qt_all->Write();
+  for(int pattern=0; pattern<4; pattern++)
+    for(int icr=0; icr<2; icr++)
+    {
+      int igr = icr + 2*pattern;
+      mcw( igr, Form("pattern%d-cross%d", pattern, icr) );
+    }
+  qt_all->Close();
 }

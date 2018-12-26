@@ -8,13 +8,6 @@ void draw_ERTEff_Photon()
 
   QueryTree *qt_ert = new QueryTree("data/ERTEff-photon.root", "RECREATE");
 
-  TGraphAsymmErrors *gr[2];
-  for(int part=0; part<2; part++)
-  {
-    gr[part] = new TGraphAsymmErrors(npT);
-    gr[part]->SetName(Form("gr_%d",part));
-  }
-
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
   // h[part][cond]
@@ -40,7 +33,6 @@ void draw_ERTEff_Photon()
     }
     h_ert[part][0]->Add(h_ert[part][1]);
     qt_ert->Fill(h_ert[part][1], h_ert[part][0], part);
-    gr[part]->Divide(h_ert[part][1], h_ert[part][0]);
   }
 
   mc();
@@ -48,18 +40,18 @@ void draw_ERTEff_Photon()
 
   for(int part=0; part<2; part++)
   {
-    gr[part]->SetName(Form("gr_%d",part));
-    gr[part]->SetTitle("ERT_4x4c trigger efficeincy for photon");
-    aset(gr[part], "p_{T} [GeV]","Eff", 1.,30., 0.,1.1);
-    style(gr[part], part+20, part+1);
+    TGraphAsymmErrors *gr = qt_ert->GraphAsymm(part);
+    gr->SetTitle("ERT_4x4c trigger efficeincy for photon");
+    aset(gr, "p_{T} [GeV]","Eff", 1.,30., 0.,1.1);
+    style(gr, part+20, part+1);
     if(part==0)
-      gr[part]->Draw("APE");
+      gr->Draw("APE");
     else
-      gr[part]->Draw("PE");
+      gr->Draw("PE");
 
-    gr[part]->Fit("pol0", "Q","", 10.,30.);
+    gr->Fit("pol0", "Q","", 10.,30.);
     gPad->Update();
-    TPaveStats *st = (TPaveStats*)gr[part]->FindObject("stats");
+    TPaveStats *st = (TPaveStats*)gr->FindObject("stats");
     st->SetY1NDC(0.3-part*0.2);
     st->SetY2NDC(0.5-part*0.2);
   }
@@ -70,5 +62,5 @@ void draw_ERTEff_Photon()
   leg0->Draw();
 
   c0->Print("plots/ERTEff-photon.pdf");
-  qt_ert->Write();
+  qt_ert->Save();
 }

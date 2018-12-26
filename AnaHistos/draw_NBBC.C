@@ -184,7 +184,7 @@ void draw_NBBC()
 
     double yy = N_rej / N_db;
     double eyy = yy * sqrt( re2N_db + re2N_rej );
-    if( TMath::Finite(yy+eyy) && eyy > 0. )
+    if( TMath::Finite(yy+eyy) )
     {
       gr_rlum->SetPoint(igp, runnumber, yy);
       gr_rlum->SetPointError(igp, 0., eyy);
