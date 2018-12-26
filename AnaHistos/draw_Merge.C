@@ -29,8 +29,8 @@ void draw_Merge()
   for(int part=0; part<2; part++)
     for(int ipt=0; ipt<npT; ipt++)
     {
-      double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      double ww = cross_pi0->Eval(xx);
+      double xpt = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      double ww = cross_pi0->Eval(xpt);
 
       axis_sec->SetRange(secl[part],sech[part]);
       axis_pt->SetRange(ipt+1,ipt+1);
@@ -58,9 +58,9 @@ void draw_Merge()
         eyyl = yy * sqrt( pow(ent/nt,2) + pow(enp/np,2) );
         eyyh = 0.;
       }
-      if( TMath::Finite(yy+eyyl) && eyyl >= 0. )
+      if( TMath::Finite(yy+eyyl+eyyh) )
       {
-        gr[part]->SetPoint(igp[part], xx, yy);
+        gr[part]->SetPoint(igp[part], xpt, yy);
         gr[part]->SetPointError(igp[part], 0.,0., eyyl,eyyh);
         igp[part]++;
       }

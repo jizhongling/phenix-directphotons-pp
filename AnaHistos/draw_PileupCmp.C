@@ -8,7 +8,7 @@ void draw_PileupCmp()
 
   for(int i=0; i<44; i++)
   {
-    TFile *f_mine = new TFile(Form("pileup/Pileup-%d.root",i));
+    TFile *f_mine = new TFile(Form("histos/Pileup-%d.root",i));
     if( f_mine->IsZombie() ) continue;
 
     for(int igr=0; igr<2; igr++)

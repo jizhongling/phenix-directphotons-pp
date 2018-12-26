@@ -1,18 +1,3 @@
-#include <iostream>
-#include <fstream>
-#include <stdio.h>
-
-#include <TFile.h>
-#include <TH1I.h>
-#include <TH2I.h>
-#include <TH1D.h>
-#include <TGraphErrors.h>
-#include <TCanvas.h>
-#include <TStyle.h>
-
-using namespace std;
-
-
 void draw_ToF_Calib_ByRun() {
 
   const int sectors = 8;

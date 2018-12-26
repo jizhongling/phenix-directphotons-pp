@@ -1,18 +1,13 @@
+#include "QueryTree.h"
+
 void anaDCCheck(const int process = 0)
 {
   const int nThread = 20;
   int thread = -1;
-  int irun = 0;
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
-  TGraphErrors *gr_yield[2][2];  // gr[ns][we]
-  for(int ns=0; ns<2; ns++)
-    for(int we=0; we<2; we++)
-    {
-      gr_yield[ns][we] = new TGraphErrors(nThread);
-      gr_yield[ns][we]->SetName( Form("gr_yield_ns%d_we%d",ns,we) );
-    }
+  QueryTree *qt_dc = new QueryTree(Form("histos/DCCheck-%d.root",process), "RECREATE");
 
   TH2 *h2_phi[2];
   h2_phi[0] = new TH2F("h2_phi_zp", "DC phi vs run;runnumber;#phi [rad];", 900,0.,900., 50,-1.,4.);
@@ -43,12 +38,11 @@ void anaDCCheck(const int process = 0)
     for(int ns=0; ns<2; ns++)
       for(int we=0; we<2; we++)
       {
+        int ig = we + 2*ns;
         double nyield = h3_live->Integral(101-100*ns,200-100*ns, 1+25*we,25+25*we, 0,-1);
-        double xx = runnumber;
         double yy = nyield / nev;
         double eyy = yy * sqrt( 1./nyield + 1./nev );
-        gr_yield[ns][we]->SetPoint(irun, xx, yy);
-        gr_yield[ns][we]->SetPointError(irun, 0., eyy);
+        qt_dc->Fill(runnumber, ig, (double)runnumber, yy, eyy);
       }
 
     for(int ns=0; ns<2; ns++)
@@ -61,18 +55,10 @@ void anaDCCheck(const int process = 0)
 
     delete h3_live;
     delete f;
-    irun++;
   }
 
-  TFile *f_out = new TFile(Form("histos/DCCheck-%d.root",process), "RECREATE");
+  qt_dc->Write();
   for(int ns=0; ns<2; ns++)
-  {
-    for(int we=0; we<2; we++)
-    {
-      gr_yield[ns][we]->Set(irun);
-      gr_yield[ns][we]->Write();
-    }
     h2_phi[ns]->Write();
-  }
-  f_out->Close();
+  qt_dc->Close();
 }

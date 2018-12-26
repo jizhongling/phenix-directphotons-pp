@@ -72,7 +72,7 @@ void anaPileup_Sasha(const int process = 0)
         double xx = (double)nmb/(double)nclock;
         double yy = npion[ic][is] / nev;
         double eyy = enpion[ic][is] / nev;
-        if( TMath::Finite(yy+eyy) && eyy > 0. )
+        if( TMath::Finite(yy+eyy) )
         {
           gr[ig]->SetPoint(igp[ig], xx, yy);
           gr[ig]->SetPointError(igp[ig], 0., eyy);
@@ -84,7 +84,7 @@ void anaPileup_Sasha(const int process = 0)
     irun++;
   }
 
-  TFile *f_out = new TFile(Form("pileup/Sasha-%d.root",process), "RECREATE");
+  TFile *f_out = new TFile(Form("histos/Sasha-%d.root",process), "RECREATE");
   for(int ig=0; ig<4; ig++)
   {
     gr[ig]->Set(igp[ig]);

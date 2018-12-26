@@ -1,19 +1,3 @@
-#include <iostream>
-#include <fstream>
-
-#include <TFile.h>
-#include <TTree.h>
-#include <TH1I.h>
-#include <TH2I.h>
-#include <TH1D.h>
-#include <TF1.h>
-#include <TSpectrum.h>
-#include <TCanvas.h>
-#include <TStyle.h>
-
-using namespace std;
-
-
 void draw_ToF_Calib_Tower() {
 
   ofstream fout("ToF_Calib_Tower.txt");

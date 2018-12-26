@@ -1,5 +1,5 @@
 #include "GlobalVars.h"
-#include "ReadGraph.h"
+#include "QueryTree.h"
 #include "FitMinv.h"
 
 void draw_ERTbRatio_Photon()
@@ -7,21 +7,9 @@ void draw_ERTbRatio_Photon()
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
 
-  TGraphErrors *gr[3];
-  int igp[3] = {};
-  for(int part=0; part<3; part++)
-  {
-    gr[part] = new TGraphErrors(npT);
-    gr[part]->SetName(Form("gr_%d",part));
-  }
+  QueryTree *qt_ratio = new QueryTree("data/ERTbRatio-photon.root", "RECREATE");
 
-  double xMiss[3][npT] = {}, Miss[3][npT] = {}, eMiss[3][npT] = {};
-  for(int part=0; part<3; part++)
-  {
-    ReadGraph<TGraphAsymmErrors>("data/MissCorr.root", part, xMiss[part], Miss[part], eMiss[part]);
-    mc(part, 4,3);
-    mc(part+3, 4,3);
-  }
+  QueryTree *qt_misscorr = new QueryTree("data/MissCorr.root");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
 
@@ -37,6 +25,12 @@ void draw_ERTbRatio_Photon()
   TAxis *axis_minv = hn_2photon->GetAxis(2);
   TAxis *axis_cut = hn_2photon->GetAxis(4);
   TAxis *axis_type = hn_2photon->GetAxis(5);
+
+  for(int part=0; part<3; part++)
+  {
+    mc(part, 4,3);
+    mc(part+3, 4,3);
+  }
 
   for(int part=0; part<3; part++)
     for(int ipt=20; ipt<30; ipt++)
@@ -77,46 +71,38 @@ void draw_ERTbRatio_Photon()
       FitMinv(h_minv, npion_ertb, enpion_ertb, true, 0.10,0.17);
       delete h_minv;
 
-      double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      int ipMiss = Get_ipt(xMiss[part], xx);
-      double aMiss = 1.;//Miss[part][ipMiss];
-      double eaMiss = eMiss[part][ipMiss];
+      double xpt, MissCorr, eMissCorr;
+      qt_misscorr->Query(ipt, part, xpt, MissCorr, eMissCorr);
+      MissCorr = 1.;
 
-      double ndir_ertc = nphoton_ertc - aMiss*npion_ertc*2.;
-      double endir_ertc = sqrt( nphoton_ertc + pow(eaMiss*npion_ertc*2.,2) + pow(aMiss*enpion_ertc*2.,2) );
-      double ndir_ertb = nphoton_ertb - aMiss*npion_ertb*2.;
-      double endir_ertb = sqrt( nphoton_ertb + pow(eaMiss*npion_ertb*2.,2) + pow(aMiss*enpion_ertb*2.,2) );
+      double ndir_ertc = nphoton_ertc - MissCorr*npion_ertc*2.;
+      double endir_ertc = sqrt( nphoton_ertc + pow(eMissCorr*npion_ertc*2.,2) + pow(MissCorr*enpion_ertc*2.,2) );
+      double ndir_ertb = nphoton_ertb - MissCorr*npion_ertb*2.;
+      double endir_ertb = sqrt( nphoton_ertb + pow(eMissCorr*npion_ertb*2.,2) + pow(MissCorr*enpion_ertb*2.,2) );
       double ratio = ndir_ertc / ndir_ertb;
       double eratio = ratio * sqrt( pow(endir_ertc/ndir_ertc,2) + pow(endir_ertb/ndir_ertb,2) );
 
-      if(eratio > 0.)
-      {
-        gr[part]->SetPoint(igp[part], xx, ratio);
-        gr[part]->SetPointError(igp[part], 0., eratio);
-        igp[part]++;
-      }
+      if( TMath::Finit(ratio+eratio) && eratio > 0.)
+        qt_ratio->Fill(ipt, part, xpt, ratio, eratio);
     }
 
   mc(6, 3,1);
 
   for(int part=0; part<3; part++)
   {
+    TGraphErrors *gr = qt_ratio->Graph(part);
     mcd(6, part+1);
-    gr[part]->Set(igp[part]);
-    aset(gr[part], "p_{T} [GeV]");
-    style(gr[part], part+20, part+1);
-    gr[part]->Draw("AP");
-    gr[part]->Fit("pol0", "Q","", 10.,30.);
+    gr->Set(igp[part]);
+    aset(gr, "p_{T} [GeV]");
+    style(gr, part+20, part+1);
+    gr->Draw("AP");
+    gr->Fit("pol0", "Q","", 10.,30.);
   }
 
   c6->Print("plots/ERTbRatio-photon.pdf");
 
-  TFile *f_out = new TFile("data/ERTbRatio-photon.root", "RECREATE");
+  qt_ratio->Write();
   for(int part=0; part<6; part++)
-  {
     mcw( part, Form("ERT%c-part%d",99-part/3,part%3) );
-    if(part<3)
-      gr[part]->Write();
-  }
-  f_out->Close();
+  qt_ratio->Close();
 }

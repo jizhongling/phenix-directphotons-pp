@@ -48,5 +48,5 @@ void draw_Acceptance_Photon()
   leg0->Draw();
 
   c0->Print("plots/Acceptance-photon.pdf");
-  qt_acc->Write();
+  qt_acc->Save();
 }

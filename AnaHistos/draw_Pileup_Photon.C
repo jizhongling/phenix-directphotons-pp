@@ -1,5 +1,5 @@
 #include "Pileup.h"
-#include "MultiGraph.h"
+#include "QueryTree.h"
 
 void draw_Pileup_Photon()
 {
@@ -7,46 +7,11 @@ void draw_Pileup_Photon()
   const char *mname[2] = {"pol1", "log"};
   const char *cname[6] = {"PbScW without ToF", "PbScE without ToF", "PbGl without ToF", "PbScW with ToF", "PbScE with ToF", "PbGl with ToF"};
 
-  TFile *f_out = new TFile("data/Pileup-isophoton-fit.root", "RECREATE");
+  QueryTree *qt_fit = new QueryTree("data/Pileup-isophoton-fit.root", "RECREATE");
+
+  QueryTree *qt_pile = new QueryTree("data/Pileup-isophoton.root");
 
   int id = 0;
-
-  TMultiGraph *mg[npT*2*2*3];
-  for(int ipt=0; ipt<npT; ipt++)
-    for(int ic=0; ic<2; ic++)
-      for(int part=0; part<3; part++)
-      {
-        int ig = part + 3*ic + 2*3*id + 2*2*3*ipt;
-        mg[ig] = new TMultiGraph();
-      }
-
-  for(int i=0; i<9; i++)
-  {
-    TFile *f = new TFile(Form("pileup/Pileup-isophoton-%d.root",i));
-    if( f->IsZombie() ) continue;
-
-    for(int ipt=0; ipt<npT; ipt++)
-      for(int ic=0; ic<2; ic++)
-        for(int part=0; part<3; part++)
-        {
-          int ig = part + 3*ic + 2*3*id + 2*2*3*ipt;
-          TGraphErrors *gr = (TGraphErrors*)f->Get(Form("gr_%d",ig));
-          if( gr->GetN() > 0)
-            mg[ig]->Add(gr);
-        }
-  }
-
-  TGraphErrors *gr_ratio[2*2*3];
-  TGraphErrors *gr_tof[2*2*3];
-  int igp[2*2*3] = {};
-  int igp2[2*2*3] = {};
-  for(int im=0; im<2; im++)
-    for(int part=0; part<3; part++)
-    {
-      int igr = part + 3*im + 2*3*id;
-      gr_ratio[igr] = new TGraphErrors(npT);
-      gr_tof[igr] = new TGraphErrors(npT);
-    }
 
   TF1 *fn_mean = new TF1("fn_mean", "pol0", 0., 0.2);
   TF1 *fn_fit[2];
@@ -71,22 +36,21 @@ void draw_Pileup_Photon()
           int ig = part + 3*ic + 2*3*id + 2*2*3*ipt;
 
           mcd(0, cond+1);
-          mg[ig]->Draw("AP");  // must before GetXaxis()
-          mg[ig]->SetTitle(cname[cond]);
-          mg[ig]->GetXaxis()->SetTitle("Nmb/Nclock");
-          mg[ig]->GetYaxis()->SetTitle("N#gamma/Nevent");
-          mg[ig]->GetXaxis()->SetLimits(0., 0.2);  // Do not use SetRangeUser()
-          //mg[ig]->GetYaxis()->SetRangeUser(0., 1e-3);  // Do not use SetLimits()
+          TGraphErrors *gr = qt_pile->Graph(ig);
+          gr->Draw("AP");  // must before GetXaxis()
+          gr->SetTitle(cname[cond]);
+          aset(gr, "Nmb/Nclock","Npi0/Nevent", 0.,0.2);
+          style(gr, 20, 1);
 
-          fn_fit[im]->SetParameters(GetMaximum<TGraphErrors>(mg[ig]), 1.);
-          mg[ig]->Fit(fn_fit[im], "RQ");
+          fn_fit[im]->SetParameters(gr->GetMaximum(), 1.);
+          gr->Fit(fn_fit[im], "RQ");
 
           double scale = sqrt( fn_fit[im]->GetChisquare() / fn_fit[im]->GetNDF() );
           if(scale < 1.) scale = 1.;
           p0[ic] = fn_fit[im]->GetParameter(0);
           ep0[ic] = fn_fit[im]->GetParError(0) * scale;
 
-          mg[ig]->Fit(fn_mean, "RQN");
+          gr->Fit(fn_mean, "RQN");
           scale = sqrt( fn_mean->GetChisquare() / fn_mean->GetNDF() );
           if(scale < 1.) scale = 1.;
           mean[ic] = fn_mean->GetParameter(0);
@@ -98,21 +62,13 @@ void draw_Pileup_Photon()
           double xx = ( pTbin[id][ipt-1] + pTbin[id][ipt] ) / 2.;
           double yy = p0[1] / mean[1];
           double eyy = yy * sqrt( pow(emean[1]/mean[1],2) + pow(ep0[1]/p0[1],2) );
-          if( yy > 0. && eyy > 0. && eyy < TMath::Infinity() )
-          {
-            gr_ratio[igr]->SetPoint(igp[igr], xx, yy);
-            gr_ratio[igr]->SetPointError(igp[igr], 0., eyy);
-            igp[igr]++;
-          }
+          if( TMath::Finite(yy + eyy) )
+            qt_fit->Fill(ipt, igr, xpt, yy, eyy);
 
           yy = p0[1] / p0[0];
           eyy = yy * sqrt( pow(ep0[0]/p0[0],2) + pow(ep0[1]/p0[1],2) );
-          if( yy > 0. && eyy > 0. && eyy < 1. )
-          {
-            gr_tof[igr]->SetPoint(igp2[igr], xx, yy);
-            gr_tof[igr]->SetPointError(igp2[igr], 0., eyy);
-            igp2[igr]++;
-          }
+          if( TMath::Finite(yy + eyy) )
+            qt_fit->Fill(ipt, 12+igr, xpt, yy, eyy);
         } // ipt > 0
       } // part
 
@@ -125,27 +81,27 @@ void draw_Pileup_Photon()
     for(int part=0; part<3; part++)
     {
       int igr = part + 3*im + 2*3*id;
-      gr_ratio[igr]->Set(igp[igr]);
-      gr_tof[igr]->Set(igp2[igr]);
+      TGraphErrors *gr_ratio = qt_fit->Graph(igr);
+      TGraphErrors *gr_tof = qt_fit->Graph(12+igr);
 
       mcd(id+1, part+3*im+1);
-      gr_ratio[igr]->SetTitle( Form("%s %s fit by %s", dname[id], cname[part+3], mname[im]) );
-      aset(gr_ratio[igr], "pT [GeV]", "#frac{p0}{mean}");
-      style(gr_ratio[igr], 20, kRed);
-      gr_ratio[igr]->Draw("AP");
-      gr_ratio[igr]->Fit("pol0", "Q");
+      gr_ratio->SetTitle( Form("%s %s fit by %s", dname[id], cname[part+3], mname[im]) );
+      aset(gr_ratio, "pT [GeV]", "#frac{p0}{mean}");
+      style(gr_ratio, 20, kRed);
+      gr_ratio->Draw("AP");
+      gr_ratio->Fit("pol0", "Q");
 
       mcd(id+3, part+3*im+1);
-      gr_tof[igr]->SetTitle( Form("%s eff fit by %s in %s", cname[part+3], mname[im], dname[id]) );
-      aset(gr_tof[igr], "pT [GeV]", "#ToF Eff");
-      style(gr_tof[igr], 20, kRed);
-      gr_tof[igr]->Draw("AP");
-      gr_tof[igr]->Fit("pol0", "Q");
+      gr_tof->SetTitle( Form("%s eff fit by %s in %s", cname[part+3], mname[im], dname[id]) );
+      aset(gr_tof, "pT [GeV]", "#ToF Eff");
+      style(gr_tof, 20, kRed);
+      gr_tof->Draw("AP");
+      gr_tof->Fit("pol0", "Q");
     }
 
-  f_out->Close();
   c1->Print("plots/Pileup-isophoton-ratio-ERT.pdf");
   c2->Print("plots/Pileup-isophoton-ratio-MB.pdf");
   c3->Print("plots/ToFEff-isophoton-ERT.pdf");
   c4->Print("plots/ToFEff-isophoton-MB.pdf");
+  qt_fit->Save();
 }

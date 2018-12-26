@@ -1,33 +1,20 @@
 #include "Pileup.h"
+#include "QueryTree.h"
 #include "DataBase.h"
 #include "FitMinv.h"
 
 void anaPileup(const int process = 0)
 {
-  const int secl[2] = {1, 7};
-  const int sech[2] = {6, 8};
-
   const int nThread = 20;
   int thread = -1;
   int irun = 0;
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
-  TGraphErrors *gr[npT*8];
-  TGraphErrors *gr_run[npT*8];
-  int igp[npT*8] = {};
-  for(int ipt=0; ipt<npT; ipt++)
-    for(int id=0; id<2; id++)
-      for(int ic=0; ic<2; ic++)
-        for(int is=0; is<2; is++)
-        {
-          int ig = ipt*8+id*4+ic*2+is;
-          mc(ig, 5,4);
-          gr[ig] = new TGraphErrors(nThread);
-          gr_run[ig] = new TGraphErrors(nThread);
-          gr[ig]->SetName(Form("gr_%d",ig));
-          gr_run[ig]->SetName(Form("gr_run_%d",ig));
-        }
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
+
+  QueryTree *qt_pile = new QueryTree(Form("histos/Pileup-%d.root",process), "RECREATE");
 
   DataBase *db = new DataBase();
 
@@ -83,14 +70,8 @@ void anaPileup(const int process = 0)
             double xx = (double)nmb / (double)nclock;
             double yy = npion / nev[id];
             double eyy = enpion / nev[id];
-            if( TMath::Finite(yy+eyy) && eyy > 0. )
-            {
-              gr[ig]->SetPoint(igp[ig], xx, yy);
-              gr[ig]->SetPointError(igp[ig], 0., eyy);
-              gr_run[ig]->SetPoint(igp[ig], runnumber, yy);
-              gr_run[ig]->SetPointError(igp[ig], 0., eyy);
-              igp[ig]++;
-            }
+            if( TMath::Finite(yy+eyy) )
+              qt_pile->Fill(runnumber, ig, xx, yy, eyy);
           }
 
     delete f_ert;
@@ -98,18 +79,11 @@ void anaPileup(const int process = 0)
     irun++;
   }
 
-  TFile *f_out = new TFile(Form("pileup/Pileup-%d.root",process), "RECREATE");
+  qt_pile->Write();
   for(int ipt=0; ipt<npT; ipt++)
     for(int id=0; id<2; id++)
       for(int ic=0; ic<2; ic++)
         for(int is=0; is<2; is++)
-        {
-          int ig = ipt*8+id*4+ic*2+is;
           mcw( ig, Form("proc%d-data%d-cond%d-pt%d-%d", process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
-          gr[ig]->Set(igp[ig]);
-          gr_run[ig]->Set(igp[ig]);
-          gr[ig]->Write();
-          gr_run[ig]->Write();
-        }
-  f_out->Close();
+  qt_pile->Close();
 }

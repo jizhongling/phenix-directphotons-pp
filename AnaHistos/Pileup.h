@@ -6,13 +6,13 @@ const double pTbinL[2][npT] = { {6., 6., 6.5, 7., 7.5, 8., 8.5}, {2., 1., 1.5, 2
 const double pTbinC[2][npT] = { {6.25, 6.25, 6.75, 7.25, 7.75, 8.25, 8.75}, {2.25, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75} };
 
 /* Get ipt for TGraph Xaxis gx */
-int Get_ipt(double *gx, double xx)
+int Get_ipt(double *gx, double xpt)
 {
   for(int ipt=0; ipt<30; ipt++)
-    if( TMath::Abs(gx[ipt] - xx) < 0.2 )
+    if( TMath::Abs(gx[ipt] - xpt) < 0.2 )
       return ipt;
 
-  cout << "Warning: No matching for pT = " << xx << ", 0 returned!" << endl;
+  cout << "Warning: No matching for pT = " << xpt << ", 0 returned!" << endl;
   return 0;
 }
 

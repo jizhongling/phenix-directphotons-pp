@@ -36,7 +36,7 @@ void draw_MissCorr()
       qt_mergecorr2->Fill(ipt, part, xpt, MergeCorr2, eMergeCorr2);
     }
 
-  qt_misscorr->Write();
-  qt_mergecorr1->Write();
-  qt_mergecorr2->Write();
+  qt_misscorr->Save();
+  qt_mergecorr1->Save();
+  qt_mergecorr2->Save();
 }

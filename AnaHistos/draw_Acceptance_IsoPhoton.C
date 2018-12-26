@@ -1,4 +1,5 @@
 #include "GlobalVars.h"
+#include "QueryTree.h"
 #include "DivideFunctions.h"
 
 void draw_Acceptance_IsoPhoton()
@@ -6,6 +7,8 @@ void draw_Acceptance_IsoPhoton()
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
+
+  QueryTree *qt_acc = new QueryTree("data/Acceptance-isophoton.root", "RECREATE");
 
   TGraphAsymmErrors *gr_geom[3];
   TGraphAsymmErrors *gr_iso[3];
@@ -37,6 +40,7 @@ void draw_Acceptance_IsoPhoton()
       if( h_reco->GetBinContent(binx) > h_isolated->GetBinContent(binx) )
         h_reco->SetBinContent(binx, h_isolated->GetBinContent(binx));
 
+    qt_acc->Fill(h_reco, h_isolated, part);
     gr_geom[part]->Divide(h_geom, h_photon, "n");
     gr_iso[part]->Divide(h_iso, h_geom, "n");
     gr_smear[part] = DivideHisto(h_reco, h_iso);
@@ -92,11 +96,5 @@ void draw_Acceptance_IsoPhoton()
   }
 
   leg0->Draw();
-
-  TFile *f_out = new TFile("data/Acceptance-isophoton.root", "RECREATE");
-  for(int part=0; part<3; part++)
-  {
-    gr_acc[part]->Write();
-  }
-  f_out->Close();
+  qt_acc->Save();
 }

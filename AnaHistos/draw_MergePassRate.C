@@ -6,6 +6,7 @@ void draw_MergePassRate()
   const int sech[2] = {6, 8};
 
   QueryTree *qt_badpass = new QueryTree("data/MergePassRate.root", "RECREATE");
+
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
   THnSparse *hn_merge = (THnSparse*)f->Get("hn_merge");
 
@@ -27,11 +28,9 @@ void draw_MergePassRate()
       hn_merge->GetAxis(2)->SetRange(2,2);  // passed = 1
       TH1 *h_passed = hn_merge->Projection(0);
 
-      TGraphAsymmErrors *gr = new TGraphAsymmErrors(h_passed, h_total);
       if(ieta==7)
-      {
         qt_badpass->Fill(h_passed, h_total, part);
-      }
+      TGraphAsymmErrors *gr = new TGraphAsymmErrors(h_passed, h_total);
       gr->SetTitle( Form("|#eta|: %.2f - %.2f",(ieta-ieta/7*7)*0.05,(ieta+1-ieta/7*3)*0.05) );
       aset(gr, "p_{T} [GeV]","Bad Pass", 5.,30., 0.,1.1);
       style(gr, part+20, part+1);
@@ -52,5 +51,5 @@ void draw_MergePassRate()
   leg0->Draw();
 
   c0->Print("plots/MergePassRate.pdf");
-  qt_badpass->Write();
+  qt_badpass->Save();
 }

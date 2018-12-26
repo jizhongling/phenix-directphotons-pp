@@ -1,25 +1,61 @@
 #include "GlobalVars.h"
-#include "ReadGraph.h"
+#include "QueryTree.h"
 #include "FitMinv.h"
 #include "Chi2Fit.h"
 
 void draw_CrossSection_Pion()
 {
-  const double PI = TMath::Pi();
-
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
 
-  TGraph *gr_sasha = new TGraph("data/sasha-cross.txt");
+  const double PI = TMath::Pi();
+  const double DeltaEta = 1.0;
+  //const double NBBC =  3.59e11;  // from DAQ
+  const double NBBC =  3.54e11;  // from rejection power
+  const double XBBC = 32.51e9;
+  const double eXBBC = 3.24e9;
+  const double BR = 0.988;
+  const double Pile[3] = {0.905, 0.905, 0.865};
+  const double ePile = 0.01;
+  const double TrigBBC = 0.91;
+  const double eTrigBBC = 0.01;
+  const double ToF[3] = {0.985, 0.985, 0.995};
+  const double eToF[3] = {0.003, 0.003, 0.003};
+  const double Conv[3] = {0.720, 0.919, 0.919};
+  const double eConv[3] = {0.046, 0.044, 0.044};
+  const double Norm[3] = {0.326, 0.326, 0.251};
+  const double eNorm[3] = {0.001, 0.001, 0.004};
 
-  TGraphErrors *gr[4];  // PbScW, PbScE, PbGl, Combined
-  int igp[4] = {};
-  for(int part=0; part<4; part++)
-  {
-    gr[part] = new TGraphErrors(npT);
-    gr[part]->SetName(Form("gr_%d",part));
-  }
+  const double xpt_shift[npT] =  { 0.25, 0.75, 1.215, 1.719, 2.223, 2.725, 3.228, 3.730, 4.231, 4.732, 5.234, 5.735, 6.237, 6.738, 7.238, 7.739, 8.240, 8.740, 9.241, 9.741, 10.88, 12.90, 14.91, 16.92, 18.93, 20.94, 22.94, 24.95, 27, 29 };
+
+  const double bck[2][npT] = {
+    { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.10, 1.15, 1.20, 1.30, 1, 1, 1 },
+    { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.08, 1.08, 1.11, 1.11, 1.11, 1.11, 1.11 }
+  };
+
+  const double meff[2][npT] = {
+    { 1, 1, 0.96, 0.97, 0.98, 0.985, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.985, 0.995, 0.995, 0.99, 0.98, 0.95, 1,1,1,1,1, },
+    { 1, 1, 0.95, 0.97, 0.975, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.995, 0.995, 0.99, 0.99, 0.98, 0.98, 0.98, 0.98, 1, 1 }
+  };
+
+  const double Prob[2][npT] = {
+    { 1, 1, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92 },
+    { 1, 1, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.93, 0.94, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95 }
+  };
+  const double eProb = 0.02;
+
+  const double acc_gl[npT] = { 0.01, 0.01, 0.0089, 0.0156, 0.0195, 0.0234, 0.0255, 0.0270, 0.0279, 0.0287, 0.0296, 0.0301, 0.0309, 0.0311, 0.0320, 0.0326, 0.0329, 0.0333, 0.0339, 0.0340, 0.0346, 0.0360, 0.0374, 0.0383, 0.0397, 0.0406, 0.0419, 0.0423, 0.0431, 0.0434, };
+  const double emerge_gl[npT] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.00, 0.993, 0.959, 0.881, 0.751, 0.623, 0.481, 0.366, 0.261 };
+  const double eff_22_gl[npT] =  { 0.000, 0.000, 0.000, 0.001, 0.002, 0.009, 0.029, 0.066, 0.128, 0.210, 0.289, 0.352, 0.433, 0.476, 0.517, 0.563, 0.600, 0.630, 0.650, 0.660, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, }; // From fit (only bins 8-10 GeV tuned)
+
+  QueryTree *qt_cross = new QueryTree("data/CrossSection-photon.root", "RECREATE");
+
+  QueryTree *qt_acc = new QueryTree("data/Acceptance-pion.root");
+  QueryTree *qt_ert = new QueryTree("data/ERTEff-pion.root");
+  QueryTree *qt_merge = new QueryTree("data/Merge.root");
+
+  TGraph *gr_sasha = new TGraph("data/sasha-cross.txt");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
@@ -47,67 +83,9 @@ void draw_CrossSection_Pion()
         }
     }
 
-  const double DeltaEta = 1.0;
-  //const double NBBC =  3.59e11;  // from DAQ
-  const double NBBC =  3.54e11;  // from rejection power
-  const double XBBC = 32.51e9;
-  const double eXBBC = 3.24e9;
-  const double BR = 0.988;
-  //const double Pile = 0.94;
-  const double Pile[3] = {0.905, 0.905, 0.865};
-  const double ePile = 0.01;
-  const double TrigBBC = 0.91;
-  const double eTrigBBC = 0.01;
-  const double ToF[3] = {0.985, 0.985, 0.995};
-  const double eToF[3] = {0.003, 0.003, 0.003};
-  //const double Conv[3] = {0.784, 0.983, 0.983};
-  //const double eConv[3] = {0.033, 0.017, 0.017};
-  const double Conv[3] = {0.720, 0.919, 0.919};
-  const double eConv[3] = {0.046, 0.044, 0.044};
-  const double Norm[3] = {0.326, 0.326, 0.251};
-  const double eNorm[3] = {0.001, 0.001, 0.004};
-
-  double xAcc[3][npT] = {}, Acc[3][npT] = {}, eAcc[3][npT] = {};
-  double xMerge[3][npT] = {}, Merge[3][npT] = {}, eMerge[3][npT] = {};
-  double xTrigERT[3][npT] = {}, TrigERT[3][npT] = {}, eTrigERT[3][npT] = {};
-
-  double xpt[npT] =  { 0.25, 0.75, 1.215, 1.719, 2.223, 2.725, 3.228, 3.730, 4.231, 4.732, 5.234, 5.735, 6.237, 6.738, 7.238, 7.739, 8.240, 8.740, 9.241, 9.741, 10.88, 12.90, 14.91, 16.92, 18.93, 20.94, 22.94, 24.95, 27, 29 };
-
-  double bck[2][npT] = {
-    { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.10, 1.15, 1.20, 1.30,  1, 1, 1 },
-    { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.08, 1.08, 1.11, 1.11, 1.11, 1.11, 1.11 }
-  };
-
-  double meff[2][npT] = {
-    { 1, 1, 0.96, 0.97, 0.98, 0.985, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.985, 0.995, 0.995, 0.99, 0.98, 0.95, 1,1,1,1,1, },
-    { 1, 1, 0.95, 0.97, 0.975, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.995, 0.995, 0.99, 0.99, 0.98, 0.98, 0.98, 0.98, 1, 1 }
-  };
-
-  double Prob[2][npT] = {
-    { 1, 1, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92 },
-    { 1, 1, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.93, 0.94, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95 }
-  };
-  double eProb = 0.02;
-
-  double acc_gl[npT] = { 0.01, 0.01, 0.0089, 0.0156, 0.0195, 0.0234, 0.0255, 0.0270, 0.0279, 0.0287, 0.0296, 0.0301, 0.0309, 0.0311, 0.0320, 0.0326, 0.0329, 0.0333, 0.0339, 0.0340, 0.0346, 0.0360, 0.0374, 0.0383, 0.0397, 0.0406, 0.0419, 0.0423, 0.0431, 0.0434, };
-  double emerge_gl[npT] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.00, 0.993, 0.959, 0.881, 0.751, 0.623, 0.481, 0.366, 0.261 };
-  double eff_22_gl[npT] =  { 0.000, 0.000, 0.000, 0.001, 0.002, 0.009, 0.029, 0.066, 0.128, 0.210, 0.289, 0.352, 0.433, 0.476, 0.517, 0.563, 0.600, 0.630, 0.650, 0.660, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, }; // From fit (only bins 8-10 GeV tuned)
-
-  for(int part=0; part<3; part++)
-  {
-    ReadGraph<TGraphAsymmErrors>("data/Acceptance-pion.root", part, xAcc[part], Acc[part], eAcc[part]);
-    ReadGraph<TGraphAsymmErrors>("data/Merge.root", part/2, xMerge[part], Merge[part], eMerge[part]);
-    ReadGraph<TGraphAsymmErrors>("data/ERTEff-pion.root", part/2, xTrigERT[part], TrigERT[part], eTrigERT[part]);
-    mc(part, 6,5);
-  }
-  TrigERT[0][0] = TrigERT[1][0] = 0.952;
-  eTrigERT[0][0] = eTrigERT[1][0] = 0.003;
-  TrigERT[2][0] = 0.661;
-  eTrigERT[2][0] = 0.008;
-
   for(int ipt=0; ipt<npT; ipt++)
   {
-    double xx, yy[3], eyy[3];
+    double xpt, yy[3], eyy[3];
 
     for(int part=0; part<3; part++)
     {
@@ -136,42 +114,40 @@ void draw_CrossSection_Pion()
       }
       delete h_minv;
 
+      double Acc, eAcc, TrigERT, eTrigERT, Merge, eMerge;
+      qt_acc->Query(ipt, part, xpt, Acc, eAcc);
+      qt_ert->Query(ipt, part/2, xpt, TrigERT, eTrigERT);
+      qt_mergecorr2->Query(ipt, part, xpt, Merge, eMerge);
 
-      //xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      xx = xpt[ipt];
-      int ipAcc = Get_ipt(xAcc[part], xx);
-      int ipMerge = Get_ipt(xMerge[part], xx);
-      int ipTrigERT = Get_ipt(xTrigERT[part], xx);
       if(ipt >= 20)
-        ipTrigERT = 0;
-      if(part==3)
       {
-        Acc[part][ipt] = acc_gl[ipt];
-        ipAcc = ipt;
-        Merge[part][ipt] = emerge_gl[ipt];
-        ipMerge = ipt;
-        TrigERT[part][ipt] = eff_22_gl[ipt];
-        ipTrigERT = ipt;
+        if(part < 2)
+        {
+          TrigERT = 0.952;
+          eTrigERT = 0.003;
+        }
+        else
+        {
+          TrigERT = 0.661;
+          eTrigERT = 0.008;
+        }
       }
-      yy[part] = (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
+
+      xpt = xpt_shift[ipt];
+      yy[part] = (XBBC/NBBC) / (2*PI*xpt) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
         * npion / BR / bck[part/2][ipt] / meff[part/2][ipt]
-        / Acc[part][ipAcc] / Merge[part][ipMerge]
-        / TrigERT[part][ipTrigERT] / Prob[part/2][ipt]
+        / Acc / Merge / TrigERT / Prob[part/2][ipt]
         / ToF[part] / Conv[part] / TrigBBC * Pile[part];
       eyy[part] = yy[part] * sqrt( pow(enpion/npion,2)
-          + pow(eAcc[part][ipAcc]/Acc[part][ipAcc],2)
-          + pow(eMerge[part][ipMerge]/Merge[part][ipMerge],2)
-          + pow(eTrigERT[part][ipTrigERT]/TrigERT[part][ipTrigERT],2)
+          + pow(eAcc/Acc,2)
+          + pow(eMerge/Merge,2)
+          + pow(eTrigERT/TrigERT,2)
           + pow(eProb/Prob[part/2][ipt],2)
           + pow(eToF[part]/ToF[part],2) + pow(eConv[part]/Conv[part],2)
           //+ pow(eTrigBBC/TrigBBC,2) + pow(ePile/Pile[part],2) + pow(eXBBC/XBBC,2)
           );
-      if( yy[part] > 0. && eyy[part] > 0. && eyy[part] < TMath::Infinity() )
-      {
-        gr[part]->SetPoint(igp[part], xx, yy[part]);
-        gr[part]->SetPointError(igp[part], 0., eyy[part]);
-        igp[part]++;
-      }
+      if( TMath::Finite(yy[part]+eyy[part]) )
+        qt_cross->Fill(ipt, part, xpt, yy[part], eyy[part]);
     } // part
 
     double ybar, eybar;
@@ -182,12 +158,8 @@ void draw_CrossSection_Pion()
       ybar = yy[2];
       eybar = eyy[2];
     }
-    if( ybar > 0. && eybar > 0. && eybar < TMath::Infinity() )
-    {
-      gr[3]->SetPoint(igp[3], xx, ybar);
-      gr[3]->SetPointError(igp[3], 0., eybar);
-      igp[3]++;
-    }
+    if( TMath::Finite(ybar+eybar) )
+      qt_cross->Fill(ipt, part, xpt, ybar, eybar);
   } // ipt
 
   mc(3, 2,1);
@@ -195,33 +167,32 @@ void draw_CrossSection_Pion()
 
   for(int part=0; part<4; part++)
   {
-    gr[part]->Set(igp[part]);
+    TGraphErrors *gr = qt_cross->Graph(part);
+    gr->Set(igp[part]);
     mcd(3, part/3+1);
     gPad->SetLogy();
-    aset(gr[part], "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 6.,30., 1e-1,1e5);
-    style(gr[part], part+20, part+1);
+    if(part == 0)
+      gr->SetTitle("Separated");
+    else if(part == 3)
+      gr->SetTitle("Combined");
+    aset(gr, "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 6.,30., 1e-1,1e5);
+    style(gr, part+20, part+1);
     if(part%3==0)
-      gr[part]->Draw("AP");
+      gr->Draw("AP");
     else
-      gr[part]->Draw("P");
+      gr->Draw("P");
     if(part<3)
-      leg0->AddEntry(gr[part], pname[part], "P");
+      leg0->AddEntry(gr, pname[part], "P");
   }
 
-  gr[0]->SetTitle("Separated");
-  gr[3]->SetTitle("Combined");
   mcd(3, 1);
   leg0->Draw();
   mcd(3, 2);
   gr_sasha->Draw("L");
   c3->Print("plots/CrossSection-pion.pdf");
 
-  TFile *f_out = new TFile("data/CrossSection-pion.root", "RECREATE");
-  for(int part=0; part<4; part++)
-  {
-    if(part<3)
-      mcw( part, Form("Minv-part%d",part) );
-    gr[part]->Write();
-  }
-  f_out->Close();
+  qt_cross->Write();
+  for(int part=0; part<3; part++)
+    mcw( part, Form("Minv-part%d",part) );
+  qt_cross->Close();
 }

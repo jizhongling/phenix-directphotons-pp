@@ -8,13 +8,13 @@ const double pTbin[npT+1] = { 0.0,
   12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
 
 /* Get ipt for TGraph Xaxis gx */
-int Get_ipt(double *gx, double xx)
+int Get_ipt(double *gx, double xpt)
 {
   for(int ipt=0; ipt<npT; ipt++)
-    if( TMath::Abs(gx[ipt] - xx) < 0.2 )
+    if( TMath::Abs(gx[ipt] - xpt) < 0.2 )
       return ipt;
 
-  cout << "Warning: No matching for pT = " << xx << ", 0 returned!" << endl;
+  cout << "Warning: No matching for pT = " << xpt << ", 0 returned!" << endl;
   return 0;
 }
 

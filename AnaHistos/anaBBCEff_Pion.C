@@ -13,7 +13,7 @@ void anaBBCEff_Pion(const int process = 0)
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
-  TFile *f_out = new TFile(Form("pileup/BBCEff-pion-%d.root",process), "RECREATE");
+  TFile *f_out = new TFile(Form("histos/BBCEff-pion-%d.root",process), "RECREATE");
   for(int ic=0; ic<2; ic++)
     mc(ic, 6,5);
 
@@ -81,7 +81,7 @@ void anaBBCEff_Pion(const int process = 0)
           eyyl = yy * sqrt( pow(ent/nt,2) + pow(enp/np,2) );
           eyyh = 0.;
         }
-        if( TMath::Finite(yy+eyyl) && eyyl >= 0. )
+        if( TMath::Finite(yy+eyyl+eyyh) )
         {
           gr[ig]->SetPoint(igp[ig], xx, yy);
           gr[ig]->SetPointError(igp[ig], 0.,0., eyyl,eyyh);

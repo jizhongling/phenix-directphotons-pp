@@ -1,28 +1,19 @@
 #include "GlobalVars.h"
+#include "QueryTree.h"
 #include "DataBase.h"
 #include "GetEfficiency.h"
 
 void anaBBCEff_Photon(const int process = 0)
 {
-  const int secl[2] = {1, 7};
-  const int sech[2] = {6, 8};
-
   const int nThread = 1000;
   int thread = -1;
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
 
-  TFile *f_out = new TFile(Form("pileup/BBCEff-photon-%d.root",process), "RECREATE");
+  const int secl[2] = {1, 7};
+  const int sech[2] = {6, 8};
 
-  TGraphAsymmErrors *gr[npT*2];
-  int igp[npT*2] = {};
-  for(int part=0; part<2; part++)
-    for(int ipt=0; ipt<npT; ipt++)
-    {
-      int ig = ipt*2+part;
-      gr[ig] = new TGraphAsymmErrors(nThread);
-      gr[ig]->SetName(Form("gr_%d",ig));
-    }
+  QueryTree *qt_bbc = new QueryTree(Form("histos/BBCEff-photon-%d.root",process), "RECREATE");
 
   DataBase *db = new DataBase();
 
@@ -48,31 +39,19 @@ void anaBBCEff_Photon(const int process = 0)
         double nt = h3_trig->Integral(secl[part],sech[part], ipt+1,ipt+1, 1,1);
         double np = h3_trig->Integral(secl[part],sech[part], ipt+1,ipt+1, 2,2);
 
-        double xx = (double)nmb / (double)nclock;
+        double xpt = (double)nmb / (double)nclock;
         double yy, eyyl, eyyh;
         if( !GetEfficiency(nt,np, yy,eyyl,eyyh) )
         {
           eyyl = yy * sqrt( pow(ent/nt,2) + pow(enp/np,2) );
           eyyh = 0.;
         }
-        if( TMath::Finite(yy+eyyl) && eyyl >= 0. )
-        {
-          gr[ig]->SetPoint(igp[ig], xx, yy);
-          gr[ig]->SetPointError(igp[ig], 0.,0., eyyl,eyyh);
-          igp[ig]++;
-        }
+        if( TMath::Finite(yy+eyyl+eyyh) )
+          qt_bbc->Fill(runnumber, ig, xpt, yy, eyyl, eyyh);
       }
 
     delete f;
   }
 
-  f_out->cd();
-  for(int part=0; part<2; part++)
-    for(int ipt=0; ipt<npT; ipt++)
-    {
-      int ig = ipt*2+part;
-      gr[ig]->Set(igp[ig]);
-      gr[ig]->Write();
-    }
-  f_out->Close();
+  qt_bbc->Save();
 }

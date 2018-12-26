@@ -96,7 +96,7 @@ void GetMeanSigma(TMultiGraph *mg, double &mean, double &sigma)
     {
       double xx, yy;
       gr->GetPoint(i, xx, yy);
-      if( xx == xx && yy == yy )
+      if( TMath::Finite(xx+yy) )
       {
         sumN++;
         sumy += yy;
@@ -104,6 +104,30 @@ void GetMeanSigma(TMultiGraph *mg, double &mean, double &sigma)
       }
     }
   }
+
+  mean = sumy/sumN;
+  sigma = sumN > 1 ? sqrt( ( sumy2 - sumN*mean*mean ) / ( sumN - 1 ) ) : 0.;
+  return;
+}
+
+template <class GraphType>
+void GetMeanSigma(GraphType *gr, double &mean, double &sigma)
+{
+  int sumN = 0;
+  double sumy = 0.;
+  double sumy2 = 0.;
+
+  int N = gr->GetN();
+  for(int i=0; i<N; i++)
+  {
+    double xx, yy;
+    gr->GetPoint(i, xx, yy);
+    if( TMath::Finite(xx+yy) )
+    {
+      sumN++;
+      sumy += yy;
+      sumy2 += yy*yy;
+    }
 
   mean = sumy/sumN;
   sigma = sumN > 1 ? sqrt( ( sumy2 - sumN*mean*mean ) / ( sumN - 1 ) ) : 0.;

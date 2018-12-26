@@ -5,19 +5,52 @@
 
 void draw_CrossSection_Photon()
 {
-  const double PI = TMath::Pi();
-
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
 
-  TGraphErrors *gr[4];  // PbScW, PbScE, PbGl, Combined
-  int igp[4] = {};
-  for(int part=0; part<4; part++)
-  {
-    gr[part] = new TGraphErrors(npT);
-    gr[part]->SetName(Form("gr_%d",part));
-  }
+  const double PI = TMath::Pi();
+  const double DeltaEta = 1.0;
+  //const double NBBC =  3.59e11;  // from DAQ
+  const double NBBC =  3.54e11;  // from rejection power
+  const double XBBC = 32.51e9;
+  const double eXBBC = 3.24e9;
+  const double Pile[3] = {0.894, 0.886, 0.920};
+  const double ePile = 0.01;
+  const double TrigBBC = 0.91;
+  const double eTrigBBC = 0.01;
+  const double ToF[3] = {0.992, 0.992, 0.997};
+  const double eToF[3] = {0.002, 0.002, 0.002};
+  const double Conv[3] = {0.849, 0.959, 0.959};
+  const double eConv[3] = {0.027, 0.023, 0.023};
+  const double Norm[3] = {0.321, 0.314, 0.243};
+  const double eNorm[3] = {0.005, 0.006, 0.005};
+  const double A = 0.24;
+  const double eA = 0.04;
+
+  const double bck[2][npT] = {
+    { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.10, 1.15, 1.20, 1.30, 1, 1, 1 },
+    { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.08, 1.08, 1.11, 1.11, 1.11, 1.11, 1.11 }
+  };
+
+  const double meff[2][npT] = {
+    { 1, 1, 0.96, 0.97, 0.98, 0.985, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.985, 0.995, 0.995, 0.99, 0.98, 0.95, 1,1,1,1,1, },
+    { 1, 1, 0.95, 0.97, 0.975, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.995, 0.995, 0.99, 0.99, 0.98, 0.98, 0.98, 0.98, 1, 1 }
+  };
+
+  const double Prob[2][npT] = {
+    { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96 },
+    { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97 }
+  };
+  const double eProb = 0.02;
+
+  QueryTree *qt_cross = new QueryTree("data/CrossSection-photon.root", "RECREATE");
+
+  QueryTree *qt_acc = new QueryTree("data/Acceptance-photon.root");
+  QueryTree *qt_ert = new QueryTree("data/ERTEff-photon.root");
+  QueryTree *qt_misscorr = new QueryTree("data/MissCorr.root");
+  QueryTree *qt_mergecorr1 = new QueryTree("data/MergeCorr-1photon.root");
+  QueryTree *qt_mergecorr2 = new QueryTree("data/MergeCorr-2photon.root");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
@@ -85,46 +118,6 @@ void draw_CrossSection_Photon()
               }
     }
 
-  const double DeltaEta = 1.0;
-  //const double NBBC =  3.59e11;  // from DAQ
-  const double NBBC =  3.54e11;  // from rejection power
-  const double XBBC = 32.51e9;
-  const double eXBBC = 3.24e9;
-  const double Pile[3] = {0.894, 0.886, 0.920};
-  const double ePile = 0.01;
-  const double TrigBBC = 0.91;
-  const double eTrigBBC = 0.01;
-  const double ToF[3] = {0.992, 0.992, 0.997};
-  const double eToF[3] = {0.002, 0.002, 0.002};
-  const double Conv[3] = {0.849, 0.959, 0.959};
-  const double eConv[3] = {0.027, 0.023, 0.023};
-  const double Norm[3] = {0.321, 0.314, 0.243};
-  const double eNorm[3] = {0.005, 0.006, 0.005};
-  const double A = 0.24;
-  const double eA = 0.04;
-
-  QueryTree *qt_acc = new QueryTree("data/Acceptance-photon.root");
-  QueryTree *qt_ert = new QueryTree("data/ERTEff-photon.root");
-  QueryTree *qt_misscorr = new QueryTree("data/MissCorr.root");
-  QueryTree *qt_mergecorr1 = new QueryTree("data/MergeCorr-1photon.root");
-  QueryTree *qt_mergecorr2 = new QueryTree("data/MergeCorr-2photon.root");
-
-  double bck[2][npT] = {
-    { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.10, 1.15, 1.20, 1.30,  1, 1, 1 },
-    { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.08, 1.08, 1.11, 1.11, 1.11, 1.11, 1.11 }
-  };
-
-  double meff[2][npT] = {
-    { 1, 1, 0.96, 0.97, 0.98, 0.985, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.985, 0.995, 0.995, 0.99, 0.98, 0.95, 1,1,1,1,1, },
-    { 1, 1, 0.95, 0.97, 0.975, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.995, 0.995, 0.99, 0.99, 0.98, 0.98, 0.98, 0.98, 1, 1 }
-  };
-
-  double Prob[2][npT] = {
-    { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96 },
-    { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97 }
-  };
-  double eProb = 0.02;
-
   for(int part=0; part<3; part++)
   {
     mc(part, 6,5);
@@ -133,7 +126,7 @@ void draw_CrossSection_Photon()
 
   for(int ipt=0; ipt<npT; ipt++)
   {
-    double xx, yy[3], eyy[3];
+    double xpt, yy[3], eyy[3];
 
     for(int part=0; part<3; part++)
     {
@@ -173,12 +166,12 @@ void draw_CrossSection_Photon()
       n2photon2pt /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
-      double Acc, eAcc, TrigERT, eTrigERT, MissCorr, eMissCorr, MergeCorr2, eMergeCorr2, MergeCorr1, eMergeCorr1;
-      qt_acc->Query(ipt, part, xx, Acc, eAcc);
-      qt_ert->Query(ipt, part/2, xx, TrigERT, eTrigERT);
-      qt_misscorr->Query(ipt, part, xx, MissCorr, eMissCorr);
-      qt_mergecorr1->Query(ipt, part, xx, MergeCorr1, eMergeCorr1);
-      qt_mergecorr2->Query(ipt, part, xx, MergeCorr2, eMergeCorr2);
+      double Acc, eAcc, TrigERT, eTrigERT, MissCorr, eMissCorr, MergeCorr1, eMergeCorr1, MergeCorr2, eMergeCorr2;
+      qt_acc->Query(ipt, part, xpt, Acc, eAcc);
+      qt_ert->Query(ipt, part/2, xpt, TrigERT, eTrigERT);
+      qt_misscorr->Query(ipt, part, xpt, MissCorr, eMissCorr);
+      qt_mergecorr1->Query(ipt, part, xpt, MergeCorr1, eMergeCorr1);
+      qt_mergecorr2->Query(ipt, part, xpt, MergeCorr2, eMergeCorr2);
 
       if(ipt >= 20)
       {
@@ -202,7 +195,7 @@ void draw_CrossSection_Photon()
         endir *= Norm[part] * (1+eNorm[part]);
       }
 
-      yy[part] = (XBBC/NBBC) / (2*PI*xx) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
+      yy[part] = (XBBC/NBBC) / (2*PI*xpt) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
         * ndir / Acc / TrigERT / Prob[part/2][ipt]
         / ToF[part] / Conv[part] / TrigBBC * Pile[part];
       eyy[part] = yy[part] * sqrt( pow(endir/ndir,2)
@@ -213,21 +206,13 @@ void draw_CrossSection_Photon()
           //+ pow(eTrigBBC/TrigBBC,2) + pow(ePile/Pile[part],2) + pow(eXBBC/XBBC,2)
           );
       if( TMath::Finite(yy[part] + eyy[part]) )
-      {
-        gr[part]->SetPoint(igp[part], xx, yy[part]);
-        gr[part]->SetPointError(igp[part], 0., eyy[part]);
-        igp[part]++;
-      }
+        qt_cross->Fill(ipt, part, xpt, yy[part], eyy[part]);
     } // part
 
     double ybar, eybar;
     Chi2Fit(3, yy, eyy, ybar, eybar);
     if( TMath::Finite(ybar + eybar) )
-    {
-      gr[3]->SetPoint(igp[3], xx, ybar);
-      gr[3]->SetPointError(igp[3], 0., eybar);
-      igp[3]++;
-    }
+      qt_cross->Fill(ipt, 3, xpt, ybar, eybar);
   } // ipt
 
   mc(6, 2,1);
@@ -235,35 +220,33 @@ void draw_CrossSection_Photon()
 
   for(int part=0; part<4; part++)
   {
-    gr[part]->Set(igp[part]);
+    TGraphErrors *gr = qt_cross->Graph(part);
     mcd(6, part/3+1);
     gPad->SetLogy();
-    aset(gr[part], "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 6.,30., 1e-1, 1e4);
-    style(gr[part], part+20, part+1);
+    if(part == 0)
+      gr->SetTitle("Separated");
+    else if(part == 3)
+      gr->SetTitle("Combined");
+    aset(gr, "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 6.,30., 1e-1, 1e4);
+    style(gr, part+20, part+1);
     if(part%3==0)
-      gr[part]->Draw("AP");
+      gr->Draw("AP");
     else
-      gr[part]->Draw("P");
+      gr->Draw("P");
     if(part<3)
-      leg0->AddEntry(gr[part], pname[part], "P");
+      leg0->AddEntry(gr, pname[part], "P");
   }
 
-  gr[0]->SetTitle("Separated");
-  gr[3]->SetTitle("Combined");
   mcd(6, 1);
   leg0->Draw();
   mcd(6, 2);
   c6->Print("plots/CrossSection-photon.pdf");
 
-  TFile *f_out = new TFile("data/CrossSection-photon.root", "RECREATE");
-  for(int part=0; part<4; part++)
+  qt_cross->Write();
+  for(int part=0; part<3; part++)
   {
-    if(part<3)
-    {
-      mcw( part, Form("Minv-2photon-part%d",part) );
-      mcw( part+3, Form("Minv-2photon2pt-part%d",part) );
-    }
-    gr[part]->Write();
+    mcw( part, Form("Minv-2photon-part%d",part) );
+    mcw( part+3, Form("Minv-2photon2pt-part%d",part) );
   }
-  f_out->Close();
+  qt_cross->Close();
 }
