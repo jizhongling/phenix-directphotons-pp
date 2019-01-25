@@ -31,7 +31,7 @@ void draw_CrossSectionCmp(const int nameid)
 
   TGraph *gr_sasha = new TGraph("data/sasha-cross.txt");
 
-  TGraphErrors *gr_parts[3];
+  TGraphErrors *gr_parts[4];
   int igp_parts[4] = {};
   for(int part=0; part<4; part++)
     gr_parts[part] = new TGraphErrors(npT);
