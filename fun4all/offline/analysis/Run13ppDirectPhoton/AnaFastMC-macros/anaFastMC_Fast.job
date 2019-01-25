@@ -2,10 +2,11 @@ Universe        = vanilla
 Notification    = Complete
 Executable      = /phenix/u/zji/bin/condor-root.csh
 Arguments       = $(Initialdir) anaFastMC_Fast.C $(Process)
-Requirements    = (CPU_Speed >= 2 && TotalDisk > 0)
+Requirements    = (CPU_Speed >= 2)
 Rank		= CPU_Speed
-Image_Size      = 32M
-Priority        = +20
+request_memory  = 1G
+request_cpus    = 1
+Priority        = 20
 GetEnv          = False
 Initialdir      = $ENV(PWD)
 Input           = /dev/null
@@ -13,6 +14,4 @@ Output          = /dev/null
 Error           = /dev/null
 Log             = /dev/null
 Notify_user     = zji@rcf.rhic.bnl.gov
-+Experiment     = "phenix"
-+Job_Type       = "cas"
 Queue 1000
