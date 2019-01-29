@@ -15,7 +15,7 @@ void draw_CrossSection_Photon()
   const double NBBC =  3.54e11;  // from rejection power
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
-  const double Pile[3] = {0.894, 0.886, 0.920};
+  const double Pile[3] = {0.890, 0.890, 0.916};
   const double ePile = 0.01;
   const double TrigBBC = 0.91;
   const double eTrigBBC = 0.01;
@@ -23,7 +23,7 @@ void draw_CrossSection_Photon()
   const double eToF[3] = {0.002, 0.002, 0.002};
   const double Conv[3] = {0.849, 0.959, 0.959};
   const double eConv[3] = {0.027, 0.023, 0.023};
-  const double Norm[3] = {0.321, 0.314, 0.243};
+  const double Norm[3] = {0.320, 0.320, 0.243};
   const double eNorm[3] = {0.005, 0.006, 0.005};
   const double A = 0.24;
   const double eA = 0.04;
@@ -43,7 +43,6 @@ void draw_CrossSection_Photon()
   QueryTree *qt_merge1 = new QueryTree("data/Merge-1photon.root");
   QueryTree *qt_merge2 = new QueryTree("data/Merge-2photon.root");
   QueryTree *qt_badpass = new QueryTree("data/MergePassRate.root");
-  QueryTree *qt_ptratio = new QueryTree("data/PtRatio.root");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
@@ -114,6 +113,7 @@ void draw_CrossSection_Photon()
   for(int part=0; part<3; part++)
   {
     mc(part, 6,5);
+    mc(part+3, 6,5);
   }
 
   for(int ipt=0; ipt<npT; ipt++)
@@ -145,7 +145,7 @@ void draw_CrossSection_Photon()
       n2photon /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
-      mcd(part, ipt+1);
+      mcd(part+3, ipt+1);
       double n2photon2pt = 1., en2photon2pt = 1.;
       h_minv = (TH1*)h2_2photon2pt[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
@@ -159,14 +159,13 @@ void draw_CrossSection_Photon()
       n2photon2pt /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
-      double xpt, Acc, eAcc, TrigERT, eTrigERT, Miss, eMiss, Merge1, eMerge1, Merge2, eMerge2, BadPass, eBadPass, PtRatio, ePtRatio;
+      double xpt, Acc, eAcc, TrigERT, eTrigERT, Miss, eMiss, Merge1, eMerge1, Merge2, eMerge2, BadPass, eBadPass;
       qt_acc->Query(ipt, part, xpt, Acc, eAcc);
       qt_ert->Query(ipt, part/2, xpt, TrigERT, eTrigERT);
       qt_miss->Query(ipt, part, xpt, Miss, eMiss);
       qt_merge1->Query(ipt, part, xpt, Merge1, eMerge1);
       qt_merge2->Query(ipt, part, xpt, Merge2, eMerge2);
       qt_badpass->Query(ipt, part/2, xpt, BadPass, eBadPass);
-      qt_ptratio->Query(ipt, part/2, xpt, PtRatio, ePtRatio);
 
       if(ipt >= 20)
       {
@@ -182,7 +181,6 @@ void draw_CrossSection_Photon()
         }
       }
 
-      double MissSee = 1. + Miss/Conv[part] + Merge1*(1.-Conv[part])/Conv[part] + Merge2/2.*BadPass*PtRatio;
       double ASee = A * (1.+Miss/Conv[part])/(1.+2.*Miss) * (1+2.*Miss+Merge1);
       double eASee = sqrt((pow(A,2)*pow(eConv[part],2)*pow(Miss,2)*
             pow(1. + Merge1 + 2.*Miss,2))/
@@ -202,39 +200,8 @@ void draw_CrossSection_Photon()
             ,2));
       qt_asee->Fill(ipt, part, xpt, ASee, eASee);
 
-      double ndir = nphoton - (MissSee + ASee) * n2photon;
-      double endir = sqrt(pow(enphoton,2) + 
-          0.25*pow(BadPass,2)*pow(ePtRatio,2)*
-          pow(Merge2,2)*pow(n2photon,2) + 
-          (pow(eA,2)*pow(1. + Merge1 + 2.*Miss,2)*
-           pow(1. + Miss/Conv[part],2)*pow(n2photon,2))
-          /pow(1. + 2.*Miss,2) + 
-          pow(eConv[part],2)*pow(-(((1. - Conv[part])*Merge1)/
-              pow(Conv[part],2)) - Merge1/Conv[part] - 
-            Miss/pow(Conv[part],2) - 
-            (A*Miss*(1. + Merge1 + 2.*Miss))/
-            (pow(Conv[part],2)*(1. + 2.*Miss)),2)*
-          pow(n2photon,2) + 
-          pow(eMerge1,2)*
-          pow((1. - Conv[part])/Conv[part] + 
-            (A*(1. + Miss/Conv[part]))/(1. + 2.*Miss),2)*
-          pow(n2photon,2) + 
-          pow(eMiss,2)*pow(1/Conv[part] + 
-            (A*(1. + Merge1 + 2.*Miss))/
-            (Conv[part]*(1. + 2.*Miss)) + 
-            (2.*A*(1. + Miss/Conv[part]))/(1. + 2.*Miss) - 
-            (2.*A*(1. + Merge1 + 2.*Miss)*
-             (1. + Miss/Conv[part]))/pow(1. + 2.*Miss,2)
-            ,2)*pow(n2photon,2) + 
-          0.25*pow(BadPass,2)*pow(eMerge2,2)*
-          pow(n2photon,2)*pow(PtRatio,2) + 
-          0.25*pow(eBadPass,2)*pow(Merge2,2)*
-          pow(n2photon,2)*pow(PtRatio,2) + 
-          pow(en2photon,2)*
-          pow(-1. - ((1. - Conv[part])*Merge1)/Conv[part] - 
-              Miss/Conv[part] - (A*(1. + Merge1 + 2.*Miss)*
-                (1. + Miss/Conv[part]))/(1. + 2.*Miss) - 
-              0.5*BadPass*Merge2*PtRatio,2));
+      double ndir = nphoton - (1. + Miss/Conv[part] + Merge1*(1.-Conv[part])/Conv[part] + ASee) * n2photon - Merge2*BadPass/2. * n2photon2pt;
+      double endir = sqrt(pow(enphoton,2) + 0.25*pow(BadPass,2)*pow(en2photon2pt,2)* pow(Merge2,2) + pow(en2photon,2)* pow(-1. - ((1. - Conv[part])*Merge1)/Conv[part] - Miss/Conv[part] - (A*(1. + Merge1 + 2.*Miss)* (1. + Miss/Conv[part]))/(1. + 2.*Miss),2) + (pow(eA,2)*pow(1. + Merge1 + 2.*Miss,2)* pow(1. + Miss/Conv[part],2)*pow(n2photon,2)) /pow(1. + 2.*Miss,2) + pow(eConv[part],2)*pow(-(((1. - Conv[part])*Merge1)/ pow(Conv[part],2)) - Merge1/Conv[part] - Miss/pow(Conv[part],2) - (A*Miss*(1. + Merge1 + 2.*Miss))/ (pow(Conv[part],2)*(1. + 2.*Miss)),2)* pow(n2photon,2) + pow(eMerge1,2)* pow((1. - Conv[part])/Conv[part] + (A*(1. + Miss/Conv[part]))/(1. + 2.*Miss),2)* pow(n2photon,2) + pow(eMiss,2)*pow(1/Conv[part] + (A*(1. + Merge1 + 2.*Miss))/ (Conv[part]*(1. + 2.*Miss)) + (2.*A*(1. + Miss/Conv[part]))/(1. + 2.*Miss) - (2.*A*(1. + Merge1 + 2.*Miss)* (1. + Miss/Conv[part]))/pow(1. + 2.*Miss,2) ,2)*pow(n2photon,2) + 0.25*pow(BadPass,2)*pow(eMerge2,2)* pow(n2photon2pt,2) + 0.25*pow(eBadPass,2)*pow(Merge2,2)* pow(n2photon2pt,2));
 
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
@@ -262,19 +229,19 @@ void draw_CrossSection_Photon()
       qt_cross->Fill(ipt, 3, xpt, ybar, eybar);
   } // ipt
 
-  mc(3, 2,1);
+  mc(6, 2,1);
   legi(0, 0.4,0.7,0.7,0.9);
 
   for(int part=0; part<4; part++)
   {
     TGraphErrors *gr = qt_cross->Graph(part);
-    mcd(3, part/3+1);
+    mcd(6, part/3+1);
     gPad->SetLogy();
     if(part == 0)
       gr->SetTitle("Separated");
     else if(part == 3)
       gr->SetTitle("Combined");
-    aset(gr, "p_{T} [GeV]","Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 6.,30., 1e-1,1e4);
+    aset(gr, "p_{T} [GeV]","Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 0.,30., 1e-1,1e6);
     style(gr, part+20, part+1);
     if(part%3==0)
       gr->Draw("AP");
@@ -284,12 +251,18 @@ void draw_CrossSection_Photon()
       leg0->AddEntry(gr, pname[part], "P");
   }
 
-  mcd(3, 1);
+  mcd(6, 1);
   leg0->Draw();
-  mcd(3, 2);
-  c3->Print("plots/CrossSection-photon.pdf");
+  mcd(6, 2);
+  c6->Print("plots/CrossSection-photon.pdf");
 
-  mc(4);
+  qt_cross->Write();
+  for(int part=0; part<3; part++)
+    mcw( part, Form("Minv-2photon-part%d",part) );
+  qt_cross->Close();
+
+  mc(7);
+  mcd(7);
   for(int part=0; part<3; part++)
   {
     TGraphErrors *gr = qt_asee->Graph(part);
@@ -300,11 +273,7 @@ void draw_CrossSection_Photon()
     else
       gr->Draw("P");
   }
-  c4->Print("plots/ASee.pdf");
+  c7->Print("plots/ASee.pdf");
   qt_asee->Save();
 
-  qt_cross->Write();
-  for(int part=0; part<3; part++)
-    mcw( part, Form("Minv-2photon-part%d",part) );
-  qt_cross->Close();
 }

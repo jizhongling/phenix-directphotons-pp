@@ -89,7 +89,7 @@ void draw_CrossSectionCmp(const int nameid)
     if(part < 3)
     {
       gr_parts[part]->SetTitle("Diff in parts;p_{T} [GeV];Diff;");
-      aset(gr_parts[part], "","", 6.1,30., -0.5,0.5);
+      aset(gr_parts[part], "","", 0.,30., -0.5,0.5);
       leg0->AddEntry(gr_parts[part], Form("%s",pname[part]), "P");
     }
     else
