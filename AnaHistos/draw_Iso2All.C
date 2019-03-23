@@ -50,7 +50,7 @@ void draw_Iso2All()
           for(int evenodd=0; evenodd<2; evenodd++)
             for(int pattern=0; pattern<3; pattern++)
             {
-              int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated + 2*3*2*8*evtype + 3*2*3*2*8*bbc10cm + 2*3*2*3*2*8*ival;
+              int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*evtype + 8*2*3*2*3*bbc10cm + 8*2*3*2*3*2*ival + 8*2*3*2*3*2*4*(tof-1);
               TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
               h_1photon[isolated][evtype][part]->Add(h_tmp);
               delete h_tmp;
@@ -71,7 +71,7 @@ void draw_Iso2All()
           for(int evenodd=0; evenodd<2; evenodd++)
             for(int pattern=0; pattern<3; pattern++)
             {
-              int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated + 2*3*2*8*tof + 2*2*3*2*8*prob + 2*2*2*3*2*8*evtype + 2*3*2*2*3*2*8*bbc10cm + 2*2*3*2*2*3*2*8*ival;
+              int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*3*bbc10cm + 8*2*3*2*3*2*3*2*ival;
               TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
               h2_pion[isolated][evtype][part]->Add(h2_tmp);
               delete h2_tmp;

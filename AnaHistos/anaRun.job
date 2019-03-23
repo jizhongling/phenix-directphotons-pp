@@ -1,7 +1,7 @@
 Universe        = vanilla
 Notification    = Complete
 Executable      = /phenix/u/zji/bin/condor-root.csh
-Arguments       = $(Initialdir) anaRawALL.C $(Process)
+Arguments       = $(Initialdir) anaPi0ALL.C $(Process)
 Requirements    = (CPU_Speed >= 1)
 Rank		= CPU_Speed
 request_memory  = 1G

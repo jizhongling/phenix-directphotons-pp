@@ -286,7 +286,7 @@ int PhotonHistos::process_event(PHCompositeNode *topNode)
   for(int itype=0; itype<3; itype++)
   {
     /* Count events to calculate ERT efficiency */
-    FillERTEfficiency(data_emccontainer, data_global, data_triggerlvl1, data_ert, itype);
+    FillERTEfficiency(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
 
     /* Analyze photon for pi0 event */
     FillPi0Spectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
@@ -386,7 +386,7 @@ int PhotonHistos::FillClusterTofSpectrum(const emcClusterContainer *data_emccont
 
       if(sector >= 0 && sector <= 7)
       {
-        int ih = sector + 8*raw; 
+        int ih = sector + 8*raw;
         h2_tof[ih]->Fill(pT, tof);
       }
     }
@@ -506,8 +506,8 @@ int PhotonHistos::FillBBCEfficiency(const emcClusterContainer *data_emccontainer
   return EVENT_OK;
 }
 
-int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer, const PHGlobal *data_global,
-    const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, const int evtype)
+int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
+    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, const int evtype)
 {
   /* Check trigger */
   const unsigned lvl1_live = data_triggerlvl1->get_lvl1_triglive();
@@ -516,7 +516,7 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
     return DISCARDEVENT;
   if( datatype == ERT && !( (lvl1_scaled & bit_ert4x4[evtype]) && (lvl1_live & bit_bbcnarrow) ) )
     return DISCARDEVENT;
-  if( datatype == MB && ( evtype != 0 || !(lvl1_scaled & bit_bbcnarrow) ) )
+  if( datatype == MB && !(lvl1_scaled & bit_bbcnarrow) )
     return DISCARDEVENT;
 
   /* Get event global parameters */
@@ -568,11 +568,23 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
       if( trig )
         ert_trig += 3;
 
-      if(sector >= 0 && sector <= 7)
+      int isolated[4] = {};
+      double econeTrk[4];
+      double econeEM = SumEEmcal(cluster1, data_emccontainer, data_tracks, bbc_t0);
+      SumPTrack(cluster1, data_tracks, econeTrk);
+      for(int ival=0; ival<4; ival++)
       {
-        int ih = sector + 8*ert_trig + 6*8*bbc10cm;
-        h_ert[ih]->Fill(photon_pT);
+        double econe = econeEM + econeTrk[ival];
+        if( econe < eratio * cluster1->ecore() )
+          isolated[ival] = 1;
       }
+
+      if(sector >= 0 && sector <= 7)
+        for(int ival=0; ival<4; ival++)
+        {
+          int ih = sector + 8*ert_trig + 8*6*bbc10cm + 8*6*2*isolated[ival] + 8*6*2*2*ival;
+          h_ert[ih]->Fill(photon_pT);
+        }
 
       for(unsigned j=0; j<ncluster; j++)
         if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
@@ -592,16 +604,25 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
 
             double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
             double minv = anatools::GetInvMass(cluster1, cluster2);
+            double tot_E = cluster1->ecore() + cluster2->ecore();
 
             int ert_trig = evtype;
             if( trig )
               ert_trig += 3;
 
+            int isolated[4] = {};
+            double econe[4];
+            SumEPi0(cluster1, cluster2, data_emccontainer, data_tracks, bbc_t0, econe);
+            for(int ival=0; ival<4; ival++)
+              if( econe[ival] < eratio * tot_E )
+                isolated[ival] = 1;
+
             if(sector >= 0 && sector <= 7)
-            {
-              int ih = sector + 8*ert_trig + 6*8*bbc10cm;
-              h2_ert_pion[ih]->Fill(tot_pT, minv);
-            }
+              for(int ival=0; ival<4; ival++)
+              {
+                int ih = sector + 8*ert_trig + 8*6*bbc10cm + 8*6*2*isolated[ival] + 8*6*2*2*ival;
+                h2_ert_pion[ih]->Fill(tot_pT, minv);
+              }
           } // check photon2
         } // j loop
     } // check photon1
@@ -668,7 +689,7 @@ int PhotonHistos::FillTowerEnergy(const emcClusterContainer *data_emccontainer, 
           if(tower && sector >= 0 && sector <= 7)
           {
             double etwr = tower->Energy();
-            int ih = sector + 8*collision + 2*8*cut + 8*2*8*trig;
+            int ih = sector + 8*collision + 8*2*cut + 8*2*8*trig;
             h3_etwr[ih]->Fill(pT, iy-3., iz-3., etwr);
           }
         }
@@ -835,7 +856,12 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
           int prob = 0;
           if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax &&
               abs( cluster2->tofcorr() - bbc_t0 ) < tofMax )
+          {
             tof = 1;
+            if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax/2. &&
+                abs( cluster2->tofcorr() - bbc_t0 ) < tofMax/2. )
+              tof = 2;
+          }
           if( cluster1->prob_photon() > probMin &&
               cluster2->prob_photon() > probMin )
             prob = 1;
@@ -843,7 +869,7 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
           if(sector >= 0 && sector <= 7)
             for(int ival=0; ival<4; ival++)
             {
-              int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated[ival] + 2*3*2*8*tof + 2*2*3*2*8*prob + 2*2*2*3*2*8*evtype + 2*3*2*2*3*2*8*bbc10cm + 2*2*3*2*2*3*2*8*ival;
+              int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated[ival] + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*3*bbc10cm + 8*2*3*2*3*2*3*2*ival;
               h2_pion[ih]->Fill(tot_pT, minv);
             }
         } // IsGoodTower and asymmetry cut
@@ -922,10 +948,14 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
       int tof = 0;
       int prob = 0;
       if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax )
+      {
         tof = 1;
+        if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax/2. )
+          tof = 2;
+      }
       if( cluster1->prob_photon() > probMin )
         prob = 1;
-      if(tof != 1 || prob != 1)
+      if(tof == 0 || prob != 1)
         continue;
 
       if( evtype == 2 && part >= 0 &&
@@ -933,14 +963,14 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
           TestPhoton(cluster1, bbc_t0) )
         for(int ival=0; ival<4; ival++)
         {
-          int ih = part + 3*isolated[ival] + 2*3*ival;
+          int ih = part + 3*isolated[ival] + 3*2*ival;
           h2_eta_phi[ih]->Fill(eta, phi);
         }
 
       if(sector >= 0 && sector <= 7)
         for(int ival=0; ival<4; ival++)
         {
-          int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated[ival] + 2*3*2*8*evtype + 3*2*3*2*8*bbc10cm + 2*3*2*3*2*8*ival;
+          int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated[ival] + 8*2*3*2*evtype + 8*2*3*2*3*bbc10cm + 8*2*3*2*3*2*ival + 8*2*3*2*3*2*4*(tof-1);
           h_1photon[ih]->Fill(pT);
         }
 
@@ -982,17 +1012,22 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
           int prob = 0;
           if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax &&
               abs( cluster2->tofcorr() - bbc_t0 ) < tofMax )
+          {
             tof = 1;
+            if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax/2. &&
+                abs( cluster2->tofcorr() - bbc_t0 ) < tofMax/2. )
+              tof = 2;
+          }
           if( cluster1->prob_photon() > probMin && 
               cluster2->prob_photon() > probMin )
             prob = 1;
-          if(tof != 1 || prob != 1)
+          if(tof == 0 || prob != 1)
             continue;
 
           if(sector >= 0 && sector <= 7)
             for(int ival=0; ival<4; ival++)
             {
-              int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isoboth[ival] + 2*3*2*8*isopair[ival] + 2*2*3*2*8*evtype + 3*2*2*3*2*8*bbc10cm + 2*3*2*2*3*2*8*ival; 
+              int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isoboth[ival] + 8*2*3*2*isopair[ival] + 8*2*3*2*2*evtype + 8*2*3*2*2*3*bbc10cm + 8*2*3*2*2*3*2*ival + 8*2*3*2*2*3*2*4*(tof-1);
               h2_2photon[ih]->Fill(pT, minv);
               h2_2photon2pt[ih]->Fill(tot_pT, minv);
             }
@@ -1090,7 +1125,7 @@ void PhotonHistos::BookHistograms()
   }
   hm->registerHisto(h_events);
 
-  // ih = sector + 8*raw < 2*8
+  // ih = sector + 8*raw < 8*2
   for(int ih=0; ih<nh_calib; ih++)
   {
     /* ToF calibration */
@@ -1104,7 +1139,7 @@ void PhotonHistos::BookHistograms()
     hm->registerHisto(h2_minv[ih]);
   }
 
-  // ih = sector + 8*bbc_trig < 2*8
+  // ih = sector + 8*bbc_trig < 8*2
   for(int ih=0; ih<nh_bbc; ih++)
   {
     /* BBC trigger efficiency for photon */
@@ -1116,7 +1151,7 @@ void PhotonHistos::BookHistograms()
     /* Store photon bg information */
   }
 
-  // ih = sector + 8*ert_trig + 6*8*bbc10cm < 2*6*8
+  // ih = sector + 8*ert_trig + 8*6*bbc10cm + 8*6*2*isolated[ival] + 8*6*2*2*ival < 8*6*2*2*4
   for(int ih=0; ih<nh_ert; ih++)
   {
     /* ERT trigger efficiency for photon */
@@ -1128,7 +1163,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Tower energy distribution */
-  // ih = sector + 8*collision + 2*8*cut + 8*2*8*trig < 16*8*2*8
+  // ih = sector + 8*collision + 8*2*cut + 8*2*8*trig < 8*2*8*16
   for(int ih=0; ih<nh_etwr; ih++)
   {
     h3_etwr[ih] = new TH3F(Form("h3_etwr_%d",ih), "Tower energy;p_{T} [GeV];iy;iz;",
@@ -1169,7 +1204,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Eta and phi distribution */
-  // ih = part + 3*isolated + 2*3*ival < 4*2*3
+  // ih = part + 3*isolated[ival] + 3*2*ival < 3*2*4
   for(int ih=0; ih<nh_eta_phi; ih++)
   {
     h2_eta_phi[ih] = new TH2F(Form("h2_eta_phi_%d",ih), "#eta and #phi distribution;#eta;#phi;", neta,etabin[ih%3/2], nphi,phibin);
@@ -1177,7 +1212,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store pi0 information */
-  // ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated[ival] + 2*3*2*8*tof + 2*2*3*2*8*prob + 2*2*2*3*2*8*evtype + 2*3*2*2*3*2*8*bbc10cm + 2*2*3*2*2*3*2*8*ival < 4*2*2*3*2*2*3*2*8
+  // ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated[ival] + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*3*bbc10cm + 8*2*3*2*3*2*3*2*ival < 8*2*3*2*3*2*3*2*4
   for(int ih=0; ih<nh_pion; ih++)
   {
     h2_pion[ih] = new TH2F(Form("h2_pion_%d",ih), "#pi^{0} spectrum;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);
@@ -1185,7 +1220,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store single photon information */
-  // ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isolated[ival] + 2*3*2*8*evtype + 3*2*3*2*8*bbc10cm + 2*3*2*3*2*8*ival < 4*2*3*2*3*2*8
+  // ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated[ival] + 8*2*3*2*evtype + 8*2*3*2*3*bbc10cm + 8*2*3*2*3*2*ival + 8*2*3*2*3*2*4*(tof-1) < 8*2*3*2*3*2*4*2
   for(int ih=0; ih<nh_1photon; ih++)
   {
     h_1photon[ih] = new TH1F(Form("h_1photon_%d",ih), "Single photon spectrum;p_{T} [GeV];", npT,pTbin);
@@ -1193,7 +1228,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store two photons information */
-  // ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isoboth[ival] + 2*3*2*8*isopair[ival] + 2*2*3*2*8*evtype + 3*2*2*3*2*8*bbc10cm + 2*3*2*2*3*2*8*ival < 4*2*3*2*2*3*2*8
+  // ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isoboth[ival] + 8*2*3*2*isopair[ival] + 8*2*3*2*2*evtype + 8*2*3*2*2*3*bbc10cm + 8*2*3*2*2*3*2*ival + 8*2*3*2*2*3*2*4*(tof-1) < 8*2*3*2*2*3*2*4*2
   for(int ih=0; ih<nh_2photon; ih++)
   {
     h2_2photon[ih] = new TH2F(Form("h2_2photon_%d",ih), "Two photons spectrum;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);

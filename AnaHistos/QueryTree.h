@@ -4,7 +4,9 @@ class QueryTree
 {
   public:
     QueryTree(const char *fname, const char *option = "READ");
+    void SetQuiet(bool quiet = true) { _quiet = quiet; }
 
+    TSQLResult *Query(int part);
     bool Query(int ipt, int part,
         double &xpt, double &value, double &error);
     bool Query(int ipt, int part,
@@ -25,6 +27,8 @@ class QueryTree
     void Save(); 
 
   protected:
+    bool _quiet;
+
     int _ipt;
     int _part;
     double _xpt;
@@ -39,6 +43,7 @@ class QueryTree
 };
 
 QueryTree::QueryTree(const char *fname, const char *option):
+  _quiet(false),
   _name(fname)
 {
   TString soption = option;
@@ -69,6 +74,12 @@ QueryTree::QueryTree(const char *fname, const char *option):
   }
 }
 
+TSQLResult *QueryTree::Query(int part)
+{
+  TSQLResult *res = _tree->Query("ipt:xpt:value:error:errorlow:errorhigh", Form("part==%d",part));
+  return res;
+}
+
 bool QueryTree::Query(int ipt, int part,
     double &xpt, double &value, double &error)
 {
@@ -91,8 +102,9 @@ bool QueryTree::Query(int ipt, int part,
 
     if( !TMath::Finite(value + error) )
     {
-      cout << _name << " at pt " << xpt << " in part " << part
-        << ": not finite value = " << value << " and/or error = " << error << endl; 
+      if(!_quiet)
+        cout << _name << " at pt " << xpt << " in part " << part
+          << ": not finite value = " << value << " and/or error = " << error << endl; 
       value = 0.;
       error = 0.;
       return false;
@@ -100,7 +112,8 @@ bool QueryTree::Query(int ipt, int part,
     return true;
   }
 
-  cout << _name << ": no info for ipt " << ipt << " and part " << part << endl;
+  if(!_quiet)
+    cout << _name << ": no info for ipt " << ipt << " and part " << part << endl;
   delete res;
   return false;
 }
@@ -130,9 +143,10 @@ bool QueryTree::Query(int ipt, int part,
 
     if( !TMath::Finite(value + errorlow + errorhigh) )
     {
-      cout << _name << " at pt " << xpt << " in part " << part
-        << ": not finite value = " << value << " and/or errorlow = " << errorlow
-        << " and/or errorhigh = " << errorhigh << endl; 
+      if(!_quiet)
+        cout << _name << " at pt " << xpt << " in part " << part
+          << ": not finite value = " << value << " and/or errorlow = " << errorlow
+          << " and/or errorhigh = " << errorhigh << endl; 
       value = 0.;
       errorlow = 0.;
       errorhigh = 0.;
@@ -141,7 +155,8 @@ bool QueryTree::Query(int ipt, int part,
     return true;
   }
 
-  cout << _name << ": no info for ipt " << ipt << " and part " << part << endl;
+  if(!_quiet)
+    cout << _name << ": no info for ipt " << ipt << " and part " << part << endl;
   delete res;
   return false;
 }
@@ -150,7 +165,7 @@ TGraphErrors *QueryTree::Graph(int part)
 {
   TSQLResult *res = _tree->Query("xpt:value:error", Form("part==%d",part));
   int nrow = res->GetRowCount();
-  if(nrow == 0)
+  if(nrow == 0 && !_quiet)
     cout << _name << ": no graph for part " << part << endl;
 
   TGraphErrors *graph = new TGraphErrors(nrow);
@@ -184,7 +199,7 @@ TGraphAsymmErrors *QueryTree::GraphAsymm(int part)
 {
   TSQLResult *res = _tree->Query("xpt:value:errorlow:errorhigh", Form("part==%d",part));
   int nrow = res->GetRowCount();
-  if(nrow == 0)
+  if(nrow == 0 && !_quiet)
     cout << _name << ": no graph for part " << part << endl;
 
   TGraphAsymmErrors *graph = new TGraphAsymmErrors(nrow);

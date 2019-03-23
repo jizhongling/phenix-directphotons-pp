@@ -113,6 +113,7 @@ class AnaFastMC: public SubsysReco
     TH3 *h3_isoeta;
     THnSparse* hn_pion;
     THnSparse* hn_missing;
+    THnSparse* hn_missing_eta;
     THnSparse *hn_photon;
     THnSparse *hn_geom;
     THnSparse *hn_isolated;

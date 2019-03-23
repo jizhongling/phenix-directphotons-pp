@@ -28,7 +28,8 @@ void Ftest(const int ngroup, const vector<double> *data, const vector<double> *e
     d2 += n[i] - 1;
     s1squre += pow( (bar[i] - bar_all) / ebar[i], 2);
     for(int j=0; j<n[i]; j++)
-      s2squre += pow( (data[i][j] - bar[i]) / edata[i][j], 2);
+      if(edata[i][j] > 0.)
+        s2squre += pow( (data[i][j] - bar[i]) / edata[i][j], 2);
   }
   s1squre /= d1;
   s2squre /= d2;

@@ -85,6 +85,7 @@ AnaFastMC::AnaFastMC(const string &name):
   h3_isoeta(NULL),
   hn_pion(NULL),
   hn_missing(NULL),
+  hn_missing_eta(NULL),
   hn_photon(NULL),
   hn_geom(NULL),
   hn_isolated(NULL)
@@ -171,6 +172,7 @@ void AnaFastMC::FastMCInput()
   TLorentzVector beam_eta;
   TLorentzVector beam_ph;
   double weight_pi0 = 1.;
+  double weight_eta = 1.;
   double weight_ph = 1.;
 
   const double eta_max = 0.5;
@@ -310,6 +312,13 @@ void AnaFastMC::FastMCInput()
    * and set NPart and NPeak */
   pi0_sim(beam_eta);
 
+  /* Get event weight for eta */
+  double pteff = sqrt(pt*pt + mEta*mEta - mPi0*mPi0);
+  if(pt > 1.)
+    weight_eta = cross_pi0->Eval(pteff);
+  else
+    weight_eta = cross_pi0->Eval(1.);
+
   for(int iph=0; iph<2; iph++)
     if( InFiducial(itw_part[iph]) &&
         Vpart[iph].E() > eMin )
@@ -322,6 +331,13 @@ void AnaFastMC::FastMCInput()
         npart = NPart;
         npeak = NPeak;
       }
+
+      double ptsim = pt;
+      if(NPart == 2)
+        ptsim = (Vpart[0] + Vpart[1]).Pt();
+
+      double fill_hn_missing_eta[] = {ptsim, Vpart[iph].Pt(), (double)sec_part[iph], (double)npart, (double)npeak};
+      hn_missing_eta->Fill(fill_hn_missing_eta, weight_eta);
 
       if( npart == 1 )
       {
@@ -473,7 +489,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
       hn_geom->Fill(fill_hn_geom, weight_pythia);
 
       /* Eta and phi distribution and acceptance for isolated prompt photons */
-      if( econe_acc < eratio * energy && e1 > eMin)
+      if( econe_acc < eratio*energy && e1 > eMin)
       {
         int part = -1;
         if(sec1 < 0) part = -1;
@@ -689,6 +705,11 @@ void AnaFastMC::BookHistograms()
     hn_missing->SetBinEdges(1, pTbin);
     hn_missing->Sumw2();
     hm->registerHisto(hn_missing);
+
+    hn_missing_eta = (THnSparse*)hn_missing->Clone("hn_missing_eta");
+    hn_missing_eta->SetTitle("#eta missing ratio;p^{#eta}_{T} [GeV];p^{#gamma}_{T};sector;NPart;NPeak;");
+    hn_missing_eta->Sumw2();
+    hm->registerHisto(hn_missing_eta);
   }
 
   /* Use PHParticleGen input */

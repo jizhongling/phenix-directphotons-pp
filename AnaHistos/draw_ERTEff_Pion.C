@@ -24,6 +24,7 @@ void draw_ERTEff_Pion()
 
   int bbc10cm = 1;
   int ert_trig[2] = {2, 5};
+  int ival = 1;
 
   TH2 *h2_ert_pion_t = (TH2*)f->Get("h2_ert_pion_0");
   h2_ert_pion_t->Reset();
@@ -33,12 +34,13 @@ void draw_ERTEff_Pion()
     {
       h2_ert_pion[part][cond] = (TH2*)h2_ert_pion_t->Clone(Form("h2_ert_pion_part%d_cond%d",part,cond));
       for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
-      {
-        int ih = sector + 8*ert_trig[cond] + 6*8*bbc10cm;
-        TH2 *h2_tmp = (TH2*)f->Get(Form("h2_ert_pion_%d",ih));
-        h2_ert_pion[part][cond]->Add(h2_tmp);
-        delete h2_tmp;
-      }
+        for(int isolated=0; isolated<2; isolated++)
+        {
+          int ih = sector + 8*ert_trig[cond] + 8*6*bbc10cm + 8*6*2*isolated + 8*6*2*2*ival;
+          TH2 *h2_tmp = (TH2*)f->Get(Form("h2_ert_pion_%d",ih));
+          h2_ert_pion[part][cond]->Add(h2_tmp);
+          delete h2_tmp;
+        }
     }
     h2_ert_pion[part][0]->Add(h2_ert_pion[part][1]);
   }

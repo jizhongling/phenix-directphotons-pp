@@ -4,16 +4,19 @@
 
 void draw_RawALL()
 {
+  const int ngroup = 2;
   const char *pattern_list[5] = {"SOOSSOO", "OSSOOSS", "SSOO", "OOSS", "NONE"};
   const char *crossing_list[2] = {"even", "odd"};
-  const int ngroup = 2;
+
+  QueryTree *qt_all = new QueryTree("data/RawALL.root", "RECREATE");
+
+  QueryTree *qt_asym = new QueryTree("data/raw-asym.root");
+  qt_asym->SetQuiet();
 
   ofstream fout_txt("data/raw-asym.txt", ofstream::trunc);
   vector<double> *vp_ALL = new vector<double>[8];
   vector<double> *vp_eALL = new vector<double>[8];
 
-  TFile *f_tree = new TFile("data/raw-asym.root");
-  TTree *t1 = (TTree*)f_tree->Get("t1");
   for(int ipt=0; ipt<11; ipt++)
   {
     for(int pattern=0; pattern<4; pattern++)
@@ -23,16 +26,19 @@ void draw_RawALL()
         vp_ALL[id].clear();
         vp_eALL[id].clear();
 
-        TSQLResult *res = t1->Query( "ALL:eALL",
-            Form("ipt==%d&&spin_pattern==%d&&crossing==%d",ipt,pattern,icr) );
+        int ig = ipt + npT/ngroup*icr + 2*npT/ngroup*pattern;
+        TSQLResult *res = qt_asym->Query(ig); // runnumber:runnumber:value:error:errorlow:errorhigh
         TSQLRow *row;
         while( row = res->Next() )
         {
-          TString field0 = row->GetField(0);
-          TString field1 = row->GetField(1);
-          vp_ALL[id].push_back(field0.Atof());
-          vp_eALL[id].push_back(field1.Atof());
-          fout_txt << field0 << ",";
+          TString field2 = row->GetField(2);
+          TString field3 = row->GetField(3);
+          double ALL = field2.Atof();
+          double eALL = field3.Atof();
+
+          vp_ALL[id].push_back(ALL);
+          vp_eALL[id].push_back(eALL);
+          fout_txt << ALL << ",";
           delete row;
         }
         fout_txt << endl;
@@ -45,16 +51,13 @@ void draw_RawALL()
   }
   fout_txt.close();
 
-  QueryTree *qt_all = new QueryTree("data/RawALL.root", "RECREATE");
-
-  QueryTree *qt_asym = new QueryTree("data/raw-asym.root");
-
   TF1 *fn_mean = new TF1("fn_mean", "pol0");
 
   for(int pattern=0; pattern<4; pattern++)
     for(int icr=0; icr<2; icr++)
     {
       int igr = icr + 2*pattern;
+      mc(igr);
 
       for(int ipt=0; ipt<npT/ngroup; ipt++)
       {

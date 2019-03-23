@@ -97,4 +97,5 @@ void draw_Acceptance_IsoPhoton()
 
   leg0->Draw();
   qt_acc->Save();
+  c0->Print("plots/Acceptance-isophoton.pdf");
 }

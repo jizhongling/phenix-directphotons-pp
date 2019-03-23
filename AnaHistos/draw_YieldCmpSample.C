@@ -18,18 +18,24 @@ void draw_YieldCmpSample()
 
   // h_histo[part]
   TH2 *h2_histo[3];
+
+  int evtype = 2;
+  int bbc10cm = 1;
+  int tof = 1;
+  int prob = 1;
+  int ival = 1;
+
   TH2 *h2_histo_t = (TH2*)f_histo->Get("h2_pion_0");
   h2_histo_t->Reset();
-  int bbc10cm = 1;
-  int evtype = 2;
-  int cut = 3;
   for(int part=0; part<3; part++)
   {
     h2_histo[part] = (TH2*)h2_histo_t->Clone(Form("h2_histo_%d",part));
     for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
-      for(int pattern=0; pattern<3; pattern++)
+      for(int evenodd=0; evenodd<2; evenodd++)
+        for(int pattern=0; pattern<3; pattern++)
+          for(int isolated=0; isolated<2; isolated++)
           {
-            int ih = sector + 8*pattern + 3*8*cut + 4*3*8*evtype + 3*4*3*8*bbc10cm;
+            int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*3*bbc10cm + 8*2*3*2*3*2*3*2*ival;
             TH2 *h2_tmp = (TH2*)f_histo->Get(Form("h2_pion_%d",ih));
             h2_histo[part]->Add(h2_tmp);
             delete h2_tmp;

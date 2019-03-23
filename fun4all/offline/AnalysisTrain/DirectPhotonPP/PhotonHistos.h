@@ -50,6 +50,8 @@ class PhotonHistos: public SubsysReco
     int FillBBCEfficiency(const emcClusterContainer *data_emccontainer, const TrigLvl1 *data_triggerlvl1);
     int FillERTEfficiency(const emcClusterContainer *data_emccontainer, const PHGlobal *data_global,
         const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, const int evtype);
+    int FillERTEfficiency(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
+        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, const int evtype);
 
     /* Check tower energy distribution*/
     int FillTowerEnergy(const emcClusterContainer *data_emccontainer, const emcTowerContainer *data_emctwrcontainer,
@@ -109,17 +111,17 @@ class PhotonHistos: public SubsysReco
     static const int NZ = 96;
 
     /* Number of histogram array */
-    static const int nh_calib = 2*8;
-    static const int nh_bbc = 2*8;
-    static const int nh_ert = 2*6*8;
-    static const int nh_etwr = 16*8*2*8;
+    static const int nh_calib = 8*2;
+    static const int nh_bbc = 8*2;
+    static const int nh_ert = 8*6*2*2*4;
+    static const int nh_etwr = 8*2*8*16;
     static const int nh_dcpartqual = 2*2*64;
     static const int nh_dcquality = 64;
     static const int nh_dcpart = 2*2;
-    static const int nh_eta_phi = 4*2*3;
-    static const int nh_pion = 4*2*2*3*2*2*3*2*8;
-    static const int nh_1photon = 4*2*3*2*3*2*8;
-    static const int nh_2photon = 4*2*3*2*2*3*2*8;
+    static const int nh_eta_phi = 3*2*4;
+    static const int nh_pion = 8*2*3*2*3*2*3*2*4;
+    static const int nh_1photon = 8*2*3*2*3*2*4*2;
+    static const int nh_2photon = 8*2*3*2*2*3*2*4*2;
 
     /* Tower status for warnmap */
     int tower_status_nils[NSEC][NY][NZ];

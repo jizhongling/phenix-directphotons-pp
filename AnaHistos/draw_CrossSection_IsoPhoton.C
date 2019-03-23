@@ -22,11 +22,10 @@ void draw_CrossSection_IsoPhoton()
   const double eTrigBBC = 0.01;
   const double ToF[3] = {0.992, 0.992, 0.997};
   const double eToF[3] = {0.002, 0.002, 0.002};
-  const double ConvPion[3] = {0.720, 0.919, 0.919};
   const double Conv[3] = {0.849, 0.959, 0.959};
   const double eConv[3] = {0.027, 0.023, 0.023};
-  const double Norm[3] = {0.321, 0.314, 0.243};
-  const double eNorm[3] = {0.005, 0.006, 0.005};
+  const double Norm[3] = {0.321, 0.321, 0.243};
+  const double eNorm[3] = {0.005, 0.005, 0.005};
   const double A = 0.24;
   const double eA = 0.04;
 
@@ -44,22 +43,25 @@ void draw_CrossSection_IsoPhoton()
 
   QueryTree *qt_cross = new QueryTree("data/CrossSection-isophoton.root", "RECREATE");
 
-  QueryTree *qt_acc = new QueryTree("data/Acceptance-photon.root");
+  QueryTree *qt_acc = new QueryTree("data/Acceptance-isophoton.root");
   QueryTree *qt_ert = new QueryTree("data/ERTEff-photon.root");
-  QueryTree *qt_misscorr = new QueryTree("data/MissCorr.root");
-  QueryTree *qt_mergecorr1 = new QueryTree("data/MergeCorr-1photon.root");
-  QueryTree *qt_mergecorr2 = new QueryTree("data/MergeCorr-2photon.root");
+  QueryTree *qt_miss = new QueryTree("data/MissingRatio.root");
+  QueryTree *qt_miss_eta = new QueryTree("data/MissingRatio-eta.root");
+  QueryTree *qt_merge1 = new QueryTree("data/Merge-1photon.root");
+  QueryTree *qt_merge2 = new QueryTree("data/Merge-2photon.root");
+  QueryTree *qt_badpass = new QueryTree("data/MergePassRate.root");
+  QueryTree *qt_veto = new QueryTree("data/SelfVeto.root");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
   // h[evtype][part]
   TH1 *h_1photon[3][3];
   TH2 *h2_isoboth[3][3];
+  TH2 *h2_isopair2pt[3][3];
   TH2 *h2_isopair[3][3];
 
   int bbc10cm = 1;
   int tof = 1;
-  int prob = 1;
   int ival = 1;
 
   TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
@@ -71,13 +73,14 @@ void draw_CrossSection_IsoPhoton()
       h_1photon[evtype][part] = (TH1*)h_1photon_t->Clone(Form("h_1photon_type%d_part%d",evtype,part));
       for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
         for(int pattern=0; pattern<3; pattern++)
-        {
-          int isolated = 1;
-          int ih = sector + 8*pattern + 3*8*isolated + 2*3*8*tof + 2*2*3*8*prob + 2*2*2*3*8*evtype + 3*2*2*2*3*8*bbc10cm + 2*3*2*2*2*3*8*ival;
-          TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
-          h_1photon[evtype][part]->Add(h_tmp);
-          delete h_tmp;
-        }
+          for(int evenodd=0; evenodd<2; evenodd++)
+          {
+            int isolated = 1;
+            int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*evtype + 8*2*3*2*3*bbc10cm + 8*2*3*2*3*2*ival + 8*2*3*2*3*2*4*(tof-1);
+            TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
+            h_1photon[evtype][part]->Add(h_tmp);
+            delete h_tmp;
+          }
     }
 
   TH2 *h2_2photon_t = (TH2*)f->Get("h2_2photon_0");
@@ -89,14 +92,15 @@ void draw_CrossSection_IsoPhoton()
       h2_isoboth[evtype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isoboth_type%d_part%d",evtype,part));
       for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
         for(int pattern=0; pattern<3; pattern++)
-          for(int isopair=0; isopair<2; isopair++)
-          {
-            int isoboth = 1;
-            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm + 2*3*2*2*2*2*3*8*ival;
-            TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
-            h2_isoboth[evtype][part]->Add(h2_tmp);
-            delete h2_tmp;
-          }
+          for(int evenodd=0; evenodd<2; evenodd++)
+            for(int isopair=0; isopair<2; isopair++)
+            {
+              int isoboth = 1;
+              int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isoboth + 8*2*3*2*isopair + 8*2*3*2*2*evtype + 8*2*3*2*2*3*bbc10cm + 8*2*3*2*2*3*2*ival + 8*2*3*2*2*3*2*4*(tof-1);
+              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
+              h2_isoboth[evtype][part]->Add(h2_tmp);
+              delete h2_tmp;
+            }
     }
 
   for(int evtype=1; evtype<3; evtype++)
@@ -105,15 +109,40 @@ void draw_CrossSection_IsoPhoton()
       h2_isopair[evtype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isopair_type%d_part%d",evtype,part));
       for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
         for(int pattern=0; pattern<3; pattern++)
-          for(int isoboth=0; isoboth<2; isoboth++)
-          {
-            int isopair = 1;
-            int ih = sector + 8*pattern + 3*8*isoboth + 2*3*8*isopair + 2*2*3*8*tof + 2*2*2*3*8*prob + 2*2*2*2*3*8*evtype + 3*2*2*2*2*3*8*bbc10cm + 2*3*2*2*2*2*3*8*ival;
-            TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
-            h2_isopair[evtype][part]->Add(h2_tmp);
-            delete h2_tmp;
-          }
+          for(int evenodd=0; evenodd<2; evenodd++)
+            for(int isoboth=0; isoboth<2; isoboth++)
+            {
+              int isopair = 1;
+              int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isoboth + 8*2*3*2*isopair + 8*2*3*2*2*evtype + 8*2*3*2*2*3*bbc10cm + 8*2*3*2*2*3*2*ival + 8*2*3*2*2*3*2*4*(tof-1);
+              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
+              h2_isopair[evtype][part]->Add(h2_tmp);
+              delete h2_tmp;
+            }
     }
+
+  for(int evtype=1; evtype<3; evtype++)
+    for(int part=0; part<3; part++)
+    {
+      h2_isopair2pt[evtype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isopair2pt_type%d_part%d",evtype,part));
+      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+        for(int pattern=0; pattern<3; pattern++)
+          for(int evenodd=0; evenodd<2; evenodd++)
+            for(int isoboth=0; isoboth<2; isoboth++)
+            {
+              int isopair = 1;
+              int ih = sector + 8*evenodd + 2*8*pattern + 3*2*8*isoboth + 2*3*2*8*isopair + 2*2*3*2*8*evtype + 3*2*2*3*2*8*bbc10cm + 2*3*2*2*3*2*8*ival;
+              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon2pt_%d",ih));
+              h2_isopair2pt[evtype][part]->Add(h2_tmp);
+              delete h2_tmp;
+            }
+    }
+
+  for(int part=0; part<3; part++)
+  {
+    mc(part, 6,5);
+    mc(part+3, 6,5);
+    mc(part+6, 6,5);
+  }
 
   for(int ipt=2; ipt<npT; ipt++)
   {
@@ -128,6 +157,7 @@ void draw_CrossSection_IsoPhoton()
         evtype = 1;
 
       double nphoton = h_1photon[evtype][part]->GetBinContent(ipt+1);
+      double enphoton = sqrt(nphoton);
 
       TH1 *h_minv;
 
@@ -155,12 +185,29 @@ void draw_CrossSection_IsoPhoton()
       nisopair /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
-      double Acc, eAcc, TrigERT, eTrigERT, MissCorr, eMissCorr, MergeCorr1, eMergeCorr1, MergeCorr2, eMergeCorr2;
+      mcd(part+6, ipt+1);
+      double nisopair2pt = 1., enisopair2pt = 1.;
+      h_minv = (TH1*)h2_isopair2pt[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
+      h_minv->Rebin(10);
+      h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
+      if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
+        FitMinv(h_minv, nisopair2pt, enisopair2pt, true, 0.11,0.16);
+      else if(ipt < 23)  // <16GeV subtract background
+        FitMinv(h_minv, nisopair2pt, enisopair2pt, true, 0.10,0.17);
+      else  // >16GeV don't subtract background
+        FitMinv(h_minv, nisopair2pt, enisopair2pt, false, 0.10,0.17);
+      nisopair2pt /= bck[part/2][ipt] * meff[part/2][ipt];
+      delete h_minv;
+
+      double xpt, Acc, eAcc, TrigERT, eTrigERT, Miss, eMiss, MissEta, eMissEta, Merge1, eMerge1, Merge2, eMerge2, BadPass, eBadPass, Veto, eVeto;
       qt_acc->Query(ipt, part, xpt, Acc, eAcc);
       qt_ert->Query(ipt, part/2, xpt, TrigERT, eTrigERT);
-      qt_misscorr->Query(ipt, part, xpt, MissCorr, eMissCorr);
-      qt_mergecorr1->Query(ipt, part, xpt, MergeCorr1, eMergeCorr1);
-      qt_mergecorr2->Query(ipt, part, xpt, MergeCorr2, eMergeCorr2);
+      qt_miss->Query(ipt, part, xpt, Miss, eMiss);
+      qt_miss_eta->Query(ipt, part, xpt, MissEta, eMissEta);
+      qt_merge1->Query(ipt, part, xpt, Merge1, eMerge1);
+      qt_merge2->Query(ipt, part, xpt, Merge2, eMerge2);
+      qt_badpass->Query(ipt, part/2, xpt, BadPass, eBadPass);
+      qt_veto->Query(ipt, part, xpt, Veto, eVeto);
 
       if(ipt >= 20)
       {
@@ -176,9 +223,10 @@ void draw_CrossSection_IsoPhoton()
         }
       }
 
-      double ndir = nphoton - ( nisoboth + MissPass * nisopair ) - A * Veto * ( 1. + MissAll ) * nisopair;
-      double endir = sqrt( nphoton + enisoboth*enisoboth + pow(eMissPass*nisopair,2) + pow(MissPass*enisopair,2) );
-      if( endir != endir ) endir = sqrt( nphoton + enisoboth*enisoboth );
+      double AIso = A * Veto * (1.+MissEta)/(1.+2.*MissEta) * (1+2.*Miss+Merge1);
+      double ndir = nphoton/Conv[part] - (1. + Merge1*Conv[part]*(1.-Conv[part])) * nisoboth/pow(Conv[part],2) - Miss * nisopair/pow(Conv[part],2) - Merge2/2.*BadPass * nisopair2pt - AIso * nisopair;
+      double endir = sqrt(pow(enphoton,2)/pow(Conv[part],2) + (pow(enisoboth,2)* pow(1. + (1. - Conv[part])*Conv[part]*Merge1,2))/ pow(Conv[part],4) + 0.25*pow(BadPass,2)*pow(enisopair2pt,2)* pow(Merge2,2) + 0.25*pow(BadPass,2)*pow(eMerge2,2)* pow(nisopair2pt,2) + 0.25*pow(eBadPass,2)*pow(Merge2,2)* pow(nisopair2pt,2) + (pow(A,2)*pow(eVeto,2)* pow(1. + Miss,2)* pow(1 + Merge1 + 2.*Miss,2)* pow(nisopair,2))/pow(1. + 2.*Miss,2) + pow(eConv[part],2)* pow(-((((1. - Conv[part])*Merge1 - Conv[part]*Merge1)* nisoboth)/pow(Conv[part],2)) + (2*(1. + (1. - Conv[part])*Conv[part]*Merge1)* nisoboth)/pow(Conv[part],3) + (2*Miss*nisopair)/pow(Conv[part],3) - nphoton/pow(Conv[part],2),2) + (pow(eA,2)*pow(1. + Miss,2)* pow(1 + Merge1 + 2.*Miss,2)* pow(nisopair,2)*pow(Veto,2))/ pow(1. + 2.*Miss,2) + pow(enisopair,2)* pow(-(Miss/pow(Conv[part],2)) - (A*(1. + Miss)*(1 + Merge1 + 2.*Miss)* Veto)/(1. + 2.*Miss),2) + pow(eMerge1,2)* pow(-(((1. - Conv[part])*nisoboth)/Conv[part]) - (A*(1. + Miss)*nisopair*Veto)/ (1. + 2.*Miss),2) + pow(eMiss,2)*pow(-(nisopair/ pow(Conv[part],2)) - (2.*A*(1. + Miss)*nisopair*Veto)/ (1. + 2.*Miss) + (2.*A*(1. + Miss)*(1 + Merge1 + 2.*Miss)* nisopair*Veto)/pow(1. + 2.*Miss,2) - (A*(1 + Merge1 + 2.*Miss)*nisopair*Veto)/ (1. + 2.*Miss),2));
+
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
         ndir *= Norm[part];
@@ -187,12 +235,12 @@ void draw_CrossSection_IsoPhoton()
 
       yy[part] = (XBBC/NBBC) / (2*PI*xpt) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
         * ndir / Acc / TrigERT / Prob[part/2][ipt]
-        / ToF[part] / Conv[part] / TrigBBC * Pile[part];
+        / ToF[part] / TrigBBC * Pile[part];
       eyy[part] = yy[part] * sqrt( pow(endir/ndir,2)
           + pow(eAcc/Acc,2)
           + pow(eTrigERT/TrigERT,2)
           + pow(eProb/Prob[part/2][ipt],2)
-          + pow(eToF[part]/ToF[part],2) + pow(eConv[part]/Conv[part],2)
+          + pow(eToF[part]/ToF[part],2)
           //+ pow(eTrigBBC/TrigBBC,2) + pow(ePile/Pile[part],2) + pow(eXBBC/XBBC,2)
           );
       if( TMath::Finite(yy[part]+eyy[part]) )
@@ -211,13 +259,13 @@ void draw_CrossSection_IsoPhoton()
   } // ipt
   cross_ph->SetParameter(4, ndata/nfit);
 
-  mc(6, 2,1);
+  mc(9, 2,1);
   legi(0, 0.4,0.7,0.7,0.9);
 
   for(int part=0; part<4; part++)
   {
     TGraphErrors *gr = qt_cross->Graph(part);
-    mcd(6, part/3+1);
+    mcd(9, part/3+1);
     gPad->SetLogy();
     if(part == 0)
       gr->SetTitle("Separated");
@@ -236,16 +284,17 @@ void draw_CrossSection_IsoPhoton()
       leg0->AddEntry(gr, pname[part], "P");
   }
 
-  mcd(6, 1);
+  mcd(9, 1);
   leg0->Draw();
-  mcd(6, 2);
-  c6->Print("plots/CrossSection-isophoton.pdf");
+  mcd(9, 2);
+  c9->Print("plots/CrossSection-isophoton.pdf");
 
   qt_cross->Write();
   for(int part=0; part<3; part++)
   {
     mcw( part, Form("Minv-isoboth-part%d",part) );
     mcw( part+3, Form("Minv-isopair-part%d",part) );
+    mcw( part+6, Form("Minv-isopair2pt-part%d",part) );
   }
   qt_cross->Close();
 }

@@ -22,7 +22,7 @@ void draw_CrossSectionCmp(const int nameid)
 
   const double PI = TMath::Pi();
   const double jetphox_scale = 1./200.;  // combined 200 histograms
-  const char *jetphotx_fname[3] = {"halfpt", "onept", "twopt"};
+  const char *jetphox_fname[3] = {"halfpt", "onept", "twopt"};
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
 
   TString fname = "data/CrossSection-";
@@ -61,7 +61,7 @@ void draw_CrossSectionCmp(const int nameid)
     if( TMath::Abs(sasha_pT - xpt) > 0.2 )
     {
       cout << "ipt " << ipt << ": wrong pT matching!!!" << endl;
-      return;
+      //return;
     }
 
     double yy = Combine / sasha;
@@ -127,7 +127,7 @@ void draw_CrossSectionCmp(const int nameid)
 
   for(int imu=0; imu<3; imu++)
   {
-    TgraphErrors *gr_nlo = new TGraphErrors(npT);
+    TGraphErrors *gr_nlo = new TGraphErrors(npT);
     TFile *f_nlo = new TFile( Form("data/isoprompt-ct10-%s.root",jetphox_fname[imu]) );
     TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
     h_nlo->Scale(jetphox_scale);
