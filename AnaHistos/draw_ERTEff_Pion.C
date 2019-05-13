@@ -1,21 +1,15 @@
 #include "GlobalVars.h"
+#include "QueryTree.h"
 #include "FitMinv.h"
 #include "GetEfficiency.h"
 
 void draw_ERTEff_Pion()
 {
+  const char *pname[2] = {"PbSc", "PbGl"};
   const int secl[2] = {1, 7};
   const int sech[2] = {6, 8};
 
-  TGraphAsymmErrors *gr[2];
-  int igp[2] = {};
-  for(int part=0; part<2; part++)
-  {
-    gr[part] = new TGraphAsymmErrors(npT);
-    gr[part]->SetName(Form("gr_%d",part));
-    for(int ic=0; ic<2; ic++)
-      mc(part*2+ic, 6,5);
-  }
+  QueryTree *qt_ert = new QueryTree("data/ERTEff-pion.root", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
@@ -46,13 +40,17 @@ void draw_ERTEff_Pion()
   }
 
   for(int part=0; part<2; part++)
+    for(int ic=0; ic<2; ic++)
+      mc(part*2+ic, 6,5);
+
+  for(int part=0; part<2; part++)
     for(int ipt=0; ipt<npT; ipt++)
     {
       TH1 *h_minv;
 
       double nt, ent;
       mcd(part*2, ipt+1);
-      h_minv = h2_ert_pion[part][0]->ProjectionY("h_minv", ipt+1,ipt+1);
+      h_minv = (TH1*)h2_ert_pion[part][0]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
       FitMinv(h_minv, nt, ent);
@@ -60,7 +58,7 @@ void draw_ERTEff_Pion()
 
       double np, enp;
       mcd(part*2+1, ipt+1);
-      h_minv = h2_ert_pion[part][1]->ProjectionY("h_minv", ipt+1,ipt+1);
+      h_minv = (TH1*)h2_ert_pion[part][1]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
       FitMinv(h_minv, np, enp);
@@ -74,50 +72,44 @@ void draw_ERTEff_Pion()
         eyyh = 0.;
       }
       if( TMath::Finite(yy+eyyl+eyyh) )
-      {
-        gr[part]->SetPoint(igp[part], xx, yy);
-        gr[part]->SetPointError(igp[part], 0.,0., eyyl,eyyh);
-        igp[part]++;
-      }
+        qt_ert->Fill(ipt, part, xx, yy, eyyl, eyyh);
     }
 
   mc(4);
   mcd(4);
+  legi(0, 0.7,0.2,0.9,0.4);
 
   for(int part=0; part<2; part++)
   {
-    gr[part]->SetName(Form("gr_%d",part));
-    gr[part]->SetTitle("ERT_4x4c trigger efficeincy for #pi^{0}");
-    aset(gr[part], "p_{T} [GeV]","Eff", 1.,30., 0.,1.1);
-    style(gr[part], part+20, part+1);
+    TGraphAsymmErrors *gr = qt_ert->GraphAsymm(part);
+    gr->SetTitle("ERT_4x4c trigger efficeincy for #pi^{0}");
+    aset(gr, "p_{T} [GeV]","Eff", 1.,30., 0.,1.1);
+    style(gr, part+20, part+1);
     if(part==0)
-      gr[part]->Draw("APE");
+      gr->Draw("APE");
     else
-      gr[part]->Draw("PE");
+      gr->Draw("PE");
 
-    gr[part]->Fit("pol0", "Q","", 10.,20.);
+    gr->Fit("pol0", "Q","", 10.,20.);
     gPad->Update();
-    TPaveStats *st = (TPaveStats*)gr[part]->FindObject("stats");
+    TPaveStats *st = (TPaveStats*)gr->FindObject("stats");
     st->SetY1NDC(0.3-part*0.2);
     st->SetY2NDC(0.5-part*0.2);
 
     TGraph *gr_sasha =  new TGraph( Form("data/sasha-trig-part%d.txt",part) );
     gr_sasha->Draw("C");
-  }
 
-  legi(0, 0.7,0.2,0.9,0.4);
-  leg0->AddEntry(gr[0], "PbSc", "LPE");
-  leg0->AddEntry(gr[1], "PbGl", "LPE");
-  //leg0->Draw();
+    leg0->AddEntry(gr, pname[part], "LPE");
+  }
+  leg0->Draw();
 
   c4->Print("plots/ERTEff-pion.pdf");
 
-  TFile *f_out = new TFile("data/ERTEff-pion.root", "RECREATE");
+  qt_ert->Write();
   for(int part=0; part<2; part++)
   {
     mcw( part*2, Form("part%d-total",part) );
     mcw( part*2+1, Form("part%d-passed",part) );
-    gr[part]->Write();
   }
-  f_out->Close();
+  qt_ert->Close();
 }

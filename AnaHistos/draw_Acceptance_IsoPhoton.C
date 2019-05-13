@@ -10,24 +10,16 @@ void draw_Acceptance_IsoPhoton()
 
   QueryTree *qt_acc = new QueryTree("data/Acceptance-isophoton.root", "RECREATE");
 
-  TGraphAsymmErrors *gr_geom[3];
-  TGraphAsymmErrors *gr_iso[3];
-  TGraphErrors *gr_smear[3];
-  TGraphAsymmErrors *gr_acc[3];
-  for(int part=0; part<3; part++)
-  {
-    gr_geom[part] = new TGraphAsymmErrors(npT);
-    gr_iso[part] = new TGraphAsymmErrors(npT);
-    gr_acc[part] = new TGraphAsymmErrors(npT);
-    gr_acc[part]->SetName(Form("gr_%d",part));
-  }
-
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo.root");
   TH1 *h_photon = (TH1*)f->Get("h_photon");
   TH1 *h_isophoton = (TH1*)f->Get("h_isophoton");
   TH1 *h_isolated = (TH1*)f->Get("h_isolated");
   THnSparse *hn_geom = (THnSparse*)f->Get("hn_geom");
   THnSparse *hn_isolated = (THnSparse*)f->Get("hn_isolated");
+
+  TGraphErrors *gr_geom[3];
+  TGraphErrors *gr_iso[3];
+  TGraphErrors *gr_smear[3];
 
   for(int part=0; part<3; part++)
   {
@@ -36,15 +28,12 @@ void draw_Acceptance_IsoPhoton()
     TH1 *h_geom = hn_geom->Projection(0);
     TH1 *h_iso = hn_isolated->Projection(0);
     TH1 *h_reco = hn_isolated->Projection(1);
-    for(int binx=1; binx<=h_photon->GetNbinsX(); binx++)
-      if( h_reco->GetBinContent(binx) > h_isolated->GetBinContent(binx) )
-        h_reco->SetBinContent(binx, h_isolated->GetBinContent(binx));
 
-    qt_acc->Fill(h_reco, h_isolated, part);
-    gr_geom[part]->Divide(h_geom, h_photon, "n");
-    gr_iso[part]->Divide(h_iso, h_geom, "n");
+    gr_geom[part] = DivideHisto(h_geom, h_photon);
+    gr_iso[part] = DivideHisto(h_iso, h_geom);
     gr_smear[part] = DivideHisto(h_reco, h_iso);
-    gr_acc[part]->Divide(h_reco, h_isolated, "n");
+    qt_acc->Fill(h_reco, h_isolated, part);
+
     delete h_geom;
     delete h_iso;
     delete h_reco;
@@ -59,7 +48,7 @@ void draw_Acceptance_IsoPhoton()
   {
     mcd(0);
     gr_geom[part]->SetTitle("Geometric acceptance");
-    aset(gr_geom[part], "p_{T} [GeV]","Incl/All", 4.,30., 0.,0.12);
+    aset(gr_geom[part], "p_{T} [GeV]","InAcc/All", 4.,30., 0.,0.12);
     style(gr_geom[part], part+20, part+1);
     if(part==0)
       gr_geom[part]->Draw("AP");
@@ -67,8 +56,8 @@ void draw_Acceptance_IsoPhoton()
       gr_geom[part]->Draw("P");
 
     mcd(1);
-    gr_iso[part]->SetTitle("Isolated over inclusive photons");
-    aset(gr_iso[part], "p_{T} [GeV]","Iso/Incl", 4.,30.);
+    gr_iso[part]->SetTitle("Isolated over inclusive prompt photons");
+    aset(gr_iso[part], "p_{T} [GeV]","Iso/InAcc", 4.,30.);
     style(gr_iso[part], part+20, part+1);
     if(part==0)
       gr_iso[part]->Draw("AP");
@@ -85,17 +74,18 @@ void draw_Acceptance_IsoPhoton()
       gr_smear[part]->Draw("P");
 
     mcd(3);
-    gr_acc[part]->SetTitle("Combined acceptance");
-    aset(gr_acc[part], "p_{T} [GeV]","Acceptance", 4.,30., 0.,0.4);
-    style(gr_acc[part], part+20, part+1);
+    TGraphErrors *gr_acc = qt_acc->Graph(part);
+    gr_acc->SetTitle("Combined acceptance");
+    aset(gr_acc, "p_{T} [GeV]","Acceptance", 4.,30., 0.,0.4);
+    style(gr_acc, part+20, part+1);
     if(part==0)
-      gr_acc[part]->Draw("AP");
+      gr_acc->Draw("AP");
     else
-      gr_acc[part]->Draw("P");
-    leg0->AddEntry(gr_acc[part], pname[part], "P");
+      gr_acc->Draw("P");
+    leg0->AddEntry(gr_acc, pname[part], "P");
   }
 
   leg0->Draw();
   qt_acc->Save();
-  c0->Print("plots/Acceptance-isophoton.pdf");
+  c3->Print("plots/Acceptance-isophoton.pdf");
 }

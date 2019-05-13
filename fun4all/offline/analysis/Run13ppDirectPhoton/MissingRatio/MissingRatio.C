@@ -4,9 +4,8 @@
 #include "AnaToolsTowerID.h"
 #include "AnaToolsCluster.h"
 
-#include <PHGlobal.h>
+//#include <PHGlobal.h>
 //#include <PHCentralTrack.h>
-//#include <PHSnglCentralTrack.h>
 //#include <McEvalSingleList.h>
 
 #include <emcNodeHelper.h>
@@ -103,15 +102,7 @@ int MissingRatio::Init(PHCompositeNode *topNode)
 
 int MissingRatio::process_event(PHCompositeNode *topNode)
 {
-  // global info
-  PHGlobal *data_global = findNode::getClass<PHGlobal>(topNode, "PHGlobal");
-  if(!data_global)
-  {
-    cout << "Cannot find PHGlobal" << endl;
-    return DISCARDEVENT;
-  }
-
-  // track info
+  // emc track info
   emcGeaTrackContainer *emctrkcont = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
   if(!emctrkcont)
   {
@@ -119,7 +110,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
-  // cluster info
+  // emc cluster info
   emcGeaClusterContainer *emccluscont = emctrkcont->GetClusters();
   if(!emccluscont)
   {

@@ -28,7 +28,7 @@ namespace anatools
    *
    * (copied from /offline/AnalysisTrain/Run13_Pi0Ana_YIS)
    */
-  enum TriggerMode {ERT_4x4a, ERT_4x4b, ERT_4x4c, ERT_2x2, RICH, ERT_Or, ERT_And};
+  enum TriggerMode {ERT_4x4a, ERT_4x4b, ERT_4x4c, ERT_2x2, RICH, ERT_4x4or};
 
   /*!
    * Trigger mask bits
@@ -76,11 +76,19 @@ namespace anatools
     Int_t y = cluster->iypos();
     Int_t z = cluster->izpos();
     Int_t sm = (Int_t)((y/12)*2*nsm[armsect]+z/12);
-    Int_t trigger = ertout->get_ERTbit(triggermode, arm, sector, sm);
-
-    return trigger;
+    if(triggermode != ERT_4x4or)
+    {
+      Int_t trigger = ertout->get_ERTbit(triggermode, arm, sector, sm);
+      return trigger;
+    }
+    else
+    {
+      Int_t trigger[3] = {};
+      for(Int_t i=0; i<3; i++)
+        trigger[i] = ertout->get_ERTbit((TriggerMode)i, arm, sector, sm);
+      return trigger[0] || trigger[1] || trigger[2];
+    }
   }
-
 
 } /* namespace anatools */
 

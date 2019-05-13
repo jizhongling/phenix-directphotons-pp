@@ -1,4 +1,5 @@
 #include "GlobalVars.h"
+#include "QueryTree.h"
 #include "GetEfficiency.h"
 
 void draw_Merge()
@@ -9,13 +10,7 @@ void draw_Merge()
 
   SetWeight();
 
-  TGraphAsymmErrors *gr[2];
-  int igp[2] = {};
-  for(int part=0; part<2; part++)
-  {
-    gr[part] = new TGraphAsymmErrors(npT);
-    gr[part]->SetName(Form("gr_%d",part));
-  }
+  QueryTree *qt_merge = new QueryTree("data/Merge.root", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-histo.root");
 
@@ -59,38 +54,29 @@ void draw_Merge()
         eyyh = 0.;
       }
       if( TMath::Finite(yy+eyyl+eyyh) )
-      {
-        gr[part]->SetPoint(igp[part], xpt, yy);
-        gr[part]->SetPointError(igp[part], 0.,0., eyyl,eyyh);
-        igp[part]++;
-      }
+        qt_merge->Fill(ipt, part, xpt, yy, eyyl, eyyh);
     }
 
 
   mc();
   mcd();
   legi(0, 0.2,0.2,0.4,0.4);
-
   for(int part=0; part<2; part++)
   {
-    gr[part]->Set(igp[part]);
-    gr[part]->SetTitle("Separating rate");
-    aset(gr[part], "p_{T} [GeV]","rate", 0.,30., 0.,1.1);
-    style(gr[part], part+20, part+1);
+    TGraphAsymmErrors *gr = qt_merge->GraphAsymm(part);
+    gr->SetTitle("Separating rate");
+    aset(gr, "p_{T} [GeV]","rate", 0.,30., 0.,1.1);
+    style(gr, part+20, part+1);
     if(part==0)
-      gr[part]->Draw("AP");
+      gr->Draw("AP");
     else
-      gr[part]->Draw("P");
-    leg0->AddEntry(gr[part], pname[part], "P");
+      gr->Draw("P");
+    leg0->AddEntry(gr, pname[part], "P");
     TGraph *gr_sasha =  new TGraph( Form("data/sasha-merge-part%d.txt",part) );
     gr_sasha->Draw("C");
   }
-
   leg0->Draw();
   c0->Print("plots/Merge.pdf");
 
-  TFile *f_out = new TFile("data/Merge.root", "RECREATE");
-  for(int part=0; part<2; part++)
-    gr[part]->Write();
-  f_out->Close();
+  qt_merge->Save();
 }

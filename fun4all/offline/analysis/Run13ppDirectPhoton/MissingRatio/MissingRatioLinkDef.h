@@ -7,4 +7,5 @@
 #pragma link C++ class PhotonEff-!;
 #pragma link C++ class IsolationCut-!;
 #pragma link C++ class Isolation-!;
+#pragma link C++ class HadronResponse-!;
 #endif /* __CINT__ */

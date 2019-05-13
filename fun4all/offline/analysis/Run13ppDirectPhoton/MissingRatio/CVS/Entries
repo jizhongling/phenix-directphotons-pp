@@ -1,17 +1,19 @@
 /AnaToolsTowerID.h/1.1/Wed Sep 27 14:18:10 2017//
 /autogen.sh/1.1.1.1/Wed Sep 27 14:18:10 2017//
-/AnaToolsCluster.h/1.4/Mon Nov 27 00:25:21 2017//
-/AnaTrk.C/1.4/Wed Jan 24 21:11:49 2018//
-/AnaTrk.h/1.4/Tue Jan 23 15:34:36 2018//
 /Makefile.am/1.7/Thu Jun 21 21:50:41 2018//
 /MissingRatio.C/1.15/Thu Jun 21 19:56:23 2018//
-/MissingRatio.h/1.14/Thu Jan 25 20:01:40 2018//
 /MissingRatioLinkDef.h/1.6/Thu Jun  7 22:48:31 2018//
-/configure.ac/1.3/Thu Jun 21 19:59:34 2018//
 /Isolation.C/1.1/Thu Jun 21 19:56:23 2018//
-/Isolation.h/1.1/Thu Jun  7 22:35:10 2018//
 /IsolationCut.C/1.1/Thu Jun 21 19:56:23 2018//
 /IsolationCut.h/1.1/Thu Jun 21 19:56:23 2018//
-/PhotonEff.C/1.1/Thu Jun 21 19:56:23 2018//
-/PhotonEff.h/1.1/Mon Mar 19 14:50:31 2018//
+/AnaToolsCluster.h/1.4/Fri Jan 25 22:35:50 2019//
+/AnaTrk.C/1.4/Fri Jan 25 22:35:50 2019//
+/AnaTrk.h/1.4/Fri Jan 25 22:35:50 2019//
+/Isolation.h/1.1/Fri Jan 25 22:35:50 2019//
+/MissingRatio.h/1.14/Fri Jan 25 22:35:50 2019//
+/PhotonEff.C/1.1/Fri Jan 25 22:35:50 2019//
+/PhotonEff.h/1.1/Fri Jan 25 22:35:50 2019//
+/configure.ac/1.3/Fri Jan 25 22:35:50 2019//
+/HadronResponse.C/0/Initial HadronResponse.C//
+/HadronResponse.h/0/Initial HadronResponse.h//
 D

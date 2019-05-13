@@ -39,7 +39,7 @@ void draw_CrossSection_Pion()
   const double emerge_gl[npT] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.00, 0.993, 0.959, 0.881, 0.751, 0.623, 0.481, 0.366, 0.261 };
   const double eff_22_gl[npT] =  { 0.000, 0.000, 0.000, 0.001, 0.002, 0.009, 0.029, 0.066, 0.128, 0.210, 0.289, 0.352, 0.433, 0.476, 0.517, 0.563, 0.600, 0.630, 0.650, 0.660, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, 0.676, }; // From fit (only bins 8-10 GeV tuned)
 
-  QueryTree *qt_cross = new QueryTree("data/CrossSection-photon.root", "RECREATE");
+  QueryTree *qt_cross = new QueryTree("data/CrossSection-pion.root", "RECREATE");
 
   QueryTree *qt_acc = new QueryTree("data/Acceptance-pion.root");
   QueryTree *qt_ert = new QueryTree("data/ERTEff-pion.root");
@@ -53,7 +53,6 @@ void draw_CrossSection_Pion()
   TH2 *h2_pion[3][3];
 
   int bbc10cm = 1;
-  int tof = 1;
   int prob = 1;
   int ival = 1;
 
@@ -68,13 +67,17 @@ void draw_CrossSection_Pion()
         for(int evenodd=0; evenodd<2; evenodd++)
           for(int pattern=0; pattern<3; pattern++)
             for(int isolated=0; isolated<2; isolated++)
-            {
-              int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*3*bbc10cm + 8*2*3*2*3*2*3*2*ival;
-              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
-              h2_pion[evtype][part]->Add(h2_tmp);
-              delete h2_tmp;
-            }
+              for(int tof=1; tof<3; tof++)
+              {
+                int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*4*bbc10cm + 8*2*3*2*3*2*4*2*ival;
+                TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
+                h2_pion[evtype][part]->Add(h2_tmp);
+                delete h2_tmp;
+              }
     }
+
+  for(int part=0; part<3; part++)
+    mc(part, 6,5);
 
   for(int ipt=0; ipt<npT; ipt++)
   {
@@ -110,7 +113,7 @@ void draw_CrossSection_Pion()
       double Acc, eAcc, TrigERT, eTrigERT, Merge, eMerge;
       qt_acc->Query(ipt, part, xpt, Acc, eAcc);
       qt_ert->Query(ipt, part/2, xpt, TrigERT, eTrigERT);
-      qt_mergecorr2->Query(ipt, part, xpt, Merge, eMerge);
+      qt_merge->Query(ipt, part/2, xpt, Merge, eMerge);
 
       if(ipt >= 20)
       {
@@ -161,7 +164,6 @@ void draw_CrossSection_Pion()
   for(int part=0; part<4; part++)
   {
     TGraphErrors *gr = qt_cross->Graph(part);
-    gr->Set(igp[part]);
     mcd(3, part/3+1);
     gPad->SetLogy();
     if(part == 0)

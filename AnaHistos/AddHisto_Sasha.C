@@ -33,15 +33,15 @@ void AddHisto_Sasha(const int process = 0)
   const int nThread = 20;
   int thread = -1;
   int runnumber;
-  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist-Sasha.txt");
 
   while( fin >> runnumber )
   {
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    //TFile *f = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510ERT/12232/data/Pi0PP-%d.root",runnumber));
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/shura/taxi/Run13pp510ERT/5094/data/%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510ERT/12232/data/Pi0PP-%d.root",runnumber));
+    //TFile *f = new TFile(Form("/phenix/spin/phnxsp01/shura/taxi/Run13pp510ERT/5094/data/%d.root",runnumber));
     if( f->IsZombie() ) continue;
 
     TH1 *mch[3][40][4];  // mch[is][ip][it]

@@ -16,6 +16,7 @@ noinst_HEADERS = \
   PhotonEff.h \
   IsolationCut.h \
   Isolation.h \
+  HadronResponse.h \
   AnaTrk.h \
   AnaToolsTowerID.h \
   AnaToolsCluster.h \
@@ -26,6 +27,7 @@ libMissingRatio_la_SOURCES = \
   PhotonEff.C \
   IsolationCut.C \
   Isolation.C \
+  HadronResponse.C \
   AnaTrk.C \
   MissingRatio_Dict.C
 
@@ -55,6 +57,7 @@ MissingRatio_Dict.C: \
   PhotonEff.h \
   IsolationCut.h \
   Isolation.h \
+  HadronResponse.h \
   MissingRatioLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 

@@ -7,7 +7,7 @@ void draw_ERTEff_Photon()
   const int secl[2] = {1, 7};
   const int sech[2] = {6, 8};
 
-  QueryTree *qt_ert = new QueryTree("data/ERTEff-photon-isolated.root", "RECREATE");
+  QueryTree *qt_ert = new QueryTree("data/ERTEff-photon.root", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
@@ -16,7 +16,6 @@ void draw_ERTEff_Photon()
 
   int bbc10cm = 1;
   int ert_trig[2] = {2, 5};
-  int isolated = 1;
   int ival = 1;
 
   TH1 *h_ert_t = (TH1*)f->Get("h_ert_0");
@@ -27,12 +26,13 @@ void draw_ERTEff_Photon()
     {
       h_ert[part][cond] = (TH1*)h_ert_t->Clone(Form("h_ert_part%d_cond%d",part,cond));
       for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
-      {
-        int ih = sector + 8*ert_trig[cond] + 8*6*bbc10cm + 8*6*2*isolated + 8*6*2*2*ival;
-        TH1 *h2_tmp = (TH1*)f->Get(Form("h_ert_%d",ih));
-        h_ert[part][cond]->Add(h2_tmp);
-        delete h2_tmp;
-      }
+        for(int isolated=0; isolated<2; isolated++)
+        {
+          int ih = sector + 8*ert_trig[cond] + 8*6*bbc10cm + 8*6*2*isolated + 8*6*2*2*ival;
+          TH1 *h2_tmp = (TH1*)f->Get(Form("h_ert_%d",ih));
+          h_ert[part][cond]->Add(h2_tmp);
+          delete h2_tmp;
+        }
     }
     h_ert[part][0]->Add(h_ert[part][1]);
     qt_ert->Fill(h_ert[part][1], h_ert[part][0], part);
@@ -62,6 +62,6 @@ void draw_ERTEff_Photon()
   }
   leg0->Draw();
 
-  c0->Print("plots/ERTEff-photon-isolated.pdf");
+  c0->Print("plots/ERTEff-photon.pdf");
   qt_ert->Save();
 }

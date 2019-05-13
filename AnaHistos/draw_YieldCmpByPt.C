@@ -20,7 +20,6 @@ void draw_YieldCmpByPt()
 
   int evtype = 2;
   int bbc10cm = 1;
-  int tof = 1;
   int prob = 1;
   int ival = 1;
 
@@ -33,24 +32,25 @@ void draw_YieldCmpByPt()
       for(int evenodd=0; evenodd<2; evenodd++)
         for(int pattern=0; pattern<3; pattern++)
           for(int isolated=0; isolated<2; isolated++)
-          {
-            int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*3*bbc10cm + 8*2*3*2*3*2*3*2*ival;
-            TH2 *h2_tmp = (TH2*)f_mine->Get(Form("h2_pion_%d",ih));
-            h2_pion[part]->Add(h2_tmp);
-            delete h2_tmp;
-          }
+            for(int tof=1; tof<3; tof++)
+            {
+              int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*4*bbc10cm + 8*2*3*2*3*2*4*2*ival;
+              TH2 *h2_tmp = (TH2*)f_mine->Get(Form("h2_pion_%d",ih));
+              h2_pion[part]->Add(h2_tmp);
+              delete h2_tmp;
+            }
   }
 
   for(int part=0; part<3; part++)
     for(int ipt=2; ipt<25; ipt++)
     {
       TH1 *h_minv = h2_pion[part]->ProjectionY("h_minv", ipt+1,ipt+1);
-      double npion_mine = h_minv->Integral(120,160);
+      double npion_mine = h_minv->Integral(113,162);
       delete h_minv;
 
       TH1 *mchist = (TH1*)f_sasha->Get(Form("mchist_s%d_pt%02d_tp",part,ipt));
       //TH1 *mchist = (TH1*)f_sasha->Get(Form("mc_s%d_bcc0_pt_%03d_tp",part,5*ipt));
-      double npion_sasha = mchist->Integral(120,160);
+      double npion_sasha = mchist->Integral(113,162);
       delete mchist;
 
       double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;

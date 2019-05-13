@@ -28,7 +28,7 @@ void anaYieldCmpByRun(const int process = 0)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    TFile *f_mine = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13597/data/PhotonHistos-%d.root",runnumber));
+    TFile *f_mine = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/14598/data/PhotonHistos-%d.root",runnumber));
     TFile *f_sasha = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510ERT/12232/data/Pi0PP-%d.root",runnumber));
     if( f_mine->IsZombie() || f_sasha->IsZombie() ) continue;
 
@@ -43,7 +43,6 @@ void anaYieldCmpByRun(const int process = 0)
 
     int evtype = 2;
     int bbc10cm = 1;
-    int tof = 1;
     int prob = 1;
     int ival = 1;
 
@@ -56,12 +55,13 @@ void anaYieldCmpByRun(const int process = 0)
         for(int evenodd=0; evenodd<2; evenodd++)
           for(int pattern=0; pattern<3; pattern++)
             for(int isolated=0; isolated<2; isolated++)
-            {
-              int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*3*bbc10cm + 8*2*3*2*3*2*3*2*ival;
-              TH2 *h2_tmp = (TH2*)f_mine->Get(Form("h2_pion_%d",ih));
-              h2_pion[part]->Add(h2_tmp);
-              delete h2_tmp;
-            }
+              for(int tof=1; tof<3; tof++)
+              {
+                int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*4*bbc10cm + 8*2*3*2*3*2*4*2*ival;
+                TH2 *h2_tmp = (TH2*)f_mine->Get(Form("h2_pion_%d",ih));
+                h2_pion[part]->Add(h2_tmp);
+                delete h2_tmp;
+              }
     }
 
     for(int part=0; part<3; part++)
