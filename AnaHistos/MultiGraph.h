@@ -128,6 +128,7 @@ void GetMeanSigma(GraphType *gr, double &mean, double &sigma)
       sumy += yy;
       sumy2 += yy*yy;
     }
+  }
 
   mean = sumy/sumN;
   sigma = sumN > 1 ? sqrt( ( sumy2 - sumN*mean*mean ) / ( sumN - 1 ) ) : 0.;

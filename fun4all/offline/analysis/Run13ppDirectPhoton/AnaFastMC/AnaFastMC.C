@@ -79,8 +79,10 @@ AnaFastMC::AnaFastMC(const string &name):
   hm(NULL),
   h_pion(NULL),
   h_photon(NULL),
-  h_isophoton(NULL),
-  h_isolated(NULL),
+  h_photon_eta050(NULL),
+  h_photon_eta025(NULL),
+  h_isophoton_eta050(NULL),
+  h_isophoton_eta025(NULL),
   h3_isopi0(NULL),
   h3_isoeta(NULL),
   hn_pion(NULL),
@@ -464,16 +466,20 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     /* Fill histogram for all prompt photons with |eta| < 0.5 */
     if( abs(pE_part.Eta()) < 0.5 )
     {
-      h_photon->Fill(pt, weight_pythia);
+      h_photon_eta050->Fill(pt, weight_pythia);
+
+      /* Fill histogram for all prompt photons with |eta| < 0.25 */
+      if( abs(pE_part.Eta()) < etaMax )
+        h_photon_eta025->Fill(pt, weight_pythia);
 
       /* Fill histogram for all isolated prompt photons with |eta| < 0.5 */
       if( econe_all < eratio * energy )
       {
-        h_isophoton->Fill(pt, weight_pythia);
+        h_isophoton_eta050->Fill(pt, weight_pythia);
 
         /* Fill histogram for all isolated prompt photons with |eta| < 0.25 */
         if( abs(pE_part.Eta()) < etaMax )
-          h_isolated->Fill(pt, weight_pythia);
+          h_isophoton_eta025->Fill(pt, weight_pythia);
       }
     }
 
@@ -715,13 +721,21 @@ void AnaFastMC::BookHistograms()
   /* Use PHParticleGen input */
   if( mcmethod == PHParticleGen )
   {
-    h_isophoton = (TH1*)h_photon->Clone("h_isophoton");
-    h_isophoton->Sumw2();
-    hm->registerHisto(h_isophoton);
+    h_photon_eta050 = (TH1*)h_photon->Clone("h_photon_eta050");
+    h_photon_eta050->Sumw2();
+    hm->registerHisto(h_photon_eta050);
 
-    h_isolated = (TH1*)h_photon->Clone("h_isolated");
-    h_isolated->Sumw2();
-    hm->registerHisto(h_isolated);
+    h_photon_eta025 = (TH1*)h_photon->Clone("h_photon_eta025");
+    h_photon_eta025->Sumw2();
+    hm->registerHisto(h_photon_eta025);
+
+    h_isophoton_eta050 = (TH1*)h_photon->Clone("h_isophoton_eta050");
+    h_isophoton_eta050->Sumw2();
+    hm->registerHisto(h_isophoton_eta050);
+
+    h_isophoton_eta025 = (TH1*)h_photon->Clone("h_isophoton_eta025");
+    h_isophoton_eta025->Sumw2();
+    hm->registerHisto(h_isophoton_eta025);
 
     hn_geom = (THnSparse*)hn_photon->Clone("hn_geom");
     hn_geom->Sumw2();

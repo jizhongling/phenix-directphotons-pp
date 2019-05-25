@@ -90,7 +90,7 @@ class PhotonHistos: public SubsysReco
     bool IsGoodTower(const emcClusterContent *cluster);
     bool IsBadTower(const emcClusterContent *cluster);
 
-    /* Get warnmap status, spin pattern and EMCal associated track */
+    /* Get spin pattern and EMCal associated track */
     int GetPattern(int crossing);
     int GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
 

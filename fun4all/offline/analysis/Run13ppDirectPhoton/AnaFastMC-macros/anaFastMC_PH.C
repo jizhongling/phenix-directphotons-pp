@@ -69,7 +69,7 @@ void anaFastMC_PH(const int process = 0)
 
   // Input DST file
   char dstFileName[1000];
-  sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/phpythia/phpythia%d.root", process);
+  sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/phpythia-BG/phpythia%d.root", process);
 
   cout << "\nfileopen for " << dstFileName << endl; 
   int openReturn = se->fileopen("DSTin1", dstFileName);

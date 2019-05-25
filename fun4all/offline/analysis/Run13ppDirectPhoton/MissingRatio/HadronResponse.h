@@ -6,6 +6,9 @@
 
 class PHCompositeNode;
 class Fun4AllHistoManager;
+class PHCentralTrack;
+class emcClusterContainer;
+class emcClusterContent;
 
 class TF1;
 class TFile;
@@ -27,6 +30,21 @@ class HadronResponse: public SubsysReco
     void ReadTowerStatus(const std::string& filename);
     void ReadSashaWarnmap(const std::string& filename);
 
+    /* Sum energy in cone around the reference particle
+     * for isolated photon and isolated pair */
+    double SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont,
+        const PHCentralTrack *data_tracks);
+    double SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
+
+    /* Check event type, photon cuts, charge veto and tower status */
+    bool DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
+    bool InFiducial(const emcClusterContent *cluster);
+    bool IsGoodTower(const emcClusterContent *cluster);
+    bool IsBadTower(const emcClusterContent *cluster);
+
+    /* EMCal associated track */
+    int GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
+
     // number of pT bins
     static const int npT = 30;
 
@@ -34,7 +52,8 @@ class HadronResponse: public SubsysReco
     static double vpT[npT+1];
 
     // tower status for warnmap
-    int tower_status[8][48][96];
+    int tower_status_nils[8][48][96];
+    int tower_status_sasha[8][48][96];
 
     std::string outFileName;
     Fun4AllHistoManager *hm;
