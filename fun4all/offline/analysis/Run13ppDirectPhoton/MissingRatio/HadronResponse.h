@@ -10,20 +10,24 @@ class PHCentralTrack;
 class emcClusterContainer;
 class emcClusterContent;
 
-class TF1;
 class TFile;
+class TH1;
 class TH2;
 class THnSparse;
 
 class HadronResponse: public SubsysReco
 {
   public:
-    HadronResponse(const std::string &name = "HadronResponse", const char *filename = "histo.root");
+    HadronResponse(const std::string &name = "HadronResponse",
+        const char *filename = "histo.root",
+        const double pt_init = 0.);
     virtual ~HadronResponse();
 
     int Init(PHCompositeNode *topNode);
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
+
+    void InitBatch();
 
   protected:
     void BookHistograms();
@@ -44,6 +48,12 @@ class HadronResponse: public SubsysReco
 
     /* EMCal associated track */
     int GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
+
+    /* Pythia weight normalization */
+    TH1 *h_pt_weight;
+    double pt_start;
+    int pt_count;
+    double weight_pythia;
 
     // number of pT bins
     static const int npT = 30;

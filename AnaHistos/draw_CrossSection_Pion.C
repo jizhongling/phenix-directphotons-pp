@@ -17,6 +17,7 @@ void draw_CrossSection_Pion()
   const double eXBBC = 3.24e9;
   const double BR = 0.988;
   const double Pile[3] = {0.905, 0.905, 0.865};
+  const double IsoPile[3] = {1.11, 1.11, 1.08};
   const double ePile = 0.01;
   const double TrigBBC = 0.91;
   const double eTrigBBC = 0.01;
@@ -51,6 +52,7 @@ void draw_CrossSection_Pion()
 
   // h[evtype][part]
   TH2 *h2_pion[3][3];
+  TH2 *h2_isopion[3][3];
 
   int bbc10cm = 1;
   int prob = 1;
@@ -59,29 +61,43 @@ void draw_CrossSection_Pion()
   TH2 *h2_pion_t = (TH2*)f->Get("h2_pion_0");
   h2_pion_t = (TH2*)h2_pion_t->Clone();
   h2_pion_t->Reset();
+
   for(int evtype=1; evtype<3; evtype++)
     for(int part=0; part<3; part++)
     {
       h2_pion[evtype][part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_type%d_part%d",evtype,part));
+      h2_isopion[evtype][part] = (TH2*)h2_pion_t->Clone(Form("h2_isopion_type%d_part%d",evtype,part));
+
       for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
         for(int evenodd=0; evenodd<2; evenodd++)
           for(int pattern=0; pattern<3; pattern++)
-            for(int isolated=0; isolated<2; isolated++)
-              for(int tof=1; tof<3; tof++)
+            for(int tof=1; tof<3; tof++)
+            {
+              int isolated = 1;
+              int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*4*bbc10cm + 8*2*3*2*3*2*4*2*ival;
+              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
+              h2_isopion[evtype][part]->Add(h2_tmp);
+              delete h2_tmp;
+
+              for(int isolated=0; isolated<2; isolated++)
               {
                 int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*4*bbc10cm + 8*2*3*2*3*2*4*2*ival;
                 TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
                 h2_pion[evtype][part]->Add(h2_tmp);
                 delete h2_tmp;
-              }
+              } // isolated
+            }
     }
 
   for(int part=0; part<3; part++)
+  {
     mc(part, 6,5);
+    mc(part+3, 6,5);
+  }
 
   for(int ipt=0; ipt<npT; ipt++)
   {
-    double xpt, yy[3], eyy[3];
+    double xpt, yy[3], eyy[3], yyiso[3], eyyiso[3];
 
     for(int part=0; part<3; part++)
     {
@@ -91,9 +107,11 @@ void draw_CrossSection_Pion()
       else  // >14GeV use ERT_4x4b
         evtype = 1;
 
+      TH1 *h_minv;
+
       mcd(part, ipt+1);
       double npion = 1., enpion = 1.;
-      TH1 *h_minv = (TH1*)h2_pion[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
+      h_minv = (TH1*)h2_pion[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
       if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
@@ -107,6 +125,24 @@ void draw_CrossSection_Pion()
       {
         npion *= Norm[part];
         enpion *= Norm[part] * (1+eNorm[part]);
+      }
+      delete h_minv;
+
+      mcd(part+3, ipt+1);
+      double nisopion = 1., enisopion = 1.;
+      h_minv = (TH1*)h2_isopion[evtype][part]->ProjectionY("h_py", ipt+1,ipt+1)->Clone("h_minv");
+      h_minv->Rebin(10);
+      h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
+      if(ipt < 20)  // <10GeV +-25MeV; >10GeV +-35MeV
+        FitMinv(h_minv, nisopion, enisopion, true, 0.11,0.16);
+      else if(ipt < 23)  // <16GeV subtract background
+        FitMinv(h_minv, nisopion, enisopion, true, 0.10,0.17);
+      else  // >16GeV don't subtract background
+        FitMinv(h_minv, nisopion, enisopion, false, 0.10,0.17);
+      if(ipt >= 22)  // >14GeV use ERT_4x4b
+      {
+        nisopion *= Norm[part];
+        enisopion *= Norm[part] * (1+eNorm[part]);
       }
       delete h_minv;
 
@@ -130,6 +166,7 @@ void draw_CrossSection_Pion()
       }
 
       xpt = xpt_shift[ipt];
+
       yy[part] = (XBBC/NBBC) / (2*PI*xpt) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
         * npion / BR / bck[part/2][ipt] / meff[part/2][ipt]
         / Acc / Merge / TrigERT / Prob[part/2][ipt]
@@ -144,6 +181,21 @@ void draw_CrossSection_Pion()
           );
       if( TMath::Finite(yy[part]+eyy[part]) )
         qt_cross->Fill(ipt, part, xpt, yy[part], eyy[part]);
+
+      yyiso[part] = (XBBC/NBBC) / (2*PI*xpt) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
+        * nisopion / BR / bck[part/2][ipt] / meff[part/2][ipt]
+        / Acc / Merge / TrigERT / Prob[part/2][ipt]
+        / ToF[part] / Conv[part] / TrigBBC * IsoPile[part];
+      eyyiso[part] = yyiso[part] * sqrt( pow(enpion/npion,2)
+          + pow(eAcc/Acc,2)
+          + pow(eMerge/Merge,2)
+          + pow(eTrigERT/TrigERT,2)
+          + pow(eProb/Prob[part/2][ipt],2)
+          + pow(eToF[part]/ToF[part],2) + pow(eConv[part]/Conv[part],2)
+          //+ pow(eTrigBBC/TrigBBC,2) + pow(ePile/IsoPile[part],2) + pow(eXBBC/XBBC,2)
+          );
+      if( TMath::Finite(yyiso[part]+eyyiso[part]) )
+        qt_cross->Fill(ipt, part+4, xpt, yyiso[part], eyyiso[part]);
     } // part
 
     double ybar, eybar;
@@ -156,15 +208,20 @@ void draw_CrossSection_Pion()
     }
     if( TMath::Finite(ybar+eybar) )
       qt_cross->Fill(ipt, part, xpt, ybar, eybar);
+    
+    double yisobar, eyisobar;
+    Chi2Fit(3, yyiso, eyyiso, yisobar, eyisobar);
+    if( TMath::Finite(yisobar+eyisobar) )
+      qt_cross->Fill(ipt, 7, xpt, yisobar, eyisobar);
   } // ipt
 
-  mc(3, 2,1);
+  mc(6, 2,1);
   legi(0, 0.4,0.7,0.7,0.9);
 
   for(int part=0; part<4; part++)
   {
     TGraphErrors *gr = qt_cross->Graph(part);
-    mcd(3, part/3+1);
+    mcd(6, part/3+1);
     gPad->SetLogy();
     if(part == 0)
       gr->SetTitle("Separated");
@@ -180,14 +237,17 @@ void draw_CrossSection_Pion()
       leg0->AddEntry(gr, pname[part], "P");
   }
 
-  mcd(3, 1);
+  mcd(6, 1);
   leg0->Draw();
-  mcd(3, 2);
+  mcd(6, 2);
   gr_sasha->Draw("L");
-  c3->Print("plots/CrossSection-pion.pdf");
+  c6->Print("plots/CrossSection-pion.pdf");
 
   qt_cross->Write();
   for(int part=0; part<3; part++)
+  {
     mcw( part, Form("Minv-part%d",part) );
+    mcw( part+3, Form("Minv-iso-part%d",part) );
+  }
   qt_cross->Close();
 }

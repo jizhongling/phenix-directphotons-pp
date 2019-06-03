@@ -7,6 +7,7 @@ void anaMissingRatio(const int process = 0)
   gSystem->Load("libMissingRatio.so");
 
   const int nThread = 20;
+  const double pt_start = 3 + process*nThread/2 * 0.1;
 
   // Setup recoConsts
   recoConsts *rc = recoConsts::instance();
@@ -39,7 +40,7 @@ void anaMissingRatio(const int process = 0)
   //SubsysReco *my1 = new MissingRatio("MissingRatio", Form("histo%d.root",process));
   //SubsysReco *my1 = new PhotonEff("PhotonEff", Form("histo%d.root",process));
   //SubsysReco *my1 = new Isolation("Isolation", Form("histo%d.root",process));
-  SubsysReco *my1 = new HadronResponse("HadronResponse", Form("histo%d.root",process));
+  HadronResponse *my1 = new HadronResponse("HadronResponse", Form("histo%d.root",process), pt_start);
   se->registerSubsystem(my1);
 
   // Real input from DST files
@@ -61,6 +62,7 @@ void anaMissingRatio(const int process = 0)
     }
 
     // Do the analysis for this DST file
+    my1->InitBatch();
     se->run(0);
 
     cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;

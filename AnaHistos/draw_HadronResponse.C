@@ -65,9 +65,13 @@ void draw_HadronResponse()
       style(h_reco, 21, 2);
       h_mc->DrawCopy();
       h_reco->DrawCopy("SAME");
-      h_mc->GetXaxis()->SetRange(30,400);
-      h_reco->GetXaxis()->SetRange(30,400);
-      cout << "part " << part << ", E_reco/E_mc = " << h_reco->GetMean()/h_mc->GetMean() << endl;
+      //h_mc->GetXaxis()->SetRange(2,150);
+      //h_reco->GetXaxis()->SetRange(2,150);
+      cout << "part " << part << ", mean_reco/mean_mc = " << h_reco->GetMean()/h_mc->GetMean() << endl;
+      double st_mc[4], st_reco[4];
+      h_mc->GetStats(st_mc);
+      h_reco->GetStats(st_reco);
+      cout << "part " << part << ", sum_reco/sum_mc = " << st_reco[2]/st_mc[2] << endl;
       delete h_mc;
       delete h_reco;
     } // ipt

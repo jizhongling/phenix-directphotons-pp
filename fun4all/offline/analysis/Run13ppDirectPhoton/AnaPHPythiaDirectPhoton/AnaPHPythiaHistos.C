@@ -9,6 +9,7 @@
 #include <Fun4AllHistoManager.h>
 #include <getClass.h>
 
+#include <PHPythiaHeader.h>
 #include <PHPythiaContainer.h>
 #include <PHPyCommon.h>
 
@@ -23,6 +24,7 @@
 #include <TMath.h>
 #include <TVector3.h>
 #include <TH1.h>
+#include <TH2.h>
 #include <THnSparse.h>
 
 #include <cstdlib>
@@ -47,8 +49,10 @@ const double eTrkMax = 15.;
 AnaPHPythiaHistos::AnaPHPythiaHistos(const string &name, const char *filename):
   SubsysReco(name),
   outFileName(filename),
+  phpythiaheader(NULL),
   phpythia(NULL),
   hm(NULL),
+  h2_proc_pt(NULL),
   hn_photon(NULL),
   hn_corr(NULL)
 {
@@ -68,6 +72,20 @@ int AnaPHPythiaHistos::Init(PHCompositeNode *topNode)
 
 int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
 {
+  /* Get PYTHIA Header */
+  phpythiaheader = findNode::getClass<PHPythiaHeader>(topNode,"PHPythiaHeader");
+  if(!phpythiaheader)
+  {
+    cout << PHWHERE << "Unable to get PHPythiaHeader, is Node missing?" << endl;
+    return ABORTEVENT;
+  }
+
+  int proc_id = phpythiaheader->GetProcessid();
+  double pt_event = phpythiaheader->GetPt();
+  h2_proc_pt->Fill(pt_event, (double)proc_id);
+
+  //return EVENT_OK;
+
   /* Get PYTHIA Particles */
   phpythia = findNode::getClass<PHPythiaContainer>(topNode,"PHPythia");
   if(!phpythia)
@@ -150,6 +168,11 @@ void AnaPHPythiaHistos::BookHistograms()
   /* Initialize histogram manager */
   hm = new Fun4AllHistoManager("HistoManager");
   hm->setOutfileName(outFileName);
+
+  h2_proc_pt = new TH2F("h2_proc_pt", "Pt and process id", 500,0.,50., 120,0.5,120.5);
+  hm->registerHisto(h2_proc_pt);
+
+  //return;
 
   /* pT bins */
   const int npT = 30;

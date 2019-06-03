@@ -5,14 +5,14 @@ void draw_Jetphox()
   const double PI = TMath::Pi();
   const double jetphox_scale = 1./200.;  // combined 200 histograms
   const char *jetphox_fname[3] = {"halfpt", "onept", "twopt"};
-  const char *jetphox_setnum[3] = {"isoprompt", "onef", "onef-incl"};
-  const char *jetphox_setden[3] = {"inclprompt", "isoprompt", "inclprompt"};
+  const char *jetphox_setnum[4] = {"isoprompt", "isoprompt-200gev", "onef", "onef-incl"};
+  const char *jetphox_setden[4] = {"inclprompt", "inclprompt-200gev", "isoprompt", "inclprompt"};
 
-  mc(0, 3,1);
+  mc(0, 2,2);
   legi(0, 0.2,0.8,0.9,0.9);
   leg0->SetNColumns(3);
 
-  for(int iset=0; iset<3; iset++)
+  for(int iset=0; iset<4; iset++)
   {
     mcd(0, iset+1);
     for(int imu=0; imu<3; imu++)
@@ -44,18 +44,18 @@ void draw_Jetphox()
 
       gr_ratio->Set(igp);
       gr_ratio->SetTitle( Form("%s/%s;p_{T} [GeV];#frac{%s}{%s}",jetphox_setnum[iset],jetphox_setden[iset],jetphox_setnum[iset],jetphox_setden[iset]) );
-      if(iset == 0)
+      if(iset < 2)
       {
         aset(gr_ratio, "","", 6.1,30., 0.6,1.5);
-        leg0->AddEntry(gr_ratio, Form("%s",jetphox_fname[imu]), "L");
-      }
-      else if(iset == 1)
-      {
-        aset(gr_ratio, "","", 6.1,30., 0.,0.3);
       }
       else if(iset == 2)
       {
+        aset(gr_ratio, "","", 6.1,30., 0.,0.3);
+      }
+      else if(iset == 3)
+      {
         aset(gr_ratio, "","", 6.1,30., 0.,0.6);
+        leg0->AddEntry(gr_ratio, Form("%s",jetphox_fname[imu]), "L");
       }
       style(gr_ratio, imu+20, imu+1);
       if(imu == 0)

@@ -22,6 +22,8 @@
 #include <Fun4AllReturnCodes.h>
 
 #include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
 #include <THnSparse.h>
 
 #include <cmath>
@@ -64,8 +66,14 @@ const double pTrkMax = 15.;
 const double cone_angle = 0.5;
 const double eratio = 0.1;
 
-HadronResponse::HadronResponse(const string &name, const char *filename):
+HadronResponse::HadronResponse(const string &name,
+    const char *filename,
+    const double pt_init):
   SubsysReco(name),
+  h_pt_weight(NULL),
+  pt_start(pt_init),
+  pt_count(0),
+  weight_pythia(0.),
   hm(NULL),
   hn_dc(NULL),
   hn_emcal(NULL),
@@ -91,6 +99,21 @@ HadronResponse::~HadronResponse()
 
 int HadronResponse::Init(PHCompositeNode *topNode)
 {
+  /* Get weight histogram */
+  TFile *f_proc_pt = new TFile("../AnaPHPythiaDirectPhoton-macros/PureHard-histo.root");
+  if( f_proc_pt && f_proc_pt->IsOpen() )
+  {
+    TH2 *h2_proc_pt = (TH2*)f_proc_pt->Get("h2_proc_pt");
+    if(h2_proc_pt)
+      h_pt_weight = h2_proc_pt->ProjectionX("h_pt_weight");
+  }
+
+  if(!h_pt_weight)
+  {
+    cout << "Cannot get weight histogram" << endl;
+    exit(1);
+  }
+
   // initialize histogram manager
   hm = new Fun4AllHistoManager("HistoManager");
   hm->setOutfileName(outFileName);
@@ -103,6 +126,20 @@ int HadronResponse::Init(PHCompositeNode *topNode)
   ReadSashaWarnmap("warn_all_run13pp500gev.dat");
 
   return EVENT_OK;
+}
+
+void HadronResponse::InitBatch()
+{
+  /* Set Pythia weight */
+  double pt_low = pt_start + pt_count/2 * 0.1;
+  int ipt_cut = h_pt_weight->GetXaxis()->FindBin(3.);
+  int ipt_low = h_pt_weight->GetXaxis()->FindBin(pt_low);
+  int ipt_high = h_pt_weight->GetXaxis()->FindBin(50.);
+  weight_pythia = h_pt_weight->Integral(ipt_low,ipt_high) /
+    h_pt_weight->Integral(ipt_cut,ipt_high);
+  pt_count++;
+
+  return;
 }
 
 int HadronResponse::process_event(PHCompositeNode *topNode)
@@ -192,8 +229,13 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     double ptReco = sqrt( pxReco*pxReco + pyReco*pyReco );
     double momReco = sqrt( pxReco*pxReco + pyReco*pyReco + pzReco*pzReco );
 
-    double fill_hn_dc[] = {ptReco, momReco, (double)dcns, (double)dcwe, 1.};
-    hn_dc->Fill(fill_hn_dc);
+    int reco = 1;
+    /* Test if track passes the momentum cuts */
+    if( momReco < pTrkMin || momReco > pTrkMax )
+      reco = 2;
+
+    double fill_hn_dc[] = {ptReco, momReco, (double)dcns, (double)dcwe, (double)reco};
+    hn_dc->Fill(fill_hn_dc, weight_pythia);
   }
 
   // loop over cgl truth tracks
@@ -211,7 +253,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     double momMC = sqrt( pxMC*pxMC + pyMC*pyMC + pzMC*pzMC );
 
     double fill_hn_dc[] = {ptMC, momMC, (double)dcns, (double)dcwe, 0.};
-    hn_dc->Fill(fill_hn_dc);
+    hn_dc->Fill(fill_hn_dc, weight_pythia);
   }
 
   // associate cluster with track
@@ -246,7 +288,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
       double pT = anatools::Get_pT(cluster);
 
       double fill_hn_emcal[] = {pT, cluster->ecore(), (double)sector, 1.};
-      hn_emcal->Fill(fill_hn_emcal);
+      hn_emcal->Fill(fill_hn_emcal, weight_pythia);
     }
   }
 
@@ -259,7 +301,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
       continue;
 
     double fill_hn_emcal[] = {trk->trkpt, trk->emctrk->get_ekin(), (double)trk->sector, 0.};
-    hn_emcal->Fill(fill_hn_emcal);
+    hn_emcal->Fill(fill_hn_emcal, weight_pythia);
 
     if( trk->pid != PHOTON_PID )
       continue;
@@ -279,7 +321,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     }
 
     double fill_hn_cluster[] = {trk->trkpt, trk->cluspt, econeMC, econeReco, (double)trk->sector};
-    hn_cluster->Fill(fill_hn_cluster);
+    hn_cluster->Fill(fill_hn_cluster, weight_pythia);
   }
 
   // clear associated list
@@ -302,12 +344,13 @@ int HadronResponse::End(PHCompositeNode *topNode)
 void HadronResponse::BookHistograms()
 {
   // for dc track
-  int nbins_hn_dc[] = {npT, 300, 2, 2, 2};
+  int nbins_hn_dc[] = {npT, 300, 2, 2, 3};
   double xmin_hn_dc[] = {0., 0., -0.5, -0.5, -0.5};
-  double xmax_hn_dc[] = {0., 30.,1.5, 1.5, 1.5};
+  double xmax_hn_dc[] = {0., 30.,1.5, 1.5, 2.5};
   hn_dc = new THnSparseF("hn_dc", "DC track info;p_{T} [GeV];E [GeV];NS;WE;Reco;",
       5, nbins_hn_dc, xmin_hn_dc, xmax_hn_dc);
   hn_dc->SetBinEdges(0, vpT);
+  hn_dc->Sumw2();
   hm->registerHisto(hn_dc);
 
   // for emcal cluster
@@ -317,6 +360,7 @@ void HadronResponse::BookHistograms()
   hn_emcal = new THnSparseF("hn_emcal", "EMCal info;p_{T} [GeV];E [GeV];Sector;Reco;",
       4, nbins_hn_emcal, xmin_hn_emcal, xmax_hn_emcal);
   hn_emcal->SetBinEdges(0, vpT);
+  hn_emcal->Sumw2();
   hm->registerHisto(hn_emcal);
 
   // for isolation cone 
@@ -327,6 +371,7 @@ void HadronResponse::BookHistograms()
       5, nbins_hn_cluster, xmin_hn_cluster, xmax_hn_cluster);
   hn_cluster->SetBinEdges(0, vpT);
   hn_cluster->SetBinEdges(1, vpT);
+  hn_cluster->Sumw2();
   hm->registerHisto(hn_cluster);
 
   return;

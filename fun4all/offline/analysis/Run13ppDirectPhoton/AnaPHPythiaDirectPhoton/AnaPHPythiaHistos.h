@@ -5,12 +5,14 @@
 #include <SubsysReco.h>
 
 class PHCompositeNode;
+class PHPythiaHeader;
 class PHPythiaContainer;
 class Fun4AllHistoManager;
 class TMCParticle;
 class TVector3;
 
 class TH1;
+class TH2;
 class THnSparse;
 
 class AnaPHPythiaHistos: public SubsysReco
@@ -38,9 +40,11 @@ class AnaPHPythiaHistos: public SubsysReco
 
     std::string outFileName;
 
+    PHPythiaHeader *phpythiaheader;
     PHPythiaContainer *phpythia;
 
     Fun4AllHistoManager *hm;
+    TH2 *h2_proc_pt;
     THnSparse *hn_photon;
     THnSparse *hn_corr;
 };

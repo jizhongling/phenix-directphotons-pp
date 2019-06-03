@@ -128,7 +128,7 @@ void draw_CrossSectionCmp(const int nameid)
   for(int imu=0; imu<3; imu++)
   {
     TGraphErrors *gr_nlo = new TGraphErrors(npT);
-    TFile *f_nlo = new TFile( Form("data/isoprompt-ct10-%s-new.root",jetphox_fname[imu]) );
+    TFile *f_nlo = new TFile( Form("data/isoprompt-ct10-%s.root",jetphox_fname[imu]) );
     TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
     h_nlo->Scale(jetphox_scale);
 
