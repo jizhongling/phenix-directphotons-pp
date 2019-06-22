@@ -30,24 +30,29 @@ class HadronResponse: public SubsysReco
     void InitBatch();
 
   protected:
+    /* Create histograms */
     void BookHistograms();
-    void ReadTowerStatus(const std::string& filename);
-    void ReadSashaWarnmap(const std::string& filename);
 
     /* Sum energy in cone around the reference particle
      * for isolated photon and isolated pair */
     double SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont,
         const PHCentralTrack *data_tracks);
+    void SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2, const emcClusterContainer *cluscont,
+        const PHCentralTrack *data_tracks, double &econe1, double &econe2);
     double SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
 
-    /* Check event type, photon cuts, charge veto and tower status */
+    /* Check charge veto and tower status */
     bool DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
     bool InFiducial(const emcClusterContent *cluster);
     bool IsGoodTower(const emcClusterContent *cluster);
     bool IsBadTower(const emcClusterContent *cluster);
 
-    /* EMCal associated track */
+    /* Get EMCal associated track */
     int GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
+
+    /* Read warnmap */
+    void ReadTowerStatus(const std::string &filename);
+    void ReadSashaWarnmap(const std::string &filename);
 
     /* Pythia weight normalization */
     TH1 *h_pt_weight;
@@ -70,6 +75,8 @@ class HadronResponse: public SubsysReco
 
     THnSparse *hn_dc;
     THnSparse *hn_emcal;
+    THnSparse *hn_1photon;
+    THnSparse *hn_2photon;
     THnSparse *hn_cluster;
 };
 

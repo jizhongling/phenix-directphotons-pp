@@ -6,7 +6,7 @@ void anaMissingRatio(const int process = 0)
   gSystem->Load("libemcEmbed4all.so");
   gSystem->Load("libMissingRatio.so");
 
-  const int nThread = 20;
+  const int nThread = 10;
   const double pt_start = 3 + process*nThread/2 * 0.1;
 
   // Setup recoConsts

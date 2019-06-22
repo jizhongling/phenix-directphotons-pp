@@ -1,10 +1,13 @@
 #include "GlobalVars.h"
+#include "QueryTree.h"
 
 void draw_HadronResponse()
 {
   const char *pname[2] = {"PbSc", "PbGl"};
   const int secl[2] = {1, 7};
   const int sech[2] = {6, 8};
+
+  QueryTree *qt_res = new QueryTree("data/HadronResponse.root", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/HadronResponse-histo.root");
   TFile *f_hadron = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/HadronResponse-hadron-histo.root");
@@ -39,48 +42,71 @@ void draw_HadronResponse()
         aset(h_mc, "Energy [GeV]","", 0.,2.*pTbin[ipt], 0.,1.1*max);
         style(h_mc, 20, 1);
         style(h_reco, 21, 2);
-        h_mc->DrawCopy();
-        h_reco->DrawCopy("SAME");
+        h_mc->DrawCopy("HISTO");
+        h_reco->DrawCopy("HISTO SAME");
         delete h_mc;
         delete h_reco;
       } // ipt
     } // part, em
 
+  mc(6, 2,1);
   for(int part=0; part<2; part++)
   {
-    mc(4+part);
-    int ipt = 4;
-    //for(int ipt=0; ipt<npT; ipt++)
+    mc(4+part, 3,3);
+    const int step = 4;
+    int ipad = 1;
+    for(int ipt=0; ipt<npT; ipt+=step)
     {
-      mcd(4+part, ipt+1);
+      int ilow = ipt;
+      int ihigh = ipt+step < npT ? ipt+step : npT;
       hn_cluster->GetAxis(4)->SetRange(secl[part],sech[part]);  // sector
-      hn_cluster->GetAxis(0)->SetRange(ipt+1,30);  // pt
+      hn_cluster->GetAxis(0)->SetRange(ilow+1,ihigh);  // pt
 
       TH1 *h_mc = hn_cluster->Projection(2);
       TH1 *h_reco = hn_cluster->Projection(3);
       const double max = h_mc->GetMaximum();
-      h_mc->SetTitle( Form("p_{T}: %.1f-%.1f GeV",pTbin[ipt],30.) );
-      aset(h_mc, "Energy [GeV]","", 0.,40., 0.,1.1*max);
+
+      double st_mc[4], st_reco[4];
+      h_mc->GetXaxis()->SetRange(3,400);
+      h_reco->GetXaxis()->SetRange(3,400);
+      h_mc->GetStats(st_mc);
+      h_reco->GetStats(st_reco);
+      double xpt = ( pTbin[ilow] + pTbin[ihigh] ) / 2.;
+      double sum_mc = st_mc[2];
+      double erel_sum_mc = sqrt(st_mc[1]) / st_mc[0];
+      double sum_reco = st_reco[2];
+      double erel_sum_reco = sqrt(st_reco[1]) / st_reco[0];
+      double rsum = sum_reco / sum_mc;
+      double ersum = 1. * sqrt( erel_sum_mc*erel_sum_mc + erel_sum_reco*erel_sum_reco );
+      if( rsum > 0.1 && rsum < 10. )
+        qt_res->Fill(ipt/4, part, xpt, rsum, ersum);
+
+      mcd(4+part, ipad);
+      gPad->SetLogy();
+      h_mc->SetTitle( Form("p_{T}: %.1f-%.1f GeV, reco/mc=%.2f",pTbin[ilow],pTbin[ihigh],rsum) );
+      aset(h_mc, "Energy [GeV]","", 0.,40., 1e-8,2.*max);
       style(h_mc, 20, 1);
       style(h_reco, 21, 2);
       h_mc->DrawCopy();
       h_reco->DrawCopy("SAME");
-      //h_mc->GetXaxis()->SetRange(2,150);
-      //h_reco->GetXaxis()->SetRange(2,150);
-      cout << "part " << part << ", mean_reco/mean_mc = " << h_reco->GetMean()/h_mc->GetMean() << endl;
-      double st_mc[4], st_reco[4];
-      h_mc->GetStats(st_mc);
-      h_reco->GetStats(st_reco);
-      cout << "part " << part << ", sum_reco/sum_mc = " << st_reco[2]/st_mc[2] << endl;
       delete h_mc;
       delete h_reco;
+      ipad++;
     } // ipt
+
+    mcd(6, 1+part);
+    TGraphErrors *gr = qt_res->Graph(part);
+    gr->SetTitle(pname[part]);
+    aset(gr, "p_{T} [GeV]","sum_reco/sum_mc", 0.,30., 0.,2.);
+    style(gr, 20, 1);
+    gr->Draw();
+    gr->Fit("pol0", "","", 3.,30.);
   } // part
 
   for(int ns=0; ns<2; ns++)
     for(int we=0; we<2; we++)
     {
-      int ic = 6 + ns + 2*we;
+      int ic = 7 + ns + 2*we;
       mc(ic, 6,5);
       for(int ipt=0; ipt<npT; ipt++)
       {
@@ -101,14 +127,14 @@ void draw_HadronResponse()
         aset(h_mc, "Energy [GeV]","", 0.,2.*pTbin[ipt], 0.,1.1*max);
         style(h_mc, 20, 1);
         style(h_reco, 21, 2);
-        h_mc->DrawCopy();
-        h_reco->DrawCopy("SAME");
+        h_mc->DrawCopy("HISTO");
+        h_reco->DrawCopy("HISTO SAME");
         delete h_mc;
         delete h_reco;
       } // ipt
     } // we, ns
 
-  TFile *f_out = new TFile("data/HadronResponse.root", "RECREATE");
+  qt_res->Write();
   for(int em=0; em<2; em++)
     for(int part=0; part<2; part++)
     {
@@ -120,11 +146,12 @@ void draw_HadronResponse()
     int ic = 4 + part;
     mcw( ic, Form("cluster-%s",pname[part]) );
   }
+  mcw( 6, "rsum" );
   for(int ns=0; ns<2; ns++)
     for(int we=0; we<2; we++)
     {
-      int ic = 6 + ns + 2*we;
+      int ic = 7 + ns + 2*we;
       mcw( ic, Form("dc-ns%d-we%d",ns,we) );
     }
-  f_out->Close();
+  qt_res->Close();
 }

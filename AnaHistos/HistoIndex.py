@@ -7,7 +7,7 @@ def HistoIndex():
     parser = argparse.ArgumentParser()
     parser.add_argument("expr", nargs=1)
     args = parser.parse_args()
-    expr = re.findall("[A-Za-z0-9\[\]()\-<]+", args.expr[0])
+    expr = re.findall("[A-Za-z_0-9\[\]()\-<]+", args.expr[0])
 
     name = []
     total = []
@@ -17,7 +17,7 @@ def HistoIndex():
             switch = True
             continue
         if not switch:
-            result = re.findall("^[A-Za-z(]+.*", item)
+            result = re.findall("^[A-Za-z_(]+.*", item)
             if result:
                 name += result
         else:
