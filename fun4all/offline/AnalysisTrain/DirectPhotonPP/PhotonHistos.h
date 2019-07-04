@@ -74,10 +74,10 @@ class PhotonHistos: public SubsysReco
 
     /* Sum energy in cone around the reference particle
      * for isolated photon and isolated pair */
-    double SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont,
-        const PHCentralTrack *data_tracks, double bbc_t0);
+    void SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont,
+        const PHCentralTrack *data_tracks, double bbc_t0, double econe[]);
     void SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2, const emcClusterContainer *cluscont,
-        const PHCentralTrack *data_tracks, double bbc_t0, double &econe1, double &econe2);
+        const PHCentralTrack *data_tracks, double bbc_t0, double econe1[], double econe2[]);
     void SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks, double econe[]);
     void SumEPi0(const emcClusterContent *cluster1, const emcClusterContent *cluster2, const emcClusterContainer *cluscont,
         const PHCentralTrack *data_tracks, double bbc_t0, double econe[]);
@@ -112,16 +112,16 @@ class PhotonHistos: public SubsysReco
 
     /* Number of histogram array */
     static const int nh_calib = 8*2;
-    static const int nh_bbc = 8*2;
-    static const int nh_ert = 8*6*2*2*4;
+    static const int nh_bbc = 3*2;
+    static const int nh_ert = 3*2*3*2*2*3;
     static const int nh_etwr = 8*2*8*16;
-    static const int nh_dcpartqual = 2*2*64;
-    static const int nh_dcquality = 64;
+    static const int nh_dcpartqual = 2*2*3;
+    static const int nh_dcquality = 3;
     static const int nh_dcpart = 2*2;
-    static const int nh_eta_phi = 3*2*4;
-    static const int nh_pion = 8*2*3*2*3*2*4*2*4;
-    static const int nh_1photon = 8*2*3*2*4*2*4*2;
-    static const int nh_2photon = 8*2*3*2*2*4*2*4*2;
+    static const int nh_eta_phi = 3*2*3;
+    static const int nh_pion = 3*2*3*4*2*2*2*2*3;
+    static const int nh_1photon = 3*2*3*4*2*2*3;
+    static const int nh_2photon = 3*2*3*4*2*2*2*3;
 
     /* Tower status for warnmap */
     int tower_status_nils[NSEC][NY][NZ];

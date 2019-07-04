@@ -37,6 +37,23 @@ namespace anatools
   }
 
   /*!
+   * Get the cluster part: PbSc west: 0; PbSc east: 1; PbGl: 2
+   */
+  inline int GetPart(const emcClusterContent* cluster)
+  {
+    int part = -1;
+    int sector = GetSector(cluster);
+    if( sector >= 0 && sector <= 3 )
+      part = 0;
+    else if( sector >= 4 && sector <= 5 )
+      part = 1;
+    else if( sector >= 6 && sector <= 7 )
+      part = 2;
+
+    return part;
+  }
+
+  /*!
    * Calculate momentum and energy of single cluster (=photon)
    */
   inline TLorentzVector Get_pE(const emcClusterContent* cluster)
