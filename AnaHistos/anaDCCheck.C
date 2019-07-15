@@ -5,7 +5,7 @@ void anaDCCheck(const int process = 0)
   const int nThread = 20;
   int thread = -1;
   int runnumber;
-  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist-Sasha.txt");
 
   QueryTree *qt_dc = new QueryTree(Form("histos/DCCheck-%d.root",process), "RECREATE");
 
@@ -18,19 +18,40 @@ void anaDCCheck(const int process = 0)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13912/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15132/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() ) continue;
 
     TH1 *h_events = (TH1*)f->Get("h_events");
-    TH3 *h3_live = (TH3*)f->Get("h3_dclive_0");
-    h3_live = (TH3*)h3_live->Clone();
-    h3_live->Reset();
-    for(int qual=4; qual<64; qual++)
+    TH2 *h2_board_t = (TH2*)f->Get("h2_alphaboard_0");
+    TH3 *h3_live_t = (TH3*)f->Get("h3_dclive_0");
+    h2_board_t = (TH2*)h2_board_t->Clone();
+    h3_live_t = (TH3*)h3_live_t->Clone();
+    h2_board_t->Reset();
+    h3_live_t->Reset();
+
+    for(int ns=0; ns<2; ns++)
+      for(int we=0; we<2; we++)
+      {
+        TH2 *h2_board = (TH2*)h2_board_t->Clone( Form("h2_board_ns%d_we%d_%d",ns,we,runnumber) );
+        for(int iqual=1; iqual<3; iqual++)
+        {
+          int ih = ns + 2*we + 2*2*iqual;
+          TH2 *h2_board_tmp = (TH2*)f->Get( Form("h2_alphaboard_%d",ih) );
+          h2_board->Add(h2_board_tmp);
+          delete h2_board_tmp;
+        }
+        qt_dc->cd();
+        h2_board->Write();
+        delete h2_board;
+      }
+
+    TH3 *h3_live = h3_live_t->Clone("h3_live");
+    for(int iqual=1; iqual<3; iqual++)
     {
-      int ih = qual;
-      TH3 *h3_tmp = (TH3*)f->Get( Form("h3_dclive_%d",ih) );
-      h3_live->Add(h3_tmp);
-      delete h3_tmp;
+      int ih = iqual;
+      TH3 *h3_live_tmp = (TH3*)f->Get( Form("h3_dclive_%d",ih) );
+      h3_live->Add(h3_live_tmp);
+      delete h3_live_tmp;
     }
 
     double nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("ert_c_30cm") );
@@ -42,7 +63,10 @@ void anaDCCheck(const int process = 0)
         double nyield = h3_live->Integral(101-100*ns,200-100*ns, 1+25*we,25+25*we, 0,-1);
         double yy = nyield / nev;
         double eyy = yy * sqrt( 1./nyield + 1./nev );
-        qt_dc->Fill(runnumber, ig, (double)runnumber, yy, eyy);
+        if( TMath::Finite(yy+eyy) )
+          qt_dc->Fill(runnumber, ig, (double)runnumber, yy, eyy);
+        else
+          qt_dc->Fill(runnumber, ig, (double)runnumber, 0., 1.);
       }
 
     for(int ns=0; ns<2; ns++)
@@ -53,6 +77,9 @@ void anaDCCheck(const int process = 0)
         h2_phi[ns]->SetBinContent( thread+1, bin, h_phi->GetBinContent(bin)/nev );
     }
 
+    delete h_events;
+    delete h2_board_t;
+    delete h3_live_t;
     delete h3_live;
     delete f;
   }

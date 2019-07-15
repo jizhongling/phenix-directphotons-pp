@@ -1,6 +1,6 @@
 #include "DivideFunctions.h"
 
-void draw_Iso2Incl()
+void draw_Iso2Incl_Pythia()
 {
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo.root");
   TH1 *h_photon = (TH1*)f->Get("h_photon_eta025");
@@ -14,5 +14,5 @@ void draw_Iso2Incl()
   style(gr, 20, 1);
   gr->Draw("AP");
 
-  c0->Print("plots/Iso2Incl.pdf");
+  c0->Print("plots/Iso2Incl-pythia.pdf");
 }

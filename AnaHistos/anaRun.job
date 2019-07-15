@@ -1,10 +1,10 @@
 Universe        = vanilla
 Notification    = Complete
 Executable      = /phenix/u/zji/bin/condor-root.csh
-Arguments       = $(Initialdir) anaYieldCmpByRun.C $(Process)
+Arguments       = $(Initialdir) anaDCCheck.C $(Process)
 Requirements    = (CPU_Speed >= 1)
 Rank		= CPU_Speed
-request_memory  = 1G
+request_memory  = 128M
 request_cpus    = 1
 Priority        = 20
 GetEnv          = False
@@ -14,4 +14,4 @@ Output          = /dev/null
 Error           = /dev/null
 Log             = /dev/null
 Notify_user     = zji@rcf.rhic.bnl.gov
-Queue 51
+Queue 44

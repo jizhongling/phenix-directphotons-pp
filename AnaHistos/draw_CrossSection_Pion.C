@@ -55,6 +55,7 @@ void draw_CrossSection_Pion()
   TH2 *h2_isopion[3][3];
 
   int bbc10cm = 1;
+  int tof = 1;
   int prob = 1;
   int ival = 1;
 
@@ -68,25 +69,23 @@ void draw_CrossSection_Pion()
       h2_pion[evtype][part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_type%d_part%d",evtype,part));
       h2_isopion[evtype][part] = (TH2*)h2_pion_t->Clone(Form("h2_isopion_type%d_part%d",evtype,part));
 
-      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
-        for(int evenodd=0; evenodd<2; evenodd++)
-          for(int pattern=0; pattern<3; pattern++)
-            for(int tof=1; tof<3; tof++)
-            {
-              int isolated = 1;
-              int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*4*bbc10cm + 8*2*3*2*3*2*4*2*ival;
-              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
-              h2_isopion[evtype][part]->Add(h2_tmp);
-              delete h2_tmp;
+      for(int evenodd=0; evenodd<2; evenodd++)
+        for(int pattern=0; pattern<3; pattern++)
+        {
+          int isolated = 1;
+          int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*tof + 3*2*3*4*2*prob + 3*2*3*4*2*2*bbc10cm + 3*2*3*4*2*2*2*isolated + 3*2*3*4*2*2*2*2*ival;
+          TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
+          h2_isopion[evtype][part]->Add(h2_tmp);
+          delete h2_tmp;
 
-              for(int isolated=0; isolated<2; isolated++)
-              {
-                int ih = sector + 8*evenodd + 8*2*pattern + 8*2*3*isolated + 8*2*3*2*tof + 8*2*3*2*3*prob + 8*2*3*2*3*2*evtype + 8*2*3*2*3*2*4*bbc10cm + 8*2*3*2*3*2*4*2*ival;
-                TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
-                h2_pion[evtype][part]->Add(h2_tmp);
-                delete h2_tmp;
-              } // isolated
-            }
+          for(int isolated=0; isolated<2; isolated++)
+          {
+            int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*tof + 3*2*3*4*2*prob + 3*2*3*4*2*2*bbc10cm + 3*2*3*4*2*2*2*isolated + 3*2*3*4*2*2*2*2*ival;
+            TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
+            h2_pion[evtype][part]->Add(h2_tmp);
+            delete h2_tmp;
+          } // isolated
+        }
     }
 
   for(int part=0; part<3; part++)
@@ -208,7 +207,7 @@ void draw_CrossSection_Pion()
     }
     if( TMath::Finite(ybar+eybar) )
       qt_cross->Fill(ipt, part, xpt, ybar, eybar);
-    
+
     double yisobar, eyisobar;
     Chi2Fit(3, yyiso, eyyiso, yisobar, eyisobar);
     if( TMath::Finite(yisobar+eyisobar) )

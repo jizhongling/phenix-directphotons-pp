@@ -1,8 +1,10 @@
 #include "GlobalVars.h"
 #include "QueryTree.h"
 
-void draw_Iso2All()
+void draw_Iso2Incl_Data()
 {
+  const int sector = 3;  // PbSc west: 0; PbSc east: 1; PbGl: 2; Combined: 3
+
   QueryTree *qt_pion = new QueryTree("data/CrossSection-pion.root");
   QueryTree *qt_photon = new QueryTree("data/CrossSection-photon.root");
   QueryTree *qt_isophoton = new QueryTree("data/CrossSection-isophoton.root");
@@ -16,8 +18,8 @@ void draw_Iso2All()
   {
     double xpt, incl, eincl, iso, eiso;
 
-    if( qt_pion->Query(ipt, 3, xpt, incl, eincl) &&
-        qt_pion->Query(ipt, 7, xpt, iso, eiso) )
+    if( qt_pion->Query(ipt, sector, xpt, incl, eincl) &&
+        qt_pion->Query(ipt, sector+4, xpt, iso, eiso) )
     {
       double yy = iso / incl;
       double eyy = yy * sqrt( pow(eincl/incl,2) + pow(eiso/iso,2) );
@@ -29,8 +31,8 @@ void draw_Iso2All()
       }
     }
 
-    if( qt_photon->Query(ipt, 3, xpt, incl, eincl) &&
-        qt_isophoton->Query(ipt, 3, xpt, iso, eiso) )
+    if( qt_photon->Query(ipt, sector, xpt, incl, eincl) &&
+        qt_isophoton->Query(ipt, sector, xpt, iso, eiso) )
     {
       double yy = iso / incl;
       double eyy = yy * sqrt( pow(eincl/incl,2) + pow(eiso/iso,2) );
@@ -59,5 +61,5 @@ void draw_Iso2All()
   leg0->AddEntry(gr[0], "#pi^{0}", "P");
   leg0->AddEntry(gr[1], "#gamma_{dir}", "P");
   leg0->Draw();
-  c0->Print("plots/Iso2All-lowq.pdf");
+  c0->Print("plots/Iso2Incl-data.pdf");
 }

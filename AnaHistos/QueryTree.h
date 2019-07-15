@@ -22,6 +22,8 @@ class QueryTree
     void Fill(const TH1 *h1, const TH1 *h2, int part,
         double kh1 = 1., double kh2 = 1.);
 
+    TObject *Get(const char *namecycle);
+    void cd(); 
     void Write(); 
     void Close(); 
     void Save(); 
@@ -290,6 +292,16 @@ void QueryTree::Fill(const TH1 *h1, const TH1 *h2, int part,
         TMath::Finite(_value + _errorlow + _errorhigh) )
       _tree->Fill(); 
   }
+}
+
+TObject *QueryTree::Get(const char *namecycle)
+{
+  return _file->Get(namecycle);
+}
+
+void QueryTree::cd()
+{
+  _file->cd();
 }
 
 void QueryTree::Write()

@@ -706,11 +706,11 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
   for(int itrk=0; itrk<npart; itrk++)
   {
     unsigned quality = data_tracks->get_quality(itrk);
-    int ival = 0;
+    int iqual = 0;
     if( quality == 63 || quality == 31 || quality == 51 )
-      ival = 2;
+      iqual = 2;
     else if(quality > 3)
-      ival = 1;
+      iqual = 1;
     double mom = data_tracks->get_mom(itrk);
     if( quality > 63 || !TMath::Finite(mom) ||
         mom < pTrkMin || mom > pTrkMax )
@@ -729,17 +729,17 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
       dcboard = ( 3.72402 - dcphi + 0.008047 * cos( dcphi + 0.87851 ) ) / 0.01963496;
 
     /* emcdphi and emcdz distributions */
-    int ih = dcns + 2*dcwe + 2*2*ival;
+    int ih = dcns + 2*dcwe + 2*2*iqual;
     double dcdphi = data_tracks->get_emcdphi(itrk);
     double dcdz = data_tracks->get_emcdz(itrk);
     h3_dcdphiz[ih]->Fill(dcdphi, dcdz, mom);
 
     /* alpha-board */
-    ih = dcns + 2*dcwe + 2*2*ival;
+    ih = dcns + 2*dcwe + 2*2*iqual;
     h2_alphaboard[ih]->Fill(dcboard, dcalpha);
 
     /* DC+PC1 live area */
-    ih = ival;
+    ih = iqual;
     h3_dclive[ih]->Fill(dczed, dcphi, mom);
 
     int charge = data_tracks->get_charge(itrk);
@@ -1127,17 +1127,17 @@ void PhotonHistos::BookHistograms()
   //}
 
   /* Track quality study */
-  // ih = dcns + 2*dcwe + 2*2*ival < 2*2*3
+  // ih = dcns + 2*dcwe + 2*2*iqual < 2*2*3
   for(int ih=0; ih<nh_dcpartqual; ih++)
   {
     h3_dcdphiz[ih] = new TH3F(Form("h3_dcdphiz_%d",ih), "EMCal and DC phi and z deviation;dphi [rad];dz [cm];mom [GeV];",
         100,-0.2,0.2, 120,-60.,60., 30,0.,15.);
     hm->registerHisto(h3_dcdphiz[ih]);
-    h2_alphaboard[ih] = new TH2F(Form("h2_alphaboard_%d",ih), "DC #alpha-board;board;#alpha;", 80,0.,80., 120,-0.6,0.6);
+    h2_alphaboard[ih] = new TH2F(Form("h2_alphaboard_%d",ih), "DC #alpha-board;board;#alpha;", 82*4,-1.5,80.5, 120,-0.6,0.6);
     hm->registerHisto(h2_alphaboard[ih]);
   }
 
-  // ih = ival < 3
+  // ih = iqual < 3
   for(int ih=0; ih<nh_dcquality; ih++)
   {
     h3_dclive[ih] = new TH3F(Form("h3_dclive_%d",ih), "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV]",

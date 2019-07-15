@@ -1,7 +1,7 @@
 #include "QueryTree.h"
 #include "MultiGraph.h"
 
-void draw_DCCheck()
+void draw_DCCheck(const int print_dcboard = 0)
 {
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
@@ -24,9 +24,9 @@ void draw_DCCheck()
     {
       h3_dphiz[ns][we] = (TH3*)h3_dphiz_t->Clone( Form("h3_dphiz_ns%d_we_%d",ns,we) );
       h2_board[ns][we] = (TH2*)h2_board_t->Clone( Form("h2_board_ns%d_we_%d",ns,we) );
-      for(int qual=4; qual<64; qual++)
+      for(int iqual=1; iqual<3; iqual++)
       {
-        int ih = ns + 2*we + 2*2*qual;
+        int ih = ns + 2*we + 2*2*iqual;
         TH3 *h3_dphiz_tmp = (TH3*)f->Get( Form("h3_dcdphiz_%d",ih) );
         TH2 *h2_board_tmp = (TH2*)f->Get( Form("h2_alphaboard_%d",ih) );
         h3_dphiz[ns][we]->Add(h3_dphiz_tmp);
@@ -36,9 +36,9 @@ void draw_DCCheck()
       }
     }
 
-  for(int qual=4; qual<64; qual++)
+  for(int iqual=1; iqual<3; iqual++)
   {
-    int ih = qual;
+    int ih = iqual;
     TH3 *h3_tmp = (TH3*)f->Get( Form("h3_dclive_%d",ih) );
     h3_live->Add(h3_tmp);
     delete h3_tmp;
@@ -104,7 +104,7 @@ void draw_DCCheck()
       TString WE = we ? "E" : "W";
       TGraphErrors *gr = qt_dc->Graph(ig);
       gr->SetTitle(NS+WE);
-      aset(gr, "runnumber","Ntrack/Nevent", 387000.,398200., 0.,0.5);
+      aset(gr, "runnumber","Ntrack/Nevent", 387000.,398200., 0.,1.5);
       style(gr, 20, 1);
       gr->Draw("AP");
 
@@ -127,7 +127,6 @@ void draw_DCCheck()
       }
     }
   cout << endl;
-  qt_dc->Close();
 
   mc(5, 2,1);
   TFile *f_combine = new TFile("data/DCCheck.root");
@@ -141,4 +140,34 @@ void draw_DCCheck()
     h2_phi[ns]->SetTitle(title);
     h2_phi[ns]->Draw("COLZ");
   }
+
+  if(!print_dcboard)
+  {
+    qt_dc->Close();
+    return;
+  }
+
+  mc(6, 2,2);
+  int runnumber;
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist-Sasha.txt");
+  c6->Print("plots/DCAlphaBoard.pdf(", "pdf");
+  while( fin >> runnumber )
+  {
+    for(int ns=0; ns<2; ns++)
+      for(int we=0; we<2; we++)
+      {
+        mcd(6, ns*2+we+1);
+        TString NS = ns ? "S" : "N";
+        TString WE = we ? "E" : "W";
+        TH2 *h2_board_run = (TH2*)qt_dc->Get( Form("h2_board_ns%d_we%d_%d",ns,we,runnumber) );
+        h2_board_run->SetTitle( Form("%d, %s",runnumber,(NS+WE).Data()) );
+        h2_board_run->DrawCopy("COLZ");
+        delete h2_board_run;
+      }
+    c6->Print("plots/DCAlphaBoard.pdf", "pdf");
+    c6->Clear("D");
+  }
+  c6->Print("plots/DCAlphaBoard.pdf)", "pdf");
+
+  qt_dc->Close();
 }
