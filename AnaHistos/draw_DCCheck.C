@@ -129,27 +129,23 @@ void draw_DCCheck(const int print_dcboard = 0)
   cout << endl;
 
   mc(5, 2,1);
-  TFile *f_combine = new TFile("data/DCCheck.root");
   TH2 *h2_phi[2];  // h2_phi[ns]
   for(int ns=0; ns<2; ns++)
   {
     mcd(5, ns+1);
     TString name = ns ? "h2_phi_zm" : "h2_phi_zp";
     TString title = ns ? "DC phi vs run in South" : "DC phi vs run in North";
-    h2_phi[ns] = (TH2*)f_combine->Get(name);
+    h2_phi[ns] = (TH2*)qt_dc->Get(name);
     h2_phi[ns]->SetTitle(title);
     h2_phi[ns]->Draw("COLZ");
   }
 
   if(!print_dcboard)
-  {
-    qt_dc->Close();
     return;
-  }
 
   mc(6, 2,2);
   int runnumber;
-  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist-Sasha.txt");
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist-DC3sigma.txt");
   c6->Print("plots/DCAlphaBoard.pdf(", "pdf");
   while( fin >> runnumber )
   {
@@ -160,6 +156,7 @@ void draw_DCCheck(const int print_dcboard = 0)
         TString NS = ns ? "S" : "N";
         TString WE = we ? "E" : "W";
         TH2 *h2_board_run = (TH2*)qt_dc->Get( Form("h2_board_ns%d_we%d_%d",ns,we,runnumber) );
+        if(!h2_board_run) continue;
         h2_board_run->SetTitle( Form("%d, %s",runnumber,(NS+WE).Data()) );
         h2_board_run->DrawCopy("COLZ");
         delete h2_board_run;
@@ -168,6 +165,4 @@ void draw_DCCheck(const int print_dcboard = 0)
     c6->Clear("D");
   }
   c6->Print("plots/DCAlphaBoard.pdf)", "pdf");
-
-  qt_dc->Close();
 }

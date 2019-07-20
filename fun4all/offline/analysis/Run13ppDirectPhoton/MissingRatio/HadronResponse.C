@@ -292,6 +292,12 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
       double fill_hn_emcal[] = {pT, cluster1->ecore(), (double)sector, 1.};
       hn_emcal->Fill(fill_hn_emcal, weight_pythia);
 
+      if( DCChargeVeto(cluster1,data_tracks) )
+      {
+        double fill_hn_emcal[] = {pT, cluster1->ecore(), (double)sector, 2.};
+        hn_emcal->Fill(fill_hn_emcal, weight_pythia);
+      }
+
       if( InFiducial(cluster1) &&
           cluster1->prob_photon() > probMin &&
           !DCChargeVeto(cluster1,data_tracks) )
@@ -405,9 +411,9 @@ void HadronResponse::BookHistograms()
   hm->registerHisto(hn_dc);
 
   // for emcal cluster
-  int nbins_hn_emcal[] = {npT, 300, 8, 2};
+  int nbins_hn_emcal[] = {npT, 300, 8, 3};
   double xmin_hn_emcal[] = {0., 0., -0.5, -0.5};
-  double xmax_hn_emcal[] = {0., 30., 7.5, 1.5};
+  double xmax_hn_emcal[] = {0., 30., 7.5, 2.5};
   hn_emcal = new THnSparseF("hn_emcal", "EMCal info;p_{T} [GeV];E [GeV];Sector;Reco;",
       4, nbins_hn_emcal, xmin_hn_emcal, xmax_hn_emcal);
   hn_emcal->SetBinEdges(0, vpT);
