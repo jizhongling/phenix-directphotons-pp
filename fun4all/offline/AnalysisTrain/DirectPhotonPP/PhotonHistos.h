@@ -3,6 +3,7 @@
 
 #include <SubsysReco.h>
 
+class DCDeadmapChecker;
 class EmcLocalRecalibrator;
 class EmcLocalRecalibratorSasha;
 
@@ -82,13 +83,14 @@ class PhotonHistos: public SubsysReco
     void SumEPi0(const emcClusterContent *cluster1, const emcClusterContent *cluster2, const emcClusterContainer *cluscont,
         const PHCentralTrack *data_tracks, double bbc_t0, double econe[]);
 
-    /* Check event type, photon cuts, charge veto and tower status */
+    /* Check event type, photon cuts, charge veto, tower status and DC deadmap */
     bool IsEventType(const int evtype, const TrigLvl1 *data_triggerlvl1);
     bool TestPhoton(const emcClusterContent *cluster, double bbc_t0);
     bool DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
     bool InFiducial(const emcClusterContent *cluster);
     bool IsGoodTower(const emcClusterContent *cluster);
     bool IsBadTower(const emcClusterContent *cluster);
+    bool IsDCDead(const PHCentralTrack *data_tracks, int itrk);
 
     /* Get spin pattern and EMCal associated track */
     int GetPattern(int crossing);
@@ -127,9 +129,10 @@ class PhotonHistos: public SubsysReco
     int tower_status_nils[NSEC][NY][NZ];
     int tower_status_sasha[NSEC][NY][NZ];
 
-    /* EMCal recalibrator and spin information*/
+    /* EMCal recalibrator, DC deadmap and spin information*/
     EmcLocalRecalibrator *emcrecalib;
     EmcLocalRecalibratorSasha *emcrecalib_sasha;
+    DCDeadmapChecker *dcdeadmap;
     SpinPattern *spinpattern;
 
     int runnumber;

@@ -92,7 +92,7 @@ void draw_DCCheck(const int print_dcboard = 0)
       }
   }
 
-  QueryTree *qt_dc = new QueryTree("data/DCCheck.root");
+  QueryTree *qt_dc = new QueryTree("data/DCCheck-withmap.root");
 
   mc(4, 2,2);
   for(int ns=0; ns<2; ns++)
@@ -146,7 +146,7 @@ void draw_DCCheck(const int print_dcboard = 0)
   mc(6, 2,2);
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist-DC3sigma.txt");
-  c6->Print("plots/DCAlphaBoard.pdf(", "pdf");
+  c6->Print("plots/DCAlphaBoard-withmap.pdf(", "pdf");
   while( fin >> runnumber )
   {
     for(int ns=0; ns<2; ns++)
@@ -161,8 +161,8 @@ void draw_DCCheck(const int print_dcboard = 0)
         h2_board_run->DrawCopy("COLZ");
         delete h2_board_run;
       }
-    c6->Print("plots/DCAlphaBoard.pdf", "pdf");
+    c6->Print("plots/DCAlphaBoard-withmap.pdf", "pdf");
     c6->Clear("D");
   }
-  c6->Print("plots/DCAlphaBoard.pdf)", "pdf");
+  c6->Print("plots/DCAlphaBoard-withmap.pdf)", "pdf");
 }

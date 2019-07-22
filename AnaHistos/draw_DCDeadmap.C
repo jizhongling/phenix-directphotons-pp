@@ -1,4 +1,4 @@
-void draw_DCDeadMap(int runnumber)
+void draw_DCDeadmap(int runnumber)
 {
   //mc();
   //mcd();

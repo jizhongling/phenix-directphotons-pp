@@ -6,6 +6,7 @@
 
 #include "EmcLocalRecalibrator.h"
 #include "EmcLocalRecalibratorSasha.h"
+#include "DCDeadmapChecker.h"
 #include "SpinPattern.h"
 
 #include <RunHeader.h>
@@ -72,6 +73,7 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   SubsysReco(name),
   emcrecalib(NULL),
   emcrecalib_sasha(NULL),
+  dcdeadmap(NULL),
   spinpattern(NULL),
   runnumber(0),
   fillnumber(0),
@@ -168,6 +170,9 @@ int PhotonHistos::Init(PHCompositeNode *topNode)
   ReadTowerStatus("Warnmap_Run13pp510.txt");
   ReadSashaWarnmap("warn_all_run13pp500gev.dat");
 
+  /* Initialize DC deadmap checker */
+  dcdeadmap = new DCDeadmapChecker();
+
   /* Book histograms and graphs */
   BookHistograms();
 
@@ -200,8 +205,11 @@ int PhotonHistos::InitRun(PHCompositeNode *topNode)
   fillnumber = spin_cont.GetFillNumber();
 
   /* Load EMCal recalibrations for run and fill */
-  emcrecalib->ReadEnergyCorrection( runnumber );
-  emcrecalib->ReadTofCorrection( fillnumber );
+  emcrecalib->ReadEnergyCorrection(runnumber);
+  emcrecalib->ReadTofCorrection(fillnumber);
+
+  /* Set DC deadmap index by runnumber */
+  dcdeadmap->SetMapByRunnumber(runnumber);
 
   /* Update spinpattern */
   if( spin_out.CheckRunRow(runnumber,qa_level) == 1 &&
@@ -1523,6 +1531,24 @@ bool PhotonHistos::IsBadTower(const emcClusterContent *cluster)
     return true;
   else
     return false;
+}
+
+bool PhotonHistos::IsDCDead(const PHCentralTrack *data_tracks, int itrk)
+{
+  /* phi and zed distributions */
+  double dcphi = data_tracks->get_phi(itrk);
+  double dczed = data_tracks->get_zed(itrk);
+  double dcalpha = data_tracks->get_alpha(itrk);
+  string dcns = dczed > 0. ? "N" : "S";
+  string dcwe = dcphi < PI/2. ? "W" : "E";
+  string nswe = dcns + dcwe;
+  double dcboard = 0.;
+  if( dcwe == "W" )
+    dcboard = ( 0.573231 + dcphi - 0.0046 * cos( dcphi + 0.05721 ) ) / 0.01963496;
+  else
+    dcboard = ( 3.72402 - dcphi + 0.008047 * cos( dcphi + 0.87851 ) ) / 0.01963496;
+
+  return dcdeadmap->IsDead(nswe, dcboard, dcalpha);
 }
 
 int PhotonHistos::GetPattern(int crossing)

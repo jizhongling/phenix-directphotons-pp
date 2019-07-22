@@ -17,6 +17,7 @@ dist_mydata_DATA = \
   tcorr_run13pp500gev.txt
 
 include_HEADERS = \
+  DCDeadmapChecker.h \
   PhotonContainer.h \
   Photon.h \
   PhotonERT.h \
@@ -53,6 +54,7 @@ libDirectPhotonPP_la_SOURCES = \
   HistogramBooker.cc \
   EmcLocalRecalibrator.cc \
   EmcLocalRecalibratorSasha.cc \
+  DCDeadmapChecker.cc \
   DirectPhotonPP.cc \
   PhotonContainer.cc \
   Photon.cc \
@@ -67,6 +69,7 @@ DirectPhotonPP_Dict.C: \
   HistogramBooker.h \
   EmcLocalRecalibrator.h \
   EmcLocalRecalibratorSasha.h \
+  DCDeadmapChecker.h \
   DirectPhotonPP.h \
   PhotonContainer.h \
   Photon.h \
