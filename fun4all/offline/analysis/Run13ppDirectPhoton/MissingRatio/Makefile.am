@@ -36,6 +36,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libMissingRatio_la_LIBADD = \
+  -lDirectPhotonPP \
   -lTOAD \
   -lemc \
   -lEmcStatic \

@@ -36,7 +36,7 @@ DCDeadmapChecker::DCDeadmapChecker():
   m_kbb.insert( make_pair( "NEh1_1", KBB(-32.56,  55.19,  58.07, -0.30,  0.30) ) );
   m_kbb.insert( make_pair( "SEh1_0", KBB(-40.68,  75.27,  80.18,  0.00,  0.20) ) );
   m_kbb.insert( make_pair( "SEh1_1", KBB(-29.85,  51.26,  54.74, -0.40,  0.40) ) );
-  m_kbb.insert( make_pair( "Wh1",    KBB( 1.590,  52.66,  53.97, -10.0,  10.0) ) );
+  m_kbb.insert( make_pair( "Wh1",    KBB( 2.097,  49.84,  56.80, -10.0,  10.0) ) );
   m_kbb.insert( make_pair( "SEh2",   KBB( 0.000,  59.38,  60.69, -10.0,  10.0) ) );
 
   string common_hot[] = {"NWh1_0", "NWh1_1", "NWh1_2", "SWh1_0", "SWh1_1", "NEh1_0", "NEh1_1", "SEh1_0", "SEh1_1"};
@@ -67,7 +67,7 @@ DCDeadmapChecker::DCDeadmapChecker():
 void DCDeadmapChecker::SetMapByRunnumber(int runnumber)
 {
   const int run1[nmap] = {387027, 388261, 389558, 389588, 389904, 391442, 391465, 393066, 396067, 396268, 396889, 397049, 397531, 397577, 397737};
-  const int run2[nmap] = {388052, 389557, 389587, 389768, 391377, 391450, 393064, 394525, 396075, 397000, 396910, 397534, 397534, 398149, 397738};
+  const int run2[nmap] = {388052, 389557, 389587, 389768, 391377, 391450, 393064, 396054, 396075, 397000, 396910, 397534, 397534, 398149, 397738};
 
   imap = -1;
   for(int i=0; i<nmap; i++)

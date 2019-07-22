@@ -4,6 +4,8 @@
 #include "AnaToolsTowerID.h"
 #include "AnaToolsCluster.h"
 
+#include <DCDeadmapChecker.h>
+
 #include <PHGlobal.h>
 #include <PHCentralTrack.h>
 #include <McEvalSingleList.h>
@@ -74,6 +76,7 @@ HadronResponse::HadronResponse(const string &name,
   pt_start(pt_init),
   pt_count(0),
   weight_pythia(0.),
+  dcdeadmap(NULL),
   hm(NULL),
   hn_dc(NULL),
   hn_emcal(NULL),
@@ -127,10 +130,13 @@ int HadronResponse::Init(PHCompositeNode *topNode)
   ReadTowerStatus("Warnmap_Run13pp510.txt");
   ReadSashaWarnmap("warn_all_run13pp500gev.dat");
 
+  // initialize DC deadmap checker
+  dcdeadmap = new DCDeadmapChecker();
+
   return EVENT_OK;
 }
 
-void HadronResponse::InitBatch()
+void HadronResponse::InitBatch(int mapindex)
 {
   /* Set Pythia weight */
   double pt_low = pt_start + pt_count/2 * 0.1;
@@ -140,6 +146,9 @@ void HadronResponse::InitBatch()
   weight_pythia = h_pt_weight->Integral(ipt_low,ipt_high) /
     h_pt_weight->Integral(ipt_cut,ipt_high);
   pt_count++;
+
+  /* Set DC deadmap index */
+  dcdeadmap->SetMapByIndex(mapindex);
 
   return;
 }

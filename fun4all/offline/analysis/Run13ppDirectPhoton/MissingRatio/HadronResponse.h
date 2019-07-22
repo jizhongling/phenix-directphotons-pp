@@ -4,6 +4,8 @@
 #include <SubsysReco.h>
 #include <string>
 
+class DCDeadmapChecker;
+
 class PHCompositeNode;
 class Fun4AllHistoManager;
 class PHCentralTrack;
@@ -27,7 +29,7 @@ class HadronResponse: public SubsysReco
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
 
-    void InitBatch();
+    void InitBatch(int mapindex);
 
   protected:
     /* Create histograms */
@@ -69,6 +71,9 @@ class HadronResponse: public SubsysReco
     // tower status for warnmap
     int tower_status_nils[8][48][96];
     int tower_status_sasha[8][48][96];
+
+    // DC deadmap checker
+    DCDeadmapChecker *dcdeadmap;
 
     std::string outFileName;
     Fun4AllHistoManager *hm;

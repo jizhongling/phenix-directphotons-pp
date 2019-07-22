@@ -1334,8 +1334,9 @@ void PhotonHistos::SumPTrack(const emcClusterContent *cluster, const PHCentralTr
     if( !TMath::Finite(px+py+pz+mom) )
       continue;
 
-    /* Test if track passes the momentum cuts */
-    if( mom < pTrkMin || mom > pTrkMax )
+    /* Test if track passes the momentum cuts and deadmap */
+    if( mom < pTrkMin || mom > pTrkMax ||
+        IsDCDead(data_tracks,i) )
       continue;
 
     /* Get track vector */
@@ -1419,8 +1420,9 @@ void PhotonHistos::SumEPi0(const emcClusterContent *cluster1, const emcClusterCo
     if( !TMath::Finite(px+py+pz+mom) )
       continue;
 
-    /* Test if track passes the momentum cuts */
-    if( mom < pTrkMin || mom > pTrkMax )
+    /* Test if track passes the momentum cuts and deadmap */
+    if( mom < pTrkMin || mom > pTrkMax ||
+        IsDCDead(data_tracks,i) )
       continue;
 
     /* Get track vector */
@@ -1583,7 +1585,9 @@ int PhotonHistos::GetEmcMatchTrack(const emcClusterContent *cluster, const PHCen
     double dphi = abs((v3_track-v3_cluster).Phi());
     double dz = abs((v3_track-v3_cluster).Z());
     double mom = data_tracks->get_mom(itrk);
-    if( dphi > 0.06 || dz > 13. || !TMath::Finite(mom) )
+    if( dphi > 0.06 || dz > 13. ||
+        !TMath::Finite(mom) ||
+        IsDCDead(data_tracks,itrk) )
       continue;
 
     if( itrk_match != -1 )
