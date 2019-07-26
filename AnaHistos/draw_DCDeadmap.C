@@ -85,7 +85,6 @@ void calcMCRunRatio()
   const int run1[nmap] = {387027, 388261, 389558, 389588, 389904, 391442, 391465, 393066, 396067, 396268, 396889, 397049, 397531, 397577, 397737};
   const int run2[nmap] = {388052, 389557, 389587, 389768, 391377, 391450, 393064, 396054, 396075, 397000, 396910, 397534, 397534, 398149, 397738};
   double nevents[nmap] = {};
-  double sum_nevents = 0.;
 
   int thread = -1;
   int runnumber;
@@ -113,18 +112,18 @@ void calcMCRunRatio()
     delete f;
   }
 
+  double cum_nevents[nmap] = {};
   for(int i=0; i<nmap; i++)
-    sum_nevents += nevents[i];
+    for(int j=0; j<=i; j++)
+      cum_nevents[i] += nevents[j];
 
   cout.precision(4);
-  cout << "const double rRuns[nmap] = {";
+  cout << "const double cum_rRuns[nmap] = {";
   for(int i=0; i<nmap; i++)
   {
-    double rRuns = nevents[i] / sum_nevents;
-    if(i == nmap-1)
-      cout << rRuns;
-    else
-      cout << rRuns << ", ";
+    cout << cum_nevents[i] / cum_nevents[nmap-1];
+    if(i < nmap-1)
+      cout << ", ";
   }
   cout << "};" << endl;
 }

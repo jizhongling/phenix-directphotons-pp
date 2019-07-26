@@ -22,11 +22,13 @@ class DCDeadmapChecker
     DCDeadmapChecker();
     void SetMapByIndex(int mapindex) { imap = mapindex; }
     void SetMapByRunnumber(int runnumber); 
+    void SetMapByRandom(); 
     bool IsDead(std::string nswe, double board, double alpha);
 
   protected:
     static const int nmap = 15;
     int imap;
+    int nevents;
 
     std::map<std::string,KBB> m_kbb;
     std::vector<std::string> v_deadmap[nmap];

@@ -1,6 +1,7 @@
 #include "AnaFastMC.h"
 
 #include "AnaToolsTowerID.h"
+#include <DCDeadmapChecker.h>
 
 #include <PHIODataNode.h>
 #include <PHObject.h>
@@ -76,6 +77,7 @@ AnaFastMC::AnaFastMC(const string &name):
   phpythia(NULL),
   phpythia_bg(NULL),
   pdg_db(NULL),
+  dcdeadmap(NULL),
   hm(NULL),
   h_pion(NULL),
   h_photon(NULL),
@@ -150,6 +152,9 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
 
   /* Get PDGDatabase object */
   pdg_db = new TDatabasePDG();
+
+  /* Initialize DC deadmap checker */
+  dcdeadmap = new DCDeadmapChecker();
 
   return EVENT_OK;
 }
@@ -426,6 +431,9 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     return;
   }
 
+  /* Set DC deadmap */
+  dcdeadmap->SetMapByRandom();
+
   /* Loop over all signal particles */
   int npart = phpythia->size();
   for(int ipart=0; ipart<npart; ipart++)
@@ -528,6 +536,7 @@ int AnaFastMC::End(PHCompositeNode *topNode)
   /* Write histogram output to ROOT file */
   hm->dumpHistos(outFileName);
   delete hm;
+  delete dcdeadmap;
 
   return EVENT_OK;
 }
@@ -594,7 +603,7 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe
             double mom = v3_part2.Mag();
             /* Test if particle is in DC acceptance */
             if( mom > pTrkMin && mom < pTrkMax &&
-                InDCAcceptance(v3_part2) )
+                InDCAcceptance(v3_part2, pdg_part2->Charge()) )
               econe_acc += mom;
           } // charge
         } // eClusMin
@@ -766,7 +775,7 @@ void AnaFastMC::ReadTowerStatus(const string &filename)
 
   while( fin >> sector >> biny >> binz >> status )
   {
-    // count tower with bad status for PbSc and PbGl
+    /* count tower with bad status for PbSc and PbGl */
     if ( status > 10 )
     {
       if( sector < 6 ) nBadSc++;
@@ -800,7 +809,7 @@ void AnaFastMC::ReadSashaWarnmap(const string &filename)
 
   while( fin >> ich >> status )
   {
-    // Attention!! I use my indexing for warn map in this program!!!
+    /* Attention!! I use my indexing for warn map in this program!!! */
     if( ich >= 10368 && ich < 15552 ) { // PbSc
       if( ich < 12960 ) ich += 2592;
       else              ich -= 2592;
@@ -810,10 +819,10 @@ void AnaFastMC::ReadSashaWarnmap(const string &filename)
       else              ich -= 4608;
     }
 
-    // get tower location
+    /* get tower location */
     anatools::TowerLocation(ich, sector, biny, binz);
 
-    // count tower with bad status for PbSc and PbGl
+    /* count tower with bad status for PbSc and PbGl */
     if ( status > 0 )
     {
       if( sector < 6 ) nBadSc++;
@@ -821,11 +830,11 @@ void AnaFastMC::ReadSashaWarnmap(const string &filename)
     }
     tower_status_sasha[sector][biny][binz] = status;
 
-    // mark edge towers
+    /* mark edge towers */
     if( anatools::Edge_cg(sector, biny, binz) &&
         tower_status_sasha[sector][biny][binz] == 0 )
       tower_status_sasha[sector][biny][binz] = 20;
-    // mark fiducial arm
+    /* mark fiducial arm */
     if( anatools::ArmEdge_cg(sector, biny, binz) &&
         tower_status_sasha[sector][biny][binz] == 0 )
       tower_status_sasha[sector][biny][binz] = 30;
@@ -854,7 +863,7 @@ void AnaFastMC::ReadSimWarnmap(const string &filename)
 
   while( fin >> sector >> binz >> biny )
   {
-    // count tower with bad status for PbSc and PbGl
+    /* count tower with bad status for PbSc and PbGl */
     if( sector < 6 ) nBadSc++;
     else nBadGl++;
 
@@ -870,20 +879,20 @@ void AnaFastMC::ReadSimWarnmap(const string &filename)
 
 void AnaFastMC::pi0_sim(const TLorentzVector &beam_pi0)
 {
-  // Initialize parameters
+  /* Initialize parameters */
   ResetClusters();
   ResetTowerEnergy();
 
-  // Decay to two photons
+  /* Decay to two photons */
   static TGenPhaseSpace event;
   const double masses[2] = {0., 0.};
 
-  // Let pi0 decay into two photons
+  /* Let pi0 decay into two photons */
   TLorentzVector beam_copy(beam_pi0);
   event.SetDecay(beam_copy, 2, masses);
   event.Generate();
 
-  // Get pi0 decay photons
+  /* Get pi0 decay photons */
   const TLorentzVector *pG1 = event.GetDecay(0);
   const TLorentzVector *pG2 = event.GetDecay(1);
 
@@ -896,11 +905,11 @@ void AnaFastMC::pi0_sim(const TLorentzVector &beam_pi0)
   double py2 = pG2->Py();
   double pz2 = pG2->Pz();
 
-  // Simulate EMCal postion resolution
+  /* Simulate EMCal postion resolution */
   bool acc1 = Gamma_Pos(px1,py1,pz1);
   bool acc2 = Gamma_Pos(px2,py2,pz2);
 
-  // Simulate EMCal energy resolution
+  /* Simulate EMCal energy resolution */
   double e1t = 0.;
   double e2t = 0.;
   int itw01 = -1;
@@ -926,16 +935,16 @@ void AnaFastMC::pi0_sim(const TLorentzVector &beam_pi0)
     NPart++;
   }
 
-  // Loop over all clusters in calorimeter
+  /* Loop over all clusters in calorimeter */
   for(int i=0; i<MAXPEAK; i++)
     if(itw_part[i] >= 0)
     {
-      // Get sector
+      /* Get sector */
       int iy, iz;
       anatools::TowerLocation(itw_part[i], sec_part[i], iy, iz);
     }
 
-  // Get NPeak
+  /* Get NPeak */
   GetNpeak();
 
   return;
@@ -943,7 +952,7 @@ void AnaFastMC::pi0_sim(const TLorentzVector &beam_pi0)
 
 void AnaFastMC::photon_sim(const TLorentzVector &beam_ph)
 {
-  // Initialize parameters
+  /* Initialize parameters */
   ResetClusters();
   ResetTowerEnergy();
 
@@ -952,10 +961,10 @@ void AnaFastMC::photon_sim(const TLorentzVector &beam_ph)
   double py1 = beam_ph.Py();
   double pz1 = beam_ph.Pz();
 
-  // Simulate EMCal postion resolution
+  /* Simulate EMCal postion resolution */
   bool acc1 = Gamma_Pos(px1,py1,pz1);
 
-  // Simulate EMCal energy resolution
+  /* Simulate EMCal energy resolution */
   double e1t = 0.;
   int itw01 = -1;
   double ximp1,yimp1,zimp1;
@@ -969,16 +978,16 @@ void AnaFastMC::photon_sim(const TLorentzVector &beam_ph)
     NPart++;
   }
 
-  // Loop over all clusters in calorimeter
+  /* Loop over all clusters in calorimeter */
   for(int i=0; i<MAXPEAK; i++)
     if(itw_part[i] >= 0)
     {
-      // Get sector
+      /* Get sector */
       int iy, iz;
       anatools::TowerLocation(itw_part[i], sec_part[i], iy, iz);
     }
 
-  // Get NPeak
+  /* Get NPeak */
   GetNpeak();
 
   return;
@@ -986,7 +995,7 @@ void AnaFastMC::photon_sim(const TLorentzVector &beam_ph)
 
 void AnaFastMC::geom_sim(const TVector3 &beam)
 {
-  // Initialize parameters
+  /* Initialize parameters */
   ResetClusters();
 
   double px = beam.Px();
@@ -1122,16 +1131,34 @@ bool AnaFastMC::IsBadTower( int itower )
   return false;
 }
 
-bool AnaFastMC::InDCAcceptance( const TVector3 &v3_part )
+bool AnaFastMC::InDCAcceptance( const TVector3 &v3_part, int charge )
 {
+  double px = v3_part.Px();
+  double py = v3_part.Py();
+  double pz = v3_part.Pz();
+  double pt = sqrt(px*px + py*py);
+  double alpha = -charge / pt;
+
   double eta = v3_part.Eta();
   double phi = v3_part.Phi();
+  if(phi < -PI/2.) phi += PI*2.;
+  string ns = pz > 0. ? "N" : "S";
+  string we = phi < PI/2. ? "W" : "E";
+  string nswe = ns + we;
+  double board = 0.;
+  if( we == "W" )
+    board = ( 0.573231 + phi - 0.0046 * cos( phi + 0.05721 ) ) / 0.01963496;
+  else
+    board = ( 3.72402 - phi + 0.008047 * cos( phi + 0.87851 ) ) / 0.01963496;
+
   if( abs(eta) < 0.35 &&
       ( ( phi > -PI*3./16. && phi < PI*5./16. ) ||
-        ( phi > PI*11./16. || phi < -PI*13./16. )
-      )
+        ( phi > PI*11./16. && phi < PI*19./16. )
+      ) &&
+      !dcdeadmap->IsDead(nswe, board, alpha)
     )
     return true;
+
   return false;
 }
 

@@ -8,6 +8,8 @@
 
 #include <string>
 
+class DCDeadmapChecker;
+
 class PHCompositeNode;
 class PHPythiaHeader;
 class PHPythiaContainer;
@@ -60,7 +62,7 @@ class AnaFastMC: public SubsysReco
     bool InFiducial( int itower );
     bool IsGoodTower( int itower );
     bool IsBadTower( int itower );
-    bool InDCAcceptance( const TVector3 &v3_part );
+    bool InDCAcceptance( const TVector3 &v3_part, int charge );
     bool GetImpactSectorTower(double px, double py, double pz,  
         int& sec, int& iz, int& iy, double& zz, double& yy, 
         double& phi0, double& ximp, double& yimp, double& zimp);
@@ -101,6 +103,7 @@ class AnaFastMC: public SubsysReco
     PHPythiaContainer *phpythia_bg;
 
     TDatabasePDG *pdg_db;
+    DCDeadmapChecker *dcdeadmap;
 
     Fun4AllHistoManager *hm;
     TH1 *h_pion;

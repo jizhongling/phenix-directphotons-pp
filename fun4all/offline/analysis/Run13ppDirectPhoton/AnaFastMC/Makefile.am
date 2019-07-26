@@ -25,6 +25,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libAnaFastMC_la_LIBADD = \
+  -lDirectPhotonPP \
   -lTOAD \
   -lPHPythia \
   -lphool \

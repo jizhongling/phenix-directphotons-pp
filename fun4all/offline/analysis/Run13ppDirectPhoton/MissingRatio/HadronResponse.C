@@ -41,7 +41,7 @@ double HadronResponse::vpT[] = { 0.0,
   5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
   12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
 
-// global constants
+/* global constants */
 const int PHOTON_PID = 1;
 const int POSITRON_PID = 2;
 const int ELECTRON_PID = 3;
@@ -84,11 +84,11 @@ HadronResponse::HadronResponse(const string &name,
   hn_2photon(NULL),
   hn_cluster(NULL)
 {
-  // construct output file names
+  /* construct output file names */
   outFileName = "histos/HadronResponse-";
   outFileName.append(filename);
 
-  // initialize array for tower status
+  /* initialize array for tower status */
   for(int isector=0; isector<8; isector++)
     for(int ibiny=0; ibiny<48; ibiny++)
       for(int ibinz=0; ibinz<96; ibinz++)
@@ -96,6 +96,9 @@ HadronResponse::HadronResponse(const string &name,
         tower_status_nils[isector][ibiny][ibinz] = 0;
         tower_status_sasha[isector][ibiny][ibinz] = 0;
       }
+
+  for(int ih=0; ih<nh_dcpart; ih++)
+    h2_alphaboard[ih] = NULL;
 }
 
 HadronResponse::~HadronResponse()
@@ -119,24 +122,24 @@ int HadronResponse::Init(PHCompositeNode *topNode)
     exit(1);
   }
 
-  // initialize histogram manager
+  /* initialize histogram manager */
   hm = new Fun4AllHistoManager("HistoManager");
   hm->setOutfileName(outFileName);
 
-  // create and register histograms
+  /* create and register histograms */
   BookHistograms();
 
-  // read warnmap
+  /* read warnmap */
   ReadTowerStatus("Warnmap_Run13pp510.txt");
   ReadSashaWarnmap("warn_all_run13pp500gev.dat");
 
-  // initialize DC deadmap checker
+  /* initialize DC deadmap checker */
   dcdeadmap = new DCDeadmapChecker();
 
   return EVENT_OK;
 }
 
-void HadronResponse::InitBatch(int mapindex)
+void HadronResponse::InitBatch()
 {
   /* Set Pythia weight */
   double pt_low = pt_start + pt_count/2 * 0.1;
@@ -147,15 +150,12 @@ void HadronResponse::InitBatch(int mapindex)
     h_pt_weight->Integral(ipt_cut,ipt_high);
   pt_count++;
 
-  /* Set DC deadmap index */
-  dcdeadmap->SetMapByIndex(mapindex);
-
   return;
 }
 
 int HadronResponse::process_event(PHCompositeNode *topNode)
 {
-  // central track reco info
+  /* central track reco info */
   PHCentralTrack *data_tracks = findNode::getClass<PHCentralTrack>(topNode, "PHCentralTrack");
   if(!data_tracks)
   {
@@ -163,7 +163,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
-  // central track sim info
+  /* central track sim info */
   McEvalSingleList *mctrk = findNode::getClass<McEvalSingleList>(topNode, "McSingle");
   if(!mctrk)
   {
@@ -171,7 +171,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
-  // emc track info
+  /* emc track info */
   emcGeaTrackContainer *emctrkcont = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
   if(!emctrkcont)
   {
@@ -179,13 +179,16 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
-  // emc cluster info
+  /* emc cluster info */
   emcGeaClusterContainer *emccluscont = emctrkcont->GetClusters();
   if(!emccluscont)
   {
     cout << "Cannot find emcGeaClusterContainer" << endl;
     return DISCARDEVENT;
   }
+
+  /* Set DC deadmap */
+  dcdeadmap->SetMapByRandom();
 
   int nPart = data_tracks->get_npart();
   int nMC = mctrk->get_McEvalSingleTrackN();
@@ -223,16 +226,21 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
   //  } // iMC
   //} // iPart
 
-  // loop over cgl reco tracks
+  /* loop over cgl reco tracks */
   for(int iPart=0; iPart<nPart; iPart++)
   {
     unsigned quality = data_tracks->get_quality(iPart);
-    if(quality < 3) continue;
-
+    double dcphi = data_tracks->get_phi(iPart);
     double dczed = data_tracks->get_zed(iPart);
+    double dcalpha = data_tracks->get_alpha(iPart);
     int dcarm = data_tracks->get_dcarm(iPart);
     int dcns = dczed > 0. ? 0 : 1;
-    int dcwe = dcarm == 0 ? 1 : 0;
+    int dcwe = dcarm == 1 ? 0 : 1;
+    double dcboard = 0.;
+    if( dcwe == 0 )
+      dcboard = ( 0.573231 + dcphi - 0.0046 * cos( dcphi + 0.05721 ) ) / 0.01963496;
+    else
+      dcboard = ( 3.72402 - dcphi + 0.008047 * cos( dcphi + 0.87851 ) ) / 0.01963496;
 
     double pxReco = data_tracks->get_px(iPart);
     double pyReco = data_tracks->get_py(iPart);
@@ -240,16 +248,21 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     double ptReco = sqrt( pxReco*pxReco + pyReco*pyReco );
     double momReco = sqrt( pxReco*pxReco + pyReco*pyReco + pzReco*pzReco );
 
-    int reco = 1;
-    /* Test if track passes the momentum cuts */
-    if( momReco < pTrkMin || momReco > pTrkMax )
-      reco = 2;
+    if( quality <= 3 || !TMath::Finite(pxReco+pyReco+pzReco) )
+      continue;
 
-    double fill_hn_dc[] = {ptReco, momReco, (double)dcns, (double)dcwe, (double)reco};
+    /* Test if track passes the momentum cuts */
+    if( momReco > pTrkMin && momReco < pTrkMax )
+    {
+      int ih = dcns + 2*dcwe;
+      h2_alphaboard[ih]->Fill(dcboard, dcalpha, weight_pythia);
+    }
+
+    double fill_hn_dc[] = {ptReco, momReco, (double)dcns, (double)dcwe, 1.};
     hn_dc->Fill(fill_hn_dc, weight_pythia);
   }
 
-  // loop over cgl truth tracks
+  /* loop over cgl truth tracks */
   for(int iMC=0; iMC<nMC; iMC++)
   {
     double dczed = mctrk->get_zed(iMC);
@@ -267,15 +280,15 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     hn_dc->Fill(fill_hn_dc, weight_pythia);
   }
 
-  // associate cluster with track
-  // map key is trkno
+  /* associate cluster with track
+   * map key is trkno */
   typedef map<int,AnaTrk*> map_Ana_t;
   map_Ana_t track_list;
 
-  // store photon
+  /* store photon */
   vector<AnaTrk*> photon;
 
-  // number of tracks and clusters
+  /* number of tracks and clusters */
   int nemctrk = emctrkcont->size();
   int nemcclus = emccluscont->size();
   if( nemctrk<=0 || nemcclus<=0 ) return DISCARDEVENT;
@@ -288,7 +301,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
       track_list.insert( make_pair(track->trkno,track) );
   }
 
-  // analyze emc clusters
+  /* analyze emc clusters */
   for(int iclus=0; iclus<nemcclus; iclus++)
   {
     emcClusterContent *cluster1 = emccluscont->getCluster(iclus);
@@ -358,7 +371,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     } // good tower & ecore
   } // iclus
 
-  // analyze emc tracks
+  /* analyze emc tracks */
   BOOST_FOREACH( map_Ana_t::value_type &trk_el, track_list )
   {
     AnaTrk *trk = trk_el.second;
@@ -376,7 +389,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     double econeTrk = SumPTrack(trk->emcclus, data_tracks);
     double econeReco = econeEM + econeTrk;
 
-    // loop over second emc tracks
+    /* loop over second emc tracks */
     double econeMC = 0.;
     BOOST_FOREACH( map_Ana_t::value_type &trk2_el, track_list )
     {
@@ -390,7 +403,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     hn_cluster->Fill(fill_hn_cluster, weight_pythia);
   }
 
-  // clear associated list
+  /* clear associated list */
   //delete[] cglMC;
   BOOST_FOREACH( map_Ana_t::value_type &trk_el, track_list )
     delete trk_el.second;
@@ -400,26 +413,35 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
 
 int HadronResponse::End(PHCompositeNode *topNode)
 {
-  // write histogram output to ROOT file
+  /* write histogram output to ROOT file */
   hm->dumpHistos();
   delete hm;
+  delete dcdeadmap;
 
   return EVENT_OK;
 }
 
 void HadronResponse::BookHistograms()
 {
-  // for dc track
-  int nbins_hn_dc[] = {npT, 300, 2, 2, 3};
+  /* for dc alpha-board */
+  // ih = dcns + 2*dcwe < 2*2
+  for(int ih=0; ih<nh_dcpart; ih++)
+  {
+    h2_alphaboard[ih] = new TH2F(Form("h2_alphaboard_%d",ih), "DC #alpha-board;board;#alpha;", 82*4,-1.5,80.5, 120,-0.6,0.6);
+    hm->registerHisto(h2_alphaboard[ih]);
+  }
+
+  /* for dc track */
+  int nbins_hn_dc[] = {npT, 300, 2, 2, 2};
   double xmin_hn_dc[] = {0., 0., -0.5, -0.5, -0.5};
-  double xmax_hn_dc[] = {0., 30.,1.5, 1.5, 2.5};
+  double xmax_hn_dc[] = {0., 30.,1.5, 1.5, 1.5};
   hn_dc = new THnSparseF("hn_dc", "DC track info;p_{T} [GeV];E [GeV];NS;WE;Reco;",
       5, nbins_hn_dc, xmin_hn_dc, xmax_hn_dc);
   hn_dc->SetBinEdges(0, vpT);
   hn_dc->Sumw2();
   hm->registerHisto(hn_dc);
 
-  // for emcal cluster
+  /* for emcal cluster */
   int nbins_hn_emcal[] = {npT, 300, 8, 3};
   double xmin_hn_emcal[] = {0., 0., -0.5, -0.5};
   double xmax_hn_emcal[] = {0., 30., 7.5, 2.5};
@@ -429,7 +451,7 @@ void HadronResponse::BookHistograms()
   hn_emcal->Sumw2();
   hm->registerHisto(hn_emcal);
 
-  // for emcal reco one photon
+  /* for emcal reco one photon */
   int nbins_hn_1photon[] = {npT, 8, 2};
   double xmin_hn_1photon[] = {0., -0.5, -0.5};
   double xmax_hn_1photon[] = {0., 7.5, 1.5};
@@ -439,7 +461,7 @@ void HadronResponse::BookHistograms()
   hn_1photon->Sumw2();
   hm->registerHisto(hn_1photon);
 
-  // for emcal reco two photons
+  /* for emcal reco two photons */
   int nbins_hn_2photon[] = {npT, npT, 300, 8, 2, 2};
   double xmin_hn_2photon[] = {0., 0., 0., -0.5, -0.5, -0.5};
   double xmax_hn_2photon[] = {0., 0., 0.3, 7.5, 1.5, 1.5};
@@ -450,7 +472,7 @@ void HadronResponse::BookHistograms()
   hn_2photon->Sumw2();
   hm->registerHisto(hn_2photon);
 
-  // for isolation cone 
+  /* for isolation cone  */
   int nbins_hn_cluster[] = {npT, npT, 400, 400, 8};
   double xmin_hn_cluster[] = {0., 0., 0., 0., -0.5};
   double xmax_hn_cluster[] = {0., 0., 40., 40., 7.5};
@@ -482,14 +504,12 @@ double HadronResponse::SumEEmcal(const emcClusterContent *cluster, const emcClus
     emcClusterContent *clus2 = cluscont->getCluster(iclus);
 
     /* Skip if pointer identical to 'reference' particle
-     * or on bad towers or lower than energy threshold */
+     * or on bad towers or lower than energy threshold
+     * and with 3 sigma charge veto */
     if( clus2->id() == cluster->id() ||
         IsBadTower(clus2) ||
-        clus2->ecore() < eClusMin )
-      continue;
-
-    /* 3 sigma charge veto */
-    if( DCChargeVeto(clus2,data_tracks) )
+        clus2->ecore() < eClusMin ||
+        DCChargeVeto(clus2,data_tracks) )
       continue;
 
     /* Get cluster vector */
@@ -529,16 +549,14 @@ void HadronResponse::SumEEmcal(const emcClusterContent *cluster1, const emcClust
     emcClusterContent *clus3 = cluscont->getCluster(iclus);
 
     /* Skip if pointer identical to any of the two 'reference' particles
-     * or on bad towers or lower than energy threshold */
+     * or on bad towers or lower than energy threshold 
+     * and with 3 sigma charge veto */
     if( clus3->id() == cluster1->id() ||
         clus3->id() == cluster2->id() ||
         IsBadTower(clus3) ||
         abs( clus3->tofcorr() ) > tofMaxIso ||
-        clus3->ecore() < eClusMin )
-      continue;
-
-    /* 3 sigma charge veto */
-    if( DCChargeVeto(clus3,data_tracks) )
+        clus3->ecore() < eClusMin ||
+        DCChargeVeto(clus3,data_tracks) )
       continue;
 
     /* Get cluster vector */
@@ -577,18 +595,16 @@ double HadronResponse::SumPTrack(const emcClusterContent *cluster, const PHCentr
   for(int i=0; i<npart; i++)
   {
     int quality = data_tracks->get_quality(i);
-    if( quality <= 3 )
-      continue;
-
     double px = data_tracks->get_px(i);
     double py = data_tracks->get_py(i);
     double pz = data_tracks->get_pz(i);
     double mom = data_tracks->get_mom(i);
-    if( !TMath::Finite(px+py+pz+mom) )
-      continue;
 
-    /* Test if track passes the momentum cuts */
-    if( mom < pTrkMin || mom > pTrkMax )
+    /* Test if track passes quality and the momentum cuts 
+     * and the DC deadmap */
+    if( quality <= 3 || !TMath::Finite(px+py+pz+mom) ||
+        mom < pTrkMin || mom > pTrkMax ||
+        IsDCDead(data_tracks, i) )
       continue;
 
     /* Get track vector */
@@ -662,6 +678,25 @@ bool HadronResponse::IsBadTower(const emcClusterContent *cluster)
     return false;
 }
 
+bool HadronResponse::IsDCDead(const PHCentralTrack *data_tracks, int itrk)
+{
+  /* phi and zed distributions */
+  double dcphi = data_tracks->get_phi(itrk);
+  double dczed = data_tracks->get_zed(itrk);
+  double dcalpha = data_tracks->get_alpha(itrk);
+  int dcarm = data_tracks->get_dcarm(itrk);
+  string dcns = dczed > 0. ? "N" : "S";
+  string dcwe = dcarm == 1 ? "W" : "E";
+  string nswe = dcns + dcwe;
+  double dcboard = 0.;
+  if( dcwe == "W" )
+    dcboard = ( 0.573231 + dcphi - 0.0046 * cos( dcphi + 0.05721 ) ) / 0.01963496;
+  else
+    dcboard = ( 3.72402 - dcphi + 0.008047 * cos( dcphi + 0.87851 ) ) / 0.01963496;
+
+  return dcdeadmap->IsDead(nswe, dcboard, dcalpha);
+}
+
 int HadronResponse::GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks)
 {
   int itrk_match = -1;
@@ -677,7 +712,9 @@ int HadronResponse::GetEmcMatchTrack(const emcClusterContent *cluster, const PHC
     double dphi = abs((v3_track-v3_cluster).Phi());
     double dz = abs((v3_track-v3_cluster).Z());
     double mom = data_tracks->get_mom(itrk);
-    if( dphi > 0.06 || dz > 13. || !TMath::Finite(mom) )
+    if( dphi > 0.015 ||
+        !TMath::Finite(mom) ||
+        IsDCDead(data_tracks,itrk) )
       continue;
 
     if( itrk_match != -1 )
@@ -723,7 +760,7 @@ void HadronResponse::ReadTowerStatus(const string& filename)
 
   while( fin >> sector >> biny >> binz >> status )
   {
-    // count tower with bad status for PbSc and PbGl
+    /* count tower with bad status for PbSc and PbGl */
     if ( status > 10 )
     {
       if( sector < 6 ) nBadSc++;
@@ -757,7 +794,7 @@ void HadronResponse::ReadSashaWarnmap(const string &filename)
 
   while( fin >> ich >> status )
   {
-    // Attention!! I use my indexing for warn map in this program!!!
+    /* Attention!! I use my indexing for warn map in this program!!! */
     if( ich >= 10368 && ich < 15552 ) { // PbSc
       if( ich < 12960 ) ich += 2592;
       else              ich -= 2592;
@@ -767,10 +804,10 @@ void HadronResponse::ReadSashaWarnmap(const string &filename)
       else              ich -= 4608;
     }
 
-    // get tower location
+    /* get tower location */
     anatools::TowerLocation(ich, sector, biny, binz);
 
-    // count tower with bad status for PbSc and PbGl
+    /* count tower with bad status for PbSc and PbGl */
     if ( status > 0 )
     {
       if( sector < 6 ) nBadSc++;
@@ -778,7 +815,7 @@ void HadronResponse::ReadSashaWarnmap(const string &filename)
     }
     tower_status_sasha[sector][biny][binz] = status;
 
-    // mark edge towers
+    /* mark edge towers */
     if( anatools::Edge_cg(sector, biny, binz) )
       tower_status_sasha[sector][biny][binz] = 20;
   }

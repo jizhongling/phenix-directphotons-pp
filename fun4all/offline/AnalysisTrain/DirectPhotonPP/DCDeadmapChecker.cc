@@ -1,4 +1,5 @@
 #include "DCDeadmapChecker.h"
+#include <TRandom3.h>
 #include <boost/foreach.hpp>
 
 #define INSERT_ARRAY(vec,array) \
@@ -9,12 +10,17 @@
 using namespace std;
 
 DCDeadmapChecker::DCDeadmapChecker():
-  imap(-1)
+  imap(-1),
+  nevents(0)
 {
   m_kbb.clear();
   for(int i=0; i<nmap; i++)
     v_deadmap[i].clear();
 
+  m_kbb.insert( make_pair( "W0_0",   KBB( 7.075, -99.99, -1.113, -10.0,  10.0) ) );
+  m_kbb.insert( make_pair( "W0_1",   KBB( 7.075,  79.67,  99.99, -10.0,  10.0) ) );
+  m_kbb.insert( make_pair( "E0_0",   KBB(-7.049, -99.99, -0.699, -10.0,  10.0) ) );
+  m_kbb.insert( make_pair( "E0_1",   KBB(-7.049,  80.19,  99.99, -10.0,  10.0) ) );
   m_kbb.insert( make_pair( "W1",     KBB( 0.000,  37.94,  43.18, -10.0,  10.0) ) );
   m_kbb.insert( make_pair( "W2",     KBB( 1.815,  25.18,  26.18, -10.0,  10.0) ) );
   m_kbb.insert( make_pair( "NE1",    KBB( 0.000,  67.42,  71.53, -10.0,  10.0) ) );
@@ -39,6 +45,7 @@ DCDeadmapChecker::DCDeadmapChecker():
   m_kbb.insert( make_pair( "Wh1",    KBB( 2.097,  49.84,  56.80, -10.0,  10.0) ) );
   m_kbb.insert( make_pair( "SEh2",   KBB( 0.000,  59.38,  60.69, -10.0,  10.0) ) );
 
+  string common_edge[] = {"W0_0", "W0_1", "E0_0", "E0_1"};
   string common_hot[] = {"NWh1_0", "NWh1_1", "NWh1_2", "SWh1_0", "SWh1_1", "NEh1_0", "NEh1_1", "SEh1_0", "SEh1_1"};
   string w12[] = {"W1", "W2"};
   string w23[] = {"W2", "W3"};
@@ -46,7 +53,10 @@ DCDeadmapChecker::DCDeadmapChecker():
   string e12se1[] = {"E1", "E2", "SE1"};
 
   for(int i=0; i<nmap; i++)
+  {
     INSERT_ARRAY(v_deadmap[i], common_hot);
+    INSERT_ARRAY(v_deadmap[i], common_edge);
+  }
   for(int i=0; i<4; i++)
     INSERT_ARRAY(v_deadmap[i], w12);
   for(int i=4; i<7; i++)
@@ -77,6 +87,26 @@ void DCDeadmapChecker::SetMapByRunnumber(int runnumber)
   return;
 }
 
+void DCDeadmapChecker::SetMapByRandom()
+{
+  const double cum_rRuns[nmap] = {0.0625, 0.1443, 0.1716, 0.2075, 0.3366, 0.3421, 0.4741, 0.7054, 0.7102, 0.8157, 0.8233, 0.8956, 0.8996, 0.9977, 1};
+
+  if(nevents%1000 == 0)
+  {
+    imap = -1;
+    double rnd = gRandom->Rndm();
+    for(int i=0; i<nmap; i++)
+      if(rnd < cum_rRuns[i])
+      {
+        imap = i;
+        break;
+      }
+  }
+  nevents++;
+
+  return;
+}
+
 bool DCDeadmapChecker::IsDead(string nswe, double board, double alpha)
 {
   if(imap < 0 || imap >= nmap)
@@ -90,8 +120,9 @@ bool DCDeadmapChecker::IsDead(string nswe, double board, double alpha)
       KBB kbb = m_kbb[smap];
       double b1 = kbb.k * alpha + kbb.b1;
       double b2 = kbb.k * alpha + kbb.b2;
-      if( board > b1 && board < b2 &&
-          alpha > kbb.alpha1 && alpha < kbb.alpha2 )
+      if( board < 0. || board > 80. ||
+          (board > b1 && board < b2 &&
+           alpha > kbb.alpha1 && alpha < kbb.alpha2) )
         return true;
     }
   }

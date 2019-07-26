@@ -72,7 +72,7 @@ void draw_DCCheck(const int print_dcboard = 0)
         TString WE = we ? "E" : "W";
 
         mcd(id+2, 2*ns+we+1);
-        h3_dphiz[ns][we]->GetZaxis()->SetRange(5,15);
+        h3_dphiz[ns][we]->GetZaxis()->SetRange(5,30);
         TH1 *h_diff = h3_dphiz[ns][we]->Project3D(ax);
         double max = h_diff->GetMaximum();
         double sigma = id ? 3.3 : 0.005;

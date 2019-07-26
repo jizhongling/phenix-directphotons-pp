@@ -44,10 +44,10 @@ AnaTrk::~AnaTrk()
 
 void AnaTrk::FillCluster()
 {
-  // find the cluster which has highest energy deposit
+  /* find the cluster which has highest energy deposit */
   FindCluster();
 
-  // fill cluster info by this cluster
+  /* fill cluster info by this cluster */
   if( emcclus )
   {
     int iypos = emcclus->iypos();

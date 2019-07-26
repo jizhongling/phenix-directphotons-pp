@@ -42,7 +42,7 @@ class AnaTrk
     emcGeaClusterContent *emcclus;
 
   protected:
-    // associate a cluster which has highest energy deposit
+    /* associate a cluster which has highest energy deposit */
     void FillCluster();
     void FindCluster();
 

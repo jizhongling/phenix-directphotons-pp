@@ -29,7 +29,7 @@ class HadronResponse: public SubsysReco
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
 
-    void InitBatch(int mapindex);
+    void InitBatch();
 
   protected:
     /* Create histograms */
@@ -48,6 +48,7 @@ class HadronResponse: public SubsysReco
     bool InFiducial(const emcClusterContent *cluster);
     bool IsGoodTower(const emcClusterContent *cluster);
     bool IsBadTower(const emcClusterContent *cluster);
+    bool IsDCDead(const PHCentralTrack *data_tracks, int itrk);
 
     /* Get EMCal associated track */
     int GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
@@ -62,22 +63,26 @@ class HadronResponse: public SubsysReco
     int pt_count;
     double weight_pythia;
 
-    // number of pT bins
+    /* number of pT bins */
     static const int npT = 30;
 
-    // pT bins
+    /* pT bins */
     static double vpT[npT+1];
 
-    // tower status for warnmap
+    /* Number of histogram array */
+    static const int nh_dcpart = 2*2;
+
+    /* tower status for warnmap */
     int tower_status_nils[8][48][96];
     int tower_status_sasha[8][48][96];
 
-    // DC deadmap checker
+    /* DC deadmap checker */
     DCDeadmapChecker *dcdeadmap;
 
     std::string outFileName;
     Fun4AllHistoManager *hm;
 
+    TH2 *h2_alphaboard[nh_dcpart];
     THnSparse *hn_dc;
     THnSparse *hn_emcal;
     THnSparse *hn_1photon;

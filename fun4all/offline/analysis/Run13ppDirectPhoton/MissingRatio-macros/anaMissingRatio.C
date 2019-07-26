@@ -6,11 +6,8 @@ void anaMissingRatio(const int process = 0)
   gSystem->Load("libemcEmbed4all.so");
   gSystem->Load("libMissingRatio.so");
 
-  const int nRuns = 1000;
   const int nThread = 10;
   const double pt_start = 3 + process*nThread/2 * 0.1;
-  const int nmap = 15;
-  const double rRuns[nmap] = {0.0625, 0.08185, 0.02726, 0.03593, 0.1291, 0.00551, 0.132, 0.2313, 0.004808, 0.1055, 0.007571, 0.07227, 0.00403, 0.09815, 0.00226};
 
   // Setup recoConsts
   recoConsts *rc = recoConsts::instance();
@@ -53,20 +50,6 @@ void anaMissingRatio(const int process = 0)
   // Loop over input DST files
   for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
   {
-    int imap = -1;
-    double cum_rRuns = 0.;
-    for(int i=0; i<nmap; i++)
-    {
-      cum_rRuns += rRuns[i];
-      int cutRuns = TMath::Nint( cum_rRuns * nRuns );
-      if(thread < cutRuns)
-      {
-        imap = i;
-        break;
-      }
-    }
-    if(imap < 0 || imap >= nmap) continue;
-
     char dstFileName[1000];
     sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST-phpythia/simDST%d.root", thread);
 
@@ -79,7 +62,7 @@ void anaMissingRatio(const int process = 0)
     }
 
     // Do the analysis for this DST file
-    my1->InitBatch(imap);
+    my1->InitBatch();
     se->run(0);
 
     cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;

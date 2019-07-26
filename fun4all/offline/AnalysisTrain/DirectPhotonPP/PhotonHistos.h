@@ -85,6 +85,7 @@ class PhotonHistos: public SubsysReco
 
     /* Check event type, photon cuts, charge veto, tower status and DC deadmap */
     bool IsEventType(const int evtype, const TrigLvl1 *data_triggerlvl1);
+    bool BBC10cm(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, int bbc10cm);
     bool TestPhoton(const emcClusterContent *cluster, double bbc_t0);
     bool DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
     bool InFiducial(const emcClusterContent *cluster);
