@@ -11,9 +11,8 @@ void draw_Acceptance_IsoPhoton()
   QueryTree *qt_acc = new QueryTree("data/Acceptance-isophoton.root", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo.root");
-  TH1 *h_photon = (TH1*)f->Get("h_photon");
-  TH1 *h_isophoton = (TH1*)f->Get("h_isophoton");
-  TH1 *h_isolated = (TH1*)f->Get("h_isolated");
+  TH1 *h_photon = (TH1*)f->Get("h_photon_eta025");
+  TH1 *h_isolated = (TH1*)f->Get("h_isophoton_eta025");
   THnSparse *hn_geom = (THnSparse*)f->Get("hn_geom");
   THnSparse *hn_isolated = (THnSparse*)f->Get("hn_isolated");
 

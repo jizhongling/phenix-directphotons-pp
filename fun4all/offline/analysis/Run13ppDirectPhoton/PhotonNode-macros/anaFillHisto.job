@@ -2,7 +2,7 @@ Universe        = vanilla
 Notification    = Complete
 Executable      = /phenix/u/zji/bin/condor-root.csh
 Arguments       = $(Initialdir) anaFillHisto_ERT.C $(Process)
-Requirements    = (CPU_Speed >= 1)
+Requirements    = (CPU_Speed >= 2)
 Rank		= CPU_Speed
 request_memory  = 1G
 request_cpus    = 1

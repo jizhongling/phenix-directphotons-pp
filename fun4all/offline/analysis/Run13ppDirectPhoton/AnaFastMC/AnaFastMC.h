@@ -37,6 +37,7 @@ class AnaFastMC: public SubsysReco
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
 
+    void InitBatch(int thread);
     void set_outfile(std::string filename) { outFileName = filename; }
     void set_mcmethod(MCMethod method) { mcmethod = method; }
 
@@ -100,7 +101,6 @@ class AnaFastMC: public SubsysReco
     double eTwr[NSEC][NY][NZ];
 
     PHPythiaContainer *phpythia;
-    PHPythiaContainer *phpythia_bg;
 
     TDatabasePDG *pdg_db;
     DCDeadmapChecker *dcdeadmap;

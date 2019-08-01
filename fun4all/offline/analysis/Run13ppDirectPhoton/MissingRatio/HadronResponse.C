@@ -1,20 +1,17 @@
 #include "HadronResponse.h"
 
-#include "AnaTrk.h"
 #include "AnaToolsTowerID.h"
 #include "AnaToolsCluster.h"
-
 #include <DCDeadmapChecker.h>
-
-#include <PHGlobal.h>
-#include <PHCentralTrack.h>
-#include <McEvalSingleList.h>
 
 #include <emcNodeHelper.h>
 #include <emcGeaTrackContainer.h>
 #include <emcGeaTrackContent.h>
 #include <emcGeaClusterContainer.h>
 #include <emcGeaClusterContent.h>
+
+#include <PHCentralTrack.h>
+#include <McEvalSingleList.h>
 
 #include <TOAD.h>
 #include <phool.h>
@@ -23,6 +20,7 @@
 #include <Fun4AllHistoManager.h>
 #include <Fun4AllReturnCodes.h>
 
+#include <TF1.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
@@ -31,8 +29,6 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
-#include <map>
-#include <boost/foreach.hpp>
 
 using namespace std;
 
@@ -41,7 +37,7 @@ double HadronResponse::vpT[] = { 0.0,
   5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
   12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
 
-/* global constants */
+/* Global constants */
 const int PHOTON_PID = 1;
 const int POSITRON_PID = 2;
 const int ELECTRON_PID = 3;
@@ -68,27 +64,21 @@ const double pTrkMax = 15.;
 const double cone_angle = 0.5;
 const double eratio = 0.1;
 
-HadronResponse::HadronResponse(const string &name,
-    const char *filename,
-    const double pt_init):
+HadronResponse::HadronResponse(const string &name, const char *filename):
   SubsysReco(name),
-  h_pt_weight(NULL),
-  pt_start(pt_init),
-  pt_count(0),
-  weight_pythia(0.),
   dcdeadmap(NULL),
   hm(NULL),
-  hn_dc(NULL),
-  hn_emcal(NULL),
+  hn_alphaboard(NULL),
+  hn_dclive(NULL),
   hn_1photon(NULL),
   hn_2photon(NULL),
-  hn_cluster(NULL)
+  weight_pythia(1.)
 {
-  /* construct output file names */
+  /* Construct output file names */
   outFileName = "histos/HadronResponse-";
   outFileName.append(filename);
 
-  /* initialize array for tower status */
+  /* Initialize array for tower status */
   for(int isector=0; isector<8; isector++)
     for(int ibiny=0; ibiny<48; ibiny++)
       for(int ibinz=0; ibinz<96; ibinz++)
@@ -97,8 +87,9 @@ HadronResponse::HadronResponse(const string &name,
         tower_status_sasha[isector][ibiny][ibinz] = 0;
       }
 
-  for(int ih=0; ih<nh_dcpart; ih++)
-    h2_alphaboard[ih] = NULL;
+  /* Function for pT weight for direct photon */
+  cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]", 0.1, 100.);
+  cross_ph->SetParameters(255., 5.98, 0.273, 14.43);
 }
 
 HadronResponse::~HadronResponse()
@@ -107,71 +98,35 @@ HadronResponse::~HadronResponse()
 
 int HadronResponse::Init(PHCompositeNode *topNode)
 {
-  /* Get weight histogram */
-  TFile *f_proc_pt = new TFile("../AnaPHPythiaDirectPhoton-macros/PureHard-histo.root");
-  if( f_proc_pt && f_proc_pt->IsOpen() )
-  {
-    TH2 *h2_proc_pt = (TH2*)f_proc_pt->Get("h2_proc_pt");
-    if(h2_proc_pt)
-      h_pt_weight = h2_proc_pt->ProjectionX("h_pt_weight");
-  }
-
-  if(!h_pt_weight)
-  {
-    cout << "Cannot get weight histogram" << endl;
-    exit(1);
-  }
-
-  /* initialize histogram manager */
+  /* Initialize histogram manager */
   hm = new Fun4AllHistoManager("HistoManager");
   hm->setOutfileName(outFileName);
 
-  /* create and register histograms */
+  /* Create and register histograms */
   BookHistograms();
 
-  /* read warnmap */
+  /* Read warnmap */
   ReadTowerStatus("Warnmap_Run13pp510.txt");
   ReadSashaWarnmap("warn_all_run13pp500gev.dat");
 
-  /* initialize DC deadmap checker */
+  /* Initialize DC deadmap checker */
   dcdeadmap = new DCDeadmapChecker();
 
   return EVENT_OK;
 }
 
-void HadronResponse::InitBatch()
+void HadronResponse::InitBatch(int thread)
 {
   /* Set Pythia weight */
-  double pt_low = pt_start + pt_count/2 * 0.1;
-  int ipt_cut = h_pt_weight->GetXaxis()->FindBin(3.);
-  int ipt_low = h_pt_weight->GetXaxis()->FindBin(pt_low);
-  int ipt_high = h_pt_weight->GetXaxis()->FindBin(50.);
-  weight_pythia = h_pt_weight->Integral(ipt_low,ipt_high) /
-    h_pt_weight->Integral(ipt_cut,ipt_high);
-  pt_count++;
+  double pt_start = 3. + thread/4 * 0.1;
+  weight_pythia = cross_ph->Integral(pt_start, pt_start+1.) / cross_ph->Integral(3., 4.);
 
   return;
 }
 
 int HadronResponse::process_event(PHCompositeNode *topNode)
 {
-  /* central track reco info */
-  PHCentralTrack *data_tracks = findNode::getClass<PHCentralTrack>(topNode, "PHCentralTrack");
-  if(!data_tracks)
-  {
-    cout << "Cannot find PHCentralTrack" << endl;
-    return DISCARDEVENT;
-  }
-
-  /* central track sim info */
-  McEvalSingleList *mctrk = findNode::getClass<McEvalSingleList>(topNode, "McSingle");
-  if(!mctrk)
-  {
-    cout << "Cannot find McEvalSingleList" << endl;
-    return DISCARDEVENT;
-  }
-
-  /* emc track info */
+  /* EMC track truth info */
   emcGeaTrackContainer *emctrkcont = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
   if(!emctrkcont)
   {
@@ -179,7 +134,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
-  /* emc cluster info */
+  /* EMC cluster reco info */
   emcGeaClusterContainer *emccluscont = emctrkcont->GetClusters();
   if(!emccluscont)
   {
@@ -187,53 +142,39 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
-  /* Set DC deadmap */
-  dcdeadmap->SetMapByRandom();
-
-  int nPart = data_tracks->get_npart();
-  int nMC = mctrk->get_McEvalSingleTrackN();
-  //if(nPart <= 0 || nMC <= 0)
-  //  return DISCARDEVENT;
-  //int *cglMC = new int[nPart];
-
-  // associate reco tracks with mc info
-  //for(int iPart=0; iPart<nPart; iPart++)
-  //{
-  //  cglMC[iPart] = -1;
-  //  double dpMin = 9999.;
-  //  for(int iMC=0; iMC<nMC; iMC++)
-  //  {
-  //    double pxMC = mctrk->get_momentumx(iMC);
-  //    double pyMC = mctrk->get_momentumy(iMC);
-  //    double pzMC = mctrk->get_momentumz(iMC);
-  //    int nReco = mctrk->get_Nreco(iMC);
-  //    for(int iReco=0; iReco<nReco; iReco++)
-  //    {
-  //      int jPart = mctrk->get_recoid(iMC, iReco);
-  //      if(jPart == iPart)
-  //      {
-  //        double pxReco = data_tracks->get_px(iPart);
-  //        double pyReco = data_tracks->get_py(iPart);
-  //        double pzReco = data_tracks->get_pz(iPart);
-  //        double dp = sqrt( (pxMC-pxReco)*(pxMC-pxReco) + (pyMC-pyReco)*(pyMC-pyReco) + (pzMC-pzReco)*(pzMC-pzReco) );
-  //        if(dp < dpMin)
-  //        {
-  //          cglMC[iPart] = iMC;
-  //          dpMin = dp;
-  //        }
-  //      } // jPart
-  //    } // iReco
-  //  } // iMC
-  //} // iPart
-
-  /* loop over cgl reco tracks */
-  for(int iPart=0; iPart<nPart; iPart++)
+  /* Central track truth info */
+  McEvalSingleList *mctrk = findNode::getClass<McEvalSingleList>(topNode, "McSingle");
+  if(!mctrk)
   {
-    unsigned quality = data_tracks->get_quality(iPart);
-    double dcphi = data_tracks->get_phi(iPart);
-    double dczed = data_tracks->get_zed(iPart);
-    double dcalpha = data_tracks->get_alpha(iPart);
-    int dcarm = data_tracks->get_dcarm(iPart);
+    cout << "Cannot find McEvalSingleList" << endl;
+    return DISCARDEVENT;
+  }
+
+  /* Central track reco info */
+  PHCentralTrack *data_tracks = findNode::getClass<PHCentralTrack>(topNode, "PHCentralTrack");
+  if(!data_tracks)
+  {
+    cout << "Cannot find PHCentralTrack" << endl;
+    return DISCARDEVENT;
+  }
+
+  /* Set DC deadmap */
+  dcdeadmap->SetMapByEvent();
+
+  /* Loop over cgl reco tracks */
+  int npart = data_tracks->get_npart();
+  for(int itrk=0; itrk<npart; itrk++)
+  {
+    unsigned quality = data_tracks->get_quality(itrk);
+    double mom = data_tracks->get_mom(itrk);
+    if( quality <= 3 || !TMath::Finite(mom) ||
+        mom < pTrkMin || mom > pTrkMax )
+      continue;
+
+    double dcphi = data_tracks->get_phi(itrk);
+    double dczed = data_tracks->get_zed(itrk);
+    double dcalpha = data_tracks->get_alpha(itrk);
+    int dcarm = data_tracks->get_dcarm(itrk);
     int dcns = dczed > 0. ? 0 : 1;
     int dcwe = dcarm == 1 ? 0 : 1;
     double dcboard = 0.;
@@ -242,178 +183,76 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     else
       dcboard = ( 3.72402 - dcphi + 0.008047 * cos( dcphi + 0.87851 ) ) / 0.01963496;
 
-    double pxReco = data_tracks->get_px(iPart);
-    double pyReco = data_tracks->get_py(iPart);
-    double pzReco = data_tracks->get_pz(iPart);
-    double ptReco = sqrt( pxReco*pxReco + pyReco*pyReco );
-    double momReco = sqrt( pxReco*pxReco + pyReco*pyReco + pzReco*pzReco );
+    double fill_hn_alphaboard[] = {dcboard, dcalpha, (double)dcns, (double)dcwe};
+    hn_alphaboard->Fill(fill_hn_alphaboard, weight_pythia);
 
-    if( quality <= 3 || !TMath::Finite(pxReco+pyReco+pzReco) )
-      continue;
-
-    /* Test if track passes the momentum cuts */
-    if( momReco > pTrkMin && momReco < pTrkMax )
-    {
-      int ih = dcns + 2*dcwe;
-      h2_alphaboard[ih]->Fill(dcboard, dcalpha, weight_pythia);
-    }
-
-    double fill_hn_dc[] = {ptReco, momReco, (double)dcns, (double)dcwe, 1.};
-    hn_dc->Fill(fill_hn_dc, weight_pythia);
+    double fill_hn_dclive[] = {dczed, dcphi, mom};
+    hn_dclive->Fill(fill_hn_dclive, weight_pythia);
   }
 
-  /* loop over cgl truth tracks */
-  for(int iMC=0; iMC<nMC; iMC++)
-  {
-    double dczed = mctrk->get_zed(iMC);
-    double dcphi = mctrk->get_phi(iMC);
-    int dcns = dczed > 0. ? 0 : 1;
-    int dcwe = dcphi < PI/2. ? 0 : 1;
-
-    double pxMC = mctrk->get_momentumx(iMC);
-    double pyMC = mctrk->get_momentumy(iMC);
-    double pzMC = mctrk->get_momentumz(iMC);
-    double ptMC = sqrt( pxMC*pxMC + pyMC*pyMC );
-    double momMC = sqrt( pxMC*pxMC + pyMC*pyMC + pzMC*pzMC );
-
-    double fill_hn_dc[] = {ptMC, momMC, (double)dcns, (double)dcwe, 0.};
-    hn_dc->Fill(fill_hn_dc, weight_pythia);
-  }
-
-  /* associate cluster with track
-   * map key is trkno */
-  typedef map<int,AnaTrk*> map_Ana_t;
-  map_Ana_t track_list;
-
-  /* store photon */
-  vector<AnaTrk*> photon;
-
-  /* number of tracks and clusters */
-  int nemctrk = emctrkcont->size();
+  /* Loop over EMC reco clusters */
   int nemcclus = emccluscont->size();
-  if( nemctrk<=0 || nemcclus<=0 ) return DISCARDEVENT;
-
-  for(int itrk=0; itrk<nemctrk; itrk++)
-  {
-    emcGeaTrackContent *emctrk = emctrkcont->get(itrk);
-    AnaTrk *track = new AnaTrk(emctrk, emccluscont, (int*)tower_status_sasha);
-    if(track)
-      track_list.insert( make_pair(track->trkno,track) );
-  }
-
-  /* analyze emc clusters */
   for(int iclus=0; iclus<nemcclus; iclus++)
   {
     emcClusterContent *cluster1 = emccluscont->getCluster(iclus);
-    if( IsGoodTower(cluster1) &&
-        cluster1->ecore() > eMin )
+    if( InFiducial(cluster1) &&
+        TestPhoton(cluster1) &&
+        !DCChargeVeto(cluster1, data_tracks) )
     {
       int sector = anatools::GetSector(cluster1); 
       double pT = anatools::Get_pT(cluster1);
 
-      double fill_hn_emcal[] = {pT, cluster1->ecore(), (double)sector, 1.};
-      hn_emcal->Fill(fill_hn_emcal, weight_pythia);
+      double econeEM = SumEEmcal(cluster1, emccluscont, data_tracks);
+      double econeTrk = SumPTrack(cluster1, data_tracks);
+      double econe = econeEM + econeTrk;
 
-      if( DCChargeVeto(cluster1,data_tracks) )
-      {
-        double fill_hn_emcal[] = {pT, cluster1->ecore(), (double)sector, 2.};
-        hn_emcal->Fill(fill_hn_emcal, weight_pythia);
-      }
+      int isolated = 0;
+      if( econe < eratio * cluster1->ecore() )
+        isolated = 1;
 
-      if( InFiducial(cluster1) &&
-          cluster1->prob_photon() > probMin &&
-          !DCChargeVeto(cluster1,data_tracks) )
-      {
-        double econeEM = SumEEmcal(cluster1, emccluscont, data_tracks);
-        double econeTrk = SumPTrack(cluster1, data_tracks);
-        double econe = econeEM + econeTrk;
+      double fill_hn_1photon[] = {pT, (double)sector, (double)isolated};
+      hn_1photon->Fill(fill_hn_1photon, weight_pythia);
 
-        int isolated = 0;
-        if( econe < eratio * cluster1->ecore() )
-          isolated = 1;
+      for(int jclus=0; jclus<nemcclus; jclus++)
+        if(jclus != iclus)
+        {
+          emcClusterContent *cluster2 = emccluscont->getCluster(jclus);
+          if( !IsGoodTower(cluster2) ||
+              !TestPhoton(cluster2) ||
+              DCChargeVeto(cluster2, data_tracks) )
+            continue;
 
-        double fill_hn_1photon[] = {pT, (double)sector, (double)isolated};
-        hn_1photon->Fill(fill_hn_1photon, weight_pythia);
+          double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
+          double minv = anatools::GetInvMass(cluster1, cluster2);
 
-        for(int jclus=0; jclus<nemcclus; jclus++)
-          if(jclus != iclus)
-          {
-            emcClusterContent *cluster2 = emccluscont->getCluster(jclus);
-            if( !IsGoodTower(cluster2) ||
-                cluster2->ecore() < eMin ||
-                cluster2->prob_photon() < probMin ||
-                DCChargeVeto(cluster2,data_tracks) )
-              continue;
+          int isoboth = 0;
+          double econeEM2 = SumEEmcal(cluster2, emccluscont, data_tracks);
+          double econeTrk2 = SumPTrack(cluster2, data_tracks);
+          double econe2 = econeEM2 + econeTrk2;
+          if( isolated && econe2 < eratio * cluster2->ecore() )
+            isoboth = 1;
 
-            double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
-            double minv = anatools::GetInvMass(cluster1, cluster2);
+          int isopair = 0;
+          double econeEMPair1, econeEMPair2;
+          SumEEmcal(cluster1, cluster2, emccluscont, data_tracks, econeEMPair1, econeEMPair2);
+          double econePair1 = econeEMPair1 + econeTrk;
+          double econePair2 = econeEMPair2 + econeTrk2;
+          if( econePair1 < eratio * cluster1->ecore() &&
+              econePair2 < eratio * cluster2->ecore() )
+            isopair = 1;
 
-            int isoboth = 0;
-            double econeEM2 = SumEEmcal(cluster2, emccluscont, data_tracks);
-            double econeTrk2 = SumPTrack(cluster2, data_tracks);
-            double econe2 = econeEM2 + econeTrk2;
-            if( isolated && econe2 < eratio * cluster2->ecore() )
-              isoboth = 1;
-
-            int isopair = 0;
-            double econeEMPair1, econeEMPair2;
-            SumEEmcal(cluster1, cluster2, emccluscont, data_tracks, econeEMPair1, econeEMPair2);
-            double econePair1 = econeEMPair1 + econeTrk;
-            double econePair2 = econeEMPair2 + econeTrk2;
-            if( econePair1 < eratio * cluster1->ecore() &&
-                econePair2 < eratio * cluster2->ecore() )
-              isopair = 1;
-
-            double fill_hn_2photon[] = {pT, tot_pT, minv, (double)sector, (double)isoboth, (double)isopair};
-            hn_2photon->Fill(fill_hn_2photon, weight_pythia);
-          } // jclus
-      } // fiducial & prob & charge veto
-    } // good tower & ecore
+          double fill_hn_2photon[] = {pT, tot_pT, minv, (double)sector, (double)isoboth, (double)isopair};
+          hn_2photon->Fill(fill_hn_2photon, weight_pythia);
+        } // jclus
+    } // check photon1
   } // iclus
-
-  /* analyze emc tracks */
-  BOOST_FOREACH( map_Ana_t::value_type &trk_el, track_list )
-  {
-    AnaTrk *trk = trk_el.second;
-    if( trk->cid < 0 ||
-        trk->trkedep < eMin )
-      continue;
-
-    double fill_hn_emcal[] = {trk->trkpt, trk->emctrk->get_ekin(), (double)trk->sector, 0.};
-    hn_emcal->Fill(fill_hn_emcal, weight_pythia);
-
-    if( trk->pid != PHOTON_PID )
-      continue;
-
-    double econeEM = SumEEmcal(trk->emcclus, emccluscont, data_tracks);
-    double econeTrk = SumPTrack(trk->emcclus, data_tracks);
-    double econeReco = econeEM + econeTrk;
-
-    /* loop over second emc tracks */
-    double econeMC = 0.;
-    BOOST_FOREACH( map_Ana_t::value_type &trk2_el, track_list )
-    {
-      AnaTrk *trk2 = trk2_el.second;
-      if( trk2->trkno != trk->trkno &&
-          trk->trkvp.Angle(trk2->trkvp) < cone_angle )
-        econeMC += trk2->emctrk->get_ekin();
-    }
-
-    double fill_hn_cluster[] = {trk->trkpt, trk->cluspt, econeMC, econeReco, (double)trk->sector};
-    hn_cluster->Fill(fill_hn_cluster, weight_pythia);
-  }
-
-  /* clear associated list */
-  //delete[] cglMC;
-  BOOST_FOREACH( map_Ana_t::value_type &trk_el, track_list )
-    delete trk_el.second;
 
   return EVENT_OK;
 }
 
 int HadronResponse::End(PHCompositeNode *topNode)
 {
-  /* write histogram output to ROOT file */
+  /* Write histogram output to ROOT file */
   hm->dumpHistos();
   delete hm;
   delete dcdeadmap;
@@ -423,35 +262,24 @@ int HadronResponse::End(PHCompositeNode *topNode)
 
 void HadronResponse::BookHistograms()
 {
-  /* for dc alpha-board */
-  // ih = dcns + 2*dcwe < 2*2
-  for(int ih=0; ih<nh_dcpart; ih++)
-  {
-    h2_alphaboard[ih] = new TH2F(Form("h2_alphaboard_%d",ih), "DC #alpha-board;board;#alpha;", 82*4,-1.5,80.5, 120,-0.6,0.6);
-    hm->registerHisto(h2_alphaboard[ih]);
-  }
+  /* DC alpha-board */
+  int nbins_hn_alphaboard[] = {82*4, 120, 2, 2};
+  double xmin_hn_alphaboard[] = {-1.5, -0.6, -0.5, -0.5};
+  double xmax_hn_alphaboard[] = {80.5, 0.6, 1.5, 1.5};
+  hn_alphaboard = new THnSparseF("hn_alphaboard", "DC #alpha-board;board;#alpha;NS;WE;",
+      4, nbins_hn_alphaboard, xmin_hn_alphaboard, xmax_hn_alphaboard);
+  hn_alphaboard->Sumw2();
+  hm->registerHisto(hn_alphaboard);
 
-  /* for dc track */
-  int nbins_hn_dc[] = {npT, 300, 2, 2, 2};
-  double xmin_hn_dc[] = {0., 0., -0.5, -0.5, -0.5};
-  double xmax_hn_dc[] = {0., 30.,1.5, 1.5, 1.5};
-  hn_dc = new THnSparseF("hn_dc", "DC track info;p_{T} [GeV];E [GeV];NS;WE;Reco;",
-      5, nbins_hn_dc, xmin_hn_dc, xmax_hn_dc);
-  hn_dc->SetBinEdges(0, vpT);
-  hn_dc->Sumw2();
-  hm->registerHisto(hn_dc);
+  int nbins_hn_dclive[] = {200, 50, 30};
+  double xmin_hn_dclive[] = {-100., -1., 0.};
+  double xmax_hn_dclive[] = {100., 4., 15.};
+  hn_dclive = new THnSparseF("hn_dclive", "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV];",
+      3, nbins_hn_dclive, xmin_hn_dclive, xmax_hn_dclive);
+  hn_dclive->Sumw2();
+  hm->registerHisto(hn_dclive);
 
-  /* for emcal cluster */
-  int nbins_hn_emcal[] = {npT, 300, 8, 3};
-  double xmin_hn_emcal[] = {0., 0., -0.5, -0.5};
-  double xmax_hn_emcal[] = {0., 30., 7.5, 2.5};
-  hn_emcal = new THnSparseF("hn_emcal", "EMCal info;p_{T} [GeV];E [GeV];Sector;Reco;",
-      4, nbins_hn_emcal, xmin_hn_emcal, xmax_hn_emcal);
-  hn_emcal->SetBinEdges(0, vpT);
-  hn_emcal->Sumw2();
-  hm->registerHisto(hn_emcal);
-
-  /* for emcal reco one photon */
+  /* EMCal reco one photon */
   int nbins_hn_1photon[] = {npT, 8, 2};
   double xmin_hn_1photon[] = {0., -0.5, -0.5};
   double xmax_hn_1photon[] = {0., 7.5, 1.5};
@@ -461,7 +289,7 @@ void HadronResponse::BookHistograms()
   hn_1photon->Sumw2();
   hm->registerHisto(hn_1photon);
 
-  /* for emcal reco two photons */
+  /* EMCal reco two photons */
   int nbins_hn_2photon[] = {npT, npT, 300, 8, 2, 2};
   double xmin_hn_2photon[] = {0., 0., 0., -0.5, -0.5, -0.5};
   double xmax_hn_2photon[] = {0., 0., 0.3, 7.5, 1.5, 1.5};
@@ -471,17 +299,6 @@ void HadronResponse::BookHistograms()
   hn_2photon->SetBinEdges(1, vpT);
   hn_2photon->Sumw2();
   hm->registerHisto(hn_2photon);
-
-  /* for isolation cone  */
-  int nbins_hn_cluster[] = {npT, npT, 400, 400, 8};
-  double xmin_hn_cluster[] = {0., 0., 0., 0., -0.5};
-  double xmax_hn_cluster[] = {0., 0., 40., 40., 7.5};
-  hn_cluster = new THnSparseF("hn_cluster", "Isolation cone info;p^{truth}_{T} [GeV];p^{reco}_{T} [GeV];E_{truth} [GeV];E_{reco} [GeV];Sector;",
-      5, nbins_hn_cluster, xmin_hn_cluster, xmax_hn_cluster);
-  hn_cluster->SetBinEdges(0, vpT);
-  hn_cluster->SetBinEdges(1, vpT);
-  hn_cluster->Sumw2();
-  hm->registerHisto(hn_cluster);
 
   return;
 }
@@ -508,8 +325,9 @@ double HadronResponse::SumEEmcal(const emcClusterContent *cluster, const emcClus
      * and with 3 sigma charge veto */
     if( clus2->id() == cluster->id() ||
         IsBadTower(clus2) ||
+        abs( clus2->tofcorr() ) > tofMaxIso ||
         clus2->ecore() < eClusMin ||
-        DCChargeVeto(clus2,data_tracks) )
+        DCChargeVeto(clus2, data_tracks) )
       continue;
 
     /* Get cluster vector */
@@ -556,7 +374,7 @@ void HadronResponse::SumEEmcal(const emcClusterContent *cluster1, const emcClust
         IsBadTower(clus3) ||
         abs( clus3->tofcorr() ) > tofMaxIso ||
         clus3->ecore() < eClusMin ||
-        DCChargeVeto(clus3,data_tracks) )
+        DCChargeVeto(clus3, data_tracks) )
       continue;
 
     /* Get cluster vector */
@@ -621,6 +439,16 @@ double HadronResponse::SumPTrack(const emcClusterContent *cluster, const PHCentr
   }
 
   return econe;
+}
+
+bool HadronResponse::TestPhoton(const emcClusterContent *cluster)
+{
+  if( cluster->ecore() > eMin &&
+      abs( cluster->tofcorr() ) < tofMax &&
+      cluster->prob_photon() > probMin )
+    return true;
+  else
+    return false;
 }
 
 bool HadronResponse::DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *data_tracks)
@@ -760,7 +588,7 @@ void HadronResponse::ReadTowerStatus(const string& filename)
 
   while( fin >> sector >> biny >> binz >> status )
   {
-    /* count tower with bad status for PbSc and PbGl */
+    /* Count tower with bad status for PbSc and PbGl */
     if ( status > 10 )
     {
       if( sector < 6 ) nBadSc++;
@@ -804,10 +632,10 @@ void HadronResponse::ReadSashaWarnmap(const string &filename)
       else              ich -= 4608;
     }
 
-    /* get tower location */
+    /* Get tower location */
     anatools::TowerLocation(ich, sector, biny, binz);
 
-    /* count tower with bad status for PbSc and PbGl */
+    /* Count tower with bad status for PbSc and PbGl */
     if ( status > 0 )
     {
       if( sector < 6 ) nBadSc++;
@@ -815,7 +643,7 @@ void HadronResponse::ReadSashaWarnmap(const string &filename)
     }
     tower_status_sasha[sector][biny][binz] = status;
 
-    /* mark edge towers */
+    /* Mark edge towers */
     if( anatools::Edge_cg(sector, biny, binz) )
       tower_status_sasha[sector][biny][binz] = 20;
   }

@@ -1,4 +1,6 @@
-void anaFastMC_PH(const int process = 0)
+void anaFastMC_GenPH(const int process = 0,
+    const char *outputname = "phpythia.root",
+    const char *histoname = "histo.root")
 {
   //gSystem->Load("libfun4allfuncs.so");	// framework only
   gSystem->Load("libfun4all.so");	// framework + reco modules
@@ -46,7 +48,7 @@ void anaFastMC_PH(const int process = 0)
   // My Reconstruction Module
   enum MCMethod {FastMC, PHParticleGen};
   AnaFastMC *my1 = new AnaFastMC("AnaFastMC");
-  my1->set_outfile( Form("../AnaFastMC-PH-histo%d.root",process) );
+  my1->set_outfile(histoname);
   my1->set_mcmethod(PHParticleGen);
   se->registerSubsystem(my1);
 
@@ -55,12 +57,12 @@ void anaFastMC_PH(const int process = 0)
   se->registerInputManager(in1);
 
   // DST output manager
-  //TString OUTPUT = outputname;
-  //Fun4AllDstOutputManager *dst_output_mgr  = new Fun4AllDstOutputManager("PHPYTHIA",OUTPUT.Data());
-  //dst_output_mgr->AddNode("Sync");
-  //dst_output_mgr->AddNode("PHPythiaHeader");
-  //dst_output_mgr->AddNode("PHPythia");
-  //se->registerOutputManager(dst_output_mgr);
+  TString OUTPUT = outputname;
+  Fun4AllDstOutputManager *dst_output_mgr  = new Fun4AllDstOutputManager("PHPYTHIA",OUTPUT.Data());
+  dst_output_mgr->AddNode("Sync");
+  dst_output_mgr->AddNode("PHPythiaHeader");
+  dst_output_mgr->AddNode("PHPythia");
+  se->registerOutputManager(dst_output_mgr);
 
   // OSCAR output manager
   // with following output manager, one can write the PHPythia output in an oscar formated output text file
@@ -69,7 +71,7 @@ void anaFastMC_PH(const int process = 0)
 
   // Run over all events
   my1->InitBatch(process);
-  se->run(500000);
+  se->run(10000);
 
   // Write histograms
   se->End();

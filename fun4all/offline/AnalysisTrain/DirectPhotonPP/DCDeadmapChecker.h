@@ -19,16 +19,18 @@ struct KBB
 class DCDeadmapChecker
 {
   public:
-    DCDeadmapChecker();
+    DCDeadmapChecker(int eventsmod = 10000);
     void SetMapByIndex(int mapindex) { imap = mapindex; }
     void SetMapByRunnumber(int runnumber); 
-    void SetMapByRandom(); 
+    void SetMapByEvent(); 
     bool IsDead(std::string nswe, double board, double alpha);
 
   protected:
     static const int nmap = 15;
     int imap;
     int nevents;
+    int nmod;
+    int cum_nRuns[nmap];
 
     std::map<std::string,KBB> m_kbb;
     std::vector<std::string> v_deadmap[nmap];

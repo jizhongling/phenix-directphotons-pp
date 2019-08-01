@@ -553,7 +553,7 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
       }
 
       for(int ival=0; ival<3; ival++)
-        if( part >= 0 && ( ival == 0 || !DCChargeVeto(cluster1,data_tracks) ) )
+        if( part >= 0 && ( ival == 0 || !DCChargeVeto(cluster1, data_tracks) ) )
           for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
             if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
             {
@@ -589,7 +589,7 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
                 isolated[ival] = 1;
 
             for(int ival=0; ival<3; ival++)
-              if( part >= 0 && ( ival == 0 || ( !DCChargeVeto(cluster1,data_tracks) && !DCChargeVeto(cluster2,data_tracks) ) ) )
+              if( part >= 0 && ( ival == 0 || ( !DCChargeVeto(cluster1, data_tracks) && !DCChargeVeto(cluster2, data_tracks) ) ) )
                 for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
                   if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
                   {
@@ -832,7 +832,7 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
             prob = 1;
 
           for(int ival=0; ival<3; ival++)
-            if( part1 >= 0 && ( ival == 0 || ( !DCChargeVeto(cluster1,data_tracks) && !DCChargeVeto(cluster2,data_tracks) ) ) )
+            if( part1 >= 0 && ( ival == 0 || ( !DCChargeVeto(cluster1, data_tracks) && !DCChargeVeto(cluster2, data_tracks) ) ) )
               for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
                 if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
                 {
@@ -875,7 +875,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
     emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
     if( InFiducial(cluster1) &&
         TestPhoton(cluster1, bbc_t0) &&
-        !DCChargeVeto(cluster1,data_tracks) )
+        !DCChargeVeto(cluster1, data_tracks) )
     {
       int sector = anatools::GetSector(cluster1);
       int part = anatools::GetPart(cluster1);
@@ -916,7 +916,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
         }
 
       for(int ival=0; ival<3; ival++)
-        if( part >= 0 && ( ival == 0 || !DCChargeVeto(cluster1,data_tracks) ) )
+        if( part >= 0 && ( ival == 0 || !DCChargeVeto(cluster1, data_tracks) ) )
           for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
             if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
             {
@@ -930,7 +930,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
           emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
           if( !IsGoodTower(cluster2) ||
               !TestPhoton(cluster2, bbc_t0) ||
-              DCChargeVeto(cluster2,data_tracks) )
+              DCChargeVeto(cluster2, data_tracks) )
             continue;
           double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
           double minv = anatools::GetInvMass(cluster1, cluster2);
@@ -959,7 +959,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
           }
 
           for(int ival=0; ival<3; ival++)
-            if( part >= 0 && ( ival == 0 || ( !DCChargeVeto(cluster1,data_tracks) && !DCChargeVeto(cluster2,data_tracks) ) ) )
+            if( part >= 0 && ( ival == 0 || ( !DCChargeVeto(cluster1, data_tracks) && !DCChargeVeto(cluster2, data_tracks) ) ) )
               for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
                 if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
                 {
@@ -1124,7 +1124,7 @@ void PhotonHistos::BookHistograms()
   // ih = iqual < 3
   for(int ih=0; ih<nh_dcquality; ih++)
   {
-    h3_dclive[ih] = new TH3F(Form("h3_dclive_%d",ih), "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV]",
+    h3_dclive[ih] = new TH3F(Form("h3_dclive_%d",ih), "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV];",
         200,-100.,100., 50,-1.,4., 30,0.,15.);
     hm->registerHisto(h3_dclive[ih]);
   }
@@ -1216,7 +1216,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcClusterC
     {
       /* 3 sigma charge veto */
       econe[0] += clus2->ecore();
-      if( !DCChargeVeto(clus2,data_tracks) )
+      if( !DCChargeVeto(clus2, data_tracks) )
         econe[1] += clus2->ecore();
     }
   }
@@ -1269,7 +1269,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
     {
       econe1[0] += clus3->ecore();
       /* 3 sigma charge veto */
-      if( !DCChargeVeto(clus3,data_tracks) )
+      if( !DCChargeVeto(clus3, data_tracks) )
         econe1[1] += clus3->ecore();
     }
     v2_diff = v2_part3 - v2_pref2;
@@ -1279,7 +1279,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
     {
       econe2[0] += clus3->ecore();
       /* 3 sigma charge veto */
-      if( !DCChargeVeto(clus3,data_tracks) )
+      if( !DCChargeVeto(clus3, data_tracks) )
         econe2[1] += clus3->ecore();
     }
   }
@@ -1378,7 +1378,7 @@ void PhotonHistos::SumEPi0(const emcClusterContent *cluster1, const emcClusterCo
     {
       econeEM[0] += clus3->ecore();
       /* 3 sigma charge veto */
-      if( !DCChargeVeto(clus3,data_tracks) )
+      if( !DCChargeVeto(clus3, data_tracks) )
         econeEM[1] += clus3->ecore();
     }
   }
@@ -1454,14 +1454,14 @@ bool PhotonHistos::BBC10cm(const PHGlobal *data_global, const TrigLvl1 *data_tri
   {
     if( bbc10cm && (lvl1_live & bit_bbcnarrow) && abs(bbc_z) < 10. )
       return true;
-    else if( (lvl1_live & bit_bbcnovtx) && abs(bbc_z) < 30. )
+    if( !bbc10cm && (lvl1_live & bit_bbcnovtx) && abs(bbc_z) < 30. )
       return true;
   }
   else if( datatype == MB )
   {
     if( bbc10cm && abs(bbc_z) < 10. )
       return true;
-    else if( abs(bbc_z) < 30. )
+    if( !bbc10cm && abs(bbc_z) < 30. )
       return true;
   }
 

@@ -15,9 +15,7 @@
 /AnaToolsTowerID.h/1.6/Fri Jan 25 22:35:48 2019//
 /DirectPhotonPP.cc/1.56/Fri Jan 25 22:35:48 2019//
 /DirectPhotonPP.h/1.30/Fri Jan 25 22:35:48 2019//
-/DirectPhotonPPLinkDef.h/1.8/Fri Jan 25 22:35:48 2019//
 /HistogramBooker.cc/1.22/Fri Jan 25 22:35:48 2019//
-/Makefile.am/1.14/Fri Jan 25 22:35:48 2019//
 /Photon.cc/1.14/Fri Jan 25 22:35:48 2019//
 /Photon.h/1.13/Fri Jan 25 22:35:48 2019//
 /PhotonContainer.cc/1.11/Fri Jan 25 22:35:48 2019//
@@ -30,8 +28,10 @@
 /configure.ac/1.1/Fri Jan 25 22:35:48 2019//
 /AnaToolsTrigger.h/1.6/Mon Mar 25 21:24:03 2019//
 /AnaToolsCluster.h/1.11/Tue Jul  2 14:45:27 2019//
-/PhotonHistos.h/1.23/Thu Jul  4 15:37:50 2019//
-/PhotonHistos.cc/1.45/Mon Jul 15 23:17:50 2019//
-/DCDeadmapChecker.h/0/Initial DCDeadmapChecker.h//
-/DCDeadmapChecker.cc/0/Initial DCDeadmapChecker.cc//
+/DCDeadmapChecker.cc/1.1/Fri Jul 26 16:21:14 2019//
+/DCDeadmapChecker.h/1.1/Fri Jul 26 16:19:21 2019//
+/DirectPhotonPPLinkDef.h/1.9/Sun Jul 21 23:32:25 2019//
+/Makefile.am/1.15/Sun Jul 21 23:31:48 2019//
+/PhotonHistos.h/1.24/Tue Jul 23 20:41:33 2019//
+/PhotonHistos.cc/1.47/Sat Jul 27 21:09:12 2019//
 D

@@ -56,10 +56,8 @@ const double mEta = 0.547862;
 const double mcorr = 0.993;
 
 /* Some cuts for photon identification */
-const double ptMin = 3.;
 const double eMin = 0.3;
 const double AsymCut = 0.8;
-const double etaMax = 0.25;
 
 /* Some cuts for isolation cut */
 const double eClusMin = 0.15;
@@ -75,7 +73,6 @@ AnaFastMC::AnaFastMC(const string &name):
   outFileName("histos/AnaFastMC-"),
   mcmethod(FastMC),
   phpythia(NULL),
-  phpythia_bg(NULL),
   pdg_db(NULL),
   dcdeadmap(NULL),
   hm(NULL),
@@ -92,7 +89,8 @@ AnaFastMC::AnaFastMC(const string &name):
   hn_missing_eta(NULL),
   hn_photon(NULL),
   hn_geom(NULL),
-  hn_isolated(NULL)
+  hn_isolated(NULL),
+  weight_pythia(1.)
 {
   /* Initialize histograms */
   for(int part=0; part<3; part++)
@@ -119,12 +117,6 @@ AnaFastMC::AnaFastMC(const string &name):
   /* Function for pT weight for direct photon */
   cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]", 0.1, 100.);
   cross_ph->SetParameters(255., 5.98, 0.273, 14.43);
-
-  /* Set Pythia weight */
-  int process = 0;
-  sscanf(Name(), "AnaFastMC%d", &process);
-  double pt_start = 3 + process/2 * 0.1;
-  weight_pythia = cross_ph->Integral(pt_start, 50.);
 
   NPart = 0;
   NPeak = 0;
@@ -157,6 +149,15 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
   dcdeadmap = new DCDeadmapChecker();
 
   return EVENT_OK;
+}
+
+void AnaFastMC::InitBatch(int thread)
+{
+  /* Set Pythia weight */
+  double pt_start = 3. + thread/40 * 0.1;
+  weight_pythia = cross_ph->Integral(pt_start, pt_start+1.) / cross_ph->Integral(3., 4.);
+
+  return;
 }
 
 int AnaFastMC::process_event(PHCompositeNode *topNode)
@@ -415,7 +416,7 @@ void AnaFastMC::FastMCInput()
 
 void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
 {
-  /* Get PYTHIA Signal Particles */
+  /* Get PYTHIA */
   phpythia = findNode::getClass<PHPythiaContainer>(topNode,"PHPythia");
   if(!phpythia)
   {
@@ -423,16 +424,8 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     return;
   }
 
-  /* Get PYTHIA Background Particles */
-  phpythia_bg = findNode::getClass<PHPythiaContainer>(topNode,"PHPythiaBG");
-  if(!phpythia_bg)
-  {
-    cout << PHWHERE << "Unable to get PHPythiaBG, is Node missing?" << endl;
-    return;
-  }
-
   /* Set DC deadmap */
-  dcdeadmap->SetMapByRandom();
+  dcdeadmap->SetMapByEvent();
 
   /* Loop over all signal particles */
   int npart = phpythia->size();
@@ -441,21 +434,18 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     TMCParticle *part = phpythia->getParticle(ipart);
     TMCParticle *parent = phpythia->getParent(part);
 
-    /* Test if particle is a stable prompt photon
-     * and passes energy threshold */
+    /* Test if particle is a stable prompt photon */
     if( part->GetKF() != PY_GAMMA ||
         part->GetKS() != 1 ||
-        part->GetEnergy() < eMin ||
         ( parent && abs(parent->GetKF()) > 100 ) )
       continue;
 
     /* Convert particle into TLorentzVector */
     TLorentzVector pE_part(part->GetPx(), part->GetPy(), part->GetPz(), part->GetEnergy());
     double pt = pE_part.Pt();
-    double energy = pE_part.E();
 
     /* Only consider high-pT photons */
-    if( pt < ptMin )
+    if( pt < 5. )
       continue;
 
     /* Fill Vpart[], itwr_part[] and sec_part[]
@@ -477,16 +467,16 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
       h_photon_eta050->Fill(pt, weight_pythia);
 
       /* Fill histogram for all prompt photons with |eta| < 0.25 */
-      if( abs(pE_part.Eta()) < etaMax )
+      if( abs(pE_part.Eta()) < 0.25 )
         h_photon_eta025->Fill(pt, weight_pythia);
 
       /* Fill histogram for all isolated prompt photons with |eta| < 0.5 */
-      if( econe_all < eratio * energy )
+      if( econe_all < eratio * pE_part.E() )
       {
         h_isophoton_eta050->Fill(pt, weight_pythia);
 
         /* Fill histogram for all isolated prompt photons with |eta| < 0.25 */
-        if( abs(pE_part.Eta()) < etaMax )
+        if( abs(pE_part.Eta()) < 0.25 )
           h_isophoton_eta025->Fill(pt, weight_pythia);
       }
     }
@@ -495,7 +485,6 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     if( InAcc )
     {
       /* Parameters for prompt photon */
-      double e1 = pE_reco.E();
       double ptsim = pE_reco.Pt();
 
       /* All prompt photons in acceptance */
@@ -503,7 +492,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
       hn_geom->Fill(fill_hn_geom, weight_pythia);
 
       /* Eta and phi distribution and acceptance for isolated prompt photons */
-      if( econe_acc < eratio*energy && e1 > eMin)
+      if( econe_acc < eratio * pE_part.P() && pE_reco.P() > eMin)
       {
         int part = -1;
         if(sec1 < 0) part = -1;
@@ -551,65 +540,58 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe
   TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
   TVector2 v2_pref = v3_pref.EtaPhiVector();
 
-  /* Loop over all signal and background particles */
-  PHPythiaContainer *phpythiacont[2] = {phpythia, phpythia_bg};
-  for(int icont=0; icont<2; icont++)
+  /* Loop over all particles */
+  int npart = phpythia->size();
+  for(int ipart2=0; ipart2<npart; ipart2++)
   {
-    int npart = phpythiacont[icont]->size();
-    for(int ipart2=0; ipart2<npart; ipart2++)
+    TMCParticle *part2 = phpythia->getParticle(ipart2);
+
+    /* Only consider stable particles and
+     * skip if pointer identical to 'reference' particle */
+    if( part2 == pref || part2->GetKS() != 1 )
+      continue;
+
+    /* Get particle vector */
+    TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
+    TVector2 v2_part2 = v3_part2.EtaPhiVector();
+
+    /* Check if particle within cone */
+    TVector2 v2_diff(v2_part2 - v2_pref);
+    if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+    else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+    if( v2_diff.Mod() < cone_angle )
     {
-      TMCParticle *part2 = phpythiacont[icont]->getParticle(ipart2);
+      econe_all += part2->GetEnergy();
 
-      /* Only consider stable and interacting particles
-       * skip if pointer identical to 'reference' particle */
+      /* Reference particle should in acceptance and
+       * only consider interacting particles in cone */
       int id = abs(part2->GetKF());
-      if( ( icont == 0 && part2 == pref ) || part2->GetKS() != 1 ||
-          id == PY_MU || id == PY_NU_E || id == PY_NU_MU )
-        continue;
-
-      /* Get particle vector */
-      TVector3 v3_part2(part2->GetPx(), part2->GetPy(), part2->GetPz());
-      TVector2 v2_part2 = v3_part2.EtaPhiVector();
-      double energy = part2->GetEnergy();
-
-      /* Check if particle within cone */
-      TVector2 v2_diff(v2_part2 - v2_pref);
-      if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
-      else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
-      if( v2_diff.Mod() < cone_angle )
+      if( prefInAcc && id != PY_MU && id != PY_NU_E && id != PY_NU_MU )
       {
-        econe_all += energy;
+        TParticlePDG *pdg_part2 = pdg_db->GetParticle( part2->GetKF() );
+        int charge = pdg_part2->Charge();
+        double mom = v3_part2.Mag();
 
-        /* Reference particle should in acceptance */
-        if( prefInAcc )
+        /* For neutral particles sum kinetic energy in EMCal */
+        if( charge == 0 && mom > eClusMin )
         {
-          TParticlePDG *pdg_part2 = pdg_db->GetParticle( part2->GetKF() );
+          /* Fill itwr_part[] and sec_part[]
+           * and set NPart */
+          geom_sim(v3_part2);
 
-          /* For neutral particles sum energy in EMCal */
-          if( pdg_part2->Charge() == 0 && energy > eClusMin )
-          {
-            /* Fill itwr_part[] and sec_part[]
-             * and set NPart */
-            geom_sim(v3_part2);
+          /* Test if particle is in acceptance and not on hot tower */
+          if( NPart == 1 && !IsBadTower(itw_part[0]) )
+            econe_acc += mom;
+        }
 
-            /* Test if particle is in acceptance and not on hot tower */
-            if( NPart == 1 && !IsBadTower(itw_part[0]) )
-              econe_acc += energy;
-          }
-
-          /* For charged particles sum momentum in DC */
-          else if( pdg_part2->Charge() != 0 )
-          {
-            double mom = v3_part2.Mag();
-            /* Test if particle is in DC acceptance */
-            if( mom > pTrkMin && mom < pTrkMax &&
-                InDCAcceptance(v3_part2, pdg_part2->Charge()) )
-              econe_acc += mom;
-          } // charge
-        } // eClusMin
-      } // cone_angle
-    } // ipart2
-  } // icont
+        /* For charged particles sum momentum in DC
+         * if particle is in DC acceptance */
+        else if( charge != 0 && mom > pTrkMin && mom < pTrkMax &&
+            InDCAcceptance(v3_part2, charge) )
+          econe_acc += mom;
+      } // prefInAcc and id
+    } // cone_angle
+  } // ipart2
 
   return;
 }

@@ -12,6 +12,7 @@ class PHCentralTrack;
 class emcClusterContainer;
 class emcClusterContent;
 
+class TF1;
 class TFile;
 class TH1;
 class TH2;
@@ -20,16 +21,14 @@ class THnSparse;
 class HadronResponse: public SubsysReco
 {
   public:
-    HadronResponse(const std::string &name = "HadronResponse",
-        const char *filename = "histo.root",
-        const double pt_init = 0.);
+    HadronResponse(const std::string &name = "HadronResponse", const char *filename = "histo.root");
     virtual ~HadronResponse();
 
     int Init(PHCompositeNode *topNode);
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
 
-    void InitBatch();
+    void InitBatch(int thread);
 
   protected:
     /* Create histograms */
@@ -44,6 +43,7 @@ class HadronResponse: public SubsysReco
     double SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
 
     /* Check charge veto and tower status */
+    bool TestPhoton(const emcClusterContent *cluster);
     bool DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
     bool InFiducial(const emcClusterContent *cluster);
     bool IsGoodTower(const emcClusterContent *cluster);
@@ -57,20 +57,11 @@ class HadronResponse: public SubsysReco
     void ReadTowerStatus(const std::string &filename);
     void ReadSashaWarnmap(const std::string &filename);
 
-    /* Pythia weight normalization */
-    TH1 *h_pt_weight;
-    double pt_start;
-    int pt_count;
-    double weight_pythia;
-
     /* number of pT bins */
     static const int npT = 30;
 
     /* pT bins */
     static double vpT[npT+1];
-
-    /* Number of histogram array */
-    static const int nh_dcpart = 2*2;
 
     /* tower status for warnmap */
     int tower_status_nils[8][48][96];
@@ -82,12 +73,14 @@ class HadronResponse: public SubsysReco
     std::string outFileName;
     Fun4AllHistoManager *hm;
 
-    TH2 *h2_alphaboard[nh_dcpart];
-    THnSparse *hn_dc;
-    THnSparse *hn_emcal;
+    THnSparse *hn_alphaboard;
+    THnSparse *hn_dclive;
     THnSparse *hn_1photon;
     THnSparse *hn_2photon;
-    THnSparse *hn_cluster;
+
+    /* Pythia weight */
+    TF1 *cross_ph;
+    double weight_pythia;
 };
 
 #endif /* __HADRONRESPONSE_H__ */

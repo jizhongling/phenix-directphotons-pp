@@ -1,5 +1,5 @@
 #include "DCDeadmapChecker.h"
-#include <TRandom3.h>
+#include <TMath.h>
 #include <boost/foreach.hpp>
 
 #define INSERT_ARRAY(vec,array) \
@@ -9,13 +9,19 @@
 
 using namespace std;
 
-DCDeadmapChecker::DCDeadmapChecker():
+DCDeadmapChecker::DCDeadmapChecker(int eventsmod):
   imap(-1),
-  nevents(0)
+  nevents(0),
+  nmod(eventsmod)
 {
+  const double cum_rRuns[nmap] = {0.06429, 0.1486, 0.1767, 0.214, 0.3447, 0.3501, 0.4817, 0.7094, 0.7141, 0.8178, 0.8253, 0.8963, 0.9003, 0.9978, 1};
+
   m_kbb.clear();
   for(int i=0; i<nmap; i++)
+  {
+    cum_nRuns[i] = TMath::Nint( cum_rRuns[i] * nmod );
     v_deadmap[i].clear();
+  }
 
   m_kbb.insert( make_pair( "W0_0",   KBB( 7.075, -99.99, -1.113, -10.0,  10.0) ) );
   m_kbb.insert( make_pair( "W0_1",   KBB( 7.075,  79.67,  99.99, -10.0,  10.0) ) );
@@ -87,21 +93,16 @@ void DCDeadmapChecker::SetMapByRunnumber(int runnumber)
   return;
 }
 
-void DCDeadmapChecker::SetMapByRandom()
+void DCDeadmapChecker::SetMapByEvent()
 {
-  const double cum_rRuns[nmap] = {0.0625, 0.1443, 0.1716, 0.2075, 0.3366, 0.3421, 0.4741, 0.7054, 0.7102, 0.8157, 0.8233, 0.8956, 0.8996, 0.9977, 1};
-
-  if(nevents%1000 == 0)
+  if(imap < 0 || imap >= nmap || nevents >= nmod)
   {
-    imap = -1;
-    double rnd = gRandom->Rndm();
-    for(int i=0; i<nmap; i++)
-      if(rnd < cum_rRuns[i])
-      {
-        imap = i;
-        break;
-      }
+    imap = 0;
+    nevents = 0;
   }
+
+  if(nevents >= cum_nRuns[imap])
+    imap++;
   nevents++;
 
   return;

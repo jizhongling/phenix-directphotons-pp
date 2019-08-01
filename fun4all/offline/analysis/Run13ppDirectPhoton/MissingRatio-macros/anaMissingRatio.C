@@ -7,7 +7,6 @@ void anaMissingRatio(const int process = 0)
   gSystem->Load("libMissingRatio.so");
 
   const int nThread = 10;
-  const double pt_start = 3 + process*nThread/2 * 0.1;
 
   // Setup recoConsts
   recoConsts *rc = recoConsts::instance();
@@ -40,7 +39,7 @@ void anaMissingRatio(const int process = 0)
   //SubsysReco *my1 = new MissingRatio("MissingRatio", Form("histo%d.root",process));
   //SubsysReco *my1 = new PhotonEff("PhotonEff", Form("histo%d.root",process));
   //SubsysReco *my1 = new Isolation("Isolation", Form("histo%d.root",process));
-  HadronResponse *my1 = new HadronResponse("HadronResponse", Form("histo%d.root",process), pt_start);
+  HadronResponse *my1 = new HadronResponse("HadronResponse", Form("histo%d.root",process));
   se->registerSubsystem(my1);
 
   // Real input from DST files
@@ -51,7 +50,7 @@ void anaMissingRatio(const int process = 0)
   for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
   {
     char dstFileName[1000];
-    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST-phpythia/simDST%d.root", thread);
+    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST-dirphoton/simDST%d.root", thread);
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DSTin1", dstFileName);
@@ -62,7 +61,7 @@ void anaMissingRatio(const int process = 0)
     }
 
     // Do the analysis for this DST file
-    my1->InitBatch();
+    my1->InitBatch(thread);
     se->run(0);
 
     cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;

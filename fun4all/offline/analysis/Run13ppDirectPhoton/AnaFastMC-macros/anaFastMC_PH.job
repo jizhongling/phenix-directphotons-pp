@@ -4,7 +4,7 @@ Executable      = anaFastMC_PH.csh
 Arguments       = $(Initialdir) $(Process)
 Requirements    = (CPU_Speed >= 2)
 Rank		= CPU_Speed
-request_memory  = 1G
+request_memory  = 128M
 request_cpus    = 1
 Priority        = 20
 GetEnv          = False
@@ -14,4 +14,4 @@ Output          = /dev/null
 Error           = /dev/null
 Log             = /dev/null
 Notify_user     = zji@rcf.rhic.bnl.gov
-Queue 600
+Queue 1200

@@ -101,11 +101,11 @@ void calcMCRunRatio()
         imap = i;
     if(imap < 0 || imap >= nmap) continue;
 
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15172/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15226/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() ) continue;
 
     TH1 *h_events = (TH1*)f->Get("h_events");
-    double nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("ert_c_30cm") );
+    double nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("ert_c_10cm") );
     nevents[imap] += nev;
 
     delete h_events;

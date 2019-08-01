@@ -4,7 +4,7 @@ Executable      = /phenix/u/zji/bin/condor-root.csh
 Arguments       = $(Initialdir) anaPHPythiaHistos.C $(Process)
 Requirements    = (CPU_Speed >= 2)
 Rank		= CPU_Speed
-request_memory  = 1G
+request_memory  = 128M
 request_cpus    = 1
 Priority        = 20
 GetEnv          = False
