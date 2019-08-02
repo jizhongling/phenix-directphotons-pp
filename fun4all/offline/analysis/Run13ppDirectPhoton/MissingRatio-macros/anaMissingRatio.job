@@ -14,4 +14,4 @@ Output          = /dev/null
 Error           = /dev/null
 Log             = /dev/null
 Notify_user     = zji@rcf.rhic.bnl.gov
-Queue 120
+Queue 400
