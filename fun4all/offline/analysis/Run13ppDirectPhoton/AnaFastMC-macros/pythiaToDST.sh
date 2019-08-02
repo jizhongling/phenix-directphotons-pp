@@ -5,22 +5,27 @@
 IsZombie () {
     root -l <<EOF
   {
-    TFile f("${1}");
-    if(f.IsZombie()) return 1;
-    else return 0;
+    TFile *f = new TFile("${1}");
+    if(!f || f->IsZombie()) return 1;
+    TTree *t = (TTree*)f->Get("T");
+    if(!t || t->GetEntries() < 100) return 1;
+    return 0;
   }
 EOF
 }
 
 proc="${1}"
 working="${_CONDOR_SCRATCH_DIR}/working${proc}"
+output_dir="${SPIN}/data/pisaRun13/simDST-dirphoton-0"
+logfile="${output_dir}/pythiaToDST.log"
 nProcess=12000
 scale=`echo "${nProcess}/300" | bc`
-output_dir="${SPIN}/data/pisaRun13/simDST-dirphoton-0"
+minsize=8
 
 mkdir -p "${working}"
 mkdir -p "${output_dir}"
 cd "${working}"
+echo -e "Process ${proc}: working directory ${PWD}" >> ${logfile}
 
 # Run PHPythia
 pythia_ldir="${PLHF}/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros"
@@ -28,7 +33,6 @@ pythia_macro="anaFastMC_GenPH.C"
 pythia_config="pythia.cfg"
 pythia_tree="phpythia.root"
 pythia_histo="${output_dir}/AnaFastMC-GenPH-histo${proc}.root"
-pythia_minMB=8
 
 cp "${pythia_ldir}/${pythia_macro}" .
 cp "${pythia_ldir}/${pythia_config}" .
@@ -38,20 +42,23 @@ sed -i "s/^ckin 3 .*/ckin 3 ${pt}/" "${pythia_config}"
 pt=`echo "${pt} + 1" | bc`
 sed -i "s/^ckin 4 .*/ckin 4 ${pt}/" "${pythia_config}"
 
-root -l -b -q "${pythia_macro}(${proc},\"${pythia_tree}\",\"${pythia_histo}\")"
+echo -e "Process ${proc}: start running PHPythia" >> ${logfile}
+root -l -b -q "${pythia_macro}(${proc},${scale},\"${pythia_tree}\",\"${pythia_histo}\")"
 
 # Test PHPythia output
 for icheck in {1..2} ; do
-    if [[ $(IsZombie "${pythia_tree}" | awk '{print substr($0,length($0),1)}') = 1 || $(ls -l --block-size=M "${pythia_tree}" | awk '{printf "%d", $5}') < ${pythia_minMB} ]] ; then
+    if [[ $(IsZombie "${pythia_tree}" | awk '{print substr($0,length($0),1)}') = 1 || $(ls -l --block-size=M "${pythia_tree}" | awk '{printf "%d", $5}') < ${minsize} ]] ; then
         sleep 10
-        root -l -b -q "${pythia_macro}(${proc},\"${pythia_tree}\",\"${pythia_histo}\")"
+	echo -e "Process ${proc}: rerun PHPythia ${icheck} times" >> ${logfile}
+        root -l -b -q "${pythia_macro}(${proc},${scale},\"${pythia_tree}\",\"${pythia_histo}\")"
     fi
 done
+
+echo -e "Process ${proc}: finish running PHPythia" >> ${logfile}
 
 # Run PISA
 pisa_ldir="${PLHF}/data/pisaRun13"
 pisa_tree="PISAEvent.root"
-pisa_minKB=8
 
 echo -e "phpythia 100 ${pythia_tree}" > "glogon.kumac"
 echo -e "pisafile ${pisa_tree}" >> "glogon.kumac"
@@ -70,31 +77,38 @@ ln -s "${pisa_ldir}/flukaaf.dat"
 ln -s "${pisa_ldir}/xsneut95.dat"
 ln -s "${pisa_ldir}/Sim3D++.root"
 
+echo -e "Process ${proc}: start running PISA" >> ${logfile}
 pisa < "pisa.input"
 
 # Test PISA output
 for icheck in {1..2} ; do
-    if [[ $(IsZombie "${pisa_tree}" | awk '{print substr($0,length($0),1)}') = 1 || $(ls -l --block-size=K "${pisa_tree}" | awk '{printf "%d", $5}') < ${pisa_minKB} ]] ; then
+    if [[ $(IsZombie "${pisa_tree}" | awk '{print substr($0,length($0),1)}') = 1 || $(ls -l --block-size=M "${pisa_tree}" | awk '{printf "%d", $5}') < ${minsize} ]] ; then
         sleep 10
+	echo -e "Process ${proc}: rerun PISA ${icheck} times" >> ${logfile}
         pisa < "pisa.input"
     fi
 done
 
+echo -e "Process ${proc}: finish running PISA" >> ${logfile}
+
 # Run pisaToDST
 cd "${pisa_ldir}"
 pisa_macro="pisaToDST.C"
-pisa_tree="${working}/PISAEvent.root"
+pisa_tree="${working}/${pisa_tree}"
 dst_tree="${output_dir}/simDST${proc}.root"
-dst_minKB=8
 
+echo -e "Process ${proc}: start running pisaToDST" >> ${logfile}
 root -l -b -q "${pisa_macro}(0,\"${pisa_tree}\",\"${dst_tree}\")"
 
 # Test pisaToDST output
 for icheck in {1..2} ; do
-    if [[ $(IsZombie "${dst_tree}" | awk '{print substr($0,length($0),1)}') = 1 || $(ls -l --block-size=K "${dst_tree}" | awk '{printf "%d", $5}') < ${dst_minKB} ]] ; then
+    if [[ $(IsZombie "${dst_tree}" | awk '{print substr($0,length($0),1)}') = 1 || $(ls -l --block-size=M "${dst_tree}" | awk '{printf "%d", $5}') < ${minsize} ]] ; then
         sleep 10
+	echo -e "Process ${proc}: rerun pisaToDST ${icheck} times" >> ${logfile}
         root -l -b -q "${pisa_macro}(0,\"${pisa_tree}\",\"${dst_tree}\")"
     fi
 done
+
+echo -e "Process ${proc}: finish running pisaToDST" >> ${logfile}
 
 rm -rf "${working}"

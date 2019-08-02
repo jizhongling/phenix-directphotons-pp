@@ -37,7 +37,7 @@ class AnaFastMC: public SubsysReco
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
 
-    void InitBatch(int thread);
+    void InitBatch(int thread, int scale);
     void set_outfile(std::string filename) { outFileName = filename; }
     void set_mcmethod(MCMethod method) { mcmethod = method; }
 

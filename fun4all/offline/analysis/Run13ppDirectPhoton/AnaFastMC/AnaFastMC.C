@@ -151,10 +151,10 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
   return EVENT_OK;
 }
 
-void AnaFastMC::InitBatch(int thread)
+void AnaFastMC::InitBatch(int thread, int scale)
 {
   /* Set Pythia weight */
-  double pt_start = 3. + thread/40 * 0.1;
+  double pt_start = 3. + thread/scale * 0.1;
   weight_pythia = cross_ph->Integral(pt_start, pt_start+1.) / cross_ph->Integral(3., 4.);
 
   return;

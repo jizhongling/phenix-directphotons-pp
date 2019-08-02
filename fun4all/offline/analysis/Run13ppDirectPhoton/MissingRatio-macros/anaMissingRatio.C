@@ -1,4 +1,4 @@
-void anaMissingRatio(const int process = 0)
+void anaMissingRatio(const int process = 0, int scale = 40)
 {
   gSystem->Load("libfun4all.so");	// framework + reco modules
   gSystem->Load("librecal.so");
@@ -61,7 +61,7 @@ void anaMissingRatio(const int process = 0)
     }
 
     // Do the analysis for this DST file
-    my1->InitBatch(thread);
+    my1->InitBatch(thread, scale);
     se->run(0);
 
     cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;

@@ -1,4 +1,5 @@
 void anaFastMC_GenPH(const int process = 0,
+    const int scale = 40,
     const char *outputname = "phpythia.root",
     const char *histoname = "histo.root")
 {
@@ -70,7 +71,7 @@ void anaFastMC_GenPH(const int process = 0,
   // se->registerOutputManager(oscar_manager);
 
   // Run over all events
-  my1->InitBatch(process);
+  my1->InitBatch(process, scale);
   se->run(10000);
 
   // Write histograms

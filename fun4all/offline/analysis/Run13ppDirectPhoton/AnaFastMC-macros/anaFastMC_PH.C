@@ -1,4 +1,4 @@
-void anaFastMC_PH(const int process = 0)
+void anaFastMC_PH(const int process = 0, const int scale = 4)
 {
   //gSystem->Load("libfun4allfuncs.so");	// framework only
   gSystem->Load("libfun4all.so");	// framework + reco modules
@@ -68,7 +68,7 @@ void anaFastMC_PH(const int process = 0)
   // se->registerOutputManager(oscar_manager);
 
   // Run over all events
-  my1->InitBatch(process);
+  my1->InitBatch(process, scale);
   se->run(500000);
 
   // Write histograms

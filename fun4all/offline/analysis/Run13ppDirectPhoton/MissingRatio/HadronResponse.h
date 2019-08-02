@@ -28,7 +28,7 @@ class HadronResponse: public SubsysReco
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
 
-    void InitBatch(int thread);
+    void InitBatch(int thread, int scale);
 
   protected:
     /* Create histograms */
