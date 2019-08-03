@@ -1,4 +1,4 @@
-void anaMissingRatio(const int process = 0, int scale = 40)
+void anaMissingRatio(const int process = 0, int scale = 15)
 {
   gSystem->Load("libfun4all.so");	// framework + reco modules
   gSystem->Load("librecal.so");
@@ -6,7 +6,7 @@ void anaMissingRatio(const int process = 0, int scale = 40)
   gSystem->Load("libemcEmbed4all.so");
   gSystem->Load("libMissingRatio.so");
 
-  const int nThread = 30;
+  const int nThread = 10;
 
   // Setup recoConsts
   recoConsts *rc = recoConsts::instance();
@@ -50,7 +50,7 @@ void anaMissingRatio(const int process = 0, int scale = 40)
   for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
   {
     char dstFileName[1000];
-    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST-dirphoton-0/simDST%d.root", thread);
+    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST-dirphoton/simDST%d.root", thread);
 
     cout << "\nfileopen for " << dstFileName << endl; 
     int openReturn = se->fileopen("DSTin1", dstFileName);

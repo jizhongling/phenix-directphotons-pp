@@ -1,5 +1,5 @@
 void anaFastMC_GenPH(const int process = 0,
-    const int scale = 40,
+    const int scale = 15,
     const char *outputname = "phpythia.root",
     const char *histoname = "histo.root")
 {
@@ -42,16 +42,16 @@ void anaFastMC_GenPH(const int process = 0,
   //** You can use dedicated triggers, derived from the PHPyTrigger base class
   // se->registerSubsystem( new PHPyJPsiMuonTrigger() );
 
-  //** You can select only particular particles to write out
-  //PHPyParticleSelect *pselect = new PHPyParticleSelect();
-  //se->registerSubsystem( pselect );
-
   // My Reconstruction Module
   enum MCMethod {FastMC, PHParticleGen};
   AnaFastMC *my1 = new AnaFastMC("AnaFastMC");
   my1->set_outfile(histoname);
   my1->set_mcmethod(PHParticleGen);
   se->registerSubsystem(my1);
+
+  //** You can select only particular particles to write out
+  PHPyParticleSelect *pselect = new PHPySelectStable();
+  se->registerSubsystem( pselect );
 
   //** A dummy (null) input is needed for the Fun4All framework
   Fun4AllDummyInputManager *in1 = new Fun4AllDummyInputManager("DSTin1", "DST");

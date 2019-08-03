@@ -41,7 +41,7 @@ void anaPHPythiaHistos(const int process = 0)
   // se->registerSubsystem( new PHPyJPsiMuonTrigger() );
 
   //** You can select only particular particles to write out
-  //PHPyParticleSelect *pselect = new PHPyParticleSelect();
+  //PHPyParticleSelect *pselect = new PHPySelectStable();
   //se->registerSubsystem( pselect );
 
   // My Reconstruction Module

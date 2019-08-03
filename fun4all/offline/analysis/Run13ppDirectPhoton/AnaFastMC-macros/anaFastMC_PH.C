@@ -40,7 +40,7 @@ void anaFastMC_PH(const int process = 0, const int scale = 4)
   // se->registerSubsystem( new PHPyJPsiMuonTrigger() );
 
   //** You can select only particular particles to write out
-  //PHPyParticleSelect *pselect = new PHPyParticleSelect();
+  //PHPyParticleSelect *pselect = new PHPySelectStable();
   //se->registerSubsystem( pselect );
 
   // My Reconstruction Module
