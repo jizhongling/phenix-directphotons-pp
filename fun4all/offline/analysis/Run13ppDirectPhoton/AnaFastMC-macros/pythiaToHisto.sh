@@ -2,32 +2,6 @@
 # Function: run PHPythia, PISA, pisaToDST and anaDST in sequence and check output.
 # Usage: $0 $(Process)
 
-# Check TTree T
-IsBadTree () {
-    root -l <<EOF
-  {
-    TFile *f = new TFile("${1}");
-    if(!f || f->IsZombie()) exit(1);
-    TTree *t = (TTree*)f->Get("T");
-    if(!t || t->GetEntries() < 9999.) exit(1);
-    return 0;
-  }
-EOF
-}
-
-# Check TH1 h_events
-IsBadHisto () {
-    root -l <<EOF
-  {
-    TFile *f = new TFile("${1}");
-    if(!f || f->IsZombie()) exit(1);
-    TH1 *h = (TH1*)f->Get("h_events");
-    if(!h || h->GetEntries() < 9999.) exit(1);
-    return 0;
-  }
-EOF
-}
-
 # General variables
 proc="${1}"
 working="${_CONDOR_SCRATCH_DIR}/working${proc}"
@@ -37,11 +11,13 @@ goodlist="${output_dir}/aa_goodlist.txt"
 badlist="${output_dir}/aa_badlist.txt"
 nProcess="12000"
 scale=`echo "${nProcess}/300" | bc`
+nevents="10000"
 maxcheck="6"
 minsize="5"
 
 # PHPythia variables
 pythia_ldir="${PLHF}/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros"
+file_checker="${pythia_ldir}/IsGoodFile.exe"
 pythia_macro="anaFastMC_GenPH.C"
 pythia_config="pythia.cfg"
 pythia_tree="phpythia${proc}.root"
@@ -62,9 +38,8 @@ dst_histo="HadronResponse-histo${proc}.root"
 # Prepare to run
 mkdir -p "${working}"
 mkdir -p "${output_dir}"
-cd "${working}"
-cp "${output_dir}/${pythia_tree}" .
 cp "${output_dir}/${pythia_histo}" .
+cp "${output_dir}/${pythia_tree}" .
 cp "${output_dir}/${pisa_tree}" .
 cp "${output_dir}/${dst_tree}" .
 cp "${output_dir}/${dst_histo}" .
@@ -84,11 +59,11 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
     if [[ -f "${pisa_tree}" || -f "${dst_tree}" || -f "${dst_histo}" ]] ; then
         break
     fi
-    IsBadTree "${pythia_tree}"
-    status_tree="${?}"
-    IsBadHisto "${pythia_histo}"
+    "${file_checker}" "histo" "${pythia_histo}" "${nevents}"
     status_histo="${?}"
-    if [[ "${status_tree}" -ne "0" || "${status_histo}" -ne "0" || $(ls -l --block-size=M "${pythia_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
+    "${file_checker}" "tree" "${pythia_tree}" "${nevents}"
+    status_tree="${?}"
+    if [[ "${status_histo}" -ne "0" || "${status_tree}" -ne "0" || $(ls -l --block-size=M "${pythia_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    echo -e "Process ${proc}: PHPythia failed" >> "${logfile}"
 	    echo -en "${proc} " >> "${badlist}"
@@ -109,7 +84,7 @@ cd "${working}"
 
 echo -e "phpythia 100 ${pythia_tree}" > "glogon.kumac"
 echo -e "pisafile ${pisa_tree}" >> "glogon.kumac"
-echo -e "ptrig 10000" >> "glogon.kumac"
+echo -e "ptrig ${nevents}" >> "glogon.kumac"
 echo -e "exit" >> "glogon.kumac"
 
 cp "${pisa_ldir}/pisa.kumac" "pisa.kumac"
@@ -128,7 +103,7 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
     if [[ -f "${dst_tree}" || -f "${dst_histo}" ]] ; then
         break
     fi
-    IsBadTree "${pisa_tree}"
+    "${file_checker}" "tree" "${pisa_tree}" "${nevents}"
     status_tree="${?}"
     if [[ "${status_tree}" -ne "0" || $(ls -l --block-size=M "${pisa_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
@@ -155,7 +130,7 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
     if [[ -f "${working}/${dst_histo}" ]] ; then
         break
     fi
-    IsBadTree "${working}/${dst_tree}"
+    "${file_checker}" "tree" "${working}/${dst_tree}" "${nevents}"
     status_tree="${?}"
     if [[ "${status_tree}" -ne "0" || $(ls -l --block-size=M "${working}/${dst_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
@@ -182,7 +157,7 @@ cd "${working}"
 cp "${pythia_ldir}/${dst_macro}" .
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
-    IsBadHisto "${dst_histo}"
+    "${file_checker}" "histo" "${dst_histo}" "${nevents}"
     status_histo="${?}"
     if [[ "${status_histo}" -ne "0" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
