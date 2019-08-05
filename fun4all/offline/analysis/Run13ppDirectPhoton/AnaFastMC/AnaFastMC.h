@@ -106,6 +106,7 @@ class AnaFastMC: public SubsysReco
     DCDeadmapChecker *dcdeadmap;
 
     Fun4AllHistoManager *hm;
+    TH1 *h_events;
     TH1 *h_pion;
     TH1 *h_photon;
     TH1 *h_photon_eta050;

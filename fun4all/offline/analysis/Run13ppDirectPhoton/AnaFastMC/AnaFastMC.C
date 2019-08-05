@@ -76,6 +76,7 @@ AnaFastMC::AnaFastMC(const string &name):
   pdg_db(NULL),
   dcdeadmap(NULL),
   hm(NULL),
+  h_events(NULL),
   h_pion(NULL),
   h_photon(NULL),
   h_photon_eta050(NULL),
@@ -162,6 +163,9 @@ void AnaFastMC::InitBatch(int thread, int scale)
 
 int AnaFastMC::process_event(PHCompositeNode *topNode)
 {
+  /* Count events */
+  h_events->Fill(1.);
+
   /* Use FastMC input (i.e. random number generator for pi0, eta and direct photon eta, phi, pt) */
   if( mcmethod == FastMC )
     FastMCInput();
@@ -639,6 +643,9 @@ void AnaFastMC::BookHistograms()
   sort(phibin, phibin+nphi);
 
   /* Use FastMC and PHParticleGen input */
+  h_events = new TH1F("h_events", "Events count", 1, 0.5, 1.5);
+  hm->registerHisto(h_events);
+
   h_photon = new TH1F("h_photon", "Total photon count;p_{T} [GeV];", npT, pTbin);
   h_photon->Sumw2();
   hm->registerHisto(h_photon);

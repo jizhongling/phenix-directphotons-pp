@@ -29,6 +29,7 @@ class HadronResponse: public SubsysReco
     int End(PHCompositeNode *topNode);
 
     void InitBatch(int thread, int scale);
+    void set_outfile(std::string filename) { outFileName = filename; }
 
   protected:
     /* Create histograms */
@@ -73,6 +74,7 @@ class HadronResponse: public SubsysReco
     std::string outFileName;
     Fun4AllHistoManager *hm;
 
+    TH1 *h_events;
     THnSparse *hn_alphaboard;
     THnSparse *hn_dclive;
     THnSparse *hn_1photon;

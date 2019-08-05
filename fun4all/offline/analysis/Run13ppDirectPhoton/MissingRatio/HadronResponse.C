@@ -68,6 +68,7 @@ HadronResponse::HadronResponse(const string &name, const char *filename):
   SubsysReco(name),
   dcdeadmap(NULL),
   hm(NULL),
+  h_events(NULL),
   hn_alphaboard(NULL),
   hn_dclive(NULL),
   hn_1photon(NULL),
@@ -126,6 +127,9 @@ void HadronResponse::InitBatch(int thread, int scale)
 
 int HadronResponse::process_event(PHCompositeNode *topNode)
 {
+  /* Count events */
+  h_events->Fill(1.);
+
   /* EMC track truth info */
   emcGeaTrackContainer *emctrkcont = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
   if(!emctrkcont)
@@ -262,6 +266,10 @@ int HadronResponse::End(PHCompositeNode *topNode)
 
 void HadronResponse::BookHistograms()
 {
+  /* Count events */
+  h_events = new TH1F("h_events", "Events count", 1, 0.5, 1.5);
+  hm->registerHisto(h_events);
+
   /* DC alpha-board */
   int nbins_hn_alphaboard[] = {82*4, 120, 2, 2};
   double xmin_hn_alphaboard[] = {-1.5, -0.6, -0.5, -0.5};

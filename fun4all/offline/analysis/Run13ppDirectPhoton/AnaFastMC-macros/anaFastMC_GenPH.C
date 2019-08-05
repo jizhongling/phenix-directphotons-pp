@@ -1,5 +1,5 @@
 void anaFastMC_GenPH(const int process = 0,
-    const int scale = 15,
+    const int scale = 40,
     const char *outputname = "phpythia.root",
     const char *histoname = "histo.root")
 {

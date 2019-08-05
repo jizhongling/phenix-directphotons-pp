@@ -1,12 +1,13 @@
-void anaMissingRatio(const int process = 0, const int scale = 40)
+void anaDST(const int process = 0,
+    const int scale = 40,
+    const char *dstFileName = "simDST.root",
+    const char *histoname = "histo.root")
 {
   gSystem->Load("libfun4all.so");	// framework + reco modules
   gSystem->Load("librecal.so");
   gSystem->Load("libcteval");
   gSystem->Load("libemcEmbed4all.so");
   gSystem->Load("libMissingRatio.so");
-
-  const int nThread = 30;
 
   // Setup recoConsts
   recoConsts *rc = recoConsts::instance();
@@ -23,7 +24,6 @@ void anaMissingRatio(const int process = 0, const int scale = 40)
   se->registerSubsystem(mr);
 
   // Import simulated data
-  //se->registerSubsystem( new EmcGeaContainerImporter() );
   SubsysRecoStack *simimp = new EmcGeaContainerImporter();
   simimp->x_push_back( new EmcUnclusterizer() );
   EmcTowerScalerSmearer *emcsm = new EmcTowerScalerSmearer(1., 0.);
@@ -36,38 +36,33 @@ void anaMissingRatio(const int process = 0, const int scale = 40)
   se->registerSubsystem( new EmcEmbedReclusterizer("TOP", "TOP", "TOP", "") );
 
   // My Reconstruction Module
-  //SubsysReco *my1 = new MissingRatio("MissingRatio", Form("histo%d.root",process));
-  //SubsysReco *my1 = new PhotonEff("PhotonEff", Form("histo%d.root",process));
-  //SubsysReco *my1 = new Isolation("Isolation", Form("histo%d.root",process));
-  HadronResponse *my1 = new HadronResponse("HadronResponse", Form("histo%d.root",process));
+  HadronResponse *my1 = new HadronResponse("HadronResponse");
+  my1->set_outfile(histoname);
   se->registerSubsystem(my1);
 
   // Real input from DST files
   Fun4AllInputManager *in1 = new Fun4AllDstInputManager("DSTin1", "DST");
   se->registerInputManager(in1);
 
-  // Loop over input DST files
-  for(int thread=process*nThread; thread<(process+1)*nThread; thread++)
+  // Loop over input DST file
+  cout << "\nfileopen for " << dstFileName << endl; 
+  int openReturn = se->fileopen("DSTin1", dstFileName);
+  if(openReturn)
   {
-    char dstFileName[1000];
-    sprintf(dstFileName, "/phenix/spin/phnxsp01/zji/data/pisaRun13/simDST-dirphoton/simDST%d.root", thread);
+    cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl;
+    return;
+  }
 
-    cout << "\nfileopen for " << dstFileName << endl; 
-    int openReturn = se->fileopen("DSTin1", dstFileName);
-    if(openReturn)
-    {
-      cout << "\nAbnormal return: openReturn from Fun4All fileopen method = " << openReturn << endl;
-      continue;
-    }
+  // Do the analysis for this DST file
+  my1->InitBatch(process, scale);
+  se->run(0);
 
-    // Do the analysis for this DST file
-    my1->InitBatch(thread, scale);
-    se->run(0);
-
-    cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;
-    int closeReturn = se->fileclose("DSTin1");
-    if(closeReturn)
-      cout << "\nAbnormal return: closeReturn from Fun4All fileclose = " << closeReturn << endl;
+  cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;
+  int closeReturn = se->fileclose("DSTin1");
+  if(closeReturn)
+  {
+    cout << "\nAbnormal return: closeReturn from Fun4All fileclose = " << closeReturn << endl;
+    return;
   }
 
   // Write histograms
