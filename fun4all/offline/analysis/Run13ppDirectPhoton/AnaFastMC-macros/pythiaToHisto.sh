@@ -7,9 +7,9 @@ IsBadTree () {
     root -l <<EOF
   {
     TFile *f = new TFile("${1}");
-    if(!f || f->IsZombie()) return 1;
+    if(!f || f->IsZombie()) exit(1);
     TTree *t = (TTree*)f->Get("T");
-    if(!t || t->GetEntries() < 9999.) return 1;
+    if(!t || t->GetEntries() < 9999.) exit(1);
     return 0;
   }
 EOF
@@ -20,9 +20,9 @@ IsBadHisto () {
     root -l <<EOF
   {
     TFile *f = new TFile("${1}");
-    if(!f || f->IsZombie()) return 1;
+    if(!f || f->IsZombie()) exit(1);
     TH1 *h = (TH1*)f->Get("h_events");
-    if(!h || h->GetEntries() < 9999.) return 1;
+    if(!h || h->GetEntries() < 9999.) exit(1);
     return 0;
   }
 EOF
@@ -81,9 +81,13 @@ pt=`echo "${pt} + 1" | bc`
 sed -i "s/^ckin 4 .*/ckin 4 ${pt}/" "${pythia_config}"
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
+    IsBadTree "${pythia_tree}"
+    status_tree="${?}"
+    IsBadHisto "${pythia_histo}"
+    status_histo="${?}"
     if [[ -f "${pisa_tree}" || -f "${dst_tree}" || -f "${dst_histo}" ]] ; then
         break
-    elif [[ $(IsBadTree "${pythia_tree}" | awk '{print substr($0,length($0),1)}') -ne "0" || $(IsBadHisto "${pythia_histo}" | awk '{print substr($0,length($0),1)}') -ne "0" || $(ls -l --block-size=M "${pythia_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
+    elif [[ "${status_tree}" -ne "0" || "${status_histo}" -ne "0" || $(ls -l --block-size=M "${pythia_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    echo -e "Process ${proc}: PHPythia failed" >> "${logfile}"
 	    echo -en "${proc} " >> "${badlist}"
@@ -120,9 +124,11 @@ ln -s "${pisa_ldir}/xsneut95.dat"
 ln -s "${pisa_ldir}/Sim3D++.root"
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
+    IsBadTree "${pisa_tree}"
+    status_tree="${?}"
     if [[ -f "${dst_tree}" || -f "${dst_histo}" ]] ; then
         break
-    elif [[ $(IsBadTree "${pisa_tree}" | awk '{print substr($0,length($0),1)}') -ne "0" || $(ls -l --block-size=M "${pisa_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
+    elif [[ "${status_tree}" -ne "0" || $(ls -l --block-size=M "${pisa_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    cp "${pythia_histo}" "${output_dir}"
             cp "${pythia_tree}" "${output_dir}"
@@ -144,9 +150,11 @@ echo -e "Process ${proc}: PISA finished running" >> "${logfile}"
 cd "${pisa_ldir}"
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
+    IsBadTree "${working}/${dst_tree}"
+    status_tree="${?}"
     if [[ -f "${working}/${dst_histo}" ]] ; then
         break
-    elif [[ $(IsBadTree "${working}/${dst_tree}" | awk '{print substr($0,length($0),1)}') -ne "0" || $(ls -l --block-size=M "${working}/${dst_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
+    elif [[ "${status_tree}" -ne "0" || $(ls -l --block-size=M "${working}/${dst_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    cp "${working}/${pythia_histo}" "${output_dir}"
             cp "${working}/${pisa_tree}" "${output_dir}"
@@ -171,7 +179,9 @@ cd "${working}"
 cp "${pythia_ldir}/${dst_macro}" .
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
-    if [[ $(IsBadHisto "${dst_histo}" | awk '{print substr($0,length($0),1)}') -ne "0" ]] ; then
+    IsBadHisto "${dst_histo}"
+    status_histo="${?}"
+    if [[ "${status_histo}" -ne "0" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    cp "${pythia_histo}" "${output_dir}"
             cp "${dst_tree}" "${output_dir}"
