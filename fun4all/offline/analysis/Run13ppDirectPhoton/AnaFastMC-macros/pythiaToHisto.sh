@@ -81,13 +81,14 @@ pt=`echo "${pt} + 1" | bc`
 sed -i "s/^ckin 4 .*/ckin 4 ${pt}/" "${pythia_config}"
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
+    if [[ -f "${pisa_tree}" || -f "${dst_tree}" || -f "${dst_histo}" ]] ; then
+        break
+    fi
     IsBadTree "${pythia_tree}"
     status_tree="${?}"
     IsBadHisto "${pythia_histo}"
     status_histo="${?}"
-    if [[ -f "${pisa_tree}" || -f "${dst_tree}" || -f "${dst_histo}" ]] ; then
-        break
-    elif [[ "${status_tree}" -ne "0" || "${status_histo}" -ne "0" || $(ls -l --block-size=M "${pythia_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
+    if [[ "${status_tree}" -ne "0" || "${status_histo}" -ne "0" || $(ls -l --block-size=M "${pythia_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    echo -e "Process ${proc}: PHPythia failed" >> "${logfile}"
 	    echo -en "${proc} " >> "${badlist}"
@@ -124,11 +125,12 @@ ln -s "${pisa_ldir}/xsneut95.dat"
 ln -s "${pisa_ldir}/Sim3D++.root"
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
-    IsBadTree "${pisa_tree}"
-    status_tree="${?}"
     if [[ -f "${dst_tree}" || -f "${dst_histo}" ]] ; then
         break
-    elif [[ "${status_tree}" -ne "0" || $(ls -l --block-size=M "${pisa_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
+    fi
+    IsBadTree "${pisa_tree}"
+    status_tree="${?}"
+    if [[ "${status_tree}" -ne "0" || $(ls -l --block-size=M "${pisa_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    cp "${pythia_histo}" "${output_dir}"
             cp "${pythia_tree}" "${output_dir}"
@@ -150,11 +152,12 @@ echo -e "Process ${proc}: PISA finished running" >> "${logfile}"
 cd "${pisa_ldir}"
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
-    IsBadTree "${working}/${dst_tree}"
-    status_tree="${?}"
     if [[ -f "${working}/${dst_histo}" ]] ; then
         break
-    elif [[ "${status_tree}" -ne "0" || $(ls -l --block-size=M "${working}/${dst_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
+    fi
+    IsBadTree "${working}/${dst_tree}"
+    status_tree="${?}"
+    if [[ "${status_tree}" -ne "0" || $(ls -l --block-size=M "${working}/${dst_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    cp "${working}/${pythia_histo}" "${output_dir}"
             cp "${working}/${pisa_tree}" "${output_dir}"
@@ -163,11 +166,11 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
 	    echo -en "${proc} " >> "${badlist}"
 	    exit 1
 	fi
-        sleep 10
+	sleep 10
 	echo -e "Process ${proc}: pisaToDST runs ${icheck} times" >> "${logfile}"
-        root -l -b -q "${pisa_macro}(0,\"${working}/${pisa_tree}\",\"${working}/${dst_tree}\")"
+	root -l -b -q "${pisa_macro}(0,\"${working}/${pisa_tree}\",\"${working}/${dst_tree}\")"
     else
-        break
+	break
     fi
 done
 
