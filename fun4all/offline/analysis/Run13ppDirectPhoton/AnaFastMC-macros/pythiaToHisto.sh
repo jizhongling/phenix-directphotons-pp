@@ -38,7 +38,7 @@ badlist="${output_dir}/aa_badlist.txt"
 nProcess="12000"
 scale=`echo "${nProcess}/300" | bc`
 maxcheck="6"
-minsize="3"
+minsize="5"
 
 # PHPythia variables
 pythia_ldir="${PLHF}/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros"
@@ -83,7 +83,7 @@ sed -i "s/^ckin 4 .*/ckin 4 ${pt}/" "${pythia_config}"
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
     if [[ -f "${pisa_tree}" || -f "${dst_tree}" || -f "${dst_histo}" ]] ; then
         break
-    elif [[ $(IsBadTree "${pythia_tree}" | awk '{print substr($0,length($0),1)}') -eq "1" || $(IsBadHisto "${pythia_histo}" | awk '{print substr($0,length($0),1)}') -eq "1" || $(ls -l --block-size=M "${pythia_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
+    elif [[ $(IsBadTree "${pythia_tree}" | awk '{print substr($0,length($0),1)}') -ne "0" || $(IsBadHisto "${pythia_histo}" | awk '{print substr($0,length($0),1)}') -ne "0" || $(ls -l --block-size=M "${pythia_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    echo -e "Process ${proc}: PHPythia failed" >> "${logfile}"
 	    echo -en "${proc} " >> "${badlist}"
@@ -122,7 +122,7 @@ ln -s "${pisa_ldir}/Sim3D++.root"
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
     if [[ -f "${dst_tree}" || -f "${dst_histo}" ]] ; then
         break
-    elif [[ $(IsBadTree "${pisa_tree}" | awk '{print substr($0,length($0),1)}') -eq "1" || $(ls -l --block-size=M "${pisa_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
+    elif [[ $(IsBadTree "${pisa_tree}" | awk '{print substr($0,length($0),1)}') -ne "0" || $(ls -l --block-size=M "${pisa_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    cp "${pythia_histo}" "${output_dir}"
             cp "${pythia_tree}" "${output_dir}"
@@ -146,7 +146,7 @@ cd "${pisa_ldir}"
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
     if [[ -f "${working}/${dst_histo}" ]] ; then
         break
-    elif [[ $(IsBadTree "${working}/${dst_tree}" | awk '{print substr($0,length($0),1)}') -eq "1" || $(ls -l --block-size=M "${working}/${dst_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
+    elif [[ $(IsBadTree "${working}/${dst_tree}" | awk '{print substr($0,length($0),1)}') -ne "0" || $(ls -l --block-size=M "${working}/${dst_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    cp "${working}/${pythia_histo}" "${output_dir}"
             cp "${working}/${pisa_tree}" "${output_dir}"
@@ -171,7 +171,7 @@ cd "${working}"
 cp "${pythia_ldir}/${dst_macro}" .
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
-    if [[ $(IsBadHisto "${dst_histo}" | awk '{print substr($0,length($0),1)}') -eq "1" ]] ; then
+    if [[ $(IsBadHisto "${dst_histo}" | awk '{print substr($0,length($0),1)}') -ne "0" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    cp "${pythia_histo}" "${output_dir}"
             cp "${dst_tree}" "${output_dir}"
