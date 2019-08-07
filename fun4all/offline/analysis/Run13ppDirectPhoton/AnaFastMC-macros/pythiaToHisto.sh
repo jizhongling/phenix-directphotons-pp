@@ -12,12 +12,12 @@ badlist="${output_dir}/aa_badlist.txt"
 nProcess="12000"
 scale=`echo "${nProcess}/300" | bc`
 nevents="10000"
-maxcheck="6"
+maxcheck="4"
 minsize="5"
 
 # PHPythia variables
 pythia_ldir="${PLHF}/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros"
-file_checker="${pythia_ldir}/IsGoodFile.exe"
+file_checker="${pythia_ldir}/IsGoodFile"
 pythia_macro="anaFastMC_GenPH.C"
 pythia_config="pythia.cfg"
 pythia_tree="phpythia${proc}.root"
@@ -35,18 +35,22 @@ dst_tree="simDST${proc}.root"
 dst_macro="anaDST.C"
 dst_histo="HadronResponse-histo${proc}.root"
 
+# Exit if already done
+if [[ -f "${output_dir}/${dst_histo}" ]] ; then
+    exit 0
+fi
+
 # Prepare to run
 mkdir -p "${working}"
 mkdir -p "${output_dir}"
+cd "${working}"
 cp "${output_dir}/${pythia_histo}" .
 cp "${output_dir}/${pythia_tree}" .
 cp "${output_dir}/${pisa_tree}" .
 cp "${output_dir}/${dst_tree}" .
-cp "${output_dir}/${dst_histo}" .
 
 # Run PHPythia
 cd "${working}"
-
 cp "${pythia_ldir}/${pythia_macro}" .
 cp "${pythia_ldir}/${pythia_config}" .
 
@@ -56,7 +60,7 @@ pt=`echo "${pt} + 1" | bc`
 sed -i "s/^ckin 4 .*/ckin 4 ${pt}/" "${pythia_config}"
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
-    if [[ -f "${pisa_tree}" || -f "${dst_tree}" || -f "${dst_histo}" ]] ; then
+    if [[ -f "${pisa_tree}" || -f "${dst_tree}" ]] ; then
         break
     fi
     "${file_checker}" "histo" "${pythia_histo}" "${nevents}"
@@ -73,11 +77,11 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
 	echo -e "Process ${proc}: PHPythia runs ${icheck} times" >> "${logfile}"
         root -l -b -q "${pythia_macro}(${proc},${scale},\"${pythia_tree}\",\"${pythia_histo}\")"
     else
+        rm -f "${output_dir}/${pythia_tree}"
+        echo -e "Process ${proc}: PHPythia finished running" >> "${logfile}"
         break
     fi
 done
-
-echo -e "Process ${proc}: PHPythia finished running" >> "${logfile}"
 
 # Run PISA
 cd "${working}"
@@ -100,7 +104,7 @@ ln -s "${pisa_ldir}/xsneut95.dat"
 ln -s "${pisa_ldir}/Sim3D++.root"
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
-    if [[ -f "${dst_tree}" || -f "${dst_histo}" ]] ; then
+    if [[ -f "${dst_tree}" ]] ; then
         break
     fi
     "${file_checker}" "tree" "${pisa_tree}" "${nevents}"
@@ -117,19 +121,17 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
 	echo -e "Process ${proc}: PISA runs ${icheck} times" >> "${logfile}"
         pisa < "pisa.input"
     else
+        rm -f "${output_dir}/${pythia_tree}"
+        rm -f "${output_dir}/${pisa_tree}"
+        echo -e "Process ${proc}: PISA finished running" >> "${logfile}"
         break
     fi
 done
-
-echo -e "Process ${proc}: PISA finished running" >> "${logfile}"
 
 # Run pisaToDST
 cd "${pisa_ldir}"
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
-    if [[ -f "${working}/${dst_histo}" ]] ; then
-        break
-    fi
     "${file_checker}" "tree" "${working}/${dst_tree}" "${nevents}"
     status_tree="${?}"
     if [[ "${status_tree}" -ne "0" || $(ls -l --block-size=M "${working}/${dst_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
@@ -145,15 +147,16 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
 	echo -e "Process ${proc}: pisaToDST runs ${icheck} times" >> "${logfile}"
 	root -l -b -q "${pisa_macro}(0,\"${working}/${pisa_tree}\",\"${working}/${dst_tree}\")"
     else
+        rm -f "${output_dir}/${pythia_tree}"
+        rm -f "${output_dir}/${pisa_tree}"
+        rm -f "${output_dir}/${dst_tree}"
+        echo -e "Process ${proc}: pisaToDST finished running" >> "${logfile}"
 	break
     fi
 done
 
-echo -e "Process ${proc}: pisaToDST finished running" >> "${logfile}"
-
 # Run anaDST
 cd "${working}"
-
 cp "${pythia_ldir}/${dst_macro}" .
 
 for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
@@ -163,6 +166,7 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
 	    cp "${pythia_histo}" "${output_dir}"
             cp "${dst_tree}" "${output_dir}"
+            rm -f "${output_dir}/${pythia_tree}"
             rm -f "${output_dir}/${pisa_tree}"
 	    echo -e "Process ${proc}: anaDST failed" >> "${logfile}"
 	    echo -en "${proc} " >> "${badlist}"
@@ -172,11 +176,13 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
 	echo -e "Process ${proc}: anaDST runs ${icheck} times" >> "${logfile}"
         root -l -b -q "${dst_macro}(${proc},${scale},\"${dst_tree}\",\"${dst_histo}\")"
     else
+        rm -f "${output_dir}/${pythia_tree}"
+        rm -f "${output_dir}/${pisa_tree}"
+        rm -f "${output_dir}/${dst_tree}"
+        echo -e "Process ${proc}: anaDST finished running" >> "${logfile}"
         break
     fi
 done
-
-echo -e "Process ${proc}: anaDST finished running" >> "${logfile}"
 
 # Store histograms
 cd "${working}"

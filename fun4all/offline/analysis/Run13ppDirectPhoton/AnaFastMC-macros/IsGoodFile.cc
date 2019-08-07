@@ -1,3 +1,4 @@
+// To compile: g++ -Wall -o IsGoodFile IsGoodFile.cc `root-config --cflags --libs`
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -23,7 +24,7 @@ void IsGoodHisto(const char *fname, const double nevents)
   exit(0);
 }
 
-void IsGoodFile(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
   if(argc < 4)
   {
@@ -31,25 +32,11 @@ void IsGoodFile(int argc, char *argv[])
     exit(1);
   }
   double nevents = atof(argv[3]) - 0.5;
-  if(strcmp(argv[1],"tree") == 0)
-    IsGoodTree(argv[2],nevents);
-  else if(strcmp(argv[1],"histo") == 0)
-    IsGoodHisto(argv[2],nevents);
+  if(strcmp(argv[1], "tree") == 0)
+    IsGoodTree(argv[2], nevents);
+  if(strcmp(argv[1], "histo") == 0)
+    IsGoodHisto(argv[2], nevents);
   exit(1);
-}
 
-#ifndef __CINT__
-#include "TApplication.h"
-
-void StandaloneApplication(int argc, char *argv[]) {
-  IsGoodFile(argc, argv);
-}
-
-int main(int argc, char *argv[]) {
-  TApplication app("ROOT Application", &argc, argv);
-  StandaloneApplication(app.Argc(), app.Argv());
-  //app.Run();
   return 0;
 }
-
-#endif
