@@ -1,5 +1,5 @@
 #!/bin/bash
-# Function: Combine $NFiles root files.
+# Function: combine $NFiles root files.
 # Usage: $0 $(Process)
 
 set -o errexit

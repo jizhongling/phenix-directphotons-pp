@@ -1,5 +1,5 @@
 #!/bin/bash
-# Function: Combine root files N by N.
+# Function: combine root files N by N.
 
 set -o errexit
 set -o nounset
