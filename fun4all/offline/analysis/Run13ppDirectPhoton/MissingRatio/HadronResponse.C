@@ -301,7 +301,7 @@ void HadronResponse::BookHistograms()
   int nbins_hn_2photon[] = {npT, npT, 300, 8, 2, 2};
   double xmin_hn_2photon[] = {0., 0., 0., -0.5, -0.5, -0.5};
   double xmax_hn_2photon[] = {0., 0., 0.3, 7.5, 1.5, 1.5};
-  hn_2photon = new THnSparseF("hn_2photon", "EMCal one photon;p_{T} [GeV];Sector;Isolated;",
+  hn_2photon = new THnSparseF("hn_2photon", "EMCal two photon;p^{1photon}_{T} [GeV];p^{2photon}_{T} [GeV];m_{inv} [GeV];Sector;Isoboth;Isopair;",
       6, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon);
   hn_2photon->SetBinEdges(0, vpT);
   hn_2photon->SetBinEdges(1, vpT);
@@ -333,7 +333,7 @@ double HadronResponse::SumEEmcal(const emcClusterContent *cluster, const emcClus
      * and with 3 sigma charge veto */
     if( clus2->id() == cluster->id() ||
         IsBadTower(clus2) ||
-        abs( clus2->tofcorr() ) > tofMaxIso ||
+        //abs( clus2->tofcorr() ) > tofMaxIso ||
         clus2->ecore() < eClusMin ||
         DCChargeVeto(clus2, data_tracks) )
       continue;
@@ -380,7 +380,7 @@ void HadronResponse::SumEEmcal(const emcClusterContent *cluster1, const emcClust
     if( clus3->id() == cluster1->id() ||
         clus3->id() == cluster2->id() ||
         IsBadTower(clus3) ||
-        abs( clus3->tofcorr() ) > tofMaxIso ||
+        //abs( clus3->tofcorr() ) > tofMaxIso ||
         clus3->ecore() < eClusMin ||
         DCChargeVeto(clus3, data_tracks) )
       continue;
@@ -451,8 +451,9 @@ double HadronResponse::SumPTrack(const emcClusterContent *cluster, const PHCentr
 
 bool HadronResponse::TestPhoton(const emcClusterContent *cluster)
 {
+  /* Do not use ToF cut. ToF is wrong for high pT clusters */
   if( cluster->ecore() > eMin &&
-      abs( cluster->tofcorr() ) < tofMax &&
+      //abs( cluster->tofcorr() ) < tofMax &&
       cluster->prob_photon() > probMin )
     return true;
   else

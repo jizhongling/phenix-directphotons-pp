@@ -23,10 +23,10 @@ TF1 *cross_ph;
 void SetWeight()
 {
   // function for pT weight for pi0
-  cross_pi0 = new TF1("cross_pi0", "x*(1/(1+exp((x-[5])/[6]))*[0]/pow(1+x/[1],[2])+(1-1/(1+exp((x-[5])/[6])))*[3]/pow(x,[4]))", 0, 30);
+  cross_pi0 = new TF1("cross_pi0", "x*(1/(1+exp((x-[5])/[6]))*[0]/pow(1+x/[1],[2])+(1-1/(1+exp((x-[5])/[6])))*[3]/pow(x,[4]))", 0.1, 100.);
   cross_pi0->SetParameters(2.02819e+04, 4.59173e-01, 7.51170e+00, 1.52867e+01, 7.22708e+00, 2.15396e+01, 3.65471e+00);
 
   // function for pT weight for direct photon
-  cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]", 0, 30);
+  cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]", 0.1, 100.);
   cross_ph->SetParameters(255., 5.98, 0.273, 14.43);
 }
