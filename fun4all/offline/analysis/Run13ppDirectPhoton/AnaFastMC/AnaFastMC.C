@@ -449,7 +449,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     double pt = pE_part.Pt();
 
     /* Only consider high-pT photons */
-    if( pt < 5. )
+    if( pt < 2. )
       continue;
 
     /* Fill Vpart[], itwr_part[] and sec_part[]

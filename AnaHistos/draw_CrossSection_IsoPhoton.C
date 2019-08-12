@@ -16,7 +16,7 @@ void draw_CrossSection_IsoPhoton()
   const double NBBC =  3.59e11 * 0.971602;  // from DAQ with DC 3 sigma
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
-  const double Pile[3] = {1.10, 1.10, 1.03};
+  const double Pile[3] = {1.10, 1.10, 1.05};
   const double ePile = 0.02;
   const double TrigBBC = 0.91;
   const double eTrigBBC = 0.01;

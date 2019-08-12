@@ -10,7 +10,6 @@ void draw_Acceptance_IsoPhoton()
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
 
-  const double PI = TMath::Pi();
   const double Conv[3] = {0.849, 0.959, 0.959};
   const double eConv[3] = {0.027, 0.023, 0.023};
   const double A = 0.24;

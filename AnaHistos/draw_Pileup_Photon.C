@@ -11,6 +11,7 @@ void draw_Pileup_Photon()
 
   QueryTree *qt_pile = new QueryTree("data/Pileup-isophoton.root");
 
+  int ic = 1;
   int id = 0;
 
   TF1 *fn_mean = new TF1("fn_mean", "pol0", 0., 0.2);
@@ -30,32 +31,29 @@ void draw_Pileup_Photon()
         double p0[2], ep0[2]; // p0[ic]
         double mean[2], emean[2]; // mean[ic]
 
-        for(int ic=0; ic<2; ic++)
-        {
-          int cond = part + 3*ic;
-          int ig = part + 3*ic + 2*3*id + 2*2*3*ipt;
+        int cond = part + 3*ic;
+        int ig = part + 3*ic + 2*3*id + 2*2*3*ipt;
 
-          mcd(0, cond+1);
-          TGraphErrors *gr = qt_pile->Graph(ig);
-          gr->Draw("AP");  // must before GetXaxis()
-          gr->SetTitle(cname[cond]);
-          aset(gr, "Nmb/Nclock","Npi0/Nevent", 0.,0.2);
-          style(gr, 20, 1);
+        mcd(0, cond+1);
+        TGraphErrors *gr = qt_pile->Graph(ig);
+        gr->Draw("AP");  // must before GetXaxis()
+        gr->SetTitle(cname[cond]);
+        aset(gr, "Nmb/Nclock","Npi0/Nevent", 0.,0.2);
+        style(gr, 20, 1);
 
-          fn_fit[im]->SetParameters(gr->GetMaximum(), 1.);
-          gr->Fit(fn_fit[im], "RQ");
+        fn_fit[im]->SetParameters(gr->GetMaximum(), 1.);
+        gr->Fit(fn_fit[im], "RQ");
 
-          double scale = sqrt( fn_fit[im]->GetChisquare() / fn_fit[im]->GetNDF() );
-          if(scale < 1.) scale = 1.;
-          p0[ic] = fn_fit[im]->GetParameter(0);
-          ep0[ic] = fn_fit[im]->GetParError(0) * scale;
+        double scale = sqrt( fn_fit[im]->GetChisquare() / fn_fit[im]->GetNDF() );
+        if(scale < 1.) scale = 1.;
+        p0[ic] = fn_fit[im]->GetParameter(0);
+        ep0[ic] = fn_fit[im]->GetParError(0) * scale;
 
-          gr->Fit(fn_mean, "RQN");
-          scale = sqrt( fn_mean->GetChisquare() / fn_mean->GetNDF() );
-          if(scale < 1.) scale = 1.;
-          mean[ic] = fn_mean->GetParameter(0);
-          emean[ic] = fn_mean->GetParError(0) * scale;
-        } // ic
+        gr->Fit(fn_mean, "RQN");
+        scale = sqrt( fn_mean->GetChisquare() / fn_mean->GetNDF() );
+        if(scale < 1.) scale = 1.;
+        mean[ic] = fn_mean->GetParameter(0);
+        emean[ic] = fn_mean->GetParError(0) * scale;
 
         if( ipt > 0 )
         {
@@ -63,16 +61,16 @@ void draw_Pileup_Photon()
           double yy = p0[1] / mean[1];
           double eyy = yy * sqrt( pow(emean[1]/mean[1],2) + pow(ep0[1]/p0[1],2) );
           if( TMath::Finite(yy + eyy) )
-            qt_fit->Fill(ipt, igr, xpt, yy, eyy);
+            qt_fit->Fill(ipt, igr, xx, yy, eyy);
 
           yy = p0[1] / p0[0];
           eyy = yy * sqrt( pow(ep0[0]/p0[0],2) + pow(ep0[1]/p0[1],2) );
           if( TMath::Finite(yy + eyy) )
-            qt_fit->Fill(ipt, 12+igr, xpt, yy, eyy);
+            qt_fit->Fill(ipt, 12+igr, xx, yy, eyy);
         } // ipt > 0
       } // part
 
-      f_out->cd();
+      qt_fit->cd();
       mcw( 0, Form("data%d-pt%d-%d-%s", id, pTlow[id][ipt], pThigh[id][ipt], mname[im]) );
       c0->Clear("D");
     } // ipt, id, im

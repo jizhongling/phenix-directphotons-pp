@@ -4,8 +4,8 @@
 void draw_ERTEff_Photon()
 {
   const char *pname[2] = {"PbSc", "PbGl"};
-  const int secl[2] = {1, 7};
-  const int sech[2] = {6, 8};
+  const int partl[2] = {0, 2};
+  const int parth[2] = {1, 2};
 
   QueryTree *qt_ert = new QueryTree("data/ERTEff-photon.root", "RECREATE");
 
@@ -15,22 +15,22 @@ void draw_ERTEff_Photon()
   TH1 *h_ert[2][2];
 
   int bbc10cm = 1;
-  int ert_trig[2] = {2, 5};
+  int evtype = 2;
   int ival = 1;
 
   TH1 *h_ert_t = (TH1*)f->Get("h_ert_0");
   h_ert_t->Reset();
   for(int part=0; part<2; part++)
   {
-    for(int cond=0; cond<2; cond++)
+    for(int ert_trig=0; ert_trig<2; ert_trig++)
     {
-      h_ert[part][cond] = (TH1*)h_ert_t->Clone(Form("h_ert_part%d_cond%d",part,cond));
-      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+      h_ert[part][ert_trig] = (TH1*)h_ert_t->Clone(Form("h_ert_part%d_trig%d",part,ert_trig));
+      for(int ipart=partl[part]; ipart<=parth[part]; ipart++)
         for(int isolated=0; isolated<2; isolated++)
         {
-          int ih = sector + 8*ert_trig[cond] + 8*6*bbc10cm + 8*6*2*isolated + 8*6*2*2*ival;
+          int ih = ipart + 3*ert_trig + 3*2*evtype + 3*2*3*bbc10cm + 3*2*3*2*isolated + 3*2*3*2*2*ival;
           TH1 *h2_tmp = (TH1*)f->Get(Form("h_ert_%d",ih));
-          h_ert[part][cond]->Add(h2_tmp);
+          h_ert[part][ert_trig]->Add(h2_tmp);
           delete h2_tmp;
         }
     }
