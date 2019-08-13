@@ -1,7 +1,7 @@
 Universe        = vanilla
 Notification    = Never
 Executable      = /phenix/u/zji/bin/condor-bash.csh
-Arguments       = $(Initialdir) pythiaToHistoRunBad.sh $(Process)
+Arguments       = $(Initialdir) pythiaToHisto.sh $(Process)
 Requirements    = (CPU_Speed >= 2)
 Rank		= CPU_Speed
 request_memory  = 1.4G
@@ -14,4 +14,4 @@ Output          = /dev/null
 Error           = /dev/null
 Log             = /dev/null
 Notify_user     = zji@rcf.rhic.bnl.gov
-Queue 705
+Queue 12000
