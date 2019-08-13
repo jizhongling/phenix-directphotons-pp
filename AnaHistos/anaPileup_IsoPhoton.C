@@ -9,19 +9,19 @@ void anaPileup_IsoPhoton(const int process = 0)
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist-DC3sigma.txt");
 
-  const double Conv[3] = {0.849, 0.959, 0.959};
-  const double eConv[3] = {0.027, 0.023, 0.023};
-  const double A = 0.24;
-  const double eA = 0.04;
+  //const double Conv[3] = {0.849, 0.959, 0.959};
+  //const double eConv[3] = {0.027, 0.023, 0.023};
+  //const double A = 0.24;
+  //const double eA = 0.04;
 
   QueryTree *qt_pile = new QueryTree(Form("histos/Pileup-isophoton-%d.root",process), "RECREATE");
 
-  QueryTree *qt_miss = new QueryTree("data/MissingRatio.root");
-  QueryTree *qt_miss_eta = new QueryTree("data/MissingRatio-eta.root");
-  QueryTree *qt_merge1 = new QueryTree("data/Merge-1photon.root");
-  QueryTree *qt_merge2 = new QueryTree("data/Merge-2photon.root");
-  QueryTree *qt_badpass = new QueryTree("data/MergePassRate.root");
-  QueryTree *qt_veto = new QueryTree("data/SelfVeto.root");
+  //QueryTree *qt_miss = new QueryTree("data/MissingRatio.root");
+  //QueryTree *qt_miss_eta = new QueryTree("data/MissingRatio-eta.root");
+  //QueryTree *qt_merge1 = new QueryTree("data/Merge-1photon.root");
+  //QueryTree *qt_merge2 = new QueryTree("data/Merge-2photon.root");
+  //QueryTree *qt_badpass = new QueryTree("data/MergePassRate.root");
+  //QueryTree *qt_veto = new QueryTree("data/SelfVeto.root");
 
   DataBase *db = new DataBase();
 
@@ -37,9 +37,9 @@ void anaPileup_IsoPhoton(const int process = 0)
 
     // h[ic][part]
     TH1 *h_1photon[2][3];
-    TH2 *h2_isoboth[2][3];
-    TH2 *h2_isopair[2][3];
-    TH2 *h2_isopair2pt[2][3];
+    //TH2 *h2_isoboth[2][3];
+    //TH2 *h2_isopair[2][3];
+    //TH2 *h2_isopair2pt[2][3];
 
     int bbc10cm = 1;
     int evtype = 2;
@@ -62,50 +62,50 @@ void anaPileup_IsoPhoton(const int process = 0)
         }
     }
 
-    TH2 *h2_2photon_t = (TH2*)f->Get("h2_2photon_0");
-    h2_2photon_t->Reset();
-    for(int part=0; part<3; part++)
-    {
-      h2_isoboth[ic][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isoboth_ic%d_part%d",ic,part));
-      for(int evenodd=0; evenodd<2; evenodd++)
-        for(int pattern=0; pattern<3; pattern++)
-          for(int isopair=0; isopair<2; isopair++)
-          {
-            int isoboth = 1;
-            int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*isoboth + 3*2*3*4*2*2*isopair + 3*2*3*4*2*2*2*ival;
-            TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
-            h2_isoboth[ic][part]->Add(h2_tmp);
-            delete h2_tmp;
-          }
-    }
+    //TH2 *h2_2photon_t = (TH2*)f->Get("h2_2photon_0");
+    //h2_2photon_t->Reset();
+    //for(int part=0; part<3; part++)
+    //{
+    //  h2_isoboth[ic][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isoboth_ic%d_part%d",ic,part));
+    //  for(int evenodd=0; evenodd<2; evenodd++)
+    //    for(int pattern=0; pattern<3; pattern++)
+    //      for(int isopair=0; isopair<2; isopair++)
+    //      {
+    //        int isoboth = 1;
+    //        int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*isoboth + 3*2*3*4*2*2*isopair + 3*2*3*4*2*2*2*ival;
+    //        TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
+    //        h2_isoboth[ic][part]->Add(h2_tmp);
+    //        delete h2_tmp;
+    //      }
+    //}
 
-    for(int part=0; part<3; part++)
-    {
-      h2_isopair[ic][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isopair_ic%d_part%d",ic,part));
-      for(int pattern=0; pattern<3; pattern++)
-        for(int isoboth=0; isoboth<2; isoboth++)
-        {
-          int isopair = 1;
-          int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*isoboth + 3*2*3*4*2*2*isopair + 3*2*3*4*2*2*2*ival;
-          TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
-          h2_isopair[ic][part]->Add(h2_tmp);
-          delete h2_tmp;
-        }
-    }
+    //for(int part=0; part<3; part++)
+    //{
+    //  h2_isopair[ic][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isopair_ic%d_part%d",ic,part));
+    //  for(int pattern=0; pattern<3; pattern++)
+    //    for(int isoboth=0; isoboth<2; isoboth++)
+    //    {
+    //      int isopair = 1;
+    //      int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*isoboth + 3*2*3*4*2*2*isopair + 3*2*3*4*2*2*2*ival;
+    //      TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
+    //      h2_isopair[ic][part]->Add(h2_tmp);
+    //      delete h2_tmp;
+    //    }
+    //}
 
-    for(int part=0; part<3; part++)
-    {
-      h2_isopair2pt[ic][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isopair2pt_ic%d_part%d",ic,part));
-      for(int pattern=0; pattern<3; pattern++)
-        for(int isoboth=0; isoboth<2; isoboth++)
-        {
-          int isopair = 1;
-          int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*isoboth + 3*2*3*4*2*2*isopair + 3*2*3*4*2*2*2*ival;
-          TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
-          h2_isopair2pt[ic][part]->Add(h2_tmp);
-          delete h2_tmp;
-        }
-    }
+    //for(int part=0; part<3; part++)
+    //{
+    //  h2_isopair2pt[ic][part] = (TH2*)h2_2photon_t->Clone(Form("h2_isopair2pt_ic%d_part%d",ic,part));
+    //  for(int pattern=0; pattern<3; pattern++)
+    //    for(int isoboth=0; isoboth<2; isoboth++)
+    //    {
+    //      int isopair = 1;
+    //      int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*isoboth + 3*2*3*4*2*2*isopair + 3*2*3*4*2*2*2*ival;
+    //      TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
+    //      h2_isopair2pt[ic][part]->Add(h2_tmp);
+    //      delete h2_tmp;
+    //    }
+    //}
 
     ULong64_t nclock = db->GetClockLive(runnumber);
     ULong64_t nmb = db->GetBBCNarrowLive(runnumber);
@@ -121,24 +121,24 @@ void anaPileup_IsoPhoton(const int process = 0)
         int ig = part + 3*ic + 2*3*id + 2*2*3*ipt;
 
         double nphoton = h_1photon[ic][part]->Integral(pTlow[id][ipt], pThigh[id][ipt]);
-        double nisoboth = h2_isoboth[ic][part]->ProjectionY("h_minv_isoboth", pTlow[id][ipt], pThigh[id][ipt])->Integral(111,160);
-        double nisopair = h2_isopair[ic][part]->ProjectionY("h_minv_isopair", pTlow[id][ipt], pThigh[id][ipt])->Integral(111,160);
-        double nisopair2pt = h2_isopair2pt[ic][part]->ProjectionY("h_minv_isopair2pt", pTlow[id][ipt], pThigh[id][ipt])->Integral(111,160);
         double enphoton = sqrt(nphoton);
-        double enisoboth = sqrt(nisoboth);
-        double enisopair = sqrt(nisopair);
-        double enisopair2pt = sqrt(nisopair2pt);
-        nisoboth /= 1.1;
-        nisopair /= 1.1;
-        nisopair2pt /= 1.1;
+        //double nisoboth = h2_isoboth[ic][part]->ProjectionY("h_minv_isoboth", pTlow[id][ipt], pThigh[id][ipt])->Integral(111,160);
+        //double nisopair = h2_isopair[ic][part]->ProjectionY("h_minv_isopair", pTlow[id][ipt], pThigh[id][ipt])->Integral(111,160);
+        //double nisopair2pt = h2_isopair2pt[ic][part]->ProjectionY("h_minv_isopair2pt", pTlow[id][ipt], pThigh[id][ipt])->Integral(111,160);
+        //double enisoboth = sqrt(nisoboth);
+        //double enisopair = sqrt(nisopair);
+        //double enisopair2pt = sqrt(nisopair2pt);
+        //nisoboth /= 1.1;
+        //nisopair /= 1.1;
+        //nisopair2pt /= 1.1;
 
-        double xpt, Miss, eMiss, MissEta, eMissEta, Merge1, eMerge1, Merge2, eMerge2, BadPass, eBadPass, Veto, eVeto;
-        qt_miss->Query(ipt, part, xpt, Miss, eMiss);
-        qt_miss_eta->Query(ipt, part, xpt, MissEta, eMissEta);
-        qt_merge1->Query(ipt, part, xpt, Merge1, eMerge1);
-        qt_merge2->Query(ipt, part, xpt, Merge2, eMerge2);
-        qt_badpass->Query(ipt, part/2, xpt, BadPass, eBadPass);
-        qt_veto->Query(ipt, part, xpt, Veto, eVeto);
+        //double xpt, Miss, eMiss, MissEta, eMissEta, Merge1, eMerge1, Merge2, eMerge2, BadPass, eBadPass, Veto, eVeto;
+        //qt_miss->Query(ipt, part, xpt, Miss, eMiss);
+        //qt_miss_eta->Query(ipt, part, xpt, MissEta, eMissEta);
+        //qt_merge1->Query(ipt, part, xpt, Merge1, eMerge1);
+        //qt_merge2->Query(ipt, part, xpt, Merge2, eMerge2);
+        //qt_badpass->Query(ipt, part/2, xpt, BadPass, eBadPass);
+        //qt_veto->Query(ipt, part, xpt, Veto, eVeto);
 
         //double AIso = A * Veto * (1.+MissEta)/(1.+2.*MissEta) * (1+2.*Miss+Merge1);
         //double ndir = nphoton/Conv[part] - (1. + Merge1*Conv[part]*(1.-Conv[part])) * nisoboth/pow(Conv[part],2) - Miss * nisopair/pow(Conv[part],2) - Merge2/2.*BadPass * nisopair2pt - AIso * nisopair;

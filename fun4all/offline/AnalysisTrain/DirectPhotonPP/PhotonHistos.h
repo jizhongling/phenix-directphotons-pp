@@ -119,7 +119,7 @@ class PhotonHistos: public SubsysReco
     static const int nh_ert = 3*2*3*2*2*3;
     static const int nh_etwr = 8*2*8*16;
     static const int nh_dcpartqual = 2*2*3;
-    static const int nh_dcquality = 3;
+    static const int nh_dcgood = 2;
     static const int nh_dcpart = 2*2;
     static const int nh_eta_phi = 3*2*3;
     static const int nh_pion = 3*2*3*4*2*2*2*2*3;
@@ -152,7 +152,7 @@ class PhotonHistos: public SubsysReco
     TH3 *h3_etwr[nh_etwr];
     TH3 *h3_dcdphiz[nh_dcpartqual];
     TH2 *h2_alphaboard[nh_dcpartqual];
-    TH3 *h3_dclive[nh_dcquality];
+    TH3 *h3_dclive[nh_dcgood];
     TH1 *h_prod;
     TH2 *h2_emcdphiz[nh_dcpart];
     TH2 *h2_eta_phi[nh_eta_phi];

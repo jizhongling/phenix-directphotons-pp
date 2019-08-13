@@ -117,7 +117,7 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
     h3_dcdphiz[ih] = NULL;
     h2_alphaboard[ih] = NULL;
   }
-  for(int ih=0; ih<nh_dcquality; ih++)
+  for(int ih=0; ih<nh_dcgood; ih++)
     h3_dclive[ih] = NULL;
   for(int ih=0; ih<nh_dcpart; ih++)
     h2_emcdphiz[ih] = NULL;
@@ -722,8 +722,11 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
     h2_alphaboard[ih]->Fill(dcboard, dcalpha);
 
     /* DC+PC1 live area */
-    ih = iqual;
-    h3_dclive[ih]->Fill(dczed, dcphi, mom);
+    if(quality > 3)
+    {
+      int ih = IsDCDead(data_tracks, itrk) ? 0 : 1;
+      h3_dclive[ih]->Fill(dczed, dcphi, mom);
+    }
 
     int charge = data_tracks->get_charge(itrk);
     double px = data_tracks->get_px(itrk);
@@ -1121,8 +1124,8 @@ void PhotonHistos::BookHistograms()
     hm->registerHisto(h2_alphaboard[ih]);
   }
 
-  // ih = iqual < 3
-  for(int ih=0; ih<nh_dcquality; ih++)
+  // ih = isGoodDC < 2
+  for(int ih=0; ih<nh_dcgood; ih++)
   {
     h3_dclive[ih] = new TH3F(Form("h3_dclive_%d",ih), "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV];",
         200,-100.,100., 50,-1.,4., 30,0.,15.);

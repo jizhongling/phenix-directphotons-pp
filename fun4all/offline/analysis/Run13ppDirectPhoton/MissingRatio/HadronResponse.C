@@ -190,7 +190,8 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     double fill_hn_alphaboard[] = {dcboard, dcalpha, (double)dcns, (double)dcwe};
     hn_alphaboard->Fill(fill_hn_alphaboard, weight_pythia);
 
-    double fill_hn_dclive[] = {dczed, dcphi, mom};
+    int isDCGood = IsDCDead(data_tracks, itrk) ? 0 : 1;
+    double fill_hn_dclive[] = {dczed, dcphi, mom, (double)isDCGood};
     hn_dclive->Fill(fill_hn_dclive, weight_pythia);
   }
 
@@ -279,11 +280,11 @@ void HadronResponse::BookHistograms()
   hn_alphaboard->Sumw2();
   hm->registerHisto(hn_alphaboard);
 
-  int nbins_hn_dclive[] = {200, 50, 30};
-  double xmin_hn_dclive[] = {-100., -1., 0.};
-  double xmax_hn_dclive[] = {100., 4., 15.};
-  hn_dclive = new THnSparseF("hn_dclive", "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV];",
-      3, nbins_hn_dclive, xmin_hn_dclive, xmax_hn_dclive);
+  int nbins_hn_dclive[] = {200, 50, 30, 2};
+  double xmin_hn_dclive[] = {-100., -1., 0., -0.5};
+  double xmax_hn_dclive[] = {100., 4., 15., 1.5};
+  hn_dclive = new THnSparseF("hn_dclive", "DC zed and phi distribution;zed [cm];phi [rad];mom [GeV];isDCGood;",
+      4, nbins_hn_dclive, xmin_hn_dclive, xmax_hn_dclive);
   hn_dclive->Sumw2();
   hm->registerHisto(hn_dclive);
 
@@ -655,6 +656,10 @@ void HadronResponse::ReadSashaWarnmap(const string &filename)
     /* Mark edge towers */
     if( anatools::Edge_cg(sector, biny, binz) )
       tower_status_sasha[sector][biny][binz] = 20;
+    /* Mark fiducial arm */
+    if( anatools::ArmEdge_cg(sector, biny, binz) &&
+        tower_status_sasha[sector][biny][binz] == 0 )
+      tower_status_sasha[sector][biny][binz] = 30;
   }
 
   cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;

@@ -113,6 +113,31 @@ namespace anatools
   }
 
   /*
+   * Check whether the tower is in fiducial arm
+   */
+  inline bool ArmEdge_cg(int sec, int iy, int iz)
+  {
+    // Check if shower center of gravity (maximal energy tower) belongs 
+    // to edge tower defined by parameter "ncut"
+    const int ncutPbSc = 10; // Number of edge towers for PbSc
+    const int ncutPbGl = 12; // Number of edge towers for PbGl
+
+    if( sec < 0 || sec > 7 ) return true;
+    if( sec < 6 )
+    {
+      if( iz < ncutPbSc || iz > 71-ncutPbSc ) return true;
+      if( sec == 0 && iy < ncutPbSc ) return true;
+      if( ( sec == 3 || sec == 4 ) && iy > 35-ncutPbSc ) return true;
+    }
+    else
+    {
+      if( iz < ncutPbGl || iz > 95-ncutPbGl ) return true;
+      if( sec == 7 && iy < ncutPbGl ) return true;
+    }
+    return false;
+  }
+
+  /*
    * Check whether the two sectors are in the same part
    */
   inline bool SectorCheck(int pi0_sec1, int pi0_sec2)

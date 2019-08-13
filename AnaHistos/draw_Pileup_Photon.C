@@ -98,8 +98,8 @@ void draw_Pileup_Photon()
     }
 
   c1->Print("plots/Pileup-isophoton-ratio-ERT.pdf");
-  c2->Print("plots/Pileup-isophoton-ratio-MB.pdf");
-  c3->Print("plots/ToFEff-isophoton-ERT.pdf");
-  c4->Print("plots/ToFEff-isophoton-MB.pdf");
+  //c2->Print("plots/Pileup-isophoton-ratio-MB.pdf");
+  //c3->Print("plots/ToFEff-isophoton-ERT.pdf");
+  //c4->Print("plots/ToFEff-isophoton-MB.pdf");
   qt_fit->Save();
 }
