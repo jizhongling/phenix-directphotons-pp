@@ -99,7 +99,7 @@ namespace anatools
     double E1 = cluster1->ecore();
     double E2 = cluster2->ecore();
 
-    double asym_E = std::abs( E1 - E2 ) / ( E1 + E2 );
+    double asym_E = std::fabs( E1 - E2 ) / ( E1 + E2 );
 
     return asym_E;
   }

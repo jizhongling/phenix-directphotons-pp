@@ -141,7 +141,7 @@ namespace anatools
   {
     double E1 = cluster1->ecore();
     double E2 = cluster2->ecore();
-    double asymE = std::abs(E1 - E2) / std::abs(E1 + E2);
+    double asymE = std::fabs(E1 - E2) / std::fabs(E1 + E2);
     return asymE;
   }
 } /* namespace anatools */

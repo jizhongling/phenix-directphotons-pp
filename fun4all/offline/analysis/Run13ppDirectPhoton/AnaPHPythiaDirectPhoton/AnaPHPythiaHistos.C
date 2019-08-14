@@ -271,7 +271,7 @@ void AnaPHPythiaHistos::FillCorrelation(const TMCParticle *pref, int type)
         !InAcceptance(v3_part2) )
       continue;
 
-    double fill_hn_corr[] = {v3_pref.Pt(), v3_part2.Pt(), abs(v3_pref.DeltaPhi(v3_part2)), (double)type};
+    double fill_hn_corr[] = {v3_pref.Pt(), v3_part2.Pt(), fabs(v3_pref.DeltaPhi(v3_part2)), (double)type};
     hn_corr->Fill(fill_hn_corr);
   } // ipart2
 
@@ -280,9 +280,9 @@ void AnaPHPythiaHistos::FillCorrelation(const TMCParticle *pref, int type)
 
 bool AnaPHPythiaHistos::InAcceptance(const TVector3 &v3_part)
 {
-  if(  abs(v3_part.Eta()) < 0.35 &&
-      (abs(v3_part.Phi()) < PI/4. ||
-       abs(v3_part.Phi()) > PI*3./4.) )
+  if(  fabs(v3_part.Eta()) < 0.35 &&
+      (fabs(v3_part.Phi()) < PI/4. ||
+       fabs(v3_part.Phi()) > PI*3./4.) )
     return true;
   return false;
 }

@@ -21,7 +21,7 @@ int draw_isolation_efficiency()
 
   /* Define cuts */
   {
-    TCut cut_acceptance("abs(eta) < 0.35 && pt > 1");
+    TCut cut_acceptance("fabs(eta) < 0.35 && pt > 1");
 
     TCut cut_pizerophoton("ispromptphoton==0&&parentid==111");
 

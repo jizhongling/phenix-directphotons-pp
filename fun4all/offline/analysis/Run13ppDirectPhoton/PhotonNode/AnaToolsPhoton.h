@@ -64,7 +64,7 @@ namespace anatools
   {
     double E1 = photon1->get_E();
     double E2 = photon2->get_E();
-    double asymE = std::abs(E1 - E2) / std::abs(E1 + E2);
+    double asymE = std::fabs(E1 - E2) / std::fabs(E1 + E2);
     return asymE;
   }
 }

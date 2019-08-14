@@ -334,7 +334,7 @@ double HadronResponse::SumEEmcal(const emcClusterContent *cluster, const emcClus
      * and with 3 sigma charge veto */
     if( clus2->id() == cluster->id() ||
         IsBadTower(clus2) ||
-        //abs( clus2->tofcorr() ) > tofMaxIso ||
+        //fabs( clus2->tofcorr() ) > tofMaxIso ||
         clus2->ecore() < eClusMin ||
         DCChargeVeto(clus2, data_tracks) )
       continue;
@@ -381,7 +381,7 @@ void HadronResponse::SumEEmcal(const emcClusterContent *cluster1, const emcClust
     if( clus3->id() == cluster1->id() ||
         clus3->id() == cluster2->id() ||
         IsBadTower(clus3) ||
-        //abs( clus3->tofcorr() ) > tofMaxIso ||
+        //fabs( clus3->tofcorr() ) > tofMaxIso ||
         clus3->ecore() < eClusMin ||
         DCChargeVeto(clus3, data_tracks) )
       continue;
@@ -454,7 +454,7 @@ bool HadronResponse::TestPhoton(const emcClusterContent *cluster)
 {
   /* Do not use ToF cut. ToF is wrong for high pT clusters */
   if( cluster->ecore() > eMin &&
-      //abs( cluster->tofcorr() ) < tofMax &&
+      //fabs( cluster->tofcorr() ) < tofMax &&
       cluster->prob_photon() > probMin )
     return true;
   else
@@ -547,8 +547,8 @@ int HadronResponse::GetEmcMatchTrack(const emcClusterContent *cluster, const PHC
   for(int itrk=0; itrk<npart; itrk++)
   {
     TVector3 v3_track(data_tracks->get_pemcx(itrk), data_tracks->get_pemcy(itrk), data_tracks->get_pemcz(itrk));
-    double dphi = abs((v3_track-v3_cluster).Phi());
-    double dz = abs((v3_track-v3_cluster).Z());
+    double dphi = fabs((v3_track-v3_cluster).Phi());
+    double dz = fabs((v3_track-v3_cluster).Z());
     double mom = data_tracks->get_mom(itrk);
     if( dphi > 0.015 ||
         !TMath::Finite(mom) ||

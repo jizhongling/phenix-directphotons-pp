@@ -165,7 +165,7 @@ int FillHisto::process_event(PHCompositeNode *topNode)
   /* Get BBC and ERT trigger counts */
   if( datatype == ERT )
   {
-    if( photoncont->get_bbcnarrow_live() && abs(bbc_z) < 10. )
+    if( photoncont->get_bbcnarrow_live() && fabs(bbc_z) < 10. )
     {
       if( photoncont->get_ert_a_scaled() )
         h_events->Fill("ert_a", 1.);
@@ -181,7 +181,7 @@ int FillHisto::process_event(PHCompositeNode *topNode)
     if( photoncont->get_bbcnarrow_scaled() )
     {
       h_events->Fill("bbc_narrow", 1.);
-      if( abs(bbc_z) < 10. )
+      if( fabs(bbc_z) < 10. )
       {
         h_events->Fill("bbc_narrow_10cm", 1.);
         if( photoncont->get_ert_c_live() )
@@ -192,9 +192,9 @@ int FillHisto::process_event(PHCompositeNode *topNode)
     if( photoncont->get_bbcnovtx_scaled() )
     {
       h_events->Fill("bbc_novtx", 1.);
-      if( abs(bbc_z) < 10. )
+      if( fabs(bbc_z) < 10. )
         h_events->Fill("bbc_novtx_10cm", 1.);
-      if( photoncont->get_bbcnarrow_live() && abs(bbc_z) < 10. )
+      if( photoncont->get_bbcnarrow_live() && fabs(bbc_z) < 10. )
       {
         h_events->Fill("bbc_novtx_narrow_10cm", 1.);
         if( photoncont->get_ert_c_live() )
@@ -241,7 +241,7 @@ int FillHisto::FillClusterTofSpectrum(const PhotonContainer *photoncont, const s
   /* Get event global parameters */
   double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
-  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
+  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
 
@@ -270,7 +270,7 @@ int FillHisto::FillPi0InvariantMass(const PhotonContainer *photoncont, const str
   /* Get event global parameters */
   double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
-  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
+  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
   vector<unsigned> v_used;
@@ -378,7 +378,7 @@ int FillHisto::FillERTEfficiency(const PhotonContainer *photoncont, const int ev
   /* Get event global parameters */
   double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
-  if( abs(bbc_z) > 10. ) return DISCARDEVENT;
+  if( fabs(bbc_z) > 10. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
   vector<unsigned> v_used;
@@ -472,7 +472,7 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont, const int evty
   /* Get event global parameters */
   double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
-  if( abs(bbc_z) > 10. ) return DISCARDEVENT;
+  if( fabs(bbc_z) > 10. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
   vector<unsigned> v_used;
@@ -513,8 +513,8 @@ int FillHisto::FillPi0Spectrum(const PhotonContainer *photoncont, const int evty
 
           double fill_hn_pion[] = {(double)sector, tot_pT, minv, 0., (double)evtype};
           hn_pion->Fill(fill_hn_pion);
-          if( abs( photon1->get_tof() - bbc_t0 ) < 10. &&
-              abs( photon2->get_tof() - bbc_t0 ) < 10. )
+          if( fabs( photon1->get_tof() - bbc_t0 ) < 10. &&
+              fabs( photon2->get_tof() - bbc_t0 ) < 10. )
           {
             fill_hn_pion[3] = 1.;
             hn_pion->Fill(fill_hn_pion);
@@ -551,7 +551,7 @@ int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int e
   double bbc_z = photoncont->get_bbc_z();
   double bbc_t0 = photoncont->get_bbc_t0();
   int pattern = GetPattern(photoncont);
-  if( abs(bbc_z) > 10. ) return DISCARDEVENT;
+  if( fabs(bbc_z) > 10. ) return DISCARDEVENT;
 
   unsigned nphotons = photoncont->Size();
 
@@ -590,7 +590,7 @@ int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int e
 
       double fill_hn_1photon[] = {(double)sector, pT, (double)pattern, 0., (double)evtype};
       hn_1photon->Fill(fill_hn_1photon);
-      if( abs( photon1->get_tof() - bbc_t0 ) < 10. )
+      if( fabs( photon1->get_tof() - bbc_t0 ) < 10. )
       {
         fill_hn_1photon[3] = 1.;
         hn_1photon->Fill(fill_hn_1photon);
@@ -619,8 +619,8 @@ int FillHisto::FillPhotonSpectrum(const PhotonContainer *photoncont, const int e
 
           double fill_hn_2photon[] = {(double)sector, pT, minv, (double)pattern, 0., (double)evtype};
           hn_2photon->Fill(fill_hn_2photon);
-          if( abs( photon1->get_tof() - bbc_t0 ) < 10. &&
-              abs( photon2->get_tof() - bbc_t0 ) < 10. )
+          if( fabs( photon1->get_tof() - bbc_t0 ) < 10. &&
+              fabs( photon2->get_tof() - bbc_t0 ) < 10. )
           {
             fill_hn_2photon[4] = 1.;
             hn_2photon->Fill(fill_hn_2photon);
@@ -731,7 +731,7 @@ void FillHisto::BookHistograms()
   phibin[iphi++] = PI*11/16 - 0.02;
   phibin[iphi++] = PI*19/16 + 0.02;
   sort(phibin, phibin+nphi);
-  
+
   /* Events counter */
   if( datatype == ERT )
   {
@@ -991,7 +991,7 @@ bool FillHisto::TestPhoton(const Photon *photon, double bbc_t0)
 {
   if( photon->get_E() > eMin &&
       photon->get_prob() &&
-      abs( photon->get_tof() - bbc_t0 ) < 10. )
+      fabs( photon->get_tof() - bbc_t0 ) < 10. )
     return true;
 
   return false;

@@ -216,9 +216,9 @@ int PhotonNode::process_event(PHCompositeNode *topNode)
   //photoncont->set_crossing(crossing);
   photoncont->set_trigger(lvl1_live, lvl1_scaled);
 
-  if( datatype == ERT && !photoncont->get_ert_b_scaled() && abs(bbc_z) > 30. )
+  if( datatype == ERT && !photoncont->get_ert_b_scaled() && fabs(bbc_z) > 30. )
     return DISCARDEVENT;
-  else if( datatype == MB && abs(bbc_z) > 30. )
+  else if( datatype == MB && fabs(bbc_z) > 30. )
     return EVENT_OK;
 
   // Run local recalibration of EMCal cluster data
@@ -397,7 +397,7 @@ void PhotonNode::ReadSashaWarnmap(const string &filename)
 bool PhotonNode::TestPhoton(const emcClusterContent *emccluster, float bbc_t0)
 {
   if( emccluster->ecore() > 0.3 &&
-      abs( emccluster->tofcorr() - bbc_t0 ) < 10. &&
+      fabs( emccluster->tofcorr() - bbc_t0 ) < 10. &&
       emccluster->prob_photon() > 0.02 )
     return true;
   else

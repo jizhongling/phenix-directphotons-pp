@@ -187,7 +187,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
               lvl2_trk->parent_trk = lvl1_trk;  // fill parent_trk
               // radius of the birth position
               double radius = lvl2_trk->trkrbirth;
-              if( !is_fillconv && abs(radius) < merge_radius )
+              if( !is_fillconv && fabs(radius) < merge_radius )
               {// photon conversion inside magnetic field
                 h2_vtxconv->Fill(lvl1_trk->trkpt, (double)lvl1_trk->arm);
                 is_fillconv = true;
@@ -253,7 +253,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
       h2_radius->Fill(photonpt, radius);
       h2_angle->Fill(photonpt, angle);
 
-      if( abs(radius) < merge_radius )
+      if( fabs(radius) < merge_radius )
       {// photon conversion inside magnetic field
         h2_eeinconv->Fill(photonpt, (double)pos->arm);
       }
@@ -284,7 +284,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
     npeak = 1;
     int sector = photon.at(0)->sector;
     int passed = photon.at(0)->prob_photon > 0.02 ? 1 : 0;
-    double eta = abs( photon.at(0)->trkvp.Eta() );
+    double eta = fabs( photon.at(0)->trkvp.Eta() );
     double fill_hn_merge[] = {pionpt, (double)sector, (double)passed, eta};
     hn_merge->Fill(fill_hn_merge);
   }
@@ -311,7 +311,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
     /* Check in the same detector part
      * and pass the energy and asymmetry cuts */
     if( anatools::SectorCheck(sec1,sec2) &&
-        e1 > eMin && e2 > eMin && abs(e1-e2)/(e1+e2) < AsymCut )
+        e1 > eMin && e2 > eMin && fabs(e1-e2)/(e1+e2) < AsymCut )
     {
       /* Fill pi0 histogram */
       double ptsim = anatools::GetTot_pT( photon.at(0)->emcclus, photon.at(1)->emcclus );

@@ -162,7 +162,7 @@ int PhotonEff::process_event(PHCompositeNode *topNode)
 
       double fill_hn_1photon[] = {(double)sector, photonpt, recopt, 0., tof, tof-bbc_t0};
       hn_1photon->Fill(fill_hn_1photon);
-      if( abs(tof - bbc_t0) < 10. )
+      if( fabs(tof - bbc_t0) < 10. )
       {
         fill_hn_1photon[3] = 1.;
         hn_1photon->Fill(fill_hn_1photon);
@@ -172,7 +172,7 @@ int PhotonEff::process_event(PHCompositeNode *topNode)
         fill_hn_1photon[3] = 2.;
         hn_1photon->Fill(fill_hn_1photon);
       }
-      if( abs(tof - bbc_t0) < 10. && prob > 0.02 )
+      if( fabs(tof - bbc_t0) < 10. && prob > 0.02 )
       {
         if( part >= 0 && recopt > 5. && recopt < 10. )
           h2_photon_eta_phi[part]->Fill(eta, phi);

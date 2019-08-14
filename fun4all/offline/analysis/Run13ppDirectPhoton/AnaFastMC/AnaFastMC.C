@@ -245,7 +245,7 @@ void AnaFastMC::FastMCInput()
         !CheckWarnMap(itw_part[1]) &&
         anatools::SectorCheck(sec1,sec2) &&
         e1 > eMin && e2 > eMin &&
-        abs(e1-e2)/(e1+e2) < AsymCut )
+        fabs(e1-e2)/(e1+e2) < AsymCut )
     {
       /* Fill eta and phi distribution */
       for(int iph=0; iph<2; iph++)
@@ -441,7 +441,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     /* Test if particle is a stable prompt photon */
     if( part->GetKF() != PY_GAMMA ||
         part->GetKS() != 1 ||
-        ( parent && abs(parent->GetKF()) > 100 ) )
+        ( parent && fabs(parent->GetKF()) > 100 ) )
       continue;
 
     /* Convert particle into TLorentzVector */
@@ -466,12 +466,12 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     SumETruth(part, InAcc, econe_all, econe_acc);
 
     /* Fill histogram for all prompt photons with |eta| < 0.5 */
-    if( abs(pE_part.Eta()) < 0.5 )
+    if( fabs(pE_part.Eta()) < 0.5 )
     {
       h_photon_eta050->Fill(pt, weight_pythia);
 
       /* Fill histogram for all prompt photons with |eta| < 0.25 */
-      if( abs(pE_part.Eta()) < 0.25 )
+      if( fabs(pE_part.Eta()) < 0.25 )
         h_photon_eta025->Fill(pt, weight_pythia);
 
       /* Fill histogram for all isolated prompt photons with |eta| < 0.5 */
@@ -480,7 +480,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
         h_isophoton_eta050->Fill(pt, weight_pythia);
 
         /* Fill histogram for all isolated prompt photons with |eta| < 0.25 */
-        if( abs(pE_part.Eta()) < 0.25 )
+        if( fabs(pE_part.Eta()) < 0.25 )
           h_isophoton_eta025->Fill(pt, weight_pythia);
       }
     }
@@ -569,7 +569,7 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe
 
       /* Reference particle should in acceptance and
        * only consider interacting particles in cone */
-      int id = abs(part2->GetKF());
+      int id = fabs(part2->GetKF());
       if( prefInAcc && id != PY_MU && id != PY_NU_E && id != PY_NU_MU )
       {
         TParticlePDG *pdg_part2 = pdg_db->GetParticle( part2->GetKF() );
@@ -1140,7 +1140,7 @@ bool AnaFastMC::InDCAcceptance( const TVector3 &v3_part, int charge )
   else
     board = ( 3.72402 - phi + 0.008047 * cos( phi + 0.87851 ) ) / 0.01963496;
 
-  if( abs(eta) < 0.35 &&
+  if( fabs(eta) < 0.35 &&
       ( ( phi > -PI*3./16. && phi < PI*5./16. ) ||
         ( phi > PI*11./16. && phi < PI*19./16. )
       ) &&

@@ -36,7 +36,7 @@ plot_xcheck_pythia_pisa()
       float phi   = tpisa2->GetV3()[i];
       float ptot  = tpisa2->GetV4()[i];
 
-      TString cut_pythia = TString::Format("eventcounter == %f && abs(t_eta - %f) < 0.00001 && abs(t_phi - %f) < 0.00001 && abs(t_ptot - %f) < 0.00001 ",
+      TString cut_pythia = TString::Format("eventcounter == %f && fabs(t_eta - %f) < 0.00001 && fabs(t_phi - %f) < 0.00001 && fabs(t_ptot - %f) < 0.00001 ",
 					   event, eta, phi, ptot);
       unsigned matches = tpythia->GetEntries( cut_pythia );
 

@@ -334,14 +334,14 @@ int PhotonHistos::FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *d
     if( lvl1_scaled & bit_bbcnarrow )
     {
       h_events->Fill("bbc_narrow", 1.);
-      if( abs(bbc_z) < 10. )
+      if( fabs(bbc_z) < 10. )
       {
         h_events->Fill("bbc_narrow_10cm", 1.);
         if( lvl1_live & bit_ert4x4[2] )
           h_events->Fill("bbc_narrow_10cm_ert_c", 1.);
       }
     }
-    if( (lvl1_scaled & bit_bbcnovtx) && abs(bbc_z) < 30. )
+    if( (lvl1_scaled & bit_bbcnovtx) && fabs(bbc_z) < 30. )
     {
       h_events->Fill("bbc_novtx_30cm", 1.);
       if( lvl1_live & bit_ert4x4[2] )
@@ -357,7 +357,7 @@ int PhotonHistos::FillClusterTofSpectrum(const emcClusterContainer *data_emccont
   /* Get event global parameters */
   double bbc_z = data_global->getBbcZVertex();
   double bbc_t0 = data_global->getBbcTimeZero();
-  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
+  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned ncluster = data_emccontainer->size();
 
@@ -392,7 +392,7 @@ int PhotonHistos::FillPi0InvariantMass(const emcClusterContainer *data_emccontai
   /* Get event global parameters */
   double bbc_z = data_global->getBbcZVertex();
   double bbc_t0 = data_global->getBbcTimeZero();
-  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
+  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned ncluster = data_emccontainer->size();
   vector<unsigned> v_used;
@@ -504,7 +504,7 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
   /* Get event global parameters */
   double bbc_z = data_global->getBbcZVertex();
   double bbc_t0 = data_global->getBbcTimeZero();
-  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
+  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned ncluster = data_emccontainer->size();
   vector<unsigned> v_used;
@@ -532,34 +532,39 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
     int oarm = ( arm==0 ? 1 : 0 );
     if( datatype == ERT && !FireERT[oarm] ) continue;
 
+    /* For pi0 consider good towers */
     if( IsGoodTower(cluster1) &&
         TestPhoton(cluster1, bbc_t0) )
     {
       v_used.push_back(i);
 
       int part = anatools::GetPart( cluster1 );
-      double photon_pT = anatools::Get_pT( cluster1 );
       int ert_trig = anatools::PassERT(data_ert, cluster1, triggermode) ? 1 : 0;
 
-      int isolated[3] = {};
-      double econeEM[2], econeTrk[3];
-      SumEEmcal(cluster1, data_emccontainer, data_tracks, bbc_t0, econeEM);
-      SumPTrack(cluster1, data_tracks, econeTrk);
-      for(int ival=0; ival<3; ival++)
+      /* For photon consider fiducial towers */
+      if( InFiducial(cluster1) )
       {
-        double econe = (ival == 0 ? econeEM[0] : econeEM[1]) + econeTrk[ival];
-        if( econe < eratio * cluster1->ecore() )
-          isolated[ival] = 1;
-      }
+        double photon_pT = anatools::Get_pT( cluster1 );
+        int isolated[3] = {};
+        double econeEM[2], econeTrk[3];
+        SumEEmcal(cluster1, data_emccontainer, data_tracks, bbc_t0, econeEM);
+        SumPTrack(cluster1, data_tracks, econeTrk);
+        for(int ival=0; ival<3; ival++)
+        {
+          double econe = (ival == 0 ? econeEM[0] : econeEM[1]) + econeTrk[ival];
+          if( econe < eratio * cluster1->ecore() )
+            isolated[ival] = 1;
+        }
 
-      for(int ival=0; ival<3; ival++)
-        if( part >= 0 && ( ival == 0 || !DCChargeVeto(cluster1, data_tracks) ) )
-          for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
-            if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
-            {
-              int ih = part + 3*ert_trig + 3*2*evtype + 3*2*3*bbc10cm + 3*2*3*2*isolated[ival] + 3*2*3*2*2*ival;
-              h_ert[ih]->Fill(photon_pT);
-            }
+        for(int ival=0; ival<3; ival++)
+          if( part >= 0 && ( ival == 0 || !DCChargeVeto(cluster1, data_tracks) ) )
+            for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
+              if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
+              {
+                int ih = part + 3*ert_trig + 3*2*evtype + 3*2*3*bbc10cm + 3*2*3*2*isolated[ival] + 3*2*3*2*2*ival;
+                h_ert[ih]->Fill(photon_pT);
+              }
+      } // InFiducial
 
       for(unsigned j=0; j<ncluster; j++)
         if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
@@ -649,9 +654,9 @@ int PhotonHistos::FillTowerEnergy(const emcClusterContainer *data_emccontainer, 
       int cut = 0;
       if( cluster->prob_photon() > probMin )
         cut += 1;
-      if( abs(tof - bbc_t0) < tofMax )
+      if( fabs(tof - bbc_t0) < tofMax )
         cut += 2;
-      if( abs(bbc_z) < 10. )
+      if( fabs(bbc_z) < 10. )
         cut += 4;
 
       for(int iz=0; iz<7; iz++)
@@ -752,8 +757,8 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
 
         TVector3 v3_cluster(cluster->x(), cluster->y(), cluster->z());
         TVector3 v3_track(data_tracks->get_pemcx(itrk_match), data_tracks->get_pemcy(itrk_match), data_tracks->get_pemcz(itrk_match));
-        double dcdphi = abs((v3_track-v3_cluster).Phi());
-        double dcdz = abs((v3_track-v3_cluster).Z());
+        double dcdphi = fabs((v3_track-v3_cluster).Phi());
+        double dcdz = fabs((v3_track-v3_cluster).Z());
 
         int ih = dcns + 2*dcwe;
         h2_emcdphiz[ih]->Fill(dcdphi, dcdz);
@@ -778,7 +783,7 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
   /* Get event global parameters */
   double bbc_z = data_global->getBbcZVertex();
   double bbc_t0 = data_global->getBbcTimeZero();
-  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
+  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
 
   /* Get crossing number */
   int crossing = data_triggerlvl1->get_lvl1_clock_cross();
@@ -827,8 +832,8 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
 
           int tof = 0;
           int prob = 0;
-          if( abs( cluster1->tofcorr() - bbc_t0 ) < tofMax &&
-              abs( cluster2->tofcorr() - bbc_t0 ) < tofMax )
+          if( fabs( cluster1->tofcorr() - bbc_t0 ) < tofMax &&
+              fabs( cluster2->tofcorr() - bbc_t0 ) < tofMax )
             tof = 1;
           if( cluster1->prob_photon() > probMin &&
               cluster2->prob_photon() > probMin )
@@ -863,7 +868,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
   /* Get event global parameters */
   double bbc_z = data_global->getBbcZVertex();
   double bbc_t0 = data_global->getBbcTimeZero();
-  if( abs(bbc_z) > 30. ) return DISCARDEVENT;
+  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
 
   /* Get crossing number */
   int crossing = data_triggerlvl1->get_lvl1_clock_cross();
@@ -1202,7 +1207,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcClusterC
      * or on bad towers or lower than energy threshold */
     if( clus2->id() == cluster->id() ||
         IsBadTower(clus2) ||
-        abs( clus2->tofcorr() - bbc_t0 ) > tofMaxIso ||
+        fabs( clus2->tofcorr() - bbc_t0 ) > tofMaxIso ||
         clus2->ecore() < eClusMin )
       continue;
 
@@ -1255,7 +1260,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster1, const emcCluster
     if( clus3->id() == cluster1->id() ||
         clus3->id() == cluster2->id() ||
         IsBadTower(clus3) ||
-        abs( clus3->tofcorr() - bbc_t0 ) > tofMaxIso ||
+        fabs( clus3->tofcorr() - bbc_t0 ) > tofMaxIso ||
         clus3->ecore() < eClusMin )
       continue;
 
@@ -1364,7 +1369,7 @@ void PhotonHistos::SumEPi0(const emcClusterContent *cluster1, const emcClusterCo
     if( clus3->id() == cluster1->id() ||
         clus3->id() == cluster2->id() ||
         IsBadTower(clus3) ||
-        abs( clus3->tofcorr() - bbc_t0 ) > tofMaxIso ||
+        fabs( clus3->tofcorr() - bbc_t0 ) > tofMaxIso ||
         clus3->ecore() < eClusMin )
       continue;
 
@@ -1455,16 +1460,16 @@ bool PhotonHistos::BBC10cm(const PHGlobal *data_global, const TrigLvl1 *data_tri
 
   if( datatype == ERT )
   {
-    if( bbc10cm && (lvl1_live & bit_bbcnarrow) && abs(bbc_z) < 10. )
+    if( bbc10cm && (lvl1_live & bit_bbcnarrow) && fabs(bbc_z) < 10. )
       return true;
-    if( !bbc10cm && (lvl1_live & bit_bbcnovtx) && abs(bbc_z) < 30. )
+    if( !bbc10cm && (lvl1_live & bit_bbcnovtx) && fabs(bbc_z) < 30. )
       return true;
   }
   else if( datatype == MB )
   {
-    if( bbc10cm && abs(bbc_z) < 10. )
+    if( bbc10cm && fabs(bbc_z) < 10. )
       return true;
-    if( !bbc10cm && abs(bbc_z) < 30. )
+    if( !bbc10cm && fabs(bbc_z) < 30. )
       return true;
   }
 
@@ -1474,7 +1479,7 @@ bool PhotonHistos::BBC10cm(const PHGlobal *data_global, const TrigLvl1 *data_tri
 bool PhotonHistos::TestPhoton(const emcClusterContent *cluster, double bbc_t0)
 {
   if( cluster->ecore() > eMin &&
-      abs( cluster->tofcorr() - bbc_t0 ) < tofMax &&
+      fabs( cluster->tofcorr() - bbc_t0 ) < tofMax &&
       cluster->prob_photon() > probMin )
     return true;
   else
@@ -1566,7 +1571,7 @@ int PhotonHistos::GetPattern(int crossing)
     int pattern_yellow = spinpattern->get_spinpattern_yellow(bunch);
     pattern = pattern_blue * pattern_yellow;  
   }
-  if( abs(pattern) > 1 ) pattern = 0;
+  if( fabs(pattern) > 1 ) pattern = 0;
   pattern += 1;
 
   return pattern;
@@ -1584,8 +1589,8 @@ int PhotonHistos::GetEmcMatchTrack(const emcClusterContent *cluster, const PHCen
   for(int itrk=0; itrk<npart; itrk++)
   {
     TVector3 v3_track(data_tracks->get_pemcx(itrk), data_tracks->get_pemcy(itrk), data_tracks->get_pemcz(itrk));
-    double dphi = abs((v3_track-v3_cluster).Phi());
-    double dz = abs((v3_track-v3_cluster).Z());
+    double dphi = fabs((v3_track-v3_cluster).Phi());
+    double dz = fabs((v3_track-v3_cluster).Z());
     double mom = data_tracks->get_mom(itrk);
     if( dphi > 0.015 ||
         !TMath::Finite(mom) ||

@@ -306,7 +306,7 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
     {
       /* Check trigger */
       if (
-          abs ( bbc_z ) <= _bbc_zvertex_cut &&         /* if BBC-z location within range */
+          fabs ( bbc_z ) <= _bbc_zvertex_cut &&         /* if BBC-z location within range */
           lvl1_scaled & anatools::Mask_BBC_narrowvtx  /* if trigger criteria met */
           )
         {
@@ -353,7 +353,7 @@ DirectPhotonPP::process_event(PHCompositeNode *topNode)
 
       /* Check trigger */
       if (
-          abs ( bbc_z ) <= _bbc_zvertex_cut &&         /* if BBC-z location within range */
+          fabs ( bbc_z ) <= _bbc_zvertex_cut &&         /* if BBC-z location within range */
           lvl1_live & anatools::Mask_BBC_narrowvtx && /* if trigger criteria met */
           ( lvl1_scaled & anatools::Mask_ERT_4x4a ||
             lvl1_scaled & anatools::Mask_ERT_4x4b ||
@@ -433,27 +433,27 @@ DirectPhotonPP::FillTriggerStats( string histname,
     h1_events->Fill("BBCNarrow",1);
 
   if ( lvl1_scaled & anatools::Mask_BBC_narrowvtx &&
-       abs ( bbc_z ) <= _bbc_zvertex_cut )
+       fabs ( bbc_z ) <= _bbc_zvertex_cut )
     h1_events->Fill("BBCNarrow_zcut",1);
 
   if ( lvl1_live & anatools::Mask_BBC_narrowvtx &&
        lvl1_scaled & anatools::Mask_ERT_4x4a &&
-       abs ( bbc_z ) <= _bbc_zvertex_cut )
+       fabs ( bbc_z ) <= _bbc_zvertex_cut )
     h1_events->Fill("BBCNarrow_zcut_ERT4x4a",1);
 
   if ( lvl1_live & anatools::Mask_BBC_narrowvtx &&
        lvl1_scaled & anatools::Mask_ERT_4x4b &&
-       abs ( bbc_z ) <= _bbc_zvertex_cut )
+       fabs ( bbc_z ) <= _bbc_zvertex_cut )
     h1_events->Fill("BBCNarrow_zcut_ERT4x4b",1);
 
   if ( lvl1_live & anatools::Mask_BBC_narrowvtx &&
        lvl1_scaled & anatools::Mask_ERT_4x4c &&
-       abs ( bbc_z ) <= _bbc_zvertex_cut )
+       fabs ( bbc_z ) <= _bbc_zvertex_cut )
     h1_events->Fill("BBCNarrow_zcut_ERT4x4c",1);
 
   if ( lvl1_live & anatools::Mask_BBC_narrowvtx &&
        lvl1_scaled & anatools::Mask_ERT_4x4or &&
-       abs ( bbc_z ) <= _bbc_zvertex_cut )
+       fabs ( bbc_z ) <= _bbc_zvertex_cut )
     h1_events->Fill("BBCNarrow_zcut_ERT4x4or",1);
 
   if ( lvl1_scaled & anatools::Mask_ERT_4x4or )
