@@ -10,15 +10,11 @@ void draw_Acceptance_IsoPhoton()
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
 
-  const double Conv[3] = {0.849, 0.959, 0.959};
-  const double eConv[3] = {0.027, 0.023, 0.023};
+  const double Conv[3] = {0.8855, 0.9913, 0.9913};
+  const double eConv[3] = {2e-4, 7e-5, 7e-5};
   const double A = 0.24;
   const double eA = 0.04;
-
-  const double Prob[2][npT] = {
-    { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96 },
-    { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97 }
-  };
+  const double Prob = 0.98;
   const double eProb = 0.02;
 
   QueryTree *qt_acc = new QueryTree("data/Acceptance-isophoton.root", "RECREATE");
@@ -188,9 +184,9 @@ void draw_Acceptance_IsoPhoton()
 
       double xpt = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
       double ndir = nphoton / Conv[part];
-      double endir = enphoton / Conv[part];
-      double Acc = ndir / Prob[part/2][ipt] / nisophoton;
-      double eAcc = Acc * sqrt( pow(enisophoton/nisophoton,2) + pow(endir/ndir,2) );
+      double endir = ndir * sqrt( pow(enphoton/nphoton,2) + pow(eConv[part]/Conv[part],2) );
+      double Acc = ndir / Prob / nisophoton;
+      double eAcc = Acc * sqrt( pow(enisophoton/nisophoton,2) + pow(endir/ndir,2) + pow(eProb/Prob,2) );
       if( TMath::Finite(Acc+eAcc) )
         qt_acc->Fill(ipt, part, xpt, Acc, eAcc);
       else
