@@ -13,27 +13,27 @@ files=""
 count=0
 
 for FILE in ${prename}*.root ; do
-  files="${files} ${FILE}"
-  (( ++count ))
-  if (( "${count}" >= "10" )) ; then
-    if [[ -f "total.root" ]] ; then
-      hadd tmp.root total.root ${files}
-    else
-      hadd tmp.root ${files}
+    files="${files} ${FILE}"
+    (( ++count ))
+    if (( "${count}" >= "10" )) ; then
+	if [[ -f "total.root" ]] ; then
+	    hadd tmp.root total.root ${files}
+	else
+	    hadd tmp.root ${files}
+	fi
+	mv tmp.root total.root
+	files=""
+	count=0
     fi
-    mv tmp.root total.root
-    files=""
-    count=0
-  fi
 done
 
 if [[ -n "${files}" ]] ; then
-  if [[ -f "total.root" ]] ; then
-    hadd tmp.root total.root ${files}
-  else
-    hadd tmp.root ${files}
-  fi
-  mv tmp.root total.root
+    if [[ -f "total.root" ]] ; then
+	hadd tmp.root total.root ${files}
+    else
+	hadd tmp.root ${files}
+    fi
+    mv tmp.root total.root
 fi
 
 mv total.root ${prename}total.root

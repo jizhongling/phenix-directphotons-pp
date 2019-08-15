@@ -882,8 +882,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
   {
     emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
     if( InFiducial(cluster1) &&
-        TestPhoton(cluster1, bbc_t0) &&
-        !DCChargeVeto(cluster1, data_tracks) )
+        TestPhoton(cluster1, bbc_t0) )
     {
       int sector = anatools::GetSector(cluster1);
       int part = anatools::GetPart(cluster1);
@@ -937,8 +936,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
         {
           emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
           if( !IsGoodTower(cluster2) ||
-              !TestPhoton(cluster2, bbc_t0) ||
-              DCChargeVeto(cluster2, data_tracks) )
+              !TestPhoton(cluster2, bbc_t0) )
             continue;
           double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
           double minv = anatools::GetInvMass(cluster1, cluster2);

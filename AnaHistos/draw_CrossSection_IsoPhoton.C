@@ -11,9 +11,8 @@ void draw_CrossSection_IsoPhoton()
 
   const double PI = TMath::Pi();
   const double DeltaEta = 0.5;
-  //const double NBBC =  3.59e11;  // from DAQ
-  //const double NBBC =  3.54e11;  // from rejection power
-  const double NBBC =  3.59e11 * 0.971602;  // from DAQ with DC 3 sigma
+  //const double NBBC =  3.48e11;  // from DAQ
+  const double NBBC =  3.52e11;  // from rejection power
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
   const double Pile[3] = {1.10, 1.07, 1.05};
@@ -194,13 +193,13 @@ void draw_CrossSection_IsoPhoton()
       {
         if(part < 2)
         {
-          TrigERT = 0.949;
-          eTrigERT = 0.004;
+          TrigERT = 0.956;
+          eTrigERT = 0.005;
         }
         else
         {
-          TrigERT = 0.651;
-          eTrigERT = 0.008;
+          TrigERT = 0.683;
+          eTrigERT = 0.011;
         }
       }
 

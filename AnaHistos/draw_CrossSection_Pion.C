@@ -57,7 +57,7 @@ void draw_CrossSection_Pion()
   int bbc10cm = 1;
   int tof = 1;
   int prob = 1;
-  int ival = 1;
+  int ival = 0;
 
   TH2 *h2_pion_t = (TH2*)f->Get("h2_pion_0");
   h2_pion_t = (TH2*)h2_pion_t->Clone();

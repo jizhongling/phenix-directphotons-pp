@@ -1,7 +1,9 @@
 // To compile: g++ -Wall -o IsGoodFile IsGoodFile.cc `root-config --cflags --libs`
+#include <cstdlib>
+#include <cmath>
+#include <string>
 #include <iostream>
 #include <sstream>
-#include <cmath>
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1.h>

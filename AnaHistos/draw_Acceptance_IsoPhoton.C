@@ -14,7 +14,11 @@ void draw_Acceptance_IsoPhoton()
   const double eConv[3] = {2e-4, 7e-5, 7e-5};
   const double A = 0.24;
   const double eA = 0.04;
-  const double Prob = 0.98;
+
+  const double Prob[2][npT] = {
+    { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96 },
+    { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97 }
+  };
   const double eProb = 0.02;
 
   QueryTree *qt_acc = new QueryTree("data/Acceptance-isophoton.root", "RECREATE");
@@ -183,10 +187,10 @@ void draw_Acceptance_IsoPhoton()
       //double endir = sqrt(pow(enphoton,2)/pow(Conv[part],2) + (pow(enisoboth,2)* pow(1. + (1. - Conv[part])*Conv[part]*Merge1,2))/ pow(Conv[part],4) + 0.25*pow(BadPass,2)*pow(enisopair2pt,2)* pow(Merge2,2) + 0.25*pow(BadPass,2)*pow(eMerge2,2)* pow(nisopair2pt,2) + 0.25*pow(eBadPass,2)*pow(Merge2,2)* pow(nisopair2pt,2) + (pow(A,2)*pow(eVeto,2)* pow(1. + Miss,2)* pow(1 + Merge1 + 2.*Miss,2)* pow(nisopair,2))/pow(1. + 2.*Miss,2) + pow(eConv[part],2)* pow(-((((1. - Conv[part])*Merge1 - Conv[part]*Merge1)* nisoboth)/pow(Conv[part],2)) + (2*(1. + (1. - Conv[part])*Conv[part]*Merge1)* nisoboth)/pow(Conv[part],3) + (2*Miss*nisopair)/pow(Conv[part],3) - nphoton/pow(Conv[part],2),2) + (pow(eA,2)*pow(1. + Miss,2)* pow(1 + Merge1 + 2.*Miss,2)* pow(nisopair,2)*pow(Veto,2))/ pow(1. + 2.*Miss,2) + pow(enisopair,2)* pow(-(Miss/pow(Conv[part],2)) - (A*(1. + Miss)*(1 + Merge1 + 2.*Miss)* Veto)/(1. + 2.*Miss),2) + pow(eMerge1,2)* pow(-(((1. - Conv[part])*nisoboth)/Conv[part]) - (A*(1. + Miss)*nisopair*Veto)/ (1. + 2.*Miss),2) + pow(eMiss,2)*pow(-(nisopair/ pow(Conv[part],2)) - (2.*A*(1. + Miss)*nisopair*Veto)/ (1. + 2.*Miss) + (2.*A*(1. + Miss)*(1 + Merge1 + 2.*Miss)* nisopair*Veto)/pow(1. + 2.*Miss,2) - (A*(1 + Merge1 + 2.*Miss)*nisopair*Veto)/ (1. + 2.*Miss),2));
 
       double xpt = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      double ndir = nphoton / Conv[part];
-      double endir = ndir * sqrt( pow(enphoton/nphoton,2) + pow(eConv[part]/Conv[part],2) );
-      double Acc = ndir / Prob / nisophoton;
-      double eAcc = Acc * sqrt( pow(enisophoton/nisophoton,2) + pow(endir/ndir,2) + pow(eProb/Prob,2) );
+      double ndir = nphoton / Prob[part/2][ipt] / Conv[part];
+      double endir = ndir * sqrt( pow(enphoton/nphoton,2) + pow(eProb/Prob[part/2][ipt],2) + pow(eConv[part]/Conv[part],2) );
+      double Acc = ndir / nisophoton;
+      double eAcc = Acc * sqrt( pow(enisophoton/nisophoton,2) + pow(endir/ndir,2) );
       if( TMath::Finite(Acc+eAcc) )
         qt_acc->Fill(ipt, part, xpt, Acc, eAcc);
       else
@@ -198,7 +202,7 @@ void draw_Acceptance_IsoPhoton()
       mcd(3, pisa+1);
       TGraphErrors *gr_acc = qt_acc->Graph(part+(1-pisa)*3);
       gr_acc->SetTitle( Form("Combined acceptance in %s",simname[pisa]) );
-      aset(gr_acc, "p_{T} [GeV]","Acceptance", 4.,30., 0.,0.6);
+      aset(gr_acc, "p_{T} [GeV]","Acceptance", 4.,30., 0.,0.5);
       style(gr_acc, part+24, part+1);
       if(part==0)
         gr_acc->Draw("AP");

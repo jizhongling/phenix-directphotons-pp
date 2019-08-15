@@ -11,8 +11,8 @@ void draw_CrossSection_Photon()
 
   const double PI = TMath::Pi();
   const double DeltaEta = 1.0;
-  //const double NBBC =  3.59e11;  // from DAQ
-  const double NBBC =  3.54e11;  // from rejection power
+  //const double NBBC =  3.48e11;  // from DAQ
+  const double NBBC =  3.52e11;  // from rejection power
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
   const double Pile[3] = {0.890, 0.890, 0.916};
@@ -158,13 +158,13 @@ void draw_CrossSection_Photon()
       {
         if(part < 2)
         {
-          TrigERT = 0.949;
-          eTrigERT = 0.004;
+          TrigERT = 0.956;
+          eTrigERT = 0.005;
         }
         else
         {
-          TrigERT = 0.651;
-          eTrigERT = 0.008;
+          TrigERT = 0.683;
+          eTrigERT = 0.011;
         }
       }
 

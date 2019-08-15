@@ -4,7 +4,7 @@ const char *dname[2] = {"NarrowVTX", "NoVTX"};
 
 void draw_BBCCounts()
 {
-  const char *fname[2] = {"runlist", "runlistSasha"};
+  const char *fname[2] = {"runlist-Sasha", "runlist-DC3sigma"};
   DataBase *db = new DataBase();
 
   for(int id=0; id<2; id++)
@@ -148,7 +148,7 @@ void draw_NBBC()
 
   int thread = -1;
   int runnumber;
-  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist-DC3sigma.txt");
 
   DataBase *db = new DataBase();
 
