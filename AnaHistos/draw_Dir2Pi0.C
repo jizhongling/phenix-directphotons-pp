@@ -1,7 +1,7 @@
 void draw_Dir2Pi0()
 {
   const double PI = TMath::Pi();
-  const double jetphox_scale = 1./200.;  // combined 200 histograms
+  const double jetphox_scale = 1./400.;  // combined 400 histograms
   const char *fname[3] = {"halfpt", "onept", "twopt"};
   const char *gtitle[2] = {"LO", "NLO"};
 
@@ -16,7 +16,7 @@ void draw_Dir2Pi0()
       TGraphErrors *gr_ratio = new TGraphErrors(20);
       int igp = 0;
 
-      TFile *f_ph = new TFile( Form("data/isoprompt-ct10-%s.root",fname[imu]) );
+      TFile *f_ph = new TFile( Form("data/isoprompt-x400-ct14-%s.root",fname[imu]) );
       TH1 *h_ph = (TH1*)f_ph->Get(Form("hp4%d",io));
       h_ph->Scale(jetphox_scale);
 

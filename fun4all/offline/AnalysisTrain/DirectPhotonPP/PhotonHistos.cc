@@ -917,10 +917,11 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
       if( evtype == 2 && part >= 0 &&
           pT > 5. && pT < 10. )
         for(int ival=0; ival<3; ival++)
-        {
-          int ih = part + 3*isolated[ival] + 3*2*ival;
-          h2_eta_phi[ih]->Fill(eta, phi);
-        }
+          if( ival == 0 || !DCChargeVeto(cluster1, data_tracks) )
+          {
+            int ih = part + 3*isolated[ival] + 3*2*ival;
+            h2_eta_phi[ih]->Fill(eta, phi);
+          }
 
       for(int ival=0; ival<3; ival++)
         if( part >= 0 && ( ival == 0 || !DCChargeVeto(cluster1, data_tracks) ) )

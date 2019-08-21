@@ -202,7 +202,7 @@ void draw_Acceptance_IsoPhoton()
       mcd(3, pisa+1);
       TGraphErrors *gr_acc = qt_acc->Graph(part+(1-pisa)*3);
       gr_acc->SetTitle( Form("Combined acceptance in %s",simname[pisa]) );
-      aset(gr_acc, "p_{T} [GeV]","Acceptance", 4.,30., 0.,0.5);
+      aset(gr_acc, "p_{T} [GeV]","Acceptance", 4.,30., 0.,0.4);
       style(gr_acc, part+24, part+1);
       if(part==0)
         gr_acc->Draw("AP");

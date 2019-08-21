@@ -21,7 +21,8 @@ void draw_CrossSectionCmp(const int nameid)
   }
 
   const double PI = TMath::Pi();
-  const double jetphox_scale = 1./200.;  // combined 200 histograms
+  const double DeltaEta = 0.5;
+  const double jetphox_scale = 1./400.;  // combined 400 histograms
   const char *jetphox_fname[3] = {"halfpt", "onept", "twopt"};
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
 
@@ -128,7 +129,7 @@ void draw_CrossSectionCmp(const int nameid)
   for(int imu=0; imu<3; imu++)
   {
     TGraphErrors *gr_nlo = new TGraphErrors(npT);
-    TFile *f_nlo = new TFile( Form("data/isoprompt-ct10-%s.root",jetphox_fname[imu]) );
+    TFile *f_nlo = new TFile( Form("data/isoprompt-x400-ct14-%s.root",jetphox_fname[imu]) );
     TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
     h_nlo->Scale(jetphox_scale);
 
@@ -139,13 +140,13 @@ void draw_CrossSectionCmp(const int nameid)
       if( !qt_cross->Query(ipt, 3, xpt, Combine, eCombine) )
         continue;
 
-      double factor = 1. / (2*PI*xpt*0.5);
+      double factor = 1. / (2*PI*xpt*DeltaEta);
       int bin_th = h_nlo->GetXaxis()->FindBin(xpt);
-      double nnlo = factor * h_nlo->GetBinContent(bin_th);
-      double ennlo = factor * h_nlo->GetBinError(bin_th);
+      double sigma_nlo = factor * h_nlo->GetBinContent(bin_th);
+      double esigma_nlo = factor * h_nlo->GetBinError(bin_th);
 
-      double yy = Combine / nnlo;
-      double eyy = yy * sqrt( pow(eCombine/Combine,2) + pow(ennlo/nnlo,2) );
+      double yy = Combine / sigma_nlo;
+      double eyy = yy * sqrt( pow(eCombine/Combine,2) + pow(esigma_nlo/sigma_nlo,2) );
       if( TMath::Finite(yy+eyy) )
       {
         gr_nlo->SetPoint(igp, xpt, yy);
