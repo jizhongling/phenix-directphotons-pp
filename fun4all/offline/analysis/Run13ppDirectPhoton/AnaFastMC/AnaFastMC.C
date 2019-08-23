@@ -26,7 +26,6 @@
 #include <TMCParticle6.h>
 #endif
 
-#include <TMath.h>
 #include <TF1.h>
 #include <TLorentzVector.h>
 #include <TRandom.h>
@@ -40,7 +39,6 @@
 #include <THnSparse.h>
 
 #include <cstdlib>
-#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -140,6 +138,11 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
 
   /* Get PDGDatabase object */
   pdg_db = new TDatabasePDG();
+  if(!pdg_db)
+  {
+    cerr << "No pdg_db" << endl;
+    exit(1);
+  }
 
   /* Initialize EMC warnmap checker */
   emcwarnmap = new EMCWarnmapChecker();
@@ -540,6 +543,7 @@ int AnaFastMC::End(PHCompositeNode *topNode)
   /* Write histogram output to ROOT file */
   hm->dumpHistos(outFileName);
   delete hm;
+  delete pdg_db;
   delete emcwarnmap;
   delete dcdeadmap;
 

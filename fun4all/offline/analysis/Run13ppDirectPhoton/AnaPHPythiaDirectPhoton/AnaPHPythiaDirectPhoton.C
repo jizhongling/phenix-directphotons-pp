@@ -61,6 +61,11 @@ AnaPHPythiaDirectPhoton::AnaPHPythiaDirectPhoton(const std::string &name): Subsy
 
   /* get PDGDatabase object */
   _pdg_db = new TDatabasePDG();
+  if(!_pdg_db)
+  {
+    cerr << "No pdg_db" << endl;
+    exit(1);
+  }
 }
 
 AnaPHPythiaDirectPhoton::~AnaPHPythiaDirectPhoton()
@@ -126,6 +131,9 @@ int AnaPHPythiaDirectPhoton::End(PHCompositeNode *topNode)
 
   if ( _tree_event_truth )
     _tree_event_truth->Write();
+
+  if ( _pdg_db )
+    delete _pdg_db;
 
   _fout->Close();
 

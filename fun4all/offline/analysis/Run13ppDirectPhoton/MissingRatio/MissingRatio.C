@@ -80,10 +80,6 @@ MissingRatio::~MissingRatio()
 
 int MissingRatio::Init(PHCompositeNode *topNode)
 {
-  /* Initialize histogram manager */
-  hm = new Fun4AllHistoManager("HistoManager");
-  hm->setOutfileName(outFileName);
-
   /* Create and register histograms */
   BookHistograms();
 
@@ -327,6 +323,10 @@ int MissingRatio::End(PHCompositeNode *topNode)
 
 void MissingRatio::BookHistograms()
 {
+  /* Initialize histogram manager */
+  hm = new Fun4AllHistoManager("HistoManager");
+  hm->setOutfileName(outFileName);
+
   /* Photon conversion XY position */
   int nbins_hn_conversion_position[] = {npT, 300, 300};
   double xmin_hn_conversion_position[] = {0., -300., -300.};

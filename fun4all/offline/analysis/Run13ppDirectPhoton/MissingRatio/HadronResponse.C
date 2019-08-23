@@ -93,10 +93,6 @@ HadronResponse::~HadronResponse()
 
 int HadronResponse::Init(PHCompositeNode *topNode)
 {
-  /* Initialize histogram manager */
-  hm = new Fun4AllHistoManager("HistoManager");
-  hm->setOutfileName(outFileName);
-
   /* Create and register histograms */
   BookHistograms();
 
@@ -115,7 +111,6 @@ int HadronResponse::Init(PHCompositeNode *topNode)
     cerr << "No dcdeadmap" << endl;
     exit(1);
   }
-
 
   return EVENT_OK;
 }
@@ -278,6 +273,10 @@ int HadronResponse::End(PHCompositeNode *topNode)
 
 void HadronResponse::BookHistograms()
 {
+  /* Initialize histogram manager */
+  hm = new Fun4AllHistoManager("HistoManager");
+  hm->setOutfileName(outFileName);
+
   /* eta and phi bins step size */
   const double step[2] = {0.011, 0.008};
 
