@@ -8,6 +8,7 @@
 #pragma link C++ class PhotonHistos-!;
 #pragma link C++ class EmcLocalRecalibrator-!;
 #pragma link C++ class EmcLocalRecalibratorSasha-!;
+#pragma link C++ class EMCWarnmapChecker-!;
 #pragma link C++ class DCDeadmapChecker-!;
 #pragma link C++ class PhotonContainer+;
 #pragma link C++ class Photon+;

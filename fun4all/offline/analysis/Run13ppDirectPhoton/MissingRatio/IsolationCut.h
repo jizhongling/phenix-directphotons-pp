@@ -6,9 +6,7 @@
 #include <map>
 #include <vector>
 
-class TFile;
-class TTree;
-class THnSparse;
+class EMCWarnmapChecker;
 
 class emcGeaTrackContent;
 class emcGeaClusterContent;
@@ -16,97 +14,92 @@ class emcClusterContent;
 class emcClusterContainer;
 class PHCentralTrack;
 
+class TFile;
+class TTree;
+class THnSparse;
+
 class IsolationCut: public SubsysReco
 {
-public:
-  IsolationCut( const char *filename = "isocut.root");
-  virtual ~IsolationCut();
+  public:
+    IsolationCut( const char *filename = "isocut.root");
+    virtual ~IsolationCut();
 
-  int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+    int Init(PHCompositeNode *topNode);
+    int process_event(PHCompositeNode *topNode);
+    int End(PHCompositeNode *topNode);
 
-protected:
+  protected:
 
-  /** Find truth particle with maximum deposited energy contribution to given cluster */
-  emcGeaTrackContent* FindTruthParticle( emcGeaClusterContent* cluster );
+    /** Find truth particle with maximum deposited energy contribution to given cluster */
+    emcGeaTrackContent* FindTruthParticle( emcGeaClusterContent* cluster );
 
-  /** Sum and return all the energies of clusters found inside of cone of given radius around
+    /** Sum and return all the energies of clusters found inside of cone of given radius around
       a photon candidate */
-  float SumEmcalEnergyInCone( emcClusterContent*,
-			      emcClusterContainer*,
-			      double, double );
+    float SumEmcalEnergyInCone( emcClusterContent*,
+        emcClusterContainer*,
+        double, double );
 
-  /** Sum and return all the energies (momenta) of charged tracks found inside of cone of given radius around
+    /** Sum and return all the energies (momenta) of charged tracks found inside of cone of given radius around
       a photon candidate */
-  float SumTrackEnergyInCone( emcClusterContent*,
-			      PHCentralTrack*,
-			      double, double, double );
+    float SumTrackEnergyInCone( emcClusterContent*,
+        PHCentralTrack*,
+        double, double, double );
 
-  /** Reset global variables that store cluster information for filling output tree */
-  void ResetBranchVariables();
+    /** Reset global variables that store cluster information for filling output tree */
+    void ResetBranchVariables();
 
-  /** Read warnmap */
-  void ReadTowerStatus(const std::string& filename);
+    /** event counter */
+    unsigned _ievent;
 
-  /** Read warnmap (Sasha's format) */
-  void ReadSashaWarnmap(const std::string& filename);
+    /** count events with 1+ photon candidate cluster */
+    unsigned _event_nphotons;
 
-  /** Get tower status for cluster from warnmap */
-  int GetStatus(const emcClusterContent *emccluster);
+    /** EMC warnmap checker */
+    EMCWarnmapChecker *_emcwarnmap;
 
-  /** event counter */
-  unsigned _ievent;
+    /** vector with PID's of neutral particles */
+    std::vector< int > _v_pid_neutral;
 
-  /** count events with 1+ photon candidate cluster */
-  unsigned _event_nphotons;
+    /** histogram storing cone energy information */
+    THnSparse*  _hn_energy_cone;
 
-  /** tower status for warnmap */
-  int _tower_status[8][48][96];
+    /** histogram storing cone energy information */
+    THnSparse*  _hn_energy_cone_reco;
 
-  /** vector with PID's of neutral particles */
-  std::vector< int > _v_pid_neutral;
+    /** output tree with cluster information */
+    TTree* _tree_recocluster;
 
-  /** histogram storing cone energy information */
-  THnSparse*  _hn_energy_cone;
+    /** output tree with truth information */
+    TTree* _tree_mcparticles;
 
-  /** histogram storing cone energy information */
-  THnSparse*  _hn_energy_cone_reco;
+    /** map with cluster variables */
+    std::map< std::string , std::vector< float > > _branchmap_cluster;
 
-  /** output tree with cluster information */
-  TTree* _tree_recocluster;
+    /** Map of Event properties that will be written to
+     * output ROOT Tree */
+    std::map< std::string , float > _branchmap_event;
 
-  /** output tree with truth information */
-  TTree* _tree_mcparticles;
+    /** Map of Particle (or cluster) properties that will be written to
+     * output ROOT Tree */
+    std::map< std::string , std::vector< float > > _branchmap_mcparticles;
 
-  /** map with cluster variables */
-  std::map< std::string , std::vector< float > > _branchmap_cluster;
+    /** truth tree variables */
+    float _truth_pid;
+    float _truth_parentpid;
+    float _truth_anclvl;
+    float _truth_ptot;
+    float _truth_pt;
+    float _truth_eta;
+    float _truth_phi;
 
-  /** Map of Event properties that will be written to
-   * output ROOT Tree */
-  std::map< std::string , float > _branchmap_event;
+    /** output file name */
+    std::string _output_file_name;
 
-  /** Map of Particle (or cluster) properties that will be written to
-   * output ROOT Tree */
-  std::map< std::string , std::vector< float > > _branchmap_mcparticles;
+    /** output file */
+    TFile *_file_output;
 
-  /** truth tree variables */
-  float _truth_pid;
-  float _truth_parentpid;
-  float _truth_anclvl;
-  float _truth_ptot;
-  float _truth_pt;
-  float _truth_eta;
-  float _truth_phi;
-
-  /** output file name */
-  std::string _output_file_name;
-
-  /** output file */
-  TFile *_file_output;
-
-  /** enum for PISA PID */
-  enum PisaPid
+    /** enum for PISA PID */
+    enum PisaPid
     {
       PHOTON = 1,
       POSITRON = 2,

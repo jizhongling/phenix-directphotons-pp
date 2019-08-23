@@ -9,11 +9,12 @@
 class emcGeaTrackContent;
 class emcGeaClusterContainer;
 class emcGeaClusterContent;
+class EMCWarnmapChecker;
 
 class AnaTrk
 {
   public:
-    AnaTrk(emcGeaTrackContent *trk, emcGeaClusterContainer *cluscont, int *vstatus); 
+    AnaTrk(emcGeaTrackContent *trk, emcGeaClusterContainer *cluscont); 
     virtual ~AnaTrk();
 
     int trkno;
@@ -46,7 +47,7 @@ class AnaTrk
     void FillCluster();
     void FindCluster();
 
-    int *vtower_status;
+    EMCWarnmapChecker *emcwarnmap;
 };
 
 #endif /* __ANATRK__H__ */

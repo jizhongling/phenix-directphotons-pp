@@ -1,7 +1,7 @@
 //  General PHENIX tools
 #include "GenerateWarnmap.h"
 
-#include "AnaToolsTowerID.h"
+#include <AnaToolsTowerID.h>
 
 #include <vector>
 #include <string>

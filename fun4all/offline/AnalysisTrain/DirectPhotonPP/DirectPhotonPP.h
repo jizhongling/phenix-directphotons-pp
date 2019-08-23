@@ -1,5 +1,5 @@
-#ifndef __DIRECT_PHOTON_PP_H__
-#define __DIRECT_PHOTON_PP_H__
+#ifndef __DIRECTPHOTONPP_H__
+#define __DIRECTPHOTONPP_H__
 
 #include <SubsysReco.h> // always put includes with "" before those with <>
 
@@ -10,6 +10,7 @@
 /* Local analysis Classes */
 class EmcLocalRecalibrator;
 class EmcLocalRecalibratorSasha;
+class EMCWarnmapChecker;
 
 /* Fun4All classes */
 class PHCentralTrack;
@@ -92,19 +93,6 @@ public:
   {
     _dsttype = newtype;
   }
-
-
-  /**
-   * Read tower status from text file with 4 columns (sector, y-idx, z-idx, status)
-   */
-  void ReadTowerStatus(const std::string &filename, unsigned ncols)
-  {
-    if ( ncols == 4 )
-      ReadTowerStatus4Cols(filename);
-    else if ( ncols == 2 )
-      ReadTowerStatusSasha(filename);
-  }
-
 
   /**
    * Set debug mode for detailed cluster information output
@@ -216,16 +204,6 @@ protected:
   //  int selectClusterIsolation( emcClusterContainer*,
   //                          emcClusterContainer*,
   //                          PHCentralTrack* );
-
-  /**
-   * Read tower status from text file with 4 columns (sector, y-idx, z-idx, status)
-   */
-  void ReadTowerStatus4Cols(const std::string &filename);
-
-  /**
-   * Read tower status from text file with 2 columns (tower id, status - e.g. Sasha)
-   */
-  void ReadTowerStatusSasha(const std::string &filename);
 
   /**
    * Fill histogram with trigger based event counts
@@ -342,6 +320,11 @@ protected:
   EmcLocalRecalibratorSasha* _emcrecalib_sasha;
 
   /**
+   * EMCal warnmap checker
+   */
+  EMCWarnmapChecker *_emcwarnmap;
+
+  /**
    * Name for output ROOT file for histograms
    */
   std::string _outfile_histos;
@@ -367,4 +350,4 @@ protected:
   bool _debug_pi0;
 
 };
-#endif
+#endif /* __DIRECTPHOTONPP_H__ */

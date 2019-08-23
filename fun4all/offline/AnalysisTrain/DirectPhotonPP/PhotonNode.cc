@@ -5,6 +5,7 @@
 
 #include "EmcLocalRecalibrator.h"
 #include "EmcLocalRecalibratorSasha.h"
+#include "EMCWarnmapChecker.h"
 #include "PhotonContainer.h"
 #include "Photon.h"
 #include "PhotonERT.h"
@@ -43,21 +44,13 @@ PhotonNode::PhotonNode(const string &name) :
   SubsysReco(name),
   emcrecalib(NULL),
   emcrecalib_sasha(NULL),
+  emcwarnmap(NULL),
   photoncont(NULL),
   spinpattern(NULL),
   runnumber(0),
   fillnumber(0)
 {
   datatype = ERT;
-
-  // initialize array for tower status
-  for(int isector=0; isector<8; isector++)
-    for(int ibiny=0; ibiny<48; ibiny++)
-      for(int ibinz=0; ibinz<96; ibinz++)
-      {
-        tower_status_nils[isector][ibiny][ibinz] = 0;
-        tower_status_sasha[isector][ibiny][ibinz] = 0;
-      }
 }
 
 PhotonNode::~PhotonNode()
@@ -117,9 +110,13 @@ int PhotonNode::Init(PHCompositeNode *topNode)
   // read EMCal recalibration file
   EMCRecalibSetup();
 
-  // read warnmap
-  ReadTowerStatus("Warnmap_Run13pp510.txt");
-  ReadSashaWarnmap("warn_all_run13pp500gev.dat");
+  /* Initialize warnmap checker */
+  emcwarnmap = new EMCWarnmapChecker();
+  if(!emcwarnmap)
+  {
+    cerr << "No emcwarnmap" << endl;
+    exit(1);
+  }
 
   return EVENT_OK;
 }
@@ -232,8 +229,8 @@ int PhotonNode::process_event(PHCompositeNode *topNode)
     emcClusterContent *emccluster_raw = data_emccontainer_raw->getCluster(iclus);
     emcClusterContent *emccluster = data_emccontainer->getCluster(iclus);
     if( emccluster->ecore() > 0.3 &&
-        ( GetStatus(emccluster) <= 10 ||
-          GetStatusSasha(emccluster) == 0 )
+        ( emcwarnmap->GetStatusNils(emccluster) <= 10 ||
+          emcwarnmap->GetStatusSasha(emccluster) == 0 )
       )
     {
       int arm = emccluster->arm();
@@ -275,6 +272,7 @@ int PhotonNode::End(PHCompositeNode *topNode)
 {
   delete emcrecalib;
   delete emcrecalib_sasha;
+  delete emcwarnmap;
 
   return EVENT_OK;
 }
@@ -311,86 +309,6 @@ void PhotonNode::EMCRecalibSetup()
   emcrecalib_sasha->anaGetCorrTof( _file_tcal.c_str() );
 
   delete toad_loader;
-  return;
-}
-
-void PhotonNode::ReadTowerStatus(const string &filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  int sector = 0;
-  int biny = 0;
-  int binz = 0;
-  int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> sector >> biny >> binz >> status )
-  {
-    // count tower with bad status for PbSc and PbGl
-    if ( status > 10 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    tower_status_nils[sector][biny][binz] = status;
-  }
-
-  //cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
-
-  return;
-}
-
-void PhotonNode::ReadSashaWarnmap(const string &filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  int ich = 0;
-  int sector = 0;
-  int biny = 0;
-  int binz = 0;
-  int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> ich >> status )
-  {
-    // Attention!! I use my indexing for warn map in this program!!!
-    if( ich >= 10368 && ich < 15552 ) { // PbSc
-      if( ich < 12960 ) ich += 2592;
-      else              ich -= 2592;
-    }
-    else if( ich >= 15552 )           { // PbGl
-      if( ich < 20160 ) ich += 4608;
-      else              ich -= 4608;
-    }
-
-    // get tower location
-    anatools::TowerLocation(ich, sector, biny, binz);
-
-    // count tower with bad status for PbSc and PbGl
-    if ( status > 0 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    tower_status_sasha[sector][biny][binz] = status;
-  }
-
-  //cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
-
   return;
 }
 
@@ -433,28 +351,6 @@ bool PhotonNode::DispCut(const emcClusterContent *emccluster)
     return true;
   else
     return false;
-}
-
-int PhotonNode::GetStatus(const emcClusterContent *emccluster)
-{
-  int arm = emccluster->arm();
-  int rawsector = emccluster->sector();
-  int sector = anatools::CorrectClusterSector(arm, rawsector);
-  int iypos = emccluster->iypos();
-  int izpos = emccluster->izpos();
-
-  return tower_status_nils[sector][iypos][izpos];
-}
-
-int PhotonNode::GetStatusSasha(const emcClusterContent *emccluster)
-{
-  int arm = emccluster->arm();
-  int rawsector = emccluster->sector();
-  int sector = anatools::CorrectClusterSector(arm, rawsector);
-  int iypos = emccluster->iypos();
-  int izpos = emccluster->izpos();
-
-  return tower_status_sasha[sector][iypos][izpos];
 }
 
 float PhotonNode::GetTrackConeEnergy(const PHCentralTrack *tracks, const emcClusterContent *cluster, double cone_angle)

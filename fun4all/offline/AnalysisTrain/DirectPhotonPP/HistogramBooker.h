@@ -1,5 +1,5 @@
-#ifndef __HISTOGRAM_BOOKER_H__
-#define __HISTOGRAM_BOOKER_H__
+#ifndef __HISTOGRAMBOOKER_H__
+#define __HISTOGRAMBOOKER_H__
 
 #include <string>
 
@@ -34,4 +34,4 @@ class HistogramBooker
   protected:
 
 };
-#endif
+#endif /* __HISTOGRAMBOOKER_H__ */

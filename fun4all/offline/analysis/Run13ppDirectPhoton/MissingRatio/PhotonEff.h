@@ -4,9 +4,11 @@
 #include <SubsysReco.h>
 #include <string>
 
-class emcClusterContent;
-class PHCompositeNode;
+class EMCWarnmapChecker;
+
 class Fun4AllHistoManager;
+class PHCompositeNode;
+class emcClusterContent;
 
 class TF1;
 class TH2;
@@ -24,14 +26,10 @@ class PhotonEff: public SubsysReco
 
   protected:
     void BookHistograms();
-    void ReadTowerStatus(const std::string& filename);
-    void ReadSashaWarnmap(const std::string& filename);
-    int GetStatus(const emcClusterContent *emccluster);
-
-    // tower status for warnmap
-    int tower_status[8][48][96];
 
     std::string outFileName;
+
+    EMCWarnmapChecker *emcwarnmap;
 
     Fun4AllHistoManager *hm;
     TH2 *h2_photon_eta_phi[3];

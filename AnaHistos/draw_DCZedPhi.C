@@ -25,10 +25,6 @@ void draw_DCZedPhi()
   h_phi_sim->Scale(scale_phi);
 
   mc(0, 2,2);
-  TLine *line = new TLine();
-  line->SetLineColor(kRed);
-  line->SetLineWidth(5);
-  line->SetLineStyle(2);
 
   mcd(0, 1);
   aset(h_zed_sim);
@@ -43,12 +39,10 @@ void draw_DCZedPhi()
   h_phi_sim->SetLineColor(kBlack);
   h_phi_data->Draw("HISTO");
   h_phi_sim->Draw("HISTO SAME");
-  //line->DrawLine(0,0,0,h_phi_data->GetMaximum());
 
   mcd(0, 3);
   h2_phized_data->SetTitle("Data zed and #phi distribution");
   h2_phized_data->Draw("COLZ");
-  //line->DrawLine(-80,0,80,0);
 
   mcd(0, 4);
   h2_phized_sim->SetTitle("PISA zed and #phi distribution");

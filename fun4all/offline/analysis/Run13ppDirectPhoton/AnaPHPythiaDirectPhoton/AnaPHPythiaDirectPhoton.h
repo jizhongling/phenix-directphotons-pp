@@ -76,4 +76,3 @@ protected:
 };
 
 #endif  /* __ANAPHPYTHIADIRECTPHOTON_H__ */
-

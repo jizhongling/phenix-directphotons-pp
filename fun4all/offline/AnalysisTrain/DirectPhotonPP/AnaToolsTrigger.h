@@ -5,8 +5,8 @@
  *      Author: nfeege
  */
 
-#ifndef OFFLINE_ANALYSISTRAIN_DIRECTPHOTONPP_ANATOOLSTRIGGER_H_
-#define OFFLINE_ANALYSISTRAIN_DIRECTPHOTONPP_ANATOOLSTRIGGER_H_
+#ifndef __ANATOOLSTRIGGER_H__
+#define __ANATOOLSTRIGGER_H__
 
 #define NARMSECT 8
 
@@ -92,4 +92,4 @@ namespace anatools
 
 } /* namespace anatools */
 
-#endif /* OFFLINE_ANALYSISTRAIN_DIRECTPHOTONPP_ANATOOLSTRIGGER_H_ */
+#endif /* __ANATOOLSTRIGGER_H__ */

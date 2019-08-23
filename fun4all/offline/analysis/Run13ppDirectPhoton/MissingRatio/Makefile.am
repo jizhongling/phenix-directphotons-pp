@@ -12,23 +12,21 @@ lib_LTLIBRARIES = \
 include_HEADERS =
 
 noinst_HEADERS = \
+  AnaTrk.h \
   MissingRatio.h \
   PhotonEff.h \
   IsolationCut.h \
   Isolation.h \
   HadronResponse.h \
-  AnaTrk.h \
-  AnaToolsTowerID.h \
-  AnaToolsCluster.h \
   MissingRatioLinkDef.h
 
 libMissingRatio_la_SOURCES = \
+  AnaTrk.C \
   MissingRatio.C \
   PhotonEff.C \
   IsolationCut.C \
   Isolation.C \
   HadronResponse.C \
-  AnaTrk.C \
   MissingRatio_Dict.C
 
 AM_LDFLAGS = \

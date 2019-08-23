@@ -24,22 +24,17 @@ class MissingRatio: public SubsysReco
 
   protected:
     void BookHistograms();
-    void ReadTowerStatus(const std::string& filename);
-    void ReadSashaWarnmap(const std::string& filename);
 
-    // number of pT bins
+    /* Number of pT bins */
     static const int npT = 30;
 
-    // pT bins
+    /* PT bins */
     static double vpT[npT+1];
-
-    // tower status for warnmap
-    int tower_status[8][48][96];
 
     std::string outFileName;
     Fun4AllHistoManager *hm;
 
-    // 2D histograms for west and east arms with different criterias
+    /* 2D histograms for west and east arms with different criterias */
     THnSparse *hn_conversion_position;
     TH2 *h2_radius;
     TH2 *h2_angle;

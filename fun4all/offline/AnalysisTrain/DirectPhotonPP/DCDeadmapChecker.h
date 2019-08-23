@@ -1,6 +1,12 @@
+#ifndef __DCDEADMAPCHECKER_H__
+#define __DCDEADMAPCHECKER_H__
+
 #include <string>
 #include <vector>
 #include <map>
+
+class PHCentralTrack;
+class emcClusterContent;
 
 struct KBB
 {
@@ -20,10 +26,16 @@ class DCDeadmapChecker
 {
   public:
     DCDeadmapChecker(int eventsmod = 10000);
+
     void SetMapByIndex(int mapindex) { imap = mapindex; }
     void SetMapByRunnumber(int runnumber); 
     void SetMapByEvent(); 
+
     bool IsDead(std::string nswe, double board, double alpha);
+    bool IsDead(const PHCentralTrack *tracks, int itrk);
+
+    bool ChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *tracks);
+    int GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *tracks);
 
   protected:
     static const int nmap = 15;
@@ -35,3 +47,5 @@ class DCDeadmapChecker
     std::map<std::string,KBB> m_kbb;
     std::vector<std::string> v_deadmap[nmap];
 };
+
+#endif /* __DCDEADMAPCHECKER_H__ */

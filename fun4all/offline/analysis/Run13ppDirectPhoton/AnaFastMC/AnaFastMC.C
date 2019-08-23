@@ -1,6 +1,7 @@
 #include "AnaFastMC.h"
 
-#include "AnaToolsTowerID.h"
+#include <AnaToolsTowerID.h>
+#include <EMCWarnmapChecker.h>
 #include <DCDeadmapChecker.h>
 
 #include <PHIODataNode.h>
@@ -74,6 +75,7 @@ AnaFastMC::AnaFastMC(const string &name):
   mcmethod(FastMC),
   phpythia(NULL),
   pdg_db(NULL),
+  emcwarnmap(NULL),
   dcdeadmap(NULL),
   hm(NULL),
   h_events(NULL),
@@ -105,8 +107,6 @@ AnaFastMC::AnaFastMC(const string &name):
     for(int iy=0; iy<NY; iy++)
       for(int iz=0; iz<NZ; iz++)
       {
-        tower_status_nils[sec][iy][iz] = 0;
-        tower_status_sasha[sec][iy][iz] = 0;
         tower_status_sim[sec][iy][iz] = 0;
         eTwr[sec][iy][iz] = 0.;
       }
@@ -138,16 +138,27 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
   /* Create and register histograms */
   BookHistograms();
 
-  /* Read warnmap */
-  ReadTowerStatus("Warnmap_Run13pp510.txt");
-  ReadSashaWarnmap("warn_all_run13pp500gev.dat");
-  ReadSimWarnmap("dead_eff_run13pp500gev.dat");
-
   /* Get PDGDatabase object */
   pdg_db = new TDatabasePDG();
 
+  /* Initialize EMC warnmap checker */
+  emcwarnmap = new EMCWarnmapChecker();
+  if(!emcwarnmap)
+  {
+    cerr << "No emcwarnmap" << endl;
+    exit(1);
+  }
+
+  /* Read sim warnmap */
+  ReadSimWarnmap();
+
   /* Initialize DC deadmap checker */
   dcdeadmap = new DCDeadmapChecker();
+  if(!dcdeadmap)
+  {
+    cerr << "No dcdeadmap" << endl;
+    exit(1);
+  }
 
   return EVENT_OK;
 }
@@ -283,12 +294,12 @@ void AnaFastMC::FastMCInput()
   /* Code for pi0 missing ratio and self veto power */
 
   for(int iph=0; iph<2; iph++)
-    if( InFiducial(itw_part[iph]) &&
+    if( emcwarnmap->InFiducial(itw_part[iph]) &&
         Vpart[iph].E() > eMin )
     {
       int npart = 1;
       int npeak = 1;
-      if( IsGoodTower(itw_part[1-iph]) &&
+      if( emcwarnmap->IsGoodTower(itw_part[1-iph]) &&
           Vpart[1-iph].E() > eMin )
       {
         npart = NPart;
@@ -332,12 +343,12 @@ void AnaFastMC::FastMCInput()
     weight_eta = cross_pi0->Eval(1.);
 
   for(int iph=0; iph<2; iph++)
-    if( InFiducial(itw_part[iph]) &&
+    if( emcwarnmap->InFiducial(itw_part[iph]) &&
         Vpart[iph].E() > eMin )
     {
       int npart = 1;
       int npeak = 1;
-      if( IsGoodTower(itw_part[1-iph]) &&
+      if( emcwarnmap->IsGoodTower(itw_part[1-iph]) &&
           Vpart[1-iph].E() > eMin )
       {
         npart = NPart;
@@ -383,7 +394,7 @@ void AnaFastMC::FastMCInput()
   h_photon->Fill(pt, weight_ph);
 
   /* Direct photon is in fiducial */
-  if( InFiducial(itw_part[0]) )
+  if( emcwarnmap->InFiducial(itw_part[0]) )
   {
     /* Parameters for direct photon */
     int sec1 = sec_part[0];
@@ -457,7 +468,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     photon_sim(pE_part);
 
     /* Copy parameters for reconstructed photon */
-    bool InAcc = InFiducial(itw_part[0]);
+    bool InAcc = emcwarnmap->InFiducial(itw_part[0]);
     int sec1 = sec_part[0];
     TLorentzVector pE_reco(Vpart[0]);
 
@@ -529,6 +540,7 @@ int AnaFastMC::End(PHCompositeNode *topNode)
   /* Write histogram output to ROOT file */
   hm->dumpHistos(outFileName);
   delete hm;
+  delete emcwarnmap;
   delete dcdeadmap;
 
   return EVENT_OK;
@@ -584,7 +596,7 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe
           geom_sim(v3_part2);
 
           /* Test if particle is in acceptance and not on hot tower */
-          if( NPart == 1 && !IsBadTower(itw_part[0]) )
+          if( NPart == 1 && !emcwarnmap->IsBadTower(itw_part[0]) )
             econe_acc += mom;
         }
 
@@ -747,112 +759,24 @@ void AnaFastMC::BookHistograms()
   return;
 }
 
-void AnaFastMC::ReadTowerStatus(const string &filename)
+void AnaFastMC::ReadSimWarnmap()
 {
   unsigned int nBadSc = 0;
   unsigned int nBadGl = 0;
 
-  unsigned int sector = 0;
-  unsigned int biny = 0;
-  unsigned int binz = 0;
-  unsigned int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> sector >> biny >> binz >> status )
-  {
-    /* count tower with bad status for PbSc and PbGl */
-    if ( status > 10 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    tower_status_nils[sector][biny][binz] = status;
-  }
-
-  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
-
-  return;
-}
-
-void AnaFastMC::ReadSashaWarnmap(const string &filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  int ich = 0;
   int sector = 0;
   int biny = 0;
   int binz = 0;
-  int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> ich >> status )
-  {
-    /* Attention!! I use my indexing for warn map in this program!!! */
-    if( ich >= 10368 && ich < 15552 ) { // PbSc
-      if( ich < 12960 ) ich += 2592;
-      else              ich -= 2592;
-    }
-    else if( ich >= 15552 )           { // PbGl
-      if( ich < 20160 ) ich += 4608;
-      else              ich -= 4608;
-    }
-
-    /* get tower location */
-    anatools::TowerLocation(ich, sector, biny, binz);
-
-    /* count tower with bad status for PbSc and PbGl */
-    if ( status > 0 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    tower_status_sasha[sector][biny][binz] = status;
-
-    /* mark edge towers */
-    if( anatools::Edge_cg(sector, biny, binz) &&
-        tower_status_sasha[sector][biny][binz] == 0 )
-      tower_status_sasha[sector][biny][binz] = 20;
-    /* mark fiducial arm */
-    if( anatools::ArmEdge_cg(sector, biny, binz) &&
-        tower_status_sasha[sector][biny][binz] == 0 )
-      tower_status_sasha[sector][biny][binz] = 30;
-  }
-
-  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
-
-  return;
-}
-
-void AnaFastMC::ReadSimWarnmap(const string &filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  unsigned int sector = 0;
-  unsigned int biny = 0;
-  unsigned int binz = 0;
 
   TOAD *toad_loader = new TOAD("AnaFastMC");
-  string file_location = toad_loader->location(filename);
+  toad_loader->SetVerbosity(0);
+  string file_location = toad_loader->location("dead_eff_run13pp500gev.dat");
   cout << "TOAD file location: " << file_location << endl;
   ifstream fin( file_location.c_str() );
 
   while( fin >> sector >> binz >> biny )
   {
-    /* count tower with bad status for PbSc and PbGl */
+    /* Count tower with bad status for PbSc and PbGl */
     if( sector < 6 ) nBadSc++;
     else nBadGl++;
 
@@ -1083,39 +1007,6 @@ bool AnaFastMC::CheckWarnMap( int itower )
   int sec, iy, iz;
   anatools::TowerLocation(itower, sec, iy, iz);
   if( tower_status_sim[sec][iy][iz] != 0 )
-    return true;
-  return false;
-}
-
-bool AnaFastMC::InFiducial( int itower )
-{
-  if( itower < 0 || itower >= n_twrs ) return false;
-  int sec, iy, iz;
-  anatools::TowerLocation(itower, sec, iy, iz);
-  if( tower_status_sasha[sec][iy][iz] == 0 )
-    return true;
-  return false;
-}
-
-bool AnaFastMC::IsGoodTower( int itower )
-{
-  if( itower < 0 || itower >= n_twrs ) return false;
-  int sec, iy, iz;
-  anatools::TowerLocation(itower, sec, iy, iz);
-  if( tower_status_sasha[sec][iy][iz] == 0 ||
-      tower_status_sasha[sec][iy][iz] == 30 )
-    return true;
-  return false;
-}
-
-bool AnaFastMC::IsBadTower( int itower )
-{
-  if( itower < 0 || itower >= n_twrs ) return false;
-  int sec, iy, iz;
-  anatools::TowerLocation(itower, sec, iy, iz);
-  //if( tower_status_nils[sec][iy][iz] >= 50 )
-  if( tower_status_sasha[sec][iy][iz] > 0 &&
-      tower_status_sasha[sec][iy][iz] < 20 )
     return true;
   return false;
 }
@@ -1442,7 +1333,6 @@ bool AnaFastMC::Gamma_En(double px, double py, double pz, double& eout, int& itw
   static double corr_gl = 1.009;
 
   double a, b, bc, corr, cnoise;
-  if(cnoise);
 
   //const double Eback = 0.1; // mean energy per fired tower
   //const double Rload = 0.08; // 25% of towers fired
@@ -1476,6 +1366,7 @@ bool AnaFastMC::Gamma_En(double px, double py, double pz, double& eout, int& itw
     corr = corr_gl;
   }
 
+  if(cnoise);
   //  double res = sqrt(a*a*ein + b*b*ein*ein + cnoise*cnoise);
   //  double res = sqrt(a*a*ein + b*b*ein*ein + 0.03*0.03);
   double res = sqrt(a*a*ein + b*b*ein*ein - bc*bc*ein*ein);

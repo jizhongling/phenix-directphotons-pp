@@ -1,18 +1,19 @@
 #include "PhotonEff.h"
 
-#include "AnaToolsTowerID.h"
-#include "AnaToolsCluster.h"
-
-#include <PHGlobal.h>
-//#include <PHCentralTrack.h>
-//#include <PHSnglCentralTrack.h>
-//#include <McEvalSingleList.h>
+#include <AnaToolsTowerID.h>
+#include <AnaToolsCluster.h>
+#include <EMCWarnmapChecker.h>
 
 #include <emcNodeHelper.h>
 #include <emcGeaTrackContainer.h>
 #include <emcGeaTrackContent.h>
 #include <emcGeaClusterContainer.h>
 #include <emcGeaClusterContent.h>
+
+#include <PHGlobal.h>
+//#include <PHCentralTrack.h>
+//#include <PHSnglCentralTrack.h>
+//#include <McEvalSingleList.h>
 
 #include <TOAD.h>
 #include <phool.h>
@@ -32,7 +33,7 @@
 
 using namespace std;
 
-// global constants
+/* Global constants */
 const int PHOTON_PID = 1;
 const int POSITRON_PID = 2;
 const int ELECTRON_PID = 3;
@@ -43,24 +44,19 @@ const double PI = TMath::Pi();
 
 PhotonEff::PhotonEff(const string &name, const char *filename):
   SubsysReco(name),
+  emcwarnmap(NULL),
   hm(NULL),
   hn_1photon(NULL)
 {
-  // construct output file names
+  /* Construct output file names */
   outFileName = "histos/PhotonEff-";
   outFileName.append(filename);
 
-  // initialize array for tower status
-  for(int isector=0; isector<8; isector++)
-    for(int ibiny=0; ibiny<48; ibiny++)
-      for(int ibinz=0; ibinz<96; ibinz++)
-        tower_status[isector][ibiny][ibinz] = 0;
-
-  // function for pT weight for direct photon
+  /* Function for pT weight for direct photon */
   cross = new TF1("cross", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]", 0, 30);
   cross->SetParameters(255., 5.98, 0.273, 14.43);
 
-  // initialize histograms
+  /* Initialize histograms */
   for(int part=0; part<3; part++)
     h2_photon_eta_phi[part] = NULL;
 }
@@ -71,19 +67,18 @@ PhotonEff::~PhotonEff()
 
 int PhotonEff::Init(PHCompositeNode *topNode)
 {
-  // create and register histograms
+  /* Create and register histograms */
   BookHistograms();
 
-  // read warnmap
-  //ReadTowerStatus("Warnmap_Run13pp510.txt");
-  ReadSashaWarnmap("warn_all_run13pp500gev.dat");
+  /* Initialize EMC warnmap checker */
+  emcwarnmap = new EMCWarnmapChecker();
 
   return EVENT_OK;
 }
 
 int PhotonEff::process_event(PHCompositeNode *topNode)
 {
-  // global info
+  /* Global info */
   PHGlobal *data_global = findNode::getClass<PHGlobal>(topNode, "PHGlobal");
   if(!data_global)
   {
@@ -91,7 +86,7 @@ int PhotonEff::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
-  // track info
+  /* Track info */
   emcGeaTrackContainer *emctrkcont = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
   if(!emctrkcont)
   {
@@ -99,7 +94,7 @@ int PhotonEff::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
-  // cluster info
+  /* Cluster info */
   emcGeaClusterContainer *emccluscont = emctrkcont->GetClusters();
   if(!emccluscont)
   {
@@ -110,13 +105,13 @@ int PhotonEff::process_event(PHCompositeNode *topNode)
   /* Get event global parameters */
   float bbc_t0 = data_global->getBbcTimeZero();
 
-  // initialize weight of this event
-  // it will depend on photon pT
+  /* Initialize weight of this event
+   * It will depend on photon pT */
   double photonpt = 0.;
   double weight = 1.;
 
-  // workaround to avoid "set but not used" compiler warning
-  if (weight) {};
+  /* Workaround to avoid "set but not used" compiler warning */
+  if(weight);
 
   unsigned nemctrk = emctrkcont->size();
   for(unsigned itrk=0; itrk<nemctrk; itrk++)
@@ -138,7 +133,7 @@ int PhotonEff::process_event(PHCompositeNode *topNode)
   {
     emcClusterContent *emccluster = emccluscont->getCluster(i);
     if( emccluster->ecore() > eMin &&
-        GetStatus(emccluster) == 0 )
+        emcwarnmap->IsGoodTower(emccluster) )
     {
       int sector = anatools::GetSector(emccluster);
       int part = -1;
@@ -188,16 +183,17 @@ int PhotonEff::process_event(PHCompositeNode *topNode)
 
 int PhotonEff::End(PHCompositeNode *topNode)
 {
-  // write histogram output to ROOT file
+  /* Write histogram output to ROOT file */
   hm->dumpHistos(outFileName);
   delete hm;
+  delete emcwarnmap;
 
   return EVENT_OK;
 }
 
 void PhotonEff::BookHistograms()
 {
-  // initialize histogram manager
+  /* Initialize histogram manager */
   hm = new Fun4AllHistoManager("HistoManager");
 
   /* pT bins */
@@ -255,99 +251,4 @@ void PhotonEff::BookHistograms()
   }
 
   return;
-}
-
-void PhotonEff::ReadTowerStatus(const string& filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  unsigned int sector = 0;
-  unsigned int biny = 0;
-  unsigned int binz = 0;
-  unsigned int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> sector >> biny >> binz >> status )
-  {
-    // count tower with bad status for PbSc and PbGl
-    if ( status > 10 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    tower_status[sector][biny][binz] = status;
-  }
-
-  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
-
-  return;
-}
-
-void PhotonEff::ReadSashaWarnmap(const string &filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  int ich = 0;
-  int sector = 0;
-  int biny = 0;
-  int binz = 0;
-  int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> ich >> status )
-  {
-    // Attention!! I use my indexing for warn map in this program!!!
-    if( ich >= 10368 && ich < 15552 ) { // PbSc
-      if( ich < 12960 ) ich += 2592;
-      else              ich -= 2592;
-    }
-    else if( ich >= 15552 )           { // PbGl
-      if( ich < 20160 ) ich += 4608;
-      else              ich -= 4608;
-    }
-
-    // get tower location
-    anatools::TowerLocation(ich, sector, biny, binz);
-
-    // count tower with bad status for PbSc and PbGl
-    if ( status > 0 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    tower_status[sector][biny][binz] = status;
-
-    // mark edge towers
-    if( anatools::Edge_cg(sector, biny, binz) )
-      tower_status[sector][biny][binz] = 20;
-  }
-
-  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
-
-  return;
-}
-
-int PhotonEff::GetStatus(const emcClusterContent *emccluster)
-{
-  int arm = emccluster->arm();
-  int rawsector = emccluster->sector();
-  int sector = anatools::CorrectClusterSector(arm, rawsector);
-  int iypos = emccluster->iypos();
-  int izpos = emccluster->izpos();
-
-  return tower_status[sector][iypos][izpos];
 }

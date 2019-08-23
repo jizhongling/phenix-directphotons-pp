@@ -5,9 +5,10 @@
  *      Author: nfeege
  */
 
-#ifndef OFFLINE_ANALYSISTRAIN_DIRECTPHOTONPP_ANATOOLSCLUSTER_H_
-#define OFFLINE_ANALYSISTRAIN_DIRECTPHOTONPP_ANATOOLSCLUSTER_H_
+#ifndef __ANATOOLSCLUSTER_H__
+#define __ANATOOLSCLUSTER_H__
 
+#include "AnaToolsTowerID.h"
 #include <emcClusterContent.h>
 
 #include <TVector3.h>
@@ -123,7 +124,7 @@ namespace anatools
     double emc_phi = cluster->phi();
     double emc_z = cluster->z();
 
-    int sector = anatools::CorrectClusterSector( cluster->arm() , cluster->sector() );
+    int sector = CorrectClusterSector( cluster->arm() , cluster->sector() );
     double emc_r;
     if(sector>5) emc_r = 527.7;
     else emc_r = 507.7;
@@ -156,4 +157,4 @@ namespace anatools
   }
 } /* namespace anatools */
 
-#endif /* OFFLINE_ANALYSISTRAIN_DIRECTPHOTONPP_ANATOOLSCLUSTER_H_ */
+#endif /* __ANATOOLSCLUSTER_H__ */

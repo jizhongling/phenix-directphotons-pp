@@ -1,5 +1,5 @@
-#ifndef __EMC_LOCAL_RECALIBRATOR_SASHA_H__
-#define __EMC_LOCAL_RECALIBRATOR_SASHA_H__
+#ifndef __EMCLOCALRECALIBRATORSASHA_H__
+#define __EMCLOCALRECALIBRATORSASHA_H__
 
 class emcClusterContainer;
 class emcClusterContent;
@@ -46,4 +46,4 @@ class EmcLocalRecalibratorSasha
     float fCorrTof[NMAXTWR];
 };
 
-#endif /* __EMC_LOCAL_RECALIBRATOR_SASHA_H__ */
+#endif /* __EMCLOCALRECALIBRATORSASHA_H__ */

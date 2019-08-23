@@ -4,12 +4,13 @@
 #include <SubsysReco.h>
 #include <string>
 
-class PHCompositeNode;
-class Fun4AllHistoManager;
-class THnSparse;
-
 class AnaTrk;
+
+class Fun4AllHistoManager;
+class PHCompositeNode;
 class PHCentralTrack;
+
+class THnSparse;
 
 class Isolation: public SubsysReco
 {
@@ -23,15 +24,11 @@ class Isolation: public SubsysReco
 
   protected:
     void BookHistograms();
-    void ReadSashaWarnmap(const std::string& filename);
 
-    // Sum up energy within cone of fixed opening
-    // angle rcone around particle with vector anatrk
+    /* Sum up energy within cone of fixed opening
+     * Angle rcone around particle with vector anatrk */
     double SumEEmcal(const AnaTrk *anatrk, double rcone);
     double SumPTrack(const AnaTrk *anatrk, const PHCentralTrack *tracks, double rcone);
-
-    // tower status for warnmap
-    int tower_status[8][48][96];
 
     std::string outFileName;
 

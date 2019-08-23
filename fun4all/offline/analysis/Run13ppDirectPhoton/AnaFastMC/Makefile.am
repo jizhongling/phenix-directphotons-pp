@@ -13,8 +13,7 @@ dist_mydata_DATA = \
 include_HEADERS =
 
 noinst_HEADERS = \
-  AnaFastMC.h \
-  AnaToolsTowerID.h
+  AnaFastMC.h
 
 libAnaFastMC_la_SOURCES = \
   AnaFastMC.C \

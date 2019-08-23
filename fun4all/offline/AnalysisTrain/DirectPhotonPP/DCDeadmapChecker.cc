@@ -1,5 +1,11 @@
 #include "DCDeadmapChecker.h"
+
+#include <PHCentralTrack.h>
+#include <emcClusterContent.h>
+
 #include <TMath.h>
+#include <TVector3.h>
+
 #include <boost/foreach.hpp>
 
 #define INSERT_ARRAY(vec,array) \
@@ -129,4 +135,79 @@ bool DCDeadmapChecker::IsDead(string nswe, double board, double alpha)
   }
 
   return false;
+}
+
+bool DCDeadmapChecker::IsDead(const PHCentralTrack *tracks, int itrk)
+{
+  /* phi and zed distributions */
+  double phi = tracks->get_phi(itrk);
+  double zed = tracks->get_zed(itrk);
+  double alpha = tracks->get_alpha(itrk);
+  int arm = tracks->get_dcarm(itrk);
+  string ns = zed > 0. ? "N" : "S";
+  string we = arm == 1 ? "W" : "E";
+  string nswe = ns + we;
+  double board = 0.;
+  if( we == "W" )
+    board = ( 0.573231 + phi - 0.0046 * cos( phi + 0.05721 ) ) / 0.01963496;
+  else
+    board = ( 3.72402 - phi + 0.008047 * cos( phi + 0.87851 ) ) / 0.01963496;
+
+  return IsDead(nswe, board, alpha);
+}
+
+bool DCDeadmapChecker::ChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *tracks)
+{
+  /* 3 sigma charge veto */
+  int itrk_match = GetEmcMatchTrack(cluster, tracks);
+  if( itrk_match >= 0 )
+    return true;
+  else 
+    return false;
+}
+
+int DCDeadmapChecker::GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *tracks)
+{
+  int itrk_match = -1;
+  double dzmin = 9999.;
+  double mommax = 0.;
+
+  TVector3 v3_cluster(cluster->x(), cluster->y(), cluster->z());
+
+  int npart = tracks->get_npart();
+  for(int itrk=0; itrk<npart; itrk++)
+  {
+    TVector3 v3_track(tracks->get_pemcx(itrk), tracks->get_pemcy(itrk), tracks->get_pemcz(itrk));
+    double dphi = fabs((v3_track-v3_cluster).Phi());
+    double dz = fabs((v3_track-v3_cluster).Z());
+    double mom = tracks->get_mom(itrk);
+    if( dphi > 0.015 ||
+        !TMath::Finite(mom) ||
+        IsDead(tracks, itrk) )
+      continue;
+
+    if( itrk_match != -1 )
+    {
+      if( dz < 8. && dz < dzmin )
+      {
+        itrk_match = itrk;
+        dzmin = dz;
+        mommax = mom;
+      }
+      else if( dzmin >= 8. && mom > mommax )
+      {
+        itrk_match = itrk;
+        dzmin = dz;
+        mommax = mom;
+      }
+    }
+    else
+    {
+      itrk_match = itrk;
+      dzmin = dz;
+      mommax = mom;
+    }
+  }
+
+  return itrk_match;
 }

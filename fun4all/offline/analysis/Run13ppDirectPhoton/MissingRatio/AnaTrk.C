@@ -1,6 +1,8 @@
 #include "AnaTrk.h"
 
-#include "AnaToolsCluster.h"
+#include <AnaToolsTowerID.h>
+#include "AnaToolsTrack.h"
+#include <EMCWarnmapChecker.h>
 
 #include <emcGeaTrackContent.h>
 #include <emcGeaClusterContainer.h>
@@ -8,17 +10,17 @@
 
 #include <boost/foreach.hpp>
 
-AnaTrk::AnaTrk(emcGeaTrackContent *trk, emcGeaClusterContainer *cluscont, int *vstatus):
+AnaTrk::AnaTrk(emcGeaTrackContent *trk, emcGeaClusterContainer *cluscont):
   trkno(-9999), pid(-9999), anclvl(-9999), parent_trkno(-9999), parent_trk(NULL),
   decayed(false), trkpt(-9999.), trkedep(-9999.), trkrbirth(-9999.),
   cid(-9999), arm(-9999), sector(-9999), ecore(-9999), cluspt(-9999.), prob_photon(-9999.),
-  emctrk(trk), emccluscont(cluscont), emcclus(NULL), vtower_status(vstatus)
+  emctrk(trk), emccluscont(cluscont), emcclus(NULL), emcwarnmap(NULL)
 {
   daughter_list.clear();
   trkvp.SetXYZ(-9999., -9999., -9999.);
   trkposbirth.SetXYZ(-9999., -9999., -9999.);
   trkposemcal.SetXYZ(-9999., -9999., -9999.);
-  if( emctrk )
+  if(emctrk)
   {
     trkno = emctrk->get_trkno();
     pid = emctrk->get_pid();
@@ -40,6 +42,8 @@ AnaTrk::AnaTrk(emcGeaTrackContent *trk, emcGeaClusterContainer *cluscont, int *v
 
 AnaTrk::~AnaTrk()
 {
+  if(emcwarnmap)
+    delete emcwarnmap;
 }
 
 void AnaTrk::FillCluster()
@@ -47,21 +51,19 @@ void AnaTrk::FillCluster()
   /* find the cluster which has highest energy deposit */
   FindCluster();
 
+  /* initialize EMC warnmap checker */
+  emcwarnmap = new EMCWarnmapChecker();
+
   /* fill cluster info by this cluster */
-  if( emcclus )
+  if( emcclus && emcwarnmap &&
+      emcwarnmap->IsGoodTower(emcclus) )
   {
-    int iypos = emcclus->iypos();
-    int izpos = emcclus->izpos();
-    //arm = emcclus->arm();
-    sector = arm==0 ? emcclus->sector() : 7-emcclus->sector();
-    if( vtower_status[48*96*sector + 96*iypos + izpos] == 0 )
-    {
-      cid = emcclus->id();
-      ecore = emcclus->ecore();
-      TVector3 vx( emcclus->x(), emcclus->y(), emcclus->z() );
-      cluspt = ecore * ( vx.Perp() / vx.Mag() );
-      prob_photon = emcclus->prob_photon();
-    }
+    cid = emcclus->id();
+    sector = anatools::CorrectClusterSector(arm, emcclus->sector());
+    ecore = emcclus->ecore();
+    TVector3 vx( emcclus->x(), emcclus->y(), emcclus->z() );
+    cluspt = ecore * ( vx.Perp() / vx.Mag() );
+    prob_photon = emcclus->prob_photon();
   }
 
   return;

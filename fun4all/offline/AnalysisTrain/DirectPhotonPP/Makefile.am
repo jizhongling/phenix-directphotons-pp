@@ -17,6 +17,10 @@ dist_mydata_DATA = \
   tcorr_run13pp500gev.txt
 
 include_HEADERS = \
+  AnaToolsTowerID.h \
+  AnaToolsCluster.h \
+  AnaToolsTrigger.h \
+  EMCWarnmapChecker.h \
   DCDeadmapChecker.h \
   PhotonContainer.h \
   Photon.h \
@@ -24,9 +28,6 @@ include_HEADERS = \
   SpinPattern.h
 
 noinst_HEADERS = \
-  AnaToolsTowerID.h \
-  AnaToolsCluster.h \
-  AnaToolsTrigger.h \
   HistogramBooker.h \
   EmcLocalRecalibrator.h \
   EmcLocalRecalibratorSasha.h \
@@ -54,6 +55,7 @@ libDirectPhotonPP_la_SOURCES = \
   HistogramBooker.cc \
   EmcLocalRecalibrator.cc \
   EmcLocalRecalibratorSasha.cc \
+  EMCWarnmapChecker.cc \
   DCDeadmapChecker.cc \
   DirectPhotonPP.cc \
   PhotonContainer.cc \
@@ -69,6 +71,7 @@ DirectPhotonPP_Dict.C: \
   HistogramBooker.h \
   EmcLocalRecalibrator.h \
   EmcLocalRecalibratorSasha.h \
+  EMCWarnmapChecker.h \
   DCDeadmapChecker.h \
   DirectPhotonPP.h \
   PhotonContainer.h \

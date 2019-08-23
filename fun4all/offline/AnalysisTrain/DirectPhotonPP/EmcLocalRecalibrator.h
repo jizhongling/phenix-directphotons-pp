@@ -1,5 +1,5 @@
-#ifndef __EMC_LOCAL_RECALIBRATOR_H__
-#define __EMC_LOCAL_RECALIBRATOR_H__
+#ifndef __EMCLOCALRECALIBRATOR_H__
+#define __EMCLOCALRECALIBRATOR_H__
 
 #include "AnaToolsTowerID.h"
 
@@ -93,4 +93,4 @@ class EmcLocalRecalibrator
     TF1* _pbgl_cor_func;
 };
 
-#endif /* __EMC_LOCAL_RECALIBRATOR_H__ */
+#endif /* __EMCLOCALRECALIBRATOR_H__ */

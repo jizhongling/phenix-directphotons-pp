@@ -4,13 +4,14 @@
 #include <SubsysReco.h>
 #include <string>
 
+class EMCWarnmapChecker;
 class DCDeadmapChecker;
 
-class PHCompositeNode;
 class Fun4AllHistoManager;
-class PHCentralTrack;
+class PHCompositeNode;
 class emcClusterContainer;
 class emcClusterContent;
+class PHCentralTrack;
 
 class TF1;
 class TFile;
@@ -32,6 +33,12 @@ class HadronResponse: public SubsysReco
     void set_outfile(std::string filename) { outFileName = filename; }
 
   protected:
+    /* Number of pT bins */
+    static const int npT = 30;
+
+    /* Number of histogram array */
+    static const int nh_eta_phi = 3*2;
+
     /* Create histograms */
     void BookHistograms();
 
@@ -40,33 +47,17 @@ class HadronResponse: public SubsysReco
     double SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont,
         const PHCentralTrack *data_tracks);
     void SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2, const emcClusterContainer *cluscont,
-        const PHCentralTrack *data_tracks, double &econe1, double &econe2);
+        const PHCentralTrack *data_tracks, double &econe);
     double SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
 
     /* Check charge veto and tower status */
     bool TestPhoton(const emcClusterContent *cluster);
-    bool DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
-    bool InFiducial(const emcClusterContent *cluster);
-    bool IsGoodTower(const emcClusterContent *cluster);
-    bool IsBadTower(const emcClusterContent *cluster);
-    bool IsDCDead(const PHCentralTrack *data_tracks, int itrk);
-
-    /* Get EMCal associated track */
-    int GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
-
-    /* Read warnmap */
-    void ReadTowerStatus(const std::string &filename);
-    void ReadSashaWarnmap(const std::string &filename);
-
-    /* number of pT bins */
-    static const int npT = 30;
 
     /* pT bins */
     static double vpT[npT+1];
 
-    /* tower status for warnmap */
-    int tower_status_nils[8][48][96];
-    int tower_status_sasha[8][48][96];
+    /* EMC warnmap checker */
+    EMCWarnmapChecker *emcwarnmap;
 
     /* DC deadmap checker */
     DCDeadmapChecker *dcdeadmap;
@@ -77,6 +68,7 @@ class HadronResponse: public SubsysReco
     TH1 *h_events;
     THnSparse *hn_alphaboard;
     THnSparse *hn_dclive;
+    TH2 *h2_eta_phi[nh_eta_phi];
     THnSparse *hn_1photon;
     THnSparse *hn_2photon;
 

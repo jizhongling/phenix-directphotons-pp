@@ -1,18 +1,18 @@
 #include "MissingRatio.h"
 
 #include "AnaTrk.h"
-#include "AnaToolsTowerID.h"
-#include "AnaToolsCluster.h"
-
-//#include <PHGlobal.h>
-//#include <PHCentralTrack.h>
-//#include <McEvalSingleList.h>
+#include <AnaToolsTowerID.h>
+#include <AnaToolsCluster.h>
 
 #include <emcNodeHelper.h>
 #include <emcGeaTrackContainer.h>
 #include <emcGeaTrackContent.h>
 #include <emcGeaClusterContainer.h>
 #include <emcGeaClusterContent.h>
+
+//#include <PHGlobal.h>
+//#include <PHCentralTrack.h>
+//#include <McEvalSingleList.h>
 
 #include <TOAD.h>
 #include <phool.h>
@@ -40,7 +40,7 @@ double MissingRatio::vpT[] = { 0.0,
   5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
   12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
 
-// global constants
+/* Global constants */
 const int PHOTON_PID = 1;
 const int POSITRON_PID = 2;
 const int ELECTRON_PID = 3;
@@ -66,15 +66,9 @@ MissingRatio::MissingRatio(const string &name, const char *filename):
   hn_photon(NULL),
   hn_pion(NULL)
 {
-  // construct output file names
+  /* Construct output file names */
   outFileName = "histos/MissingRatio-";
   outFileName.append(filename);
-
-  // initialize array for tower status
-  for(int isector=0; isector<8; isector++)
-    for(int ibiny=0; ibiny<48; ibiny++)
-      for(int ibinz=0; ibinz<96; ibinz++)
-        tower_status[isector][ibiny][ibinz] = 0;
 
   cross = new TF1("cross", "x*(1/(1+exp((x-[5])/[6]))*[0]/pow(1+x/[1],[2])+(1-1/(1+exp((x-[5])/[6])))*[3]/pow(x,[4]))", 0, 30);
   cross->SetParameters(2.02819e+04, 4.59173e-01, 7.51170e+00, 1.52867e+01, 7.22708e+00, 2.15396e+01, 3.65471e+00);
@@ -86,23 +80,19 @@ MissingRatio::~MissingRatio()
 
 int MissingRatio::Init(PHCompositeNode *topNode)
 {
-  // initialize histogram manager
+  /* Initialize histogram manager */
   hm = new Fun4AllHistoManager("HistoManager");
   hm->setOutfileName(outFileName);
 
-  // create and register histograms
+  /* Create and register histograms */
   BookHistograms();
-
-  // read warnmap
-  //ReadTowerStatus("Warnmap_Run13pp510.txt");
-  ReadSashaWarnmap("warn_all_run13pp500gev.dat");
 
   return EVENT_OK;
 }
 
 int MissingRatio::process_event(PHCompositeNode *topNode)
 {
-  // emc track info
+  /* EMC track info */
   emcGeaTrackContainer *emctrkcont = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
   if(!emctrkcont)
   {
@@ -110,7 +100,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
-  // emc cluster info
+  /* EMC cluster info */
   emcGeaClusterContainer *emccluscont = emctrkcont->GetClusters();
   if(!emccluscont)
   {
@@ -118,24 +108,24 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
     return DISCARDEVENT;
   }
 
-  // initialize weight of this event
-  // it will depend on pion pT
+  /* Initialize weight of this event
+   * It will depend on pion pT */
   double pionpt = 0.;
   double weight = 1.;
 
-  // associate cluster with track
-  // map key is trkno
+  /* Associate cluster with track
+   * Map key is trkno */
   typedef map<int,AnaTrk*> map_Ana_t;
   map_Ana_t track_list;
 
-  // store photon
+  /* Store photon */
   vector<AnaTrk*> photon;
 
-  // positron and electron from decayed photon
+  /* Positron and electron from decayed photon */
   vector<AnaTrk*> positron;
   vector<AnaTrk*> electron;
 
-  // number of tracks and clusters
+  /* Number of tracks and clusters */
   int nemctrk = emctrkcont->size();
   int nemcclus = emccluscont->size();
   if( nemctrk<=0 || nemcclus<=0 ) return DISCARDEVENT;
@@ -143,12 +133,12 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
   for(int itrk=0; itrk<nemctrk; itrk++)
   {
     emcGeaTrackContent *emctrk = emctrkcont->get(itrk);
-    AnaTrk *track = new AnaTrk(emctrk, emccluscont, (int*)tower_status);
+    AnaTrk *track = new AnaTrk(emctrk, emccluscont);
     if(track)
       track_list.insert( make_pair(track->trkno,track) );
   }
 
-  // analyze tracks
+  /* Analyze tracks */
   BOOST_FOREACH( map_Ana_t::value_type &lvl0, track_list )
   {// lvl0 loop
     AnaTrk *lvl0_trk = lvl0.second;
@@ -167,13 +157,13 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
         lvl1_trk->parent_trk = lvl0_trk;  // fill parent_trkpt
         if( lvl1_trk->pid == PHOTON_PID && lvl1_trk->anclvl == 1 )
         {// photon
-          // count photons for photon conversion
+          /* Count photons for photon conversion */
           h2_photon->Fill(lvl1_trk->trkpt, (double)lvl1_trk->arm);
           if( lvl1_trk->decayed == false )
           {// not decayed photon
             h2_noconv->Fill(lvl1_trk->trkpt, (double)lvl1_trk->arm);
             if( lvl1_trk->cid >= 0 )
-              // store photon info for missing ratio
+              /* Store photon info for missing ratio */
               photon.push_back(lvl1_trk);
           } // not decayed photon
 
@@ -185,14 +175,14 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
             {// lvl2 loop
               AnaTrk *lvl2_trk = track_list.find(lvl2_trkno)->second;
               lvl2_trk->parent_trk = lvl1_trk;  // fill parent_trk
-              // radius of the birth position
+              /* Radius of the birth position */
               double radius = lvl2_trk->trkrbirth;
               if( !is_fillconv && fabs(radius) < merge_radius )
               {// photon conversion inside magnetic field
                 h2_vtxconv->Fill(lvl1_trk->trkpt, (double)lvl1_trk->arm);
                 is_fillconv = true;
               }
-              // store positron and electron from decayed photon
+              /* Store positron and electron from decayed photon */
               if( lvl2_trk->pid == POSITRON_PID && lvl2_trk->anclvl == 2 )
                 positron.push_back(lvl2_trk);
               else if( lvl2_trk->pid == ELECTRON_PID && lvl2_trk->anclvl == 2 )
@@ -205,38 +195,36 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
     } // pion
   } // end of lvl0 loop
 
-  // analyze positron and electron from decayed photon
+  /* Analyze positron and electron from decayed photon */
   vector<emc_trkno_t> used;
   BOOST_FOREACH( AnaTrk *pos, positron )
     BOOST_FOREACH( AnaTrk *ele, electron )
     if( pos->parent_trkno == ele->parent_trkno &&
         find(used.begin(), used.end(), pos->trkno) == used.end() )
     {
-      // consider one parent photon only once
+      /* Consider one parent photon only once */
       used.push_back( pos->parent_trkno );
 
-      // get parent photon pT
+      /* Get parent photon pT */
       double photonpt = pos->parent_trk->trkpt;
 
-      // skip if no associated cluster
+      /* Skip if no associated cluster */
       //if( pos->cid < 0 || ele->cid < 0 ) continue;
 
-      // birth position of photon conversion
+      /* Birth position of photon conversion */
       double fill_hn_conversion_position[] = { photonpt, pos->trkposbirth.X(), pos->trkposbirth.Y() };
       hn_conversion_position->Fill( fill_hn_conversion_position );
 
-      // radius of the birth position
+      /* Radius of the birth position */
       double radius = pos->trkrbirth;
 
-      // angle(rad) between positron and electron track
+      /* Angle(rad) between positron and electron track */
       TVector3 posline = pos->trkposemcal - pos->trkposbirth;
       TVector3 eleline = ele->trkposemcal - ele->trkposbirth;
       double angle = posline.Angle( eleline );
 
       if( pos->arm == 0 && ele->arm == 0 )
       {// plus sign for west arm
-        radius = radius;
-        angle = angle;
       }
       else if( pos->arm == 1 && ele->arm == 1 )
       {// minus sign for the east arm
@@ -249,7 +237,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
         angle = -9999.;
       }
 
-      // fill histograms for radius and angle
+      /* Fill histograms for radius and angle */
       h2_radius->Fill(photonpt, radius);
       h2_angle->Fill(photonpt, angle);
 
@@ -259,12 +247,12 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
       }
       else
       {// photon conversion outside magnetic field
-        // store photon info for missing ratio
+        /* Store photon info for missing ratio */
         photon.push_back(pos->parent_trk);
         h2_eeoutconv->Fill(photonpt, (double)pos->arm);
       }
 
-      // already matched, no need to consider other electrons
+      /* Already matched, no need to consider other electrons */
       break;
     }
 
@@ -302,7 +290,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
 
   if( nphoton == 2 )
   {
-    /* parameters for two clusters from pi0 decay photons */
+    /* Parameters for two clusters from pi0 decay photons */
     int sec1 = photon.at(0)->sector;
     int sec2 = photon.at(1)->sector;
     double e1 = photon.at(0)->ecore;
@@ -321,7 +309,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
     }
   }
 
-  // clear track list
+  /* Clear track list */
   BOOST_FOREACH( map_Ana_t::value_type &trk, track_list )
     delete trk.second;
 
@@ -330,7 +318,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
 
 int MissingRatio::End(PHCompositeNode *topNode)
 {
-  // write histogram output to ROOT file
+  /* Write histogram output to ROOT file */
   hm->dumpHistos();
   delete hm;
 
@@ -339,7 +327,7 @@ int MissingRatio::End(PHCompositeNode *topNode)
 
 void MissingRatio::BookHistograms()
 {
-  // photon conversion XY position
+  /* Photon conversion XY position */
   int nbins_hn_conversion_position[] = {npT, 300, 300};
   double xmin_hn_conversion_position[] = {0., -300., -300.};
   double xmax_hn_conversion_position[] = {0., 300., 300.};
@@ -348,17 +336,17 @@ void MissingRatio::BookHistograms()
   hn_conversion_position->SetBinEdges(0, vpT);
   hm->registerHisto(hn_conversion_position);
 
-  // radius for birth position of electron-positron pair
-  // positive for the west arm
-  // negative for th east arm
+  /* Radius for birth position of electron-positron pair
+   * Positive for the west arm
+   * Negative for th east arm */
   h2_radius= new TH2F("h2_radius", "Radius for birth position of the e^{+}e^{-} pair;p_{T} [GeV/c];Radius [cm];", npT,vpT, 600,-300.,300.);
   hm->registerHisto(h2_radius);
 
-  // angle between electron-positron pair
+  /* Angle between electron-positron pair */
   h2_angle= new TH2F("h2_angle", "Angle distribution of e^{+}e^{-} pair;p_{T} [GeV/c];rad;", npT,vpT, 100,-0.05,0.05);
   hm->registerHisto(h2_angle);
 
-  // 2D histograms for photon conversion
+  /* 2D histograms for photon conversion */
   h2_photon = new TH2F("h2_photon", "EMCal photon count;p_{T} [GeV/c];arm;", npT,vpT, 2,-0.5,1.5);
   h2_noconv = new TH2F("h2_noconv", "No converted photon count;p_{T} [GeV/c];arm;", npT,vpT, 2,-0.5,1.5);
   h2_vtxconv = new TH2F("h2_vtxconv", "VTX Converted photon count;p_{T} [GeV/c];arm;", npT,vpT, 2,-0.5,1.5);
@@ -397,90 +385,6 @@ void MissingRatio::BookHistograms()
   hn_pion->SetBinEdges(1, vpT);
   hn_pion->Sumw2();
   hm->registerHisto(hn_pion);
-
-  return;
-}
-
-void MissingRatio::ReadTowerStatus(const string& filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  unsigned int sector = 0;
-  unsigned int biny = 0;
-  unsigned int binz = 0;
-  unsigned int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> sector >> biny >> binz >> status )
-  {
-    // count tower with bad status for PbSc and PbGl
-    if ( status > 10 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    tower_status[sector][biny][binz] = status;
-  }
-
-  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
-
-  return;
-}
-
-void MissingRatio::ReadSashaWarnmap(const string &filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  int ich = 0;
-  int sector = 0;
-  int biny = 0;
-  int binz = 0;
-  int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> ich >> status )
-  {
-    // Attention!! I use my indexing for warn map in this program!!!
-    if( ich >= 10368 && ich < 15552 ) { // PbSc
-      if( ich < 12960 ) ich += 2592;
-      else              ich -= 2592;
-    }
-    else if( ich >= 15552 )           { // PbGl
-      if( ich < 20160 ) ich += 4608;
-      else              ich -= 4608;
-    }
-
-    // get tower location
-    anatools::TowerLocation(ich, sector, biny, binz);
-
-    // count tower with bad status for PbSc and PbGl
-    if ( status > 0 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    tower_status[sector][biny][binz] = status;
-
-    // mark edge towers
-    if( anatools::Edge_cg(sector, biny, binz) )
-      tower_status[sector][biny][binz] = 20;
-  }
-
-  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
 
   return;
 }

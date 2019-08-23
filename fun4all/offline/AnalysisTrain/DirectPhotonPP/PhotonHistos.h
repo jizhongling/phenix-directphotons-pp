@@ -3,9 +3,10 @@
 
 #include <SubsysReco.h>
 
-class DCDeadmapChecker;
 class EmcLocalRecalibrator;
 class EmcLocalRecalibratorSasha;
+class EMCWarnmapChecker;
+class DCDeadmapChecker;
 
 class SpinPattern;
 class SpinDBContent;
@@ -40,6 +41,19 @@ class PhotonHistos: public SubsysReco
     void SelectERT();
 
   protected:
+    /* Number of histogram array */
+    static const int nh_calib = 8*2;
+    static const int nh_bbc = 3*2;
+    static const int nh_ert = 3*2*3*2*2*3;
+    static const int nh_etwr = 8*2*8*16;
+    static const int nh_dcpartqual = 2*2*3;
+    static const int nh_dcgood = 2;
+    static const int nh_dcpart = 2*2;
+    static const int nh_eta_phi = 3*2*3;
+    static const int nh_pion = 3*2*3*4*2*2*2*2*3;
+    static const int nh_1photon = 3*2*3*4*2*2*3;
+    static const int nh_2photon = 3*2*3*4*2*2*2*3;
+
     /* Event counts */
     int FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
 
@@ -77,30 +91,22 @@ class PhotonHistos: public SubsysReco
      * for isolated photon and isolated pair */
     void SumEEmcal(const emcClusterContent *cluster, const emcClusterContainer *cluscont,
         const PHCentralTrack *data_tracks, double bbc_t0, double econe[]);
-    void SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2, const emcClusterContainer *cluscont,
-        const PHCentralTrack *data_tracks, double bbc_t0, double econe1[], double econe2[]);
+    void SumEEmcal(const emcClusterContent *cluster, const emcClusterContent *cluster_part, const emcClusterContainer *cluscont,
+        const PHCentralTrack *data_tracks, double bbc_t0, double econe[]);
     void SumPTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks, double econe[]);
     void SumEPi0(const emcClusterContent *cluster1, const emcClusterContent *cluster2, const emcClusterContainer *cluscont,
         const PHCentralTrack *data_tracks, double bbc_t0, double econe[]);
 
-    /* Check event type, photon cuts, charge veto, tower status and DC deadmap */
+    /* Check event type, BBC and photon cuts */
     bool IsEventType(const int evtype, const TrigLvl1 *data_triggerlvl1);
     bool BBC10cm(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, int bbc10cm);
     bool TestPhoton(const emcClusterContent *cluster, double bbc_t0);
-    bool DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
-    bool InFiducial(const emcClusterContent *cluster);
-    bool IsGoodTower(const emcClusterContent *cluster);
-    bool IsBadTower(const emcClusterContent *cluster);
-    bool IsDCDead(const PHCentralTrack *data_tracks, int itrk);
 
     /* Get spin pattern and EMCal associated track */
     int GetPattern(int crossing);
-    int GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks);
 
-    /* Setup energy and ToF calibrator and read warnmap */
+    /* Setup energy and ToF calibrator */
     void EMCRecalibSetup();
-    void ReadTowerStatus(const std::string &filename);
-    void ReadSashaWarnmap(const std::string &filename);
 
     /* Update spin pattern information and store in class */
     void UpdateSpinPattern(SpinDBContent &spin_cont);
@@ -108,31 +114,10 @@ class PhotonHistos: public SubsysReco
     enum DataType {MB, ERT};
     DataType datatype;
 
-    /* Number of warnmap array */
-    static const int NSEC = 8;
-    static const int NY = 48;
-    static const int NZ = 96;
-
-    /* Number of histogram array */
-    static const int nh_calib = 8*2;
-    static const int nh_bbc = 3*2;
-    static const int nh_ert = 3*2*3*2*2*3;
-    static const int nh_etwr = 8*2*8*16;
-    static const int nh_dcpartqual = 2*2*3;
-    static const int nh_dcgood = 2;
-    static const int nh_dcpart = 2*2;
-    static const int nh_eta_phi = 3*2*3;
-    static const int nh_pion = 3*2*3*4*2*2*2*2*3;
-    static const int nh_1photon = 3*2*3*4*2*2*3;
-    static const int nh_2photon = 3*2*3*4*2*2*2*3;
-
-    /* Tower status for warnmap */
-    int tower_status_nils[NSEC][NY][NZ];
-    int tower_status_sasha[NSEC][NY][NZ];
-
     /* EMCal recalibrator, DC deadmap and spin information*/
     EmcLocalRecalibrator *emcrecalib;
     EmcLocalRecalibratorSasha *emcrecalib_sasha;
+    EMCWarnmapChecker *emcwarnmap;
     DCDeadmapChecker *dcdeadmap;
     SpinPattern *spinpattern;
 

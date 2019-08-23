@@ -1,9 +1,7 @@
 #include "IsolationCut.h"
 
-#include "AnaToolsTowerID.h"
-#include "AnaToolsCluster.h"
-
-#include <PHGlobal.h>
+#include <AnaToolsTowerID.h>
+#include <EMCWarnmapChecker.h>
 
 #include <emcNodeHelper.h>
 #include <emcGeaTrackContainer.h>
@@ -11,8 +9,7 @@
 #include <emcGeaClusterContainer.h>
 #include <emcGeaClusterContent.h>
 
-#include <emcClusterContainer.h>
-
+#include <PHGlobal.h>
 #include <PHCentralTrack.h>
 
 #include <TOAD.h>
@@ -47,24 +44,25 @@
 using namespace std;
 
 IsolationCut::IsolationCut(const char *filename) : _ievent(0),
-                                                   _event_nphotons(0),
-                                                   _hn_energy_cone( NULL ),
-                                                   _hn_energy_cone_reco( NULL ),
-                                                   _tree_recocluster(nullptr),
-                                                   _tree_mcparticles(nullptr),
-                                                   _output_file_name("IsolationCut_output.root"),
-                                                   _file_output( NULL )
+  _event_nphotons(0),
+  _emcwarnmap( NULL ),
+  _hn_energy_cone( NULL ),
+  _hn_energy_cone_reco( NULL ),
+  _tree_recocluster(nullptr),
+  _tree_mcparticles(nullptr),
+  _truth_pid(-9999.),
+  _truth_parentpid(-9999.),
+  _truth_anclvl(-9999.),
+  _truth_ptot(-9999.),
+  _truth_pt(-9999.),
+  _truth_eta(-9999.),
+  _truth_phi(-9999.),
+  _output_file_name("IsolationCut_output.root"),
+  _file_output( NULL )
 {
   /* construct output file names */
   _output_file_name = "histos/IsolationCut-";
   _output_file_name.append(filename);
-
-  /* initialize array for tower status */
-  for(int isector=0; isector<8; isector++)
-    for(int ibiny=0; ibiny<48; ibiny++)
-      for(int ibinz=0; ibinz<96; ibinz++)
-        _tower_status[isector][ibiny][ibinz] = 0;
-
 }
 
 IsolationCut::~IsolationCut()
@@ -76,9 +74,13 @@ int IsolationCut::Init(PHCompositeNode *topNode)
   /* create output file */
   _file_output = new TFile( _output_file_name.c_str(), "RECREATE" );
 
-  /* read warnmap */
-  //ReadTowerStatus("Warnmap_Run13pp510.txt");
-  ReadSashaWarnmap("warn_all_run13pp500gev.dat");
+  /* Initialize EMC warnmap checker */
+  _emcwarnmap = new EMCWarnmapChecker();
+  if(!_emcwarnmap)
+  {
+    cerr << "No emcwarnmap" << endl;
+    exit(1);
+  }
 
   /* Add cluster properties to map that defines output tree */
   float dummy = 0;
@@ -139,42 +141,42 @@ int IsolationCut::Init(PHCompositeNode *topNode)
 
   /* Add event branches */
   for ( map< string , float >::iterator iter = _branchmap_event.begin();
-        iter != _branchmap_event.end();
-        ++iter )
-    {
-      _tree_recocluster->Branch( (iter->first).c_str(),
-				   &(iter->second) );
-    }
+      iter != _branchmap_event.end();
+      ++iter )
+  {
+    _tree_recocluster->Branch( (iter->first).c_str(),
+        &(iter->second) );
+  }
 
   /* Add cluster branches */
   for ( map< string , vector<float> >::iterator iter = _branchmap_cluster.begin();
-        iter != _branchmap_cluster.end();
-        ++iter )
-    {
-      _tree_recocluster->Branch( (iter->first).c_str(),
-                                   &(iter->second) );
-    }
+      iter != _branchmap_cluster.end();
+      ++iter )
+  {
+    _tree_recocluster->Branch( (iter->first).c_str(),
+        &(iter->second) );
+  }
 
   /* Create tree for information about full event truth */
   _tree_mcparticles = new TTree("mcparticles", "MC truth particles and global event information");
 
   /* Add event branches */
   for ( map< string , float >::iterator iter = _branchmap_event.begin();
-        iter != _branchmap_event.end();
-        ++iter )
-    {
-      _tree_mcparticles->Branch( (iter->first).c_str(),
-				     &(iter->second) );
-    }
+      iter != _branchmap_event.end();
+      ++iter )
+  {
+    _tree_mcparticles->Branch( (iter->first).c_str(),
+        &(iter->second) );
+  }
 
   /* Add particle branches */
   for ( map< string , vector<float> >::iterator iter = _branchmap_mcparticles.begin();
-        iter != _branchmap_mcparticles.end();
-        ++iter )
-    {
-      _tree_mcparticles->Branch( (iter->first).c_str(),
-				 &(iter->second) );
-    }
+      iter != _branchmap_mcparticles.end();
+      ++iter )
+  {
+    _tree_mcparticles->Branch( (iter->first).c_str(),
+        &(iter->second) );
+  }
 
   /* create output histogram */
   //int ndim_hn_photon = 5;
@@ -222,69 +224,69 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
   /* global event info */
   PHGlobal *data_global = findNode::getClass<PHGlobal>(topNode, "PHGlobal");
   if(!data_global)
-    {
-      cout << "Cannot find PHGlobal" << endl;
-      return DISCARDEVENT;
-    }
+  {
+    cout << "Cannot find PHGlobal" << endl;
+    return DISCARDEVENT;
+  }
 
   /* TRUTH track info (truth particles container) */
   emcGeaTrackContainer *truth_particles = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
   if(!truth_particles)
-    {
-      cout << "Cannot find emcGeaTrackContainer" << endl;
-      return DISCARDEVENT;
-    }
+  {
+    cout << "Cannot find emcGeaTrackContainer" << endl;
+    return DISCARDEVENT;
+  }
 
   /* TRUTH EMC cluster info */
   emcGeaClusterContainer *truth_emcclusters = truth_particles->GetClusters();
   if(!truth_emcclusters)
-    {
-      cout << "Cannot find emcGeaClusterContainer" << endl;
-      return DISCARDEVENT;
-    }
+  {
+    cout << "Cannot find emcGeaClusterContainer" << endl;
+    return DISCARDEVENT;
+  }
 
   /* Reco tracks from Drift Chamber */
   PHCentralTrack *reco_tracks = findNode::getClass<PHCentralTrack>(topNode, "PHCentralTrack");
   if(!reco_tracks)
-    {
-      cout << "Cannot find PHCentralTrack" << endl;
-      return DISCARDEVENT;
-    }
+  {
+    cout << "Cannot find PHCentralTrack" << endl;
+    return DISCARDEVENT;
+  }
 
   /* Reco cluster from Electromagnetic Calorimeter */
   emcClusterContainer* reco_emcclusters = findNode::getClass<emcClusterContainer> (topNode, "emcClusterContainer");
   if(!reco_emcclusters)
-    {
-      cout << "Cannot find emcClusterContainer" << endl;
-      return DISCARDEVENT;
-    }
+  {
+    cout << "Cannot find emcClusterContainer" << endl;
+    return DISCARDEVENT;
+  }
 
   /* Set event parameters for putput trees */
   ( _branchmap_event.find("eventcounter") )->second  = _ievent;
 
   /* Loop over all truth tracks and store photon information */
   for( unsigned iparticle=0; iparticle < truth_particles->size(); iparticle++ )
-    {
-      /* get pointer to reco cluster */
-      emcGeaTrackContent *truth_particle_i = truth_particles->get( iparticle );
-      //      emcGeaTrackContent *truth_parent_i = truth_particles->get_common_parent( truth_particle_i, truth_particle_i );
+  {
+    /* get pointer to reco cluster */
+    emcGeaTrackContent *truth_particle_i = truth_particles->get( iparticle );
+    //      emcGeaTrackContent *truth_parent_i = truth_particles->get_common_parent( truth_particle_i, truth_particle_i );
 
-      /* fill tree variables */
-      ( _branchmap_mcparticles.find("t_pid") )->second.push_back( truth_particle_i->get_pid() );
+    /* fill tree variables */
+    ( _branchmap_mcparticles.find("t_pid") )->second.push_back( truth_particle_i->get_pid() );
 
-      int truth_parentpid = 0;
-      if ( truth_particle_i->get_parent_trkno() != 0 )
-	truth_parentpid = truth_particles->find( truth_particle_i->get_parent_trkno() )->get_pid();
-      ( _branchmap_mcparticles.find("t_parentpid") )->second.push_back(truth_parentpid);
-      ( _branchmap_mcparticles.find("t_anclvl") )->second.push_back(truth_particle_i->get_anclvl());
-      ( _branchmap_mcparticles.find("t_ptot") )->second.push_back(truth_particle_i->get_ptot());
-      ( _branchmap_mcparticles.find("t_pt") )->second.push_back(truth_particle_i->get_pt());
+    int truth_parentpid = 0;
+    if ( truth_particle_i->get_parent_trkno() != 0 )
+      truth_parentpid = truth_particles->find( truth_particle_i->get_parent_trkno() )->get_pid();
+    ( _branchmap_mcparticles.find("t_parentpid") )->second.push_back(truth_parentpid);
+    ( _branchmap_mcparticles.find("t_anclvl") )->second.push_back(truth_particle_i->get_anclvl());
+    ( _branchmap_mcparticles.find("t_ptot") )->second.push_back(truth_particle_i->get_ptot());
+    ( _branchmap_mcparticles.find("t_pt") )->second.push_back(truth_particle_i->get_pt());
 
-      TVector3 v( truth_particle_i->get_px(), truth_particle_i->get_py(), truth_particle_i->get_pz() );
+    TVector3 v( truth_particle_i->get_px(), truth_particle_i->get_py(), truth_particle_i->get_pz() );
 
-      ( _branchmap_mcparticles.find("t_eta") )->second.push_back(v.Eta());
-      ( _branchmap_mcparticles.find("t_phi") )->second.push_back(v.Phi());
-    }
+    ( _branchmap_mcparticles.find("t_eta") )->second.push_back(v.Eta());
+    ( _branchmap_mcparticles.find("t_phi") )->second.push_back(v.Phi());
+  }
   /* fill tree */
   _tree_mcparticles->Fill();
 
@@ -298,162 +300,162 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
 
   /* loop over all cluster in EMCAL - add to photon candidate collection if it meets photon criteria */
   for( unsigned icluster=0; icluster < reco_emcclusters->size(); icluster++ )
-    {
-      /* get pointer to reco cluster */
-      emcClusterContent *reco_emc_cluster_i = reco_emcclusters->getCluster( icluster );
+  {
+    /* get pointer to reco cluster */
+    emcClusterContent *reco_emc_cluster_i = reco_emcclusters->getCluster( icluster );
 
-      /* check warn map and guard ring - is tower a good tower? */
-      if ( GetStatus( reco_emc_cluster_i ) != 0 )
-	continue;
+    /* check warn map and guard ring - is tower a good tower? */
+    if ( !_emcwarnmap->IsGoodTower(reco_emc_cluster_i) )
+      continue;
 
-      /* is photon candidate? */
-      if ( reco_emc_cluster_i->ecore() < cluster_ecore_min ||
-           reco_emc_cluster_i->ecore() < photon_ecore_min ||
-           reco_emc_cluster_i->prob_photon() < photon_prob_min )
-	continue;
+    /* is photon candidate? */
+    if ( reco_emc_cluster_i->ecore() < cluster_ecore_min ||
+        reco_emc_cluster_i->ecore() < photon_ecore_min ||
+        reco_emc_cluster_i->prob_photon() < photon_prob_min )
+      continue;
 
-      /* charge veto? use truth information for charge veto? */
-      // ...
+    /* charge veto? use truth information for charge veto? */
+    // ...
 
-      /* append cluster id to photon candiadte collection */
-      cluster_photons.push_back( icluster );
-      _event_nphotons++;
-    }
+    /* append cluster id to photon candiadte collection */
+    cluster_photons.push_back( icluster );
+    _event_nphotons++;
+  }
 
   /* loop over photon candidate clusters */
   for( unsigned i=0; i < cluster_photons.size(); i++ )
+  {
+    /* get cluster id from photons vector */
+    unsigned icluster = cluster_photons.at( i );
+
+    /* get pointer to reco cluster corresponding to this reco cluster */
+    emcClusterContent *reco_emc_cluster_i = reco_emcclusters->getCluster( icluster );
+
+    /* calculate cluster transverse momentum */
+    float cluster_ecore = reco_emc_cluster_i->ecore();
+    TVector3 cluster_pos( reco_emc_cluster_i->x(), reco_emc_cluster_i->y(), reco_emc_cluster_i->z() );
+    float cluster_pt = cluster_ecore * ( cluster_pos.Perp() / cluster_pos.Mag() );
+
+    /* get cluster photon probability */
+    float cluster_prob = reco_emc_cluster_i->prob_photon();
+
+    /* get pointer to truth cluster corresponding to this reco cluster */
+    emcGeaClusterContent *truth_emc_cluster_i = truth_emcclusters->getCluster( icluster );
+
+    /* get truth particle associated with this cluster */
+    emcGeaTrackContent *truth_particle_i = FindTruthParticle( truth_emc_cluster_i );
+
+    /* get particle ID of truth particle */
+    unsigned pid_i = 0;
+    unsigned anclvl_i = 0;
+
+    if ( truth_particle_i )
     {
-      /* get cluster id from photons vector */
-      unsigned icluster = cluster_photons.at( i );
-
-      /* get pointer to reco cluster corresponding to this reco cluster */
-      emcClusterContent *reco_emc_cluster_i = reco_emcclusters->getCluster( icluster );
-
-      /* calculate cluster transverse momentum */
-      float cluster_ecore = reco_emc_cluster_i->ecore();
-      TVector3 cluster_pos( reco_emc_cluster_i->x(), reco_emc_cluster_i->y(), reco_emc_cluster_i->z() );
-      float cluster_pt = cluster_ecore * ( cluster_pos.Perp() / cluster_pos.Mag() );
-
-      /* get cluster photon probability */
-      float cluster_prob = reco_emc_cluster_i->prob_photon();
-
-      /* get pointer to truth cluster corresponding to this reco cluster */
-      emcGeaClusterContent *truth_emc_cluster_i = truth_emcclusters->getCluster( icluster );
-
-      /* get truth particle associated with this cluster */
-      emcGeaTrackContent *truth_particle_i = FindTruthParticle( truth_emc_cluster_i );
-
-      /* get particle ID of truth particle */
-      unsigned pid_i = 0;
-      unsigned anclvl_i = 0;
-
-      if ( truth_particle_i )
-        {
-          pid_i = truth_particle_i->get_pid();
-          anclvl_i = truth_particle_i->get_anclvl();
-        }
-      else
-        {
-          cerr << "ERROR: Truth particle not found for this cluster" << endl;
-        }
-
-      /* get particle ID of parent of truth particle (if any) */
-      unsigned parent_id = 0;
-      emcGeaTrackContent *truth_parent_i = NULL;
-
-      if ( truth_particle_i )
-        {
-          truth_parent_i = truth_particle_i->get_trackcontainer()->find( truth_particle_i->get_parent_trkno() );
-        }
-
-      if ( truth_parent_i )
-        {
-          parent_id = truth_parent_i->get_pid();
-        }
-
-      /* cut for calorimter cluster in cone */
-      float cluster_emin = 0.3;
-
-      /* cut for track selection in cone */
-      float track_pmin = 0.2; //GeV
-      float track_pmax = 15; //GeV
-
-      /* cone radius definitions */
-      float rcone_r01 = 0.1;
-      float rcone_r02 = 0.2;
-      float rcone_r03 = 0.3;
-      float rcone_r04 = 0.4;
-      float rcone_r05 = 0.5;
-      float rcone_r06 = 0.6;
-      float rcone_r07 = 0.7;
-      float rcone_r08 = 0.8;
-      float rcone_r09 = 0.9;
-      float rcone_r10 = 1.0;
-
-      /* add up calorimeter energy in cone around cluster */
-      double econe_emcal_r01 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r01 );
-      double econe_emcal_r02 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r02 );
-      double econe_emcal_r03 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r03 );
-      double econe_emcal_r04 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r04 );
-      double econe_emcal_r05 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r05 );
-      double econe_emcal_r06 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r06 );
-      double econe_emcal_r07 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r07 );
-      double econe_emcal_r08 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r08 );
-      double econe_emcal_r09 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r09 );
-      double econe_emcal_r10 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r10 );
-
-      /* add up tracking energy in cone around cluster */
-      double econe_track_r01 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r01 );
-      double econe_track_r02 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r02 );
-      double econe_track_r03 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r03 );
-      double econe_track_r04 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r04 );
-      double econe_track_r05 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r05 );
-      double econe_track_r06 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r06 );
-      double econe_track_r07 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r07 );
-      double econe_track_r08 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r08 );
-      double econe_track_r09 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r09 );
-      double econe_track_r10 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r10 );
-
-      /* Update tree branch variables */
-      _branchmap_cluster.find( "cluster_ecore" )->second.push_back( cluster_ecore );
-      _branchmap_cluster.find( "cluster_pt" )->second.push_back( cluster_pt );
-      _branchmap_cluster.find( "cluster_prob" )->second.push_back( cluster_prob );
-      _branchmap_cluster.find( "cluster_rcone_r01" )->second.push_back( rcone_r01 );
-      _branchmap_cluster.find( "cluster_rcone_r02" )->second.push_back( rcone_r02 );
-      _branchmap_cluster.find( "cluster_rcone_r03" )->second.push_back( rcone_r03 );
-      _branchmap_cluster.find( "cluster_rcone_r04" )->second.push_back( rcone_r04 );
-      _branchmap_cluster.find( "cluster_rcone_r05" )->second.push_back( rcone_r05 );
-      _branchmap_cluster.find( "cluster_rcone_r06" )->second.push_back( rcone_r06 );
-      _branchmap_cluster.find( "cluster_rcone_r07" )->second.push_back( rcone_r07 );
-      _branchmap_cluster.find( "cluster_rcone_r08" )->second.push_back( rcone_r08 );
-      _branchmap_cluster.find( "cluster_rcone_r09" )->second.push_back( rcone_r09 );
-      _branchmap_cluster.find( "cluster_rcone_r10" )->second.push_back( rcone_r10 );
-      _branchmap_cluster.find( "cluster_econe_emcal_r01" )->second.push_back( econe_emcal_r01 );
-      _branchmap_cluster.find( "cluster_econe_emcal_r02" )->second.push_back( econe_emcal_r02 );
-      _branchmap_cluster.find( "cluster_econe_emcal_r03" )->second.push_back( econe_emcal_r03 );
-      _branchmap_cluster.find( "cluster_econe_emcal_r04" )->second.push_back( econe_emcal_r04 );
-      _branchmap_cluster.find( "cluster_econe_emcal_r05" )->second.push_back( econe_emcal_r05 );
-      _branchmap_cluster.find( "cluster_econe_emcal_r06" )->second.push_back( econe_emcal_r06 );
-      _branchmap_cluster.find( "cluster_econe_emcal_r07" )->second.push_back( econe_emcal_r07 );
-      _branchmap_cluster.find( "cluster_econe_emcal_r08" )->second.push_back( econe_emcal_r08 );
-      _branchmap_cluster.find( "cluster_econe_emcal_r09" )->second.push_back( econe_emcal_r09 );
-      _branchmap_cluster.find( "cluster_econe_emcal_r10" )->second.push_back( econe_emcal_r10 );
-      _branchmap_cluster.find( "cluster_econe_tracks_r01" )->second.push_back( econe_track_r01 );
-      _branchmap_cluster.find( "cluster_econe_tracks_r02" )->second.push_back( econe_track_r02 );
-      _branchmap_cluster.find( "cluster_econe_tracks_r03" )->second.push_back( econe_track_r03 );
-      _branchmap_cluster.find( "cluster_econe_tracks_r04" )->second.push_back( econe_track_r04 );
-      _branchmap_cluster.find( "cluster_econe_tracks_r05" )->second.push_back( econe_track_r05 );
-      _branchmap_cluster.find( "cluster_econe_tracks_r06" )->second.push_back( econe_track_r06 );
-      _branchmap_cluster.find( "cluster_econe_tracks_r07" )->second.push_back( econe_track_r07 );
-      _branchmap_cluster.find( "cluster_econe_tracks_r08" )->second.push_back( econe_track_r08 );
-      _branchmap_cluster.find( "cluster_econe_tracks_r09" )->second.push_back( econe_track_r09 );
-      _branchmap_cluster.find( "cluster_econe_tracks_r10" )->second.push_back( econe_track_r10 );
-      _branchmap_cluster.find( "cluster_truth_pdgpid" )->second.push_back( 0 );
-      _branchmap_cluster.find( "cluster_truth_pdgparentpid" )->second.push_back( 0 );
-      _branchmap_cluster.find( "cluster_truth_pid" )->second.push_back( pid_i );
-      _branchmap_cluster.find( "cluster_truth_parentpid" )->second.push_back( parent_id );
-      _branchmap_cluster.find( "cluster_truth_anclvl" )->second.push_back( anclvl_i );
+      pid_i = truth_particle_i->get_pid();
+      anclvl_i = truth_particle_i->get_anclvl();
     }
+    else
+    {
+      cerr << "ERROR: Truth particle not found for this cluster" << endl;
+    }
+
+    /* get particle ID of parent of truth particle (if any) */
+    unsigned parent_id = 0;
+    emcGeaTrackContent *truth_parent_i = NULL;
+
+    if ( truth_particle_i )
+    {
+      truth_parent_i = truth_particle_i->get_trackcontainer()->find( truth_particle_i->get_parent_trkno() );
+    }
+
+    if ( truth_parent_i )
+    {
+      parent_id = truth_parent_i->get_pid();
+    }
+
+    /* cut for calorimter cluster in cone */
+    float cluster_emin = 0.3;
+
+    /* cut for track selection in cone */
+    float track_pmin = 0.2; //GeV
+    float track_pmax = 15; //GeV
+
+    /* cone radius definitions */
+    float rcone_r01 = 0.1;
+    float rcone_r02 = 0.2;
+    float rcone_r03 = 0.3;
+    float rcone_r04 = 0.4;
+    float rcone_r05 = 0.5;
+    float rcone_r06 = 0.6;
+    float rcone_r07 = 0.7;
+    float rcone_r08 = 0.8;
+    float rcone_r09 = 0.9;
+    float rcone_r10 = 1.0;
+
+    /* add up calorimeter energy in cone around cluster */
+    double econe_emcal_r01 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r01 );
+    double econe_emcal_r02 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r02 );
+    double econe_emcal_r03 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r03 );
+    double econe_emcal_r04 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r04 );
+    double econe_emcal_r05 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r05 );
+    double econe_emcal_r06 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r06 );
+    double econe_emcal_r07 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r07 );
+    double econe_emcal_r08 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r08 );
+    double econe_emcal_r09 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r09 );
+    double econe_emcal_r10 = SumEmcalEnergyInCone(reco_emc_cluster_i, reco_emcclusters, cluster_emin, rcone_r10 );
+
+    /* add up tracking energy in cone around cluster */
+    double econe_track_r01 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r01 );
+    double econe_track_r02 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r02 );
+    double econe_track_r03 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r03 );
+    double econe_track_r04 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r04 );
+    double econe_track_r05 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r05 );
+    double econe_track_r06 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r06 );
+    double econe_track_r07 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r07 );
+    double econe_track_r08 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r08 );
+    double econe_track_r09 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r09 );
+    double econe_track_r10 = SumTrackEnergyInCone(reco_emc_cluster_i, reco_tracks, track_pmin, track_pmax, rcone_r10 );
+
+    /* Update tree branch variables */
+    _branchmap_cluster.find( "cluster_ecore" )->second.push_back( cluster_ecore );
+    _branchmap_cluster.find( "cluster_pt" )->second.push_back( cluster_pt );
+    _branchmap_cluster.find( "cluster_prob" )->second.push_back( cluster_prob );
+    _branchmap_cluster.find( "cluster_rcone_r01" )->second.push_back( rcone_r01 );
+    _branchmap_cluster.find( "cluster_rcone_r02" )->second.push_back( rcone_r02 );
+    _branchmap_cluster.find( "cluster_rcone_r03" )->second.push_back( rcone_r03 );
+    _branchmap_cluster.find( "cluster_rcone_r04" )->second.push_back( rcone_r04 );
+    _branchmap_cluster.find( "cluster_rcone_r05" )->second.push_back( rcone_r05 );
+    _branchmap_cluster.find( "cluster_rcone_r06" )->second.push_back( rcone_r06 );
+    _branchmap_cluster.find( "cluster_rcone_r07" )->second.push_back( rcone_r07 );
+    _branchmap_cluster.find( "cluster_rcone_r08" )->second.push_back( rcone_r08 );
+    _branchmap_cluster.find( "cluster_rcone_r09" )->second.push_back( rcone_r09 );
+    _branchmap_cluster.find( "cluster_rcone_r10" )->second.push_back( rcone_r10 );
+    _branchmap_cluster.find( "cluster_econe_emcal_r01" )->second.push_back( econe_emcal_r01 );
+    _branchmap_cluster.find( "cluster_econe_emcal_r02" )->second.push_back( econe_emcal_r02 );
+    _branchmap_cluster.find( "cluster_econe_emcal_r03" )->second.push_back( econe_emcal_r03 );
+    _branchmap_cluster.find( "cluster_econe_emcal_r04" )->second.push_back( econe_emcal_r04 );
+    _branchmap_cluster.find( "cluster_econe_emcal_r05" )->second.push_back( econe_emcal_r05 );
+    _branchmap_cluster.find( "cluster_econe_emcal_r06" )->second.push_back( econe_emcal_r06 );
+    _branchmap_cluster.find( "cluster_econe_emcal_r07" )->second.push_back( econe_emcal_r07 );
+    _branchmap_cluster.find( "cluster_econe_emcal_r08" )->second.push_back( econe_emcal_r08 );
+    _branchmap_cluster.find( "cluster_econe_emcal_r09" )->second.push_back( econe_emcal_r09 );
+    _branchmap_cluster.find( "cluster_econe_emcal_r10" )->second.push_back( econe_emcal_r10 );
+    _branchmap_cluster.find( "cluster_econe_tracks_r01" )->second.push_back( econe_track_r01 );
+    _branchmap_cluster.find( "cluster_econe_tracks_r02" )->second.push_back( econe_track_r02 );
+    _branchmap_cluster.find( "cluster_econe_tracks_r03" )->second.push_back( econe_track_r03 );
+    _branchmap_cluster.find( "cluster_econe_tracks_r04" )->second.push_back( econe_track_r04 );
+    _branchmap_cluster.find( "cluster_econe_tracks_r05" )->second.push_back( econe_track_r05 );
+    _branchmap_cluster.find( "cluster_econe_tracks_r06" )->second.push_back( econe_track_r06 );
+    _branchmap_cluster.find( "cluster_econe_tracks_r07" )->second.push_back( econe_track_r07 );
+    _branchmap_cluster.find( "cluster_econe_tracks_r08" )->second.push_back( econe_track_r08 );
+    _branchmap_cluster.find( "cluster_econe_tracks_r09" )->second.push_back( econe_track_r09 );
+    _branchmap_cluster.find( "cluster_econe_tracks_r10" )->second.push_back( econe_track_r10 );
+    _branchmap_cluster.find( "cluster_truth_pdgpid" )->second.push_back( 0 );
+    _branchmap_cluster.find( "cluster_truth_pdgparentpid" )->second.push_back( 0 );
+    _branchmap_cluster.find( "cluster_truth_pid" )->second.push_back( pid_i );
+    _branchmap_cluster.find( "cluster_truth_parentpid" )->second.push_back( parent_id );
+    _branchmap_cluster.find( "cluster_truth_anclvl" )->second.push_back( anclvl_i );
+  }
 
   /* Fill tree */
   _tree_recocluster->Fill();
@@ -464,6 +466,9 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
 int IsolationCut::End(PHCompositeNode *topNode)
 {
   _file_output->cd();
+
+  if ( _emcwarnmap )
+    delete _emcwarnmap;
 
   if ( _tree_recocluster )
     _tree_recocluster->Write();
@@ -498,91 +503,90 @@ emcGeaTrackContent* IsolationCut::FindTruthParticle( emcGeaClusterContent* clust
   float edepMax = 0.;
   emc_tracklist_t particles_list = cluster->get_track_list();
   BOOST_FOREACH(const emc_trkno_t &ipart, particles_list)
+  {
+    float edep = cluster->get_edep_bytrack(ipart);
+    if( edep > edepMax )
     {
-      float edep = cluster->get_edep_bytrack(ipart);
-      if( edep > edepMax )
-        {
-          truthparticle = cluster->get_trackcontainer()->find(ipart);
-          edepMax = edep;
-        }
+      truthparticle = cluster->get_trackcontainer()->find(ipart);
+      edepMax = edep;
     }
+  }
 
   return truthparticle;
 }
 
 
 float IsolationCut::SumEmcalEnergyInCone( emcClusterContent* emccluster_ref,
-                                          emcClusterContainer* emcclusters,
-                                          double cluster_emin,
-                                          double rcone )
+    emcClusterContainer* emcclusters,
+    double cluster_emin,
+    double rcone )
 {
   float econe = 0;
 
   /* loop over all cluster in EMCAL */
   for( unsigned icluster=0; icluster < emcclusters->size(); icluster++ )
+  {
+    /* Get cluster */
+    emcClusterContent *emccluster_check = emcclusters->getCluster( icluster );
+
+    /* avoid double counting cluster with same id as reference cluster */
+    if ( emccluster_check->id() == emccluster_ref->id() )
+      continue;
+
+    /* skip cluster below energy threshold */
+    if ( emccluster_check->ecore() < cluster_emin )
+      continue;
+
+    /* skip clusters in towers flagged bad by warn map,
+       but allow for edge towers (status 20) */
+    if ( _emcwarnmap->IsBadTower(emccluster_check) )
+      continue;
+
+    /* check if cluster is within cone around reference cluster */
+    float dr = ( sqrt( pow( emccluster_ref->theta() - emccluster_check->theta() , 2 ) +
+          pow( emccluster_ref->phi()   - emccluster_check->phi()   , 2 ) ) );
+
+    if ( dr < rcone )
     {
-      /* Get cluster */
-      emcClusterContent *emccluster_check = emcclusters->getCluster( icluster );
-
-      /* avoid double counting cluster with same id as reference cluster */
-      if ( emccluster_check->id() == emccluster_ref->id() )
-        continue;
-
-      /* skip cluster below energy threshold */
-      if ( emccluster_check->ecore() < cluster_emin )
-        continue;
-
-      /* skip clusters in towers flagged bad by warn map,
-	 but allow for edge towers (status 20) */
-      if ( GetStatus( emccluster_check ) != 0 &&
-	   GetStatus( emccluster_check ) != 20 )
-	continue;
-
-      /* check if cluster is within cone around reference cluster */
-      float dr = ( sqrt( pow( emccluster_ref->theta() - emccluster_check->theta() , 2 ) +
-                         pow( emccluster_ref->phi()   - emccluster_check->phi()   , 2 ) ) );
-
-      if ( dr < rcone )
-        {
-          /* Still here? Add cluster energy to energy in cone. */
-          econe += emccluster_check->ecore();
-        }
+      /* Still here? Add cluster energy to energy in cone. */
+      econe += emccluster_check->ecore();
     }
+  }
 
   return econe;
 }
 
 
 float IsolationCut::SumTrackEnergyInCone( emcClusterContent* emccluster_ref,
-                                          PHCentralTrack* tracks,
-                                          double track_pmin,
-                                          double track_pmax,
-                                          double rcone )
+    PHCentralTrack* tracks,
+    double track_pmin,
+    double track_pmax,
+    double rcone )
 {
   float econe = 0;
 
   /* loop over all charged tracks that could be associated with a cluster in EMCAL */
   for ( unsigned itrack = 0; itrack < tracks->get_npart(); itrack++ )
+  {
+    /* track momentum below threshold? */
+    if ( ( tracks->get_mom( itrack ) < track_pmin ) ||
+        ( tracks->get_mom( itrack ) > track_pmax ) )
+      continue;
+
+    /* determine track theta and phi directions */
+    float track_theta = tracks->get_the0( itrack ); //atan2( emctrk->get_pt() , emctrk->get_ptot() );
+    float track_phi = tracks->get_phi0( itrack ); //atan2( emctrk->get_py() , emctrk->get_px() );
+
+    /* check if track within cone */
+    float dr = ( sqrt( pow( track_theta - emccluster_ref->theta() , 2 ) +
+          pow( track_phi   - emccluster_ref->phi()   , 2 ) ) );
+
+    if ( dr < rcone )
     {
-      /* track momentum below threshold? */
-      if ( ( tracks->get_mom( itrack ) < track_pmin ) ||
-           ( tracks->get_mom( itrack ) > track_pmax ) )
-        continue;
-
-      /* determine track theta and phi directions */
-      float track_theta = tracks->get_the0( itrack ); //atan2( emctrk->get_pt() , emctrk->get_ptot() );
-      float track_phi = tracks->get_phi0( itrack ); //atan2( emctrk->get_py() , emctrk->get_px() );
-
-      /* check if track within cone */
-      float dr = ( sqrt( pow( track_theta - emccluster_ref->theta() , 2 ) +
-                         pow( track_phi   - emccluster_ref->phi()   , 2 ) ) );
-
-      if ( dr < rcone )
-        {
-          /* Still here? Add track momentum to energy in cone. */
-          econe += tracks->get_mom( itrack );
-        }
+      /* Still here? Add track momentum to energy in cone. */
+      econe += tracks->get_mom( itrack );
     }
+  }
 
   return econe;
 }
@@ -592,123 +596,27 @@ void IsolationCut::ResetBranchVariables( )
 {
   /* Cluster branches */
   for ( map< string , vector<float> >::iterator iter = _branchmap_cluster.begin();
-        iter != _branchmap_cluster.end();
-        ++iter)
-    {
-      (iter->second).clear();
-    }
+      iter != _branchmap_cluster.end();
+      ++iter)
+  {
+    (iter->second).clear();
+  }
 
   /* Event branches */
   for ( map< string , float >::iterator iter = _branchmap_event.begin();
-        iter != _branchmap_event.end();
-        ++iter)
-    {
-      (iter->second) = NAN;
-    }
+      iter != _branchmap_event.end();
+      ++iter)
+  {
+    (iter->second) = NAN;
+  }
 
   /* Particle branches */
   for ( map< string , vector<float> >::iterator iter = _branchmap_mcparticles.begin();
-        iter != _branchmap_mcparticles.end();
-        ++iter)
-    {
-      (iter->second).clear();
-    }
-
-  return;
-}
-
-
-void IsolationCut::ReadTowerStatus(const string& filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  unsigned int sector = 0;
-  unsigned int biny = 0;
-  unsigned int binz = 0;
-  unsigned int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> sector >> biny >> binz >> status )
+      iter != _branchmap_mcparticles.end();
+      ++iter)
   {
-    // count tower with bad status for PbSc and PbGl
-    if ( status > 10 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    _tower_status[sector][biny][binz] = status;
+    (iter->second).clear();
   }
 
-  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
-
   return;
-}
-
-void IsolationCut::ReadSashaWarnmap(const string &filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  int ich = 0;
-  int sector = 0;
-  int biny = 0;
-  int binz = 0;
-  int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> ich >> status )
-  {
-    // Attention!! I use my indexing for warn map in this program!!!
-    if( ich >= 10368 && ich < 15552 ) { // PbSc
-      if( ich < 12960 ) ich += 2592;
-      else              ich -= 2592;
-    }
-    else if( ich >= 15552 )           { // PbGl
-      if( ich < 20160 ) ich += 4608;
-      else              ich -= 4608;
-    }
-
-    // get tower location
-    anatools::TowerLocation(ich, sector, biny, binz);
-
-    // count tower with bad status for PbSc and PbGl
-    if ( status > 0 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    _tower_status[sector][biny][binz] = status;
-
-    // mark edge towers
-    if( anatools::Edge_cg(sector, biny, binz) )
-      _tower_status[sector][biny][binz] = 20;
-  }
-
-  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
-
-  return;
-}
-
-int IsolationCut::GetStatus(const emcClusterContent *emccluster)
-{
-  int arm = emccluster->arm();
-  int rawsector = emccluster->sector();
-  int sector = anatools::CorrectClusterSector(arm, rawsector);
-  int iypos = emccluster->iypos();
-  int izpos = emccluster->izpos();
-
-  return _tower_status[sector][iypos][izpos];
 }

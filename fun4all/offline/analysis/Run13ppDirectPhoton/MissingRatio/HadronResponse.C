@@ -1,7 +1,7 @@
 #include "HadronResponse.h"
 
-#include "AnaToolsTowerID.h"
-#include "AnaToolsCluster.h"
+#include <AnaToolsCluster.h>
+#include <EMCWarnmapChecker.h>
 #include <DCDeadmapChecker.h>
 
 #include <emcNodeHelper.h>
@@ -11,7 +11,7 @@
 #include <emcGeaClusterContent.h>
 
 #include <PHCentralTrack.h>
-#include <McEvalSingleList.h>
+//#include <McEvalSingleList.h>
 
 #include <TOAD.h>
 #include <phool.h>
@@ -26,7 +26,6 @@
 #include <TH2.h>
 #include <THnSparse.h>
 
-#include <cmath>
 #include <iostream>
 #include <fstream>
 
@@ -66,6 +65,7 @@ const double eratio = 0.1;
 
 HadronResponse::HadronResponse(const string &name, const char *filename):
   SubsysReco(name),
+  emcwarnmap(NULL),
   dcdeadmap(NULL),
   hm(NULL),
   h_events(NULL),
@@ -79,18 +79,12 @@ HadronResponse::HadronResponse(const string &name, const char *filename):
   outFileName = "histos/HadronResponse-";
   outFileName.append(filename);
 
-  /* Initialize array for tower status */
-  for(int isector=0; isector<8; isector++)
-    for(int ibiny=0; ibiny<48; ibiny++)
-      for(int ibinz=0; ibinz<96; ibinz++)
-      {
-        tower_status_nils[isector][ibiny][ibinz] = 0;
-        tower_status_sasha[isector][ibiny][ibinz] = 0;
-      }
-
   /* Function for pT weight for direct photon */
   cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]", 0.1, 100.);
   cross_ph->SetParameters(255., 5.98, 0.273, 14.43);
+
+  for(int ih=0; ih<nh_eta_phi; ih++)
+    h2_eta_phi[ih] = NULL;
 }
 
 HadronResponse::~HadronResponse()
@@ -106,12 +100,22 @@ int HadronResponse::Init(PHCompositeNode *topNode)
   /* Create and register histograms */
   BookHistograms();
 
-  /* Read warnmap */
-  ReadTowerStatus("Warnmap_Run13pp510.txt");
-  ReadSashaWarnmap("warn_all_run13pp500gev.dat");
+  /* Initialize EMC warnmap checker */
+  emcwarnmap = new EMCWarnmapChecker();
+  if(!emcwarnmap)
+  {
+    cerr << "No emcwarnmap" << endl;
+    exit(1);
+  }
 
   /* Initialize DC deadmap checker */
   dcdeadmap = new DCDeadmapChecker();
+  if(!dcdeadmap)
+  {
+    cerr << "No dcdeadmap" << endl;
+    exit(1);
+  }
+
 
   return EVENT_OK;
 }
@@ -147,12 +151,12 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
   }
 
   /* Central track truth info */
-  McEvalSingleList *mctrk = findNode::getClass<McEvalSingleList>(topNode, "McSingle");
-  if(!mctrk)
-  {
-    cout << "Cannot find McEvalSingleList" << endl;
-    return DISCARDEVENT;
-  }
+  //McEvalSingleList *mctrk = findNode::getClass<McEvalSingleList>(topNode, "McSingle");
+  //if(!mctrk)
+  //{
+  //  cout << "Cannot find McEvalSingleList" << endl;
+  //  return DISCARDEVENT;
+  //}
 
   /* Central track reco info */
   PHCentralTrack *data_tracks = findNode::getClass<PHCentralTrack>(topNode, "PHCentralTrack");
@@ -190,7 +194,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     double fill_hn_alphaboard[] = {dcboard, dcalpha, (double)dcns, (double)dcwe};
     hn_alphaboard->Fill(fill_hn_alphaboard, weight_pythia);
 
-    int isDCGood = IsDCDead(data_tracks, itrk) ? 0 : 1;
+    int isDCGood = dcdeadmap->IsDead(data_tracks, itrk) ? 0 : 1;
     double fill_hn_dclive[] = {dczed, dcphi, mom, (double)isDCGood};
     hn_dclive->Fill(fill_hn_dclive, weight_pythia);
   }
@@ -200,11 +204,11 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
   for(int iclus=0; iclus<nemcclus; iclus++)
   {
     emcClusterContent *cluster1 = emccluscont->getCluster(iclus);
-    if( InFiducial(cluster1) &&
+    if( emcwarnmap->InFiducial(cluster1) &&
         TestPhoton(cluster1) &&
-        !DCChargeVeto(cluster1, data_tracks) )
+        !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
     {
-      int sector = anatools::GetSector(cluster1); 
+      int part = anatools::GetPart(cluster1);
       double pT = anatools::Get_pT(cluster1);
 
       double econeEM = SumEEmcal(cluster1, emccluscont, data_tracks);
@@ -215,38 +219,43 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
       if( econe < eratio * cluster1->ecore() )
         isolated = 1;
 
-      double fill_hn_1photon[] = {pT, (double)sector, (double)isolated};
+      if( pT > 5. && pT < 10. )
+      {
+        TLorentzVector pE = anatools::Get_pE(cluster1);
+        double eta = pE.Eta();
+        double phi = pE.Phi();
+        if(part >= 1)
+        {
+          pE.RotateZ(-PI);
+          phi = pE.Phi() + PI;
+        }
+
+        int ih = part + 3*isolated;
+        h2_eta_phi[ih]->Fill(eta, phi);
+      }
+
+      double fill_hn_1photon[] = {pT, (double)part, (double)isolated};
       hn_1photon->Fill(fill_hn_1photon, weight_pythia);
 
       for(int jclus=0; jclus<nemcclus; jclus++)
         if(jclus != iclus)
         {
           emcClusterContent *cluster2 = emccluscont->getCluster(jclus);
-          if( !IsGoodTower(cluster2) ||
-              !TestPhoton(cluster2) ||
-              DCChargeVeto(cluster2, data_tracks) )
+          if( !emcwarnmap->IsGoodTower(cluster2) ||
+              !TestPhoton(cluster2) )
             continue;
 
           double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
           double minv = anatools::GetInvMass(cluster1, cluster2);
 
-          int isoboth = 0;
-          double econeEM2 = SumEEmcal(cluster2, emccluscont, data_tracks);
-          double econeTrk2 = SumPTrack(cluster2, data_tracks);
-          double econe2 = econeEM2 + econeTrk2;
-          if( isolated && econe2 < eratio * cluster2->ecore() )
-            isoboth = 1;
-
           int isopair = 0;
-          double econeEMPair1, econeEMPair2;
-          SumEEmcal(cluster1, cluster2, emccluscont, data_tracks, econeEMPair1, econeEMPair2);
-          double econePair1 = econeEMPair1 + econeTrk;
-          double econePair2 = econeEMPair2 + econeTrk2;
-          if( econePair1 < eratio * cluster1->ecore() &&
-              econePair2 < eratio * cluster2->ecore() )
+          double econeEMPair;
+          SumEEmcal(cluster1, cluster2, emccluscont, data_tracks, econeEMPair);
+          double econePair = econeEMPair + econeTrk;
+          if( econePair < eratio * cluster1->ecore() )
             isopair = 1;
 
-          double fill_hn_2photon[] = {pT, tot_pT, minv, (double)sector, (double)isoboth, (double)isopair};
+          double fill_hn_2photon[] = {pT, tot_pT, minv, (double)part, (double)isolated, (double)isopair};
           hn_2photon->Fill(fill_hn_2photon, weight_pythia);
         } // jclus
     } // check photon1
@@ -260,6 +269,7 @@ int HadronResponse::End(PHCompositeNode *topNode)
   /* Write histogram output to ROOT file */
   hm->dumpHistos();
   delete hm;
+  delete emcwarnmap;
   delete dcdeadmap;
 
   return EVENT_OK;
@@ -267,6 +277,36 @@ int HadronResponse::End(PHCompositeNode *topNode)
 
 void HadronResponse::BookHistograms()
 {
+  /* eta and phi bins step size */
+  const double step[2] = {0.011, 0.008};
+
+  /* eta bins */
+  const int neta = 100;
+  double etabin[2][neta+1];
+  for(int part=0; part<2; part++)
+    for(int it=0; it<=neta; it++)
+      etabin[part][it] = step[part] * ( it - neta/2 );
+
+  /* phi sector */
+  const double phi_sec[8] = {
+    -PI/8, 0, PI/8, 2*PI/8,
+    PI-2*PI/8, PI-PI/8, PI, PI+PI/8
+  };
+
+  /* phi bins */
+  const int nphi_sec[2] = {36, 48};
+  const int nphi = (nphi_sec[0]/2+1)*6 + (nphi_sec[1]/2+1)*2 + 4 - 1;
+  double phibin[nphi+1];
+  int iphi = 0;
+  for(int is=0; is<8; is++)
+    for(int it=0; it<=nphi_sec[is/6]/2; it++)
+      phibin[iphi++] = phi_sec[is] + step[is/6] * 2 * ( it - nphi_sec[is/6]/4 );
+  phibin[iphi++] = -PI*3/16 - 0.02;
+  phibin[iphi++] = PI*5/16 + 0.02;
+  phibin[iphi++] = PI*11/16 - 0.02;
+  phibin[iphi++] = PI*19/16 + 0.02;
+  sort(phibin, phibin+nphi);
+
   /* Count events */
   h_events = new TH1F("h_events", "Events count", 1, 0.5, 1.5);
   hm->registerHisto(h_events);
@@ -288,21 +328,29 @@ void HadronResponse::BookHistograms()
   hn_dclive->Sumw2();
   hm->registerHisto(hn_dclive);
 
+  /* Eta and phi distribution */
+  // ih = part + 3*isolated < 3*2
+  for(int ih=0; ih<nh_eta_phi; ih++)
+  {
+    h2_eta_phi[ih] = new TH2F(Form("h2_eta_phi_%d",ih), "#eta and #phi distribution;#eta;#phi;", neta,etabin[ih%3/2], nphi,phibin);
+    hm->registerHisto(h2_eta_phi[ih]);
+  }
+
   /* EMCal reco one photon */
-  int nbins_hn_1photon[] = {npT, 8, 2};
+  int nbins_hn_1photon[] = {npT, 3, 2};
   double xmin_hn_1photon[] = {0., -0.5, -0.5};
-  double xmax_hn_1photon[] = {0., 7.5, 1.5};
-  hn_1photon = new THnSparseF("hn_1photon", "EMCal one photon;p_{T} [GeV];Sector;Isolated;",
+  double xmax_hn_1photon[] = {0., 2.5, 1.5};
+  hn_1photon = new THnSparseF("hn_1photon", "EMCal one photon;p_{T} [GeV];Part;Isolated;",
       3, nbins_hn_1photon, xmin_hn_1photon, xmax_hn_1photon);
   hn_1photon->SetBinEdges(0, vpT);
   hn_1photon->Sumw2();
   hm->registerHisto(hn_1photon);
 
   /* EMCal reco two photons */
-  int nbins_hn_2photon[] = {npT, npT, 300, 8, 2, 2};
+  int nbins_hn_2photon[] = {npT, npT, 300, 3, 2, 2};
   double xmin_hn_2photon[] = {0., 0., 0., -0.5, -0.5, -0.5};
-  double xmax_hn_2photon[] = {0., 0., 0.3, 7.5, 1.5, 1.5};
-  hn_2photon = new THnSparseF("hn_2photon", "EMCal two photon;p^{1photon}_{T} [GeV];p^{2photon}_{T} [GeV];m_{inv} [GeV];Sector;Isoboth;Isopair;",
+  double xmax_hn_2photon[] = {0., 0., 0.3, 2.5, 1.5, 1.5};
+  hn_2photon = new THnSparseF("hn_2photon", "EMCal two photon;p^{1photon}_{T} [GeV];p^{2photon}_{T} [GeV];m_{inv} [GeV];Part;Isolated;Isopair;",
       6, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon);
   hn_2photon->SetBinEdges(0, vpT);
   hn_2photon->SetBinEdges(1, vpT);
@@ -333,10 +381,10 @@ double HadronResponse::SumEEmcal(const emcClusterContent *cluster, const emcClus
      * or on bad towers or lower than energy threshold
      * and with 3 sigma charge veto */
     if( clus2->id() == cluster->id() ||
-        IsBadTower(clus2) ||
+        emcwarnmap->IsBadTower(clus2) ||
         //fabs( clus2->tofcorr() ) > tofMaxIso ||
         clus2->ecore() < eClusMin ||
-        DCChargeVeto(clus2, data_tracks) )
+        dcdeadmap->ChargeVeto(clus2, data_tracks) )
       continue;
 
     /* Get cluster vector */
@@ -355,19 +403,16 @@ double HadronResponse::SumEEmcal(const emcClusterContent *cluster, const emcClus
   return econe;
 }
 
-void HadronResponse::SumEEmcal(const emcClusterContent *cluster1, const emcClusterContent *cluster2,
-    const emcClusterContainer *cluscont, const PHCentralTrack *data_tracks, double &econe1, double &econe2)
+void HadronResponse::SumEEmcal(const emcClusterContent *cluster, const emcClusterContent *cluster_part,
+    const emcClusterContainer *cluscont, const PHCentralTrack *data_tracks, double &econe)
 { 
-  /* Sum up all energy in cone around particle without two clusters */
-  econe1 = 0.;
-  econe2 = 0.;
+  /* Sum up all energy in cone around particle without the partner cluster */
+  econe = 0.;
 
   /* Get reference vector */
-  TLorentzVector pE_pref1 = anatools::Get_pE(cluster1);
-  TLorentzVector pE_pref2 = anatools::Get_pE(cluster2);
-  if( pE_pref1.Pt() < epsilon || pE_pref2.Pt() < epsilon ) return;
-  TVector2 v2_pref1 = pE_pref1.EtaPhiVector();
-  TVector2 v2_pref2 = pE_pref2.EtaPhiVector();
+  TLorentzVector pE_pref = anatools::Get_pE(cluster);
+  if( pE_pref.Pt() < epsilon ) return;
+  TVector2 v2_pref = pE_pref.EtaPhiVector();
 
   int nclus = cluscont->size();
 
@@ -378,12 +423,12 @@ void HadronResponse::SumEEmcal(const emcClusterContent *cluster1, const emcClust
     /* Skip if pointer identical to any of the two 'reference' particles
      * or on bad towers or lower than energy threshold 
      * and with 3 sigma charge veto */
-    if( clus3->id() == cluster1->id() ||
-        clus3->id() == cluster2->id() ||
-        IsBadTower(clus3) ||
+    if( clus3->id() == cluster->id() ||
+        clus3->id() == cluster_part->id() ||
+        emcwarnmap->IsBadTower(clus3) ||
         //fabs( clus3->tofcorr() ) > tofMaxIso ||
         clus3->ecore() < eClusMin ||
-        DCChargeVeto(clus3, data_tracks) )
+        dcdeadmap->ChargeVeto(clus3, data_tracks) )
       continue;
 
     /* Get cluster vector */
@@ -392,16 +437,11 @@ void HadronResponse::SumEEmcal(const emcClusterContent *cluster1, const emcClust
     TVector2 v2_part3 = pE_part3.EtaPhiVector();
 
     /* Check if cluster within cone */
-    TVector2 v2_diff(v2_part3 - v2_pref1);
+    TVector2 v2_diff(v2_part3 - v2_pref);
     if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
     else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
     if( v2_diff.Mod() < cone_angle )
-      econe1 += clus3->ecore();
-    v2_diff = v2_part3 - v2_pref2;
-    if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
-    else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
-    if( v2_diff.Mod() < cone_angle )
-      econe2 += clus3->ecore();
+      econe += clus3->ecore();
   }
 
   return;
@@ -431,7 +471,7 @@ double HadronResponse::SumPTrack(const emcClusterContent *cluster, const PHCentr
      * and the DC deadmap */
     if( quality <= 3 || !TMath::Finite(px+py+pz+mom) ||
         mom < pTrkMin || mom > pTrkMax ||
-        IsDCDead(data_tracks, i) )
+        dcdeadmap->IsDead(data_tracks, i) )
       continue;
 
     /* Get track vector */
@@ -459,212 +499,4 @@ bool HadronResponse::TestPhoton(const emcClusterContent *cluster)
     return true;
   else
     return false;
-}
-
-bool HadronResponse::DCChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *data_tracks)
-{
-  /* 3 sigma charge veto */
-  int itrk_match = GetEmcMatchTrack(cluster, data_tracks);
-  if( itrk_match >= 0 )
-    return true;
-  else 
-    return false;
-}
-
-bool HadronResponse::InFiducial(const emcClusterContent *cluster)
-{
-  int arm = cluster->arm();
-  int rawsector = cluster->sector();
-  int sector = anatools::CorrectClusterSector(arm, rawsector);
-  int iypos = cluster->iypos();
-  int izpos = cluster->izpos();
-
-  if( tower_status_sasha[sector][iypos][izpos] == 0 )
-    return true;
-  else
-    return false;
-}
-
-bool HadronResponse::IsGoodTower(const emcClusterContent *cluster)
-{
-  int arm = cluster->arm();
-  int rawsector = cluster->sector();
-  int sector = anatools::CorrectClusterSector(arm, rawsector);
-  int iypos = cluster->iypos();
-  int izpos = cluster->izpos();
-
-  if( tower_status_sasha[sector][iypos][izpos] == 0 ||
-      tower_status_sasha[sector][iypos][izpos] == 30 )
-    return true;
-  else
-    return false;
-}
-
-bool HadronResponse::IsBadTower(const emcClusterContent *cluster)
-{
-  int arm = cluster->arm();
-  int rawsector = cluster->sector();
-  int sector = anatools::CorrectClusterSector(arm, rawsector);
-  int iypos = cluster->iypos();
-  int izpos = cluster->izpos();
-
-  //if( tower_status_nils[sector][iypos][izpos] >= 50 )
-  if( tower_status_sasha[sector][iypos][izpos] > 0 &&
-      tower_status_sasha[sector][iypos][izpos] < 20 )
-    return true;
-  else
-    return false;
-}
-
-bool HadronResponse::IsDCDead(const PHCentralTrack *data_tracks, int itrk)
-{
-  /* phi and zed distributions */
-  double dcphi = data_tracks->get_phi(itrk);
-  double dczed = data_tracks->get_zed(itrk);
-  double dcalpha = data_tracks->get_alpha(itrk);
-  int dcarm = data_tracks->get_dcarm(itrk);
-  string dcns = dczed > 0. ? "N" : "S";
-  string dcwe = dcarm == 1 ? "W" : "E";
-  string nswe = dcns + dcwe;
-  double dcboard = 0.;
-  if( dcwe == "W" )
-    dcboard = ( 0.573231 + dcphi - 0.0046 * cos( dcphi + 0.05721 ) ) / 0.01963496;
-  else
-    dcboard = ( 3.72402 - dcphi + 0.008047 * cos( dcphi + 0.87851 ) ) / 0.01963496;
-
-  return dcdeadmap->IsDead(nswe, dcboard, dcalpha);
-}
-
-int HadronResponse::GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *data_tracks)
-{
-  int itrk_match = -1;
-  double dzmin = 9999.;
-  double mommax = 0.;
-
-  TVector3 v3_cluster(cluster->x(), cluster->y(), cluster->z());
-
-  int npart = data_tracks->get_npart();
-  for(int itrk=0; itrk<npart; itrk++)
-  {
-    TVector3 v3_track(data_tracks->get_pemcx(itrk), data_tracks->get_pemcy(itrk), data_tracks->get_pemcz(itrk));
-    double dphi = fabs((v3_track-v3_cluster).Phi());
-    double dz = fabs((v3_track-v3_cluster).Z());
-    double mom = data_tracks->get_mom(itrk);
-    if( dphi > 0.015 ||
-        !TMath::Finite(mom) ||
-        IsDCDead(data_tracks,itrk) )
-      continue;
-
-    if( itrk_match != -1 )
-    {
-      if( dz < 8. && dz < dzmin )
-      {
-        itrk_match = itrk;
-        dzmin = dz;
-        mommax = mom;
-      }
-      else if( dzmin >= 8. && mom > mommax )
-      {
-        itrk_match = itrk;
-        dzmin = dz;
-        mommax = mom;
-      }
-    }
-    else
-    {
-      itrk_match = itrk;
-      dzmin = dz;
-      mommax = mom;
-    }
-  }
-
-  return itrk_match;
-}
-
-void HadronResponse::ReadTowerStatus(const string& filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  unsigned int sector = 0;
-  unsigned int biny = 0;
-  unsigned int binz = 0;
-  unsigned int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> sector >> biny >> binz >> status )
-  {
-    /* Count tower with bad status for PbSc and PbGl */
-    if ( status > 10 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    tower_status_nils[sector][biny][binz] = status;
-  }
-
-  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
-
-  return;
-}
-
-void HadronResponse::ReadSashaWarnmap(const string &filename)
-{
-  unsigned int nBadSc = 0;
-  unsigned int nBadGl = 0;
-
-  int ich = 0;
-  int sector = 0;
-  int biny = 0;
-  int binz = 0;
-  int status = 0;
-
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  string file_location = toad_loader->location(filename);
-  cout << "TOAD file location: " << file_location << endl;
-  ifstream fin( file_location.c_str() );
-
-  while( fin >> ich >> status )
-  {
-    /* Attention!! I use my indexing for warn map in this program!!! */
-    if( ich >= 10368 && ich < 15552 ) { // PbSc
-      if( ich < 12960 ) ich += 2592;
-      else              ich -= 2592;
-    }
-    else if( ich >= 15552 )           { // PbGl
-      if( ich < 20160 ) ich += 4608;
-      else              ich -= 4608;
-    }
-
-    /* Get tower location */
-    anatools::TowerLocation(ich, sector, biny, binz);
-
-    /* Count tower with bad status for PbSc and PbGl */
-    if ( status > 0 )
-    {
-      if( sector < 6 ) nBadSc++;
-      else nBadGl++;
-    }
-    tower_status_sasha[sector][biny][binz] = status;
-
-    /* Mark edge towers */
-    if( anatools::Edge_cg(sector, biny, binz) )
-      tower_status_sasha[sector][biny][binz] = 20;
-    /* Mark fiducial arm */
-    if( anatools::ArmEdge_cg(sector, biny, binz) &&
-        tower_status_sasha[sector][biny][binz] == 0 )
-      tower_status_sasha[sector][biny][binz] = 30;
-  }
-
-  cout << "NBad PbSc: " << nBadSc << ", PbGl: " << nBadGl << endl;
-  fin.close();
-  delete toad_loader;
-
-  return;
 }
