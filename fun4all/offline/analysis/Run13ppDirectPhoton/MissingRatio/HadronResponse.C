@@ -208,6 +208,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
         TestPhoton(cluster1) &&
         !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
     {
+      int sector = anatools::GetSector(cluster1);
       int part = anatools::GetPart(cluster1);
       double pT = anatools::Get_pT(cluster1);
 
@@ -234,7 +235,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
         h2_eta_phi[ih]->Fill(eta, phi);
       }
 
-      double fill_hn_1photon[] = {pT, (double)part, (double)isolated};
+      double fill_hn_1photon[] = {pT, (double)sector, (double)isolated};
       hn_1photon->Fill(fill_hn_1photon, weight_pythia);
 
       for(int jclus=0; jclus<nemcclus; jclus++)
@@ -255,7 +256,7 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
           if( econePair < eratio * cluster1->ecore() )
             isopair = 1;
 
-          double fill_hn_2photon[] = {pT, tot_pT, minv, (double)part, (double)isolated, (double)isopair};
+          double fill_hn_2photon[] = {pT, tot_pT, minv, (double)sector, (double)isolated, (double)isopair};
           hn_2photon->Fill(fill_hn_2photon, weight_pythia);
         } // jclus
     } // check photon1
@@ -337,20 +338,20 @@ void HadronResponse::BookHistograms()
   }
 
   /* EMCal reco one photon */
-  int nbins_hn_1photon[] = {npT, 3, 2};
+  int nbins_hn_1photon[] = {npT, 8, 2};
   double xmin_hn_1photon[] = {0., -0.5, -0.5};
-  double xmax_hn_1photon[] = {0., 2.5, 1.5};
-  hn_1photon = new THnSparseF("hn_1photon", "EMCal one photon;p_{T} [GeV];Part;Isolated;",
+  double xmax_hn_1photon[] = {0., 7.5, 1.5};
+  hn_1photon = new THnSparseF("hn_1photon", "EMCal one photon;p_{T} [GeV];Sector;Isolated;",
       3, nbins_hn_1photon, xmin_hn_1photon, xmax_hn_1photon);
   hn_1photon->SetBinEdges(0, vpT);
   hn_1photon->Sumw2();
   hm->registerHisto(hn_1photon);
 
   /* EMCal reco two photons */
-  int nbins_hn_2photon[] = {npT, npT, 300, 3, 2, 2};
+  int nbins_hn_2photon[] = {npT, npT, 300, 8, 2, 2};
   double xmin_hn_2photon[] = {0., 0., 0., -0.5, -0.5, -0.5};
-  double xmax_hn_2photon[] = {0., 0., 0.3, 2.5, 1.5, 1.5};
-  hn_2photon = new THnSparseF("hn_2photon", "EMCal two photon;p^{1photon}_{T} [GeV];p^{2photon}_{T} [GeV];m_{inv} [GeV];Part;Isolated;Isopair;",
+  double xmax_hn_2photon[] = {0., 0., 0.3, 7.5, 1.5, 1.5};
+  hn_2photon = new THnSparseF("hn_2photon", "EMCal two photon;p^{1photon}_{T} [GeV];p^{2photon}_{T} [GeV];m_{inv} [GeV];Sector;Isolated;Isopair;",
       6, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon);
   hn_2photon->SetBinEdges(0, vpT);
   hn_2photon->SetBinEdges(1, vpT);
