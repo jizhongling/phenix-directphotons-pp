@@ -1,5 +1,4 @@
 D/filelist////
-/IsGoodFile.cc/1.1/Wed Aug 14 14:12:07 2019//
 /anaDST.C/1.1/Mon Aug  5 01:10:35 2019//
 /anaFastMC_Fast.C/1.1/Fri Jan 25 22:35:48 2019//
 /anaFastMC_Fast.job/1.1/Mon Jul 29 21:46:45 2019//
@@ -13,3 +12,4 @@ D/filelist////
 /pythiaToHistoRunBad.sh/1.1/Tue Aug 13 02:42:37 2019//
 /extractBadlist.cc/1.1/Wed Aug 14 14:11:46 2019//
 /pythia.cfg/1.1/Tue Aug 13 20:52:22 2019//
+/IsGoodFile.cc/1.2/Wed Aug 14 18:05:59 2019//
