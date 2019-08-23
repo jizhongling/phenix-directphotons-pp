@@ -72,6 +72,11 @@ int PhotonEff::Init(PHCompositeNode *topNode)
 
   /* Initialize EMC warnmap checker */
   emcwarnmap = new EMCWarnmapChecker();
+  if(!emcwarnmap)
+  {
+    cerr << "No emcwarnmap" << endl;
+    exit(1);
+  }
 
   return EVENT_OK;
 }
