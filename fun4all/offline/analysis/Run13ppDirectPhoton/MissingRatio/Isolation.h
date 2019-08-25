@@ -5,6 +5,7 @@
 #include <string>
 
 class AnaTrk;
+class EMCWarnmapChecker;
 
 class Fun4AllHistoManager;
 class PHCompositeNode;
@@ -31,6 +32,9 @@ class Isolation: public SubsysReco
     double SumPTrack(const AnaTrk *anatrk, const PHCentralTrack *tracks, double rcone);
 
     std::string outFileName;
+
+    /* EMC warnmap checker */
+    EMCWarnmapChecker *emcwarnmap;
 
     Fun4AllHistoManager *hm;
     THnSparse *hn_photon;

@@ -20,9 +20,9 @@
 #include <Fun4AllReturnCodes.h>
 
 /* ROOT includes */
+#include <TF1.h>
 #include <TFile.h>
 #include <TTree.h>
-#include <TF1.h>
 #include <TH2.h>
 #include <THnSparse.h>
 #include <TVector3.h>
@@ -31,7 +31,6 @@
 
 /* STL includes */
 #include <cstdlib>
-#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <utility>

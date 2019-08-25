@@ -1,6 +1,6 @@
 void draw_InvMass()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510ERT/8511/data/total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
   THnSparse *hn_inv_mass_2photon = (THnSparse*)f->Get("inv_mass_2photon");
 
   TAxis *axis0 = (TAxis*)hn_inv_mass_2photon->GetAxis(0);

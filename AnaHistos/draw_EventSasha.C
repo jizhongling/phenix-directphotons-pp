@@ -1,6 +1,6 @@
 void draw_EventSasha()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510MinBias/12103/data/Pi0PP-386881.root");
+  TFile *f = new TFile("/phenix/plhf/zji/taxi/Run13pp510MinBias/12233/data/Pi0PP-386881.root");
 
   TTree *treePi0 = (TTree*)f->Get("treePi0");
 

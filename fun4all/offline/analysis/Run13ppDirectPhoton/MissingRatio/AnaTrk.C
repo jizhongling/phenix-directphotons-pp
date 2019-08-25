@@ -2,7 +2,6 @@
 
 #include <AnaToolsTowerID.h>
 #include "AnaToolsTrack.h"
-#include <EMCWarnmapChecker.h>
 
 #include <emcGeaTrackContent.h>
 #include <emcGeaClusterContainer.h>
@@ -14,7 +13,7 @@ AnaTrk::AnaTrk(emcGeaTrackContent *trk, emcGeaClusterContainer *cluscont):
   trkno(-9999), pid(-9999), anclvl(-9999), parent_trkno(-9999), parent_trk(NULL),
   decayed(false), trkpt(-9999.), trkedep(-9999.), trkrbirth(-9999.),
   cid(-9999), arm(-9999), sector(-9999), ecore(-9999), cluspt(-9999.), prob_photon(-9999.),
-  emctrk(trk), emccluscont(cluscont), emcclus(NULL), emcwarnmap(NULL)
+  emctrk(trk), emccluscont(cluscont), emcclus(NULL)
 {
   daughter_list.clear();
   trkvp.SetXYZ(-9999., -9999., -9999.);
@@ -42,23 +41,18 @@ AnaTrk::AnaTrk(emcGeaTrackContent *trk, emcGeaClusterContainer *cluscont):
 
 AnaTrk::~AnaTrk()
 {
-  if(emcwarnmap)
-    delete emcwarnmap;
 }
 
 void AnaTrk::FillCluster()
 {
-  /* find the cluster which has highest energy deposit */
+  /* Find the cluster which has highest energy deposit */
   FindCluster();
 
-  /* initialize EMC warnmap checker */
-  emcwarnmap = new EMCWarnmapChecker();
-
-  /* fill cluster info by this cluster */
-  if( emcclus && emcwarnmap &&
-      emcwarnmap->IsGoodTower(emcclus) )
+  /* Fill cluster info by this cluster */
+  if(emcclus)
   {
     cid = emcclus->id();
+    arm = emcclus->arm();
     sector = anatools::CorrectClusterSector(arm, emcclus->sector());
     ecore = emcclus->ecore();
     TVector3 vx( emcclus->x(), emcclus->y(), emcclus->z() );

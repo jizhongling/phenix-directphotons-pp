@@ -27,7 +27,6 @@
 #include <THnSparse.h>
 
 #include <ctime>
-#include <cmath>
 #include <cstring>
 #include <algorithm>
 #include <iostream>
@@ -57,7 +56,9 @@ FillHisto::FillHisto(const string &name) :
   hn_pion(NULL),
   hn_1photon(NULL),
   hn_2photon(NULL),
-  hn_photonbg(NULL)
+  hn_photonbg(NULL),
+  runnumber(0),
+  runtime(0.)
 {
   datatype = ERT;
 

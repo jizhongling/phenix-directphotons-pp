@@ -5,7 +5,7 @@ void draw_TowerEnergy()
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
 
-  TFile *f = new TFile("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/13173/data/PhotonHistos-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
   THnSparse *hn_etwr = (THnSparse*)f->Get("hn_etwr");
 
   hn_etwr->GetAxis(7)->SetRange(1,1);

@@ -28,7 +28,6 @@
 #include <THnSparse.h>
 
 #include <cstdlib>
-#include <cmath>
 #include <iostream>
 
 using namespace std;

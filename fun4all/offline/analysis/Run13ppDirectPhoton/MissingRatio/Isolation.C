@@ -1,8 +1,9 @@
 #include "Isolation.h"
 
-#include "AnaTrk.h"
 #include <AnaToolsTowerID.h>
 #include <AnaToolsCluster.h>
+#include <EMCWarnmapChecker.h>
+#include "AnaTrk.h"
 
 #include <emcNodeHelper.h>
 #include <emcGeaTrackContainer.h>
@@ -12,8 +13,6 @@
 
 #include <PHGlobal.h>
 #include <PHCentralTrack.h>
-//#include <PHSnglCentralTrack.h>
-//#include <McEvalSingleList.h>
 
 #include <TOAD.h>
 #include <phool.h>
@@ -47,6 +46,7 @@ const double AsymCut = 0.8;
 
 Isolation::Isolation(const string &name, const char *filename):
   SubsysReco(name),
+  emcwarnmap(NULL),
   hm(NULL),
   hn_photon(NULL)
 {
@@ -63,6 +63,14 @@ int Isolation::Init(PHCompositeNode *topNode)
 {
   /* Create and register histograms */
   BookHistograms();
+
+  /* Initialize EMC warnmap checker */
+  emcwarnmap = new EMCWarnmapChecker();
+  if(!emcwarnmap)
+  {
+    cerr << "No emcwarnmap" << endl;
+    exit(1);
+  }
 
   return EVENT_OK;
 }
@@ -119,6 +127,7 @@ int Isolation::process_event(PHCompositeNode *topNode)
      * and on good towers */
     if( !emcclus ||
         anatrk->cid < 0 ||
+        !emcwarnmap->IsGoodTower(anatrk->emcclus) ||
         anatrk->pid != PHOTON_PID )
     {
       delete anatrk;
@@ -210,6 +219,7 @@ double Isolation::SumEEmcal(const AnaTrk *anatrk, double rcone)
      * or on bad towers or lower than energy threshold */
     if( emcclus2->id() == anatrk->cid ||
         anatrk->cid < 0 ||
+        emcwarnmap->IsBadTower(anatrk->emcclus) ||
         emcclus2->ecore() < 0.15 )
       continue;
 

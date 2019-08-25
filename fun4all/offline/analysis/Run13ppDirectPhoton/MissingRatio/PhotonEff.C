@@ -11,9 +11,6 @@
 #include <emcGeaClusterContent.h>
 
 #include <PHGlobal.h>
-//#include <PHCentralTrack.h>
-//#include <PHSnglCentralTrack.h>
-//#include <McEvalSingleList.h>
 
 #include <TOAD.h>
 #include <phool.h>
@@ -22,12 +19,10 @@
 #include <Fun4AllHistoManager.h>
 #include <Fun4AllReturnCodes.h>
 
-#include <TMath.h>
 #include <TF1.h>
 #include <TH2.h>
 #include <THnSparse.h>
 
-#include <cmath>
 #include <iostream>
 #include <fstream>
 

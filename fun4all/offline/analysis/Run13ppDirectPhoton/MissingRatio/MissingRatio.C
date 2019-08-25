@@ -1,18 +1,15 @@
 #include "MissingRatio.h"
 
-#include "AnaTrk.h"
 #include <AnaToolsTowerID.h>
 #include <AnaToolsCluster.h>
+#include <EMCWarnmapChecker.h>
+#include "AnaTrk.h"
 
 #include <emcNodeHelper.h>
 #include <emcGeaTrackContainer.h>
 #include <emcGeaTrackContent.h>
 #include <emcGeaClusterContainer.h>
 #include <emcGeaClusterContent.h>
-
-//#include <PHGlobal.h>
-//#include <PHCentralTrack.h>
-//#include <McEvalSingleList.h>
 
 #include <TOAD.h>
 #include <phool.h>
@@ -26,7 +23,6 @@
 #include <TH2.h>
 #include <THnSparse.h>
 
-#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -53,6 +49,7 @@ const double merge_radius = 50.;
 
 MissingRatio::MissingRatio(const string &name, const char *filename):
   SubsysReco(name),
+  emcwarnmap(NULL),
   hm(NULL),
   hn_conversion_position(NULL),
   h2_radius(NULL),
@@ -82,6 +79,14 @@ int MissingRatio::Init(PHCompositeNode *topNode)
 {
   /* Create and register histograms */
   BookHistograms();
+
+  /* Initialize EMC warnmap checker */
+  emcwarnmap = new EMCWarnmapChecker();
+  if(!emcwarnmap)
+  {
+    cerr << "No emcwarnmap" << endl;
+    exit(1);
+  }
 
   return EVENT_OK;
 }
@@ -158,7 +163,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
           if( lvl1_trk->decayed == false )
           {// not decayed photon
             h2_noconv->Fill(lvl1_trk->trkpt, (double)lvl1_trk->arm);
-            if( lvl1_trk->cid >= 0 )
+            if( lvl1_trk->cid >= 0 && emcwarnmap->IsGoodTower(lvl1_trk->emcclus) )
               /* Store photon info for missing ratio */
               photon.push_back(lvl1_trk);
           } // not decayed photon
@@ -205,7 +210,10 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
       double photonpt = pos->parent_trk->trkpt;
 
       /* Skip if no associated cluster */
-      //if( pos->cid < 0 || ele->cid < 0 ) continue;
+      //if( pos->cid < 0 || ele->cid < 0 ||
+      //    !emcwarnmap->IsGoodTower(pos->emcclus) ||
+      //    !emcwarnmap->IsGoodTower(ele->emcclus) )
+      //  continue;
 
       /* Birth position of photon conversion */
       double fill_hn_conversion_position[] = { photonpt, pos->trkposbirth.X(), pos->trkposbirth.Y() };
@@ -263,7 +271,10 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
   int npeak = nphoton;
 
   /* Two photons merged */
-  if( nphoton == 2 && photon.at(0)->cid >= 0 && photon.at(0)->cid == photon.at(1)->cid )
+  if( nphoton == 2 &&
+      photon.at(0)->cid >= 0 &&
+      photon.at(0)->cid == photon.at(1)->cid &&
+      emcwarnmap->IsGoodTower(photon.at(0)->emcclus) )
   {
     npeak = 1;
     int sector = photon.at(0)->sector;

@@ -4,6 +4,8 @@
 #include <SubsysReco.h>
 #include <string>
 
+class EMCWarnmapChecker;
+
 class PHCompositeNode;
 class Fun4AllHistoManager;
 
@@ -32,9 +34,12 @@ class MissingRatio: public SubsysReco
     static double vpT[npT+1];
 
     std::string outFileName;
-    Fun4AllHistoManager *hm;
+
+    /* EMC warnmap checker */
+    EMCWarnmapChecker *emcwarnmap;
 
     /* 2D histograms for west and east arms with different criterias */
+    Fun4AllHistoManager *hm;
     THnSparse *hn_conversion_position;
     TH2 *h2_radius;
     TH2 *h2_angle;

@@ -1,7 +1,7 @@
 #ifndef __ANATRK_H__
 #define __ANATRK_H__
 
-/* associated track and cluster info */
+/* Associated track and cluster info */
 
 #include <emctypes.h>
 #include <TVector3.h>
@@ -9,7 +9,6 @@
 class emcGeaTrackContent;
 class emcGeaClusterContainer;
 class emcGeaClusterContent;
-class EMCWarnmapChecker;
 
 class AnaTrk
 {
@@ -43,11 +42,9 @@ class AnaTrk
     emcGeaClusterContent *emcclus;
 
   protected:
-    /* associate a cluster which has highest energy deposit */
+    /* Associate a cluster which has highest energy deposit */
     void FillCluster();
     void FindCluster();
-
-    EMCWarnmapChecker *emcwarnmap;
 };
 
 #endif /* __ANATRK__H__ */

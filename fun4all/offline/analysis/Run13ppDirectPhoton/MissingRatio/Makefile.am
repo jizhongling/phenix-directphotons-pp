@@ -12,6 +12,7 @@ lib_LTLIBRARIES = \
 include_HEADERS =
 
 noinst_HEADERS = \
+  AnaToolsTrack.h \
   AnaTrk.h \
   MissingRatio.h \
   PhotonEff.h \
