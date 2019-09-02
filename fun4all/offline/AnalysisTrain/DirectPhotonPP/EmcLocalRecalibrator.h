@@ -48,12 +48,12 @@ class EmcLocalRecalibrator
     /**
      * Read
      */
-    void ReadEnergyCorrection(const Int_t& a_runnumber);
+    void ReadEnergyCorrection(const int& a_runnumber);
 
     /**
      * Read
      */
-    void ReadTofCorrection( const Int_t& a_fillnumber );
+    void ReadTofCorrection( const int& a_fillnumber );
 
     /**
      * Set source file
@@ -75,19 +75,19 @@ class EmcLocalRecalibrator
     /**
      * Get energy corrected for non-linearity and run-by-run calibration for each sector
      */
-    Double_t GetCorrectedEcore( const emcClusterContent *cluster );
+    double GetCorrectedEcore( const emcClusterContent *cluster );
 
     /**
      * Get TOF corrected for tower-by-tower calibration
      */
-    Double_t GetCorrectedTof( const emcClusterContent *cluster );
+    double GetCorrectedTof( const emcClusterContent *cluster );
 
     std::string _file_warnmap;
     std::string _file_tofmap;
     std::string _file_energycalibration;
 
-    Double_t _tofmap[25000];
-    Double_t _energycalibration[8];
+    double _tofmap[25000];
+    double _energycalibration[8];
 
     TF1* _pbsc_cor_func;
     TF1* _pbgl_cor_func;

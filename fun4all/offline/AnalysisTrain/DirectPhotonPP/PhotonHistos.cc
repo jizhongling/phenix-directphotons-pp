@@ -15,8 +15,6 @@
 #include <SpinDBContent.hh>
 
 #include <PHGlobal.h>
-#include <TrigLvl1.h>
-#include <ErtOut.h>
 #include <EmcIndexer.h>
 #include <emcClusterContainer.h>
 #include <emcClusterContent.h>
@@ -98,6 +96,8 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
     h_bbc[ih] = NULL;
     h2_bbc_pion[ih] = NULL;
   }
+  for(int ih=0; ih<nh_ertsm; ih++)
+    h2_ertsm[ih] = NULL;
   for(int ih=0; ih<nh_ert; ih++)
   {
     h_ert[ih] = NULL;
@@ -291,7 +291,7 @@ int PhotonHistos::process_event(PHCompositeNode *topNode)
   //FillTowerEnergy(data_emccontainer_raw, data_emctwrcontainer, data_global, data_triggerlvl1);
 
   /* Fill DC track quality information */
-  FillTrackQuality(data_emccontainer, data_tracks, data_global, data_triggerlvl1);
+  FillTrackQuality(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert);
 
   for(int itype=0; itype<4; itype++)
   {
@@ -529,11 +529,23 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
   for(unsigned i=0; i<ncluster; i++)
   {
     emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
-    int arm = anatools::GetSector(cluster1) / 4;
+    int sector = anatools::GetSector(cluster1);
+    int part = anatools::GetPart(cluster1);
+    int arm = sector / 4;
+    int ert_trig = anatools::PassERT(data_ert, cluster1, triggermode) ? 1 : 0;
+    double photon_pT = anatools::Get_pT(cluster1);
 
     /* Require the other arm to be fired for ERT sample */
     int oarm = ( arm==0 ? 1 : 0 );
     if( datatype == ERT && !FireERT[oarm] ) continue;
+
+    /* ERT efficiency for each of super modules */
+    for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
+      if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
+      {
+        int ih = sector + 8*ert_trig + 8*2*evtype + 8*2*3*bbc10cm;
+        h2_ertsm[ih]->Fill(photon_pT, (double)anatools::GetSM(cluster1));
+      }
 
     /* For pi0 consider good towers */
     if( emcwarnmap->IsGoodTower(cluster1) &&
@@ -541,13 +553,9 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
     {
       v_used.push_back(i);
 
-      int part = anatools::GetPart( cluster1 );
-      int ert_trig = anatools::PassERT(data_ert, cluster1, triggermode) ? 1 : 0;
-
       /* For photon consider fiducial towers */
       if( emcwarnmap->InFiducial(cluster1) )
       {
-        double photon_pT = anatools::Get_pT( cluster1 );
         int isolated[3] = {};
         double econeEM[2], econeTrk[3];
         SumEEmcal(cluster1, data_emccontainer, data_tracks, bbc_t0, econeEM);
@@ -682,7 +690,7 @@ int PhotonHistos::FillTowerEnergy(const emcClusterContainer *data_emccontainer, 
 }
 
 int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1)
+    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert)
 {
   /* Check trigger */
   int evtype = 2;  // ERT_4x4c
@@ -754,6 +762,10 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
       int itrk_match = dcdeadmap->GetEmcMatchTrack(cluster, data_tracks);
       if( itrk_match >= 0 )
       {
+        int ert_trig = anatools::PassERT(data_ert, cluster, (anatools::TriggerMode)evtype) ? 1 : 0;
+        double bbc_t0 = data_global->getBbcTimeZero();
+        int isPhoton = TestPhoton(cluster, bbc_t0) ? 1 : 0;
+
         double dczed = data_tracks->get_zed(itrk_match);
         int dcarm = data_tracks->get_dcarm(itrk_match);
         int dcns = dczed > 0. ? 0 : 1;
@@ -761,10 +773,10 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
 
         TVector3 v3_cluster(cluster->x(), cluster->y(), cluster->z());
         TVector3 v3_track(data_tracks->get_pemcx(itrk_match), data_tracks->get_pemcy(itrk_match), data_tracks->get_pemcz(itrk_match));
-        double dcdphi = fabs((v3_track-v3_cluster).Phi());
-        double dcdz = fabs((v3_track-v3_cluster).Z());
+        double dcdphi = (v3_track-v3_cluster).Phi();
+        double dcdz = (v3_track-v3_cluster).Z();
 
-        int ih = dcns + 2*dcwe;
+        int ih = dcns + 2*dcwe + 2*2*ert_trig + 2*2*2*isPhoton;
         h2_emcdphiz[ih]->Fill(dcdphi, dcdz);
       }
     }
@@ -1085,6 +1097,14 @@ void PhotonHistos::BookHistograms()
     /* Store photon bg information */
   }
 
+  // ih = sector + 8*ert_trig + 8*2*evtype + 8*2*3*bbc10cm < 8*2*3*2
+  for(int ih=0; ih<nh_ertsm; ih++)
+  {
+    /* ERT trigger efficiency for each of super modules */
+    h2_ertsm[ih] = new TH2F(Form("h2_ertsm_%d",ih), "ERT efficiency;p_{T} [GeV];SM;", npT,pTbin, 32,-0.5,31.5);
+    hm->registerHisto(h2_ertsm[ih]);
+  }
+
   // ih = part + 3*ert_trig + 3*2*evtype + 3*2*3*bbc10cm + 3*2*3*2*isolated[ival] + 3*2*3*2*2*ival < 3*2*3*2*2*3
   for(int ih=0; ih<nh_ert; ih++)
   {
@@ -1112,7 +1132,7 @@ void PhotonHistos::BookHistograms()
   for(int ih=0; ih<nh_dcpartqual; ih++)
   {
     h3_dcdphiz[ih] = new TH3F(Form("h3_dcdphiz_%d",ih), "EMCal and DC phi and z deviation;dphi [rad];dz [cm];mom [GeV];",
-        100,-0.2,0.2, 120,-60.,60., 30,0.,15.);
+        100,-0.1,0.1, 100,-50.,50., 30,0.,15.);
     hm->registerHisto(h3_dcdphiz[ih]);
     h2_alphaboard[ih] = new TH2F(Form("h2_alphaboard_%d",ih), "DC #alpha-board;board;#alpha;", 82*4,-1.5,80.5, 120,-0.6,0.6);
     hm->registerHisto(h2_alphaboard[ih]);
@@ -1129,11 +1149,11 @@ void PhotonHistos::BookHistograms()
   h_prod = new TH1F("h_prod", "Minus charge times pT times alpha;-charge*pT*#alpha [GeV]", 200,0.,0.2);
   hm->registerHisto(h_prod);
 
-  // ih = dcns + 2*dcwe < 2*2
+  // ih = dcns + 2*dcwe + 2*2*ert_trig + 2*2*2*isPhoton < 2*2*2*2
   for(int ih=0; ih<nh_dcpart; ih++)
   {
     h2_emcdphiz[ih] = new TH2F(Form("h2_emcdphiz_%d",ih), "EMCal and DC phi and z deviation;dphi [rad];dz [cm];",
-        100,-0.2,0.2, 120,-60.,60.);
+        100,-0.1,0.1, 100,-50.,50.);
     hm->registerHisto(h2_emcdphiz[ih]);
   }
 

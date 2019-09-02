@@ -33,9 +33,6 @@ class HadronResponse: public SubsysReco
     void set_outfile(std::string filename) { outFileName = filename; }
 
   protected:
-    /* Number of pT bins */
-    static const int npT = 30;
-
     /* Number of histogram array */
     static const int nh_eta_phi = 3*2;
 
@@ -53,9 +50,6 @@ class HadronResponse: public SubsysReco
     /* Check charge veto and tower status */
     bool TestPhoton(const emcClusterContent *cluster);
 
-    /* pT bins */
-    static double vpT[npT+1];
-
     /* EMC warnmap checker */
     EMCWarnmapChecker *emcwarnmap;
 
@@ -69,6 +63,7 @@ class HadronResponse: public SubsysReco
     THnSparse *hn_alphaboard;
     THnSparse *hn_dclive;
     TH2 *h2_eta_phi[nh_eta_phi];
+    THnSparse *hn_prob_photon;
     THnSparse *hn_1photon;
     THnSparse *hn_2photon;
 

@@ -55,7 +55,7 @@ void draw_Acceptance_IsoPhoton()
     gr_geom[part] = DivideHisto(h_geom, h_photon);
     gr_iso[part] = DivideHisto(h_iso, h_geom);
     gr_smear[part] = DivideHisto(h_reco, h_iso);
-    qt_acc->Fill(h_reco, h_isolated, part);
+    qt_acc->Fill(h_reco, h_isolated, part+3);
 
     delete h_geom;
     delete h_iso;
@@ -192,7 +192,7 @@ void draw_Acceptance_IsoPhoton()
       double Acc = ndir / nisophoton;
       double eAcc = Acc * sqrt( pow(enisophoton/nisophoton,2) + pow(endir/ndir,2) );
       if( TMath::Finite(Acc+eAcc) )
-        qt_acc->Fill(ipt, part+3, xpt, Acc, eAcc);
+        qt_acc->Fill(ipt, part, xpt, Acc, eAcc);
       else
         cout << "Wrong!!! Not Finite!!!" << endl;
     } // ipt
@@ -200,7 +200,7 @@ void draw_Acceptance_IsoPhoton()
     for(int pisa=0; pisa<2; pisa++)
     {
       mcd(3, pisa+1);
-      TGraphErrors *gr_acc = qt_acc->Graph(part + 3*pisa);
+      TGraphErrors *gr_acc = qt_acc->Graph(part + 3*(1-pisa));
       gr_acc->SetTitle( Form("Combined acceptance in %s",simname[pisa]) );
       aset(gr_acc, "p_{T} [GeV]","Acceptance", 4.,30., 0.,0.4);
       style(gr_acc, part+24, part+1);

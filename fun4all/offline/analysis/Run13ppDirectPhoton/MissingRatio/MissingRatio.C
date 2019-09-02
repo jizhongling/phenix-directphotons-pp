@@ -210,9 +210,7 @@ int MissingRatio::process_event(PHCompositeNode *topNode)
       double photonpt = pos->parent_trk->trkpt;
 
       /* Skip if no associated cluster */
-      //if( pos->cid < 0 || ele->cid < 0 ||
-      //    !emcwarnmap->IsGoodTower(pos->emcclus) ||
-      //    !emcwarnmap->IsGoodTower(ele->emcclus) )
+      //if(pos->cid < 0 || ele->cid < 0)
       //  continue;
 
       /* Birth position of photon conversion */

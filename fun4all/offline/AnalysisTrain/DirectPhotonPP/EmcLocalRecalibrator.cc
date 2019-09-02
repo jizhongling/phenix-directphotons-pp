@@ -16,12 +16,12 @@ EmcLocalRecalibrator::EmcLocalRecalibrator() : _file_warnmap(""),
   _file_energycalibration("")
 {
 
-  for(Int_t i=0;i<8;i++)
+  for(int i=0;i<8;i++)
   {
     _energycalibration[i] = 0;
   }
 
-  for(Int_t j=0;j<25000;j++)
+  for(int j=0;j<25000;j++)
   {
     _tofmap[j] = 0;
   }
@@ -47,7 +47,7 @@ void EmcLocalRecalibrator::ApplyClusterCorrection( emcClusterContainer* data_emc
 }//EmcLocalRecalibrator::ApplyClusterCorrection
 
 
-Double_t EmcLocalRecalibrator::GetCorrectedEcore( const emcClusterContent *cluster )
+double EmcLocalRecalibrator::GetCorrectedEcore( const emcClusterContent *cluster )
 {
   int sector = anatools::CorrectClusterSector( cluster->arm() , cluster->sector() );
 
@@ -68,17 +68,17 @@ Double_t EmcLocalRecalibrator::GetCorrectedEcore( const emcClusterContent *clust
 }//EmcLocalRecalibrator::GetCalibConst
 
 
-Double_t EmcLocalRecalibrator::GetCorrectedTof(const emcClusterContent *cluster)
+double EmcLocalRecalibrator::GetCorrectedTof(const emcClusterContent *cluster)
 {
-  Double_t tof_raw = cluster->tofcorr();
+  double tof_raw = cluster->tofcorr();
 
-  Int_t sector = anatools::CorrectClusterSector( cluster->arm() , cluster->sector() );
-  Int_t ytower = cluster->iypos();
-  Int_t ztower = cluster->izpos();
+  int sector = anatools::CorrectClusterSector( cluster->arm() , cluster->sector() );
+  int ytower = cluster->iypos();
+  int ztower = cluster->izpos();
 
   int towerid = anatools::TowerID( sector , ytower , ztower );
 
-  Double_t tofcorrection = _tofmap[towerid];
+  double tofcorrection = _tofmap[towerid];
 
   if(tofcorrection<-999) tofcorrection = 0;
 
@@ -86,7 +86,7 @@ Double_t EmcLocalRecalibrator::GetCorrectedTof(const emcClusterContent *cluster)
 }//EmcLocalRecalibrator::GetTofCorrection
 
 
-void EmcLocalRecalibrator::ReadEnergyCorrection(const Int_t& a_runnumber)
+void EmcLocalRecalibrator::ReadEnergyCorrection(const int& a_runnumber)
 {
   if( _file_energycalibration == "" )
   {
@@ -98,7 +98,7 @@ void EmcLocalRecalibrator::ReadEnergyCorrection(const Int_t& a_runnumber)
   calib_fin.open(_file_energycalibration.c_str());
 
   Bool_t chk = kFALSE;
-  Double_t con[8];
+  double con[8];
 
   /* loop over lines in file */
   string calib_line;
@@ -108,7 +108,7 @@ void EmcLocalRecalibrator::ReadEnergyCorrection(const Int_t& a_runnumber)
 
     istringstream iss(calib_line);
 
-    Int_t run;
+    int run;
 
     //if ( !( iss >> dummys >> dummy >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z ) )
     iss >> run >> con[0] >> con[1] >> con[2] >> con[3] >> con[4] >> con[5] >> con[6] >> con[7];
@@ -120,7 +120,7 @@ void EmcLocalRecalibrator::ReadEnergyCorrection(const Int_t& a_runnumber)
     }
   }
 
-  for(Int_t i=0;i<8;++i)
+  for(int i=0;i<8;++i)
   {
     int arm = i / 4;
     int rawsector = i % 4;
@@ -133,7 +133,7 @@ void EmcLocalRecalibrator::ReadEnergyCorrection(const Int_t& a_runnumber)
 }//EmcLocalRecalibrator::ReadRunCalibMap
 
 
-void EmcLocalRecalibrator::ReadTofCorrection( const Int_t& a_fillnumber )
+void EmcLocalRecalibrator::ReadTofCorrection( const int& a_fillnumber )
 {
   if( _file_tofmap == "" )
   {
@@ -161,14 +161,14 @@ void EmcLocalRecalibrator::ReadTofCorrection( const Int_t& a_fillnumber )
     exit(1);
   }
 
-  Int_t fill;
-  Float_t tof[8][48][96];
+  int fill;
+  float tof[8][48][96];
   Ttof->SetBranchAddress("fillnumber", &fill);
   Ttof->SetBranchAddress("tof_correction", tof);
 
-  Int_t nentries = Ttof->GetEntries();
+  int nentries = Ttof->GetEntries();
   Bool_t chk=kFALSE;
-  for(Int_t i=0;i<nentries;++i)
+  for(int i=0;i<nentries;++i)
   {
     Ttof->GetEntry(i);
 
@@ -190,15 +190,15 @@ void EmcLocalRecalibrator::ReadTofCorrection( const Int_t& a_fillnumber )
     //exit(1);
   }
 
-  for(Int_t i=0; i<8; i++)
+  for(int i=0; i<8; i++)
   {
     int arm = i / 4;
     int rawsector = i % 4;
     int sector = anatools::CorrectClusterSector( arm, rawsector );
 
     /* Max number of towers for PbSc */
-    Int_t ymax = 35;
-    Int_t zmax = 71;
+    int ymax = 35;
+    int zmax = 71;
 
     /* Different number of towers for PbGlass */
     if ( sector > 5 )
@@ -207,9 +207,9 @@ void EmcLocalRecalibrator::ReadTofCorrection( const Int_t& a_fillnumber )
       zmax = 95;
     }
 
-    for(Int_t ytower=0; ytower<=ymax; ++ytower)
+    for(int ytower=0; ytower<=ymax; ++ytower)
     {
-      for(Int_t ztower=0; ztower<=zmax; ++ztower)
+      for(int ztower=0; ztower<=zmax; ++ztower)
       {
         int towerid = anatools::TowerID( sector , ytower , ztower );
         _tofmap[towerid] = tof[i][ytower][ztower];

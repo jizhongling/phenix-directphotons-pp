@@ -19,7 +19,6 @@ dist_mydata_DATA = \
 include_HEADERS = \
   AnaToolsTowerID.h \
   AnaToolsCluster.h \
-  AnaToolsTrigger.h \
   EMCWarnmapChecker.h \
   DCDeadmapChecker.h \
   PhotonContainer.h \
@@ -28,6 +27,7 @@ include_HEADERS = \
   SpinPattern.h
 
 noinst_HEADERS = \
+  AnaToolsTrigger.h \
   HistogramBooker.h \
   EmcLocalRecalibrator.h \
   EmcLocalRecalibratorSasha.h \

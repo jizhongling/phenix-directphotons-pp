@@ -14,12 +14,10 @@
 #include <getClass.h>
 #include <Fun4AllHistoManager.h>
 #include <Fun4AllReturnCodes.h>
-#include <TrigLvl1.h>
 #include <PHCentralTrack.h>
 #include <RunHeader.h>
 #include <emcClusterContent.h>
 #include <emcClusterContainer.h>
-#include <ErtOut.h>
 #include <PHGlobal.h>
 #include <TOAD.h>
 #include <SpinDBOutput.hh>

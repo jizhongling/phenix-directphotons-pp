@@ -455,7 +455,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     /* Test if particle is a stable prompt photon */
     if( part->GetKF() != PY_GAMMA ||
         part->GetKS() != 1 ||
-        ( parent && fabs(parent->GetKF()) > 100 ) )
+        ( parent && abs(parent->GetKF()) > 100 ) )
       continue;
 
     /* Convert particle into TLorentzVector */
@@ -585,7 +585,7 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe
 
       /* Reference particle should in acceptance and
        * only consider interacting particles in cone */
-      int id = fabs(part2->GetKF());
+      int id = abs(part2->GetKF());
       if( prefInAcc && id != PY_MU && id != PY_NU_E && id != PY_NU_MU )
       {
         TParticlePDG *pdg_part2 = pdg_db->GetParticle( part2->GetKF() );

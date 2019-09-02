@@ -44,11 +44,12 @@ class PhotonHistos: public SubsysReco
     /* Number of histogram array */
     static const int nh_calib = 8*2;
     static const int nh_bbc = 3*2;
+    static const int nh_ertsm = 8*2*3*2;
     static const int nh_ert = 3*2*3*2*2*3;
     static const int nh_etwr = 8*2*8*16;
     static const int nh_dcpartqual = 2*2*3;
     static const int nh_dcgood = 2;
-    static const int nh_dcpart = 2*2;
+    static const int nh_dcpart = 2*2*2*2;
     static const int nh_eta_phi = 3*2*3;
     static const int nh_pion = 3*2*3*4*2*2*2*2*3;
     static const int nh_1photon = 3*2*3*4*2*2*3;
@@ -74,7 +75,7 @@ class PhotonHistos: public SubsysReco
 
     /* Study DC track quality */
     int FillTrackQuality(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
+        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert);
 
     /* Count pi0 yield */
     int FillPi0Spectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
@@ -132,6 +133,7 @@ class PhotonHistos: public SubsysReco
     TH2 *h2_minv[nh_calib];
     TH1 *h_bbc[nh_bbc];
     TH2 *h2_bbc_pion[nh_bbc];
+    TH2 *h2_ertsm[nh_ertsm];
     TH1 *h_ert[nh_ert];
     TH2 *h2_ert_pion[nh_ert];
     TH3 *h3_etwr[nh_etwr];

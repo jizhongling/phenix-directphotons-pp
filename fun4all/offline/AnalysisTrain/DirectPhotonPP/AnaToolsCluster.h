@@ -55,6 +55,22 @@ namespace anatools
   }
 
   /*!
+   * Get the cluster super module
+   * 0~17 for PbSc, 0~31 for PbGl, 0~31 for RICH
+   */
+  inline int GetSM(const emcClusterContent* cluster)
+  {
+    int arm = cluster->arm();
+    int sector = cluster->sector();
+    int ypos = cluster->iypos();
+    int zpos = cluster->izpos();
+    int ert_sm = (arm == 1 && sector < 2) ?
+      ypos/12*8 + zpos/12 : ypos/12*6 + zpos/12;
+
+    return ert_sm;
+  }
+
+  /*!
    * Calculate momentum and energy of single cluster (=photon)
    */
   inline TLorentzVector Get_pE(const emcClusterContent* cluster)

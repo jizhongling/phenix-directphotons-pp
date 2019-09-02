@@ -8,8 +8,7 @@
 #ifndef __ANATOOLSTRIGGER_H__
 #define __ANATOOLSTRIGGER_H__
 
-#define NARMSECT 8
-
+#include "AnaToolsCluster.h"
 #include <TrigLvl1.h>
 #include <TriggerHelper.h>
 #include <ErtOut.h>
@@ -51,40 +50,29 @@ namespace anatools
    *
    * (copied from /offline/AnalysisTrain/Run13_Pi0Ana_YIS)
    */
-  inline Int_t PassERT( const ErtOut* ertout, const emcClusterContent* cluster, const TriggerMode triggermode )
+  inline int PassERT( const ErtOut* ertout, const emcClusterContent* cluster, const TriggerMode triggermode )
   {
     /*
-      int ERThit_N Number of ERT hits in a event
-      int ERTtrigmode[ERThit_N], Trigger mode 0:4x4a, 1:4x4b, 2:4x4c, 3:2x2, 4:RICH
-      int ERTsm[ERThit_N], super module(sm) id, SM counts from left to right, from bottom to top with outside of the detector.
+       int ERThit_N Number of ERT hits in a event
+       int ERTtrigmode[ERThit_N], Trigger mode 0:4x4a, 1:4x4b, 2:4x4c, 3:2x2, 4:RICH
+       int ERTsm[ERThit_N], super module(sm) id, SM counts from left to right, from bottom to top with outside of the detector.
 
-      0~17 for PbSc 0~31 for PbGl, 0~31 for RICH
-    */
-
-    /* Tis does not belong here... */
-    Int_t nsm[NARMSECT];
-    for(Int_t i=0;i<NARMSECT;++i)
-      {
-        if(i==4||i==5) nsm[i]=4;
-        else nsm[i]=3;
-      }
+       0~17 for PbSc, 0~31 for PbGl, 0~31 for RICH
+       */
 
     /* Here's where the actual function starts */
-    Int_t arm = cluster->arm();
-    Int_t sector = cluster->sector();
-    Int_t armsect = 4*arm + sector;
-    Int_t y = cluster->iypos();
-    Int_t z = cluster->izpos();
-    Int_t sm = (Int_t)((y/12)*2*nsm[armsect]+z/12);
+    int arm = cluster->arm();
+    int sector = cluster->sector();
+    int sm = GetSM(cluster);
     if(triggermode != ERT_4x4or)
     {
-      Int_t trigger = ertout->get_ERTbit(triggermode, arm, sector, sm);
+      int trigger = ertout->get_ERTbit(triggermode, arm, sector, sm);
       return trigger;
     }
     else
     {
-      Int_t trigger[3] = {};
-      for(Int_t i=0; i<3; i++)
+      int trigger[3] = {};
+      for(int i=0; i<3; i++)
         trigger[i] = ertout->get_ERTbit((TriggerMode)i, arm, sector, sm);
       return trigger[0] || trigger[1] || trigger[2];
     }

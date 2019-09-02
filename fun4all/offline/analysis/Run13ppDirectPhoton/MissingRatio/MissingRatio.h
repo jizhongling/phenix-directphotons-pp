@@ -25,13 +25,13 @@ class MissingRatio: public SubsysReco
     int End(PHCompositeNode *topNode);
 
   protected:
-    void BookHistograms();
-
     /* Number of pT bins */
     static const int npT = 30;
 
     /* PT bins */
     static double vpT[npT+1];
+
+    void BookHistograms();
 
     std::string outFileName;
 

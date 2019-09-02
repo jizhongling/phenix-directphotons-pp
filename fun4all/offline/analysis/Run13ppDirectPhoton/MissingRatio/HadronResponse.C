@@ -3,6 +3,7 @@
 #include <AnaToolsCluster.h>
 #include <EMCWarnmapChecker.h>
 #include <DCDeadmapChecker.h>
+#include "AnaTrk.h"
 
 #include <emcNodeHelper.h>
 #include <emcGeaTrackContainer.h>
@@ -27,14 +28,8 @@
 #include <THnSparse.h>
 
 #include <iostream>
-#include <fstream>
 
 using namespace std;
-
-double HadronResponse::vpT[] = { 0.0,
-  0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
-  5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
-  12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
 
 /* Global constants */
 const int PHOTON_PID = 1;
@@ -71,6 +66,7 @@ HadronResponse::HadronResponse(const string &name, const char *filename):
   h_events(NULL),
   hn_alphaboard(NULL),
   hn_dclive(NULL),
+  hn_prob_photon(NULL),
   hn_1photon(NULL),
   hn_2photon(NULL),
   weight_pythia(1.)
@@ -194,6 +190,22 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
     hn_dclive->Fill(fill_hn_dclive, weight_pythia);
   }
 
+  /* Loop over EMC truth tracks */
+  int nemctrk = emctrkcont->size();
+  for(int itrk=0; itrk<nemctrk; itrk++)
+  {
+    emcGeaTrackContent *emctrk = emctrkcont->get(itrk);
+    AnaTrk *anatrk = new AnaTrk(emctrk, emccluscont);
+    if( anatrk && anatrk->cid >= 0 && !anatrk->decayed )
+    {
+      int isPhoton = anatrk->pid == PHOTON_PID ? 1 : 0;
+      int passProb = anatrk->prob_photon > probMin ? 1 : 0;
+      double fill_hn_prob_photon[] =
+      {anatrk->cluspt, (double)anatrk->sector, (double)isPhoton, (double)passProb};
+      hn_prob_photon->Fill(fill_hn_prob_photon, weight_pythia);
+    }
+  }
+
   /* Loop over EMC reco clusters */
   int nemcclus = emccluscont->size();
   for(int iclus=0; iclus<nemcclus; iclus++)
@@ -251,7 +263,8 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
           if( econePair < eratio * cluster1->ecore() )
             isopair = 1;
 
-          double fill_hn_2photon[] = {pT, tot_pT, minv, (double)sector, (double)isolated, (double)isopair};
+          double fill_hn_2photon[] =
+          {pT, tot_pT, minv, (double)sector, (double)isolated, (double)isopair};
           hn_2photon->Fill(fill_hn_2photon, weight_pythia);
         } // jclus
     } // check photon1
@@ -276,6 +289,13 @@ void HadronResponse::BookHistograms()
   /* Initialize histogram manager */
   hm = new Fun4AllHistoManager("HistoManager");
   hm->setOutfileName(outFileName);
+
+  /* pT bins */
+  const int npT = 30;
+  const double pTbin[npT+1] = { 0.0,
+    0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
+    5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
+    12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
 
   /* eta and phi bins step size */
   const double step[2] = {0.011, 0.008};
@@ -320,6 +340,7 @@ void HadronResponse::BookHistograms()
   hn_alphaboard->Sumw2();
   hm->registerHisto(hn_alphaboard);
 
+  /* DC live area */
   int nbins_hn_dclive[] = {200, 50, 30, 2};
   double xmin_hn_dclive[] = {-100., -1., 0., -0.5};
   double xmax_hn_dclive[] = {100., 4., 15., 1.5};
@@ -336,13 +357,23 @@ void HadronResponse::BookHistograms()
     hm->registerHisto(h2_eta_phi[ih]);
   }
 
+  /* EMCal prob_photon */
+  int nbins_hn_prob_photon[] = {npT, 8, 2, 2};
+  double xmin_hn_prob_photon[] = {0., -0.5, -0.5, -0.5};
+  double xmax_hn_prob_photon[] = {0., 7.5, 1.5, 1.5};
+  hn_prob_photon = new THnSparseF("hn_prob_photon", "EMCal prob_photon;p_{T} [GeV];Sector;IsPhoton;PassProb;",
+      4, nbins_hn_prob_photon, xmin_hn_prob_photon, xmax_hn_prob_photon);
+  hn_prob_photon->SetBinEdges(0, pTbin);
+  hn_prob_photon->Sumw2();
+  hm->registerHisto(hn_prob_photon);
+
   /* EMCal reco one photon */
   int nbins_hn_1photon[] = {npT, 8, 2};
   double xmin_hn_1photon[] = {0., -0.5, -0.5};
   double xmax_hn_1photon[] = {0., 7.5, 1.5};
   hn_1photon = new THnSparseF("hn_1photon", "EMCal one photon;p_{T} [GeV];Sector;Isolated;",
       3, nbins_hn_1photon, xmin_hn_1photon, xmax_hn_1photon);
-  hn_1photon->SetBinEdges(0, vpT);
+  hn_1photon->SetBinEdges(0, pTbin);
   hn_1photon->Sumw2();
   hm->registerHisto(hn_1photon);
 
@@ -352,8 +383,8 @@ void HadronResponse::BookHistograms()
   double xmax_hn_2photon[] = {0., 0., 0.3, 7.5, 1.5, 1.5};
   hn_2photon = new THnSparseF("hn_2photon", "EMCal two photon;p^{1photon}_{T} [GeV];p^{2photon}_{T} [GeV];m_{inv} [GeV];Sector;Isolated;Isopair;",
       6, nbins_hn_2photon, xmin_hn_2photon, xmax_hn_2photon);
-  hn_2photon->SetBinEdges(0, vpT);
-  hn_2photon->SetBinEdges(1, vpT);
+  hn_2photon->SetBinEdges(0, pTbin);
+  hn_2photon->SetBinEdges(1, pTbin);
   hn_2photon->Sumw2();
   hm->registerHisto(hn_2photon);
 
