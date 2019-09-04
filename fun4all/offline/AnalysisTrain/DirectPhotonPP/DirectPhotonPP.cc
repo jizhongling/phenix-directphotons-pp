@@ -48,9 +48,9 @@ DirectPhotonPP::DirectPhotonPP(const char* outfile) :
   _photon_tof_min( -10 ),
   _photon_tof_max( 10 ),
   _direct_photon_energy_min( 1.0 ),
-  _emcrecalib( NULL ),
-  _emcrecalib_sasha( NULL ),
-  _emcwarnmap( NULL ),
+  _emcrecalib( nullptr ),
+  _emcrecalib_sasha( nullptr ),
+  _emcwarnmap( nullptr ),
   _debug_cluster( false ),
   _debug_trigger( false ),
   _debug_pi0( false )
@@ -120,7 +120,7 @@ DirectPhotonPP::InitRun(PHCompositeNode *topNode)
 {
   /* Get run number */
   RunHeader* runheader = findNode::getClass<RunHeader>(topNode, "RunHeader");
-  if(runheader == NULL)
+  if(runheader == nullptr)
   {
     cout << "No RunHeader." << endl;
     return ABORTRUN;

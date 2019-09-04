@@ -30,7 +30,7 @@ void anaPileup_IsoPhoton(const int process = 0)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15354/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15381/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() ) continue;
 
     TH1 *h_events = (TH1*)f->Get("h_events");
@@ -107,9 +107,9 @@ void anaPileup_IsoPhoton(const int process = 0)
     //    }
     //}
 
-    ULong64_t nclock = db->GetClockLive(runnumber);
-    ULong64_t nmb = db->GetBBCNarrowLive(runnumber);
-    ULong64_t scaledown = db->GetERT4x4cScaledown(runnumber) + 1;
+    unsigned long long nclock = db->GetClockLive(runnumber);
+    unsigned long long nmb = db->GetBBCNarrowLive(runnumber);
+    unsigned long long scaledown = db->GetERT4x4cScaledown(runnumber) + 1;
 
     double nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("ert_c_10cm") );
     //double nev = nmb / scaledown;

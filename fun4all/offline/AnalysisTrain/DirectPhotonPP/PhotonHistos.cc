@@ -70,60 +70,60 @@ const unsigned bit_ert4x4[4] = {0x00000080, 0x00000040, 0x00000100, 0x000001C0};
 
 PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   SubsysReco(name),
-  emcrecalib(NULL),
-  emcrecalib_sasha(NULL),
-  emcwarnmap(NULL),
-  dcdeadmap(NULL),
-  spinpattern(NULL),
+  emcrecalib(nullptr),
+  emcrecalib_sasha(nullptr),
+  emcwarnmap(nullptr),
+  dcdeadmap(nullptr),
+  spinpattern(nullptr),
   runnumber(0),
   fillnumber(0),
-  hm(NULL)
+  hm(nullptr)
 {
   datatype = ERT;
 
   outFile = "PhotonHistos-";
   outFile.append(filename);
 
-  h_events = NULL;
-  h_prod = NULL;
+  h_events = nullptr;
+  h_prod = nullptr;
   for(int ih=0; ih<nh_calib; ih++)
   {
-    h2_tof[ih] = NULL;
-    h2_minv[ih] = NULL;
+    h2_tof[ih] = nullptr;
+    h2_minv[ih] = nullptr;
   }
   for(int ih=0; ih<nh_bbc; ih++)
   {
-    h_bbc[ih] = NULL;
-    h2_bbc_pion[ih] = NULL;
+    h_bbc[ih] = nullptr;
+    h2_bbc_pion[ih] = nullptr;
   }
   for(int ih=0; ih<nh_ertsm; ih++)
-    h2_ertsm[ih] = NULL;
+    h2_ertsm[ih] = nullptr;
   for(int ih=0; ih<nh_ert; ih++)
   {
-    h_ert[ih] = NULL;
-    h2_ert_pion[ih] = NULL;
+    h_ert[ih] = nullptr;
+    h2_ert_pion[ih] = nullptr;
   }
   for(int ih=0; ih<nh_etwr; ih++)
-    h3_etwr[ih] = NULL;
+    h3_etwr[ih] = nullptr;
   for(int ih=0; ih<nh_dcpartqual; ih++)
   {
-    h3_dcdphiz[ih] = NULL;
-    h2_alphaboard[ih] = NULL;
+    h3_dcdphiz[ih] = nullptr;
+    h2_alphaboard[ih] = nullptr;
   }
   for(int ih=0; ih<nh_dcgood; ih++)
-    h3_dclive[ih] = NULL;
+    h3_dclive[ih] = nullptr;
   for(int ih=0; ih<nh_dcpart; ih++)
-    h2_emcdphiz[ih] = NULL;
+    h2_emcdphiz[ih] = nullptr;
   for(int ih=0; ih<nh_eta_phi; ih++)
-    h2_eta_phi[ih] = NULL;
+    h2_eta_phi[ih] = nullptr;
   for(int ih=0; ih<nh_pion; ih++)
-    h2_pion[ih] = NULL;
+    h2_pion[ih] = nullptr;
   for(int ih=0; ih<nh_1photon; ih++)
-    h_1photon[ih] = NULL;
+    h_1photon[ih] = nullptr;
   for(int ih=0; ih<nh_2photon; ih++)
   {
-    h2_2photon[ih] = NULL;
-    h2_2photon2pt[ih] = NULL;
+    h2_2photon[ih] = nullptr;
+    h2_2photon2pt[ih] = nullptr;
   }
 }
 
@@ -764,7 +764,7 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
       {
         int ert_trig = anatools::PassERT(data_ert, cluster, (anatools::TriggerMode)evtype) ? 1 : 0;
         double bbc_t0 = data_global->getBbcTimeZero();
-        int isPhoton = TestPhoton(cluster, bbc_t0) ? 1 : 0;
+        int isPhoton = ( emcwarnmap->InFiducial(cluster) && TestPhoton(cluster, bbc_t0) ) ? 1 : 0;
 
         double dczed = data_tracks->get_zed(itrk_match);
         int dcarm = data_tracks->get_dcarm(itrk_match);
@@ -773,8 +773,8 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
 
         TVector3 v3_cluster(cluster->x(), cluster->y(), cluster->z());
         TVector3 v3_track(data_tracks->get_pemcx(itrk_match), data_tracks->get_pemcy(itrk_match), data_tracks->get_pemcz(itrk_match));
-        double dcdphi = (v3_track-v3_cluster).Phi();
-        double dcdz = (v3_track-v3_cluster).Z();
+        double dcdphi = v3_track.DeltaPhi(v3_cluster);
+        double dcdz = v3_track.Z() - v3_cluster.Z();
 
         int ih = dcns + 2*dcwe + 2*2*ert_trig + 2*2*2*isPhoton;
         h2_emcdphiz[ih]->Fill(dcdphi, dcdz);

@@ -7,15 +7,19 @@ void draw_DCCheck(const int print_dcboard = 0)
 
   // h2/h3[ns][we]
   TH3 *h3_dphiz[2][2];
+  TH2 *h2_dphiz[2][2];
   TH2 *h2_board[2][2];
 
   TH3 *h3_dphiz_t = (TH3*)f->Get("h3_dcdphiz_0");
+  TH2 *h2_dphiz_t = (TH2*)f->Get("h2_emcdphiz_0");
   TH2 *h2_board_t = (TH2*)f->Get("h2_alphaboard_0");
   TH3 *h3_live = (TH3*)f->Get("h3_dclive_0");
   h3_dphiz_t = (TH3*)h3_dphiz_t->Clone();
+  h2_dphiz_t = (TH2*)h2_dphiz_t->Clone();
   h2_board_t = (TH2*)h2_board_t->Clone();
   h3_live = (TH3*)h3_live->Clone();
   h3_dphiz_t->Reset();
+  h2_dphiz_t->Reset();
   h2_board_t->Reset();
   h3_live->Reset();
 
@@ -23,6 +27,7 @@ void draw_DCCheck(const int print_dcboard = 0)
     for(int we=0; we<2; we++)
     {
       h3_dphiz[ns][we] = (TH3*)h3_dphiz_t->Clone( Form("h3_dphiz_ns%d_we_%d",ns,we) );
+      h2_dphiz[ns][we] = (TH2*)h2_dphiz_t->Clone( Form("h2_dphiz_ns%d_we_%d",ns,we) );
       h2_board[ns][we] = (TH2*)h2_board_t->Clone( Form("h2_board_ns%d_we_%d",ns,we) );
       for(int iqual=1; iqual<3; iqual++)
       {
@@ -34,6 +39,14 @@ void draw_DCCheck(const int print_dcboard = 0)
         delete h3_dphiz_tmp;
         delete h2_board_tmp;
       }
+      for(int trig=1; trig<2; trig++)
+        for(int ph=1; ph<2; ph++)
+        {
+          int ih = ns + 2*we + 2*2*trig + 2*2*2*ph;
+          TH2 *h2_dphiz_tmp = (TH2*)f->Get( Form("h2_emcdphiz_%d",ih) );
+          h2_dphiz[ns][we]->Add(h2_dphiz_tmp);
+          delete h2_dphiz_tmp;
+        }
     }
 
   for(int iqual=1; iqual<3; iqual++)
@@ -64,6 +77,7 @@ void draw_DCCheck(const int print_dcboard = 0)
   for(int id=0; id<2; id++)
   {
     mc(id+2, 2,2);
+    mc(id+4, 2,2);
     for(int ns=0; ns<2; ns++)
       for(int we=0; we<2; we++)
       {
@@ -89,17 +103,28 @@ void draw_DCCheck(const int print_dcboard = 0)
         f_fit->SetLineColor(kRed);
         h_diff->DrawCopy();
         f_fit->DrawCopy("SAME");
+
+        mcd(id+4, 2*ns+we+1);
+        if(id == 0)
+          h_diff = (TH1*)h2_dphiz[ns][we]->ProjectionX()->Clone("h_dphi");
+        else if(id == 1)
+          h_diff = (TH1*)h2_dphiz[ns][we]->ProjectionY()->Clone("h_dz");
+
+        h_diff->GetXaxis()->SetRange(0,-1);
+        h_diff->SetTitle(NS+WE);
+        aset(h_diff);
+        h_diff->DrawCopy();
       }
   }
 
   QueryTree *qt_dc = new QueryTree("data/DCCheck-withmap.root");
 
-  mc(4, 2,2);
+  mc(6, 2,2);
   for(int ns=0; ns<2; ns++)
     for(int we=0; we<2; we++)
     {
       int ig = we + 2*ns;
-      mcd(4, ig+1);
+      mcd(6, ig+1);
       TString NS = ns ? "S" : "N";
       TString WE = we ? "E" : "W";
       TGraphErrors *gr = qt_dc->Graph(ig);
@@ -128,11 +153,11 @@ void draw_DCCheck(const int print_dcboard = 0)
     }
   cout << endl;
 
-  mc(5, 2,1);
+  mc(7, 2,1);
   TH2 *h2_phi[2];  // h2_phi[ns]
   for(int ns=0; ns<2; ns++)
   {
-    mcd(5, ns+1);
+    mcd(7, ns+1);
     TString name = ns ? "h2_phi_zm" : "h2_phi_zp";
     TString title = ns ? "DC phi vs run in South" : "DC phi vs run in North";
     h2_phi[ns] = (TH2*)qt_dc->Get(name);
@@ -143,7 +168,7 @@ void draw_DCCheck(const int print_dcboard = 0)
   if(!print_dcboard)
     return;
 
-  mc(6, 2,2);
+  mc(8, 2,2);
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist-DC3sigma.txt");
   c6->Print("plots/DCAlphaBoard-withmap.pdf(", "pdf");
@@ -152,7 +177,7 @@ void draw_DCCheck(const int print_dcboard = 0)
     for(int ns=0; ns<2; ns++)
       for(int we=0; we<2; we++)
       {
-        mcd(6, ns*2+we+1);
+        mcd(8, ns*2+we+1);
         TString NS = ns ? "S" : "N";
         TString WE = we ? "E" : "W";
         TH2 *h2_board_run = (TH2*)qt_dc->Get( Form("h2_board_ns%d_we%d_%d",ns,we,runnumber) );

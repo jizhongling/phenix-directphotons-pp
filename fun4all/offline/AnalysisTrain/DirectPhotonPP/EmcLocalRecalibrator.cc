@@ -154,7 +154,7 @@ void EmcLocalRecalibrator::ReadTofCorrection( const int& a_fillnumber )
   }
 
   TTree* Ttof = (TTree*)tofmapf->Get("T");
-  if(Ttof==NULL)
+  if(Ttof==nullptr)
   {
     cout << PHWHERE << "Can not find T in tofmap root file." << endl;
     delete tofmapf;

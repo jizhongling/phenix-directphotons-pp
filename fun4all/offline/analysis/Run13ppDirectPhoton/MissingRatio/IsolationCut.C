@@ -44,9 +44,9 @@ using namespace std;
 
 IsolationCut::IsolationCut(const char *filename) : _ievent(0),
   _event_nphotons(0),
-  _emcwarnmap( NULL ),
-  _hn_energy_cone( NULL ),
-  _hn_energy_cone_reco( NULL ),
+  _emcwarnmap( nullptr ),
+  _hn_energy_cone( nullptr ),
+  _hn_energy_cone_reco( nullptr ),
   _tree_recocluster(nullptr),
   _tree_mcparticles(nullptr),
   _truth_pid(-9999.),
@@ -57,7 +57,7 @@ IsolationCut::IsolationCut(const char *filename) : _ievent(0),
   _truth_eta(-9999.),
   _truth_phi(-9999.),
   _output_file_name("IsolationCut_output.root"),
-  _file_output( NULL )
+  _file_output( nullptr )
 {
   /* construct output file names */
   _output_file_name = "histos/IsolationCut-";
@@ -360,7 +360,7 @@ int IsolationCut::process_event(PHCompositeNode *topNode)
 
     /* get particle ID of parent of truth particle (if any) */
     unsigned parent_id = 0;
-    emcGeaTrackContent *truth_parent_i = NULL;
+    emcGeaTrackContent *truth_parent_i = nullptr;
 
     if ( truth_particle_i )
     {
@@ -496,7 +496,7 @@ int IsolationCut::End(PHCompositeNode *topNode)
 emcGeaTrackContent* IsolationCut::FindTruthParticle( emcGeaClusterContent* cluster )
 {
   /* pointer to truth particle associated with cluster */
-  emcGeaTrackContent* truthparticle = NULL;
+  emcGeaTrackContent* truthparticle = nullptr;
 
   /* loop over all truth particle and pick the one with maximum deposited energy in this cluster */
   float edepMax = 0.;

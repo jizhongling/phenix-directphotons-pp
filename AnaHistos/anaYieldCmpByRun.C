@@ -28,7 +28,7 @@ void anaYieldCmpByRun(const int process = 0)
     thread++;
     if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
 
-    TFile *f_mine = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15354/data/PhotonHistos-%d.root",runnumber));
+    TFile *f_mine = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15381/data/PhotonHistos-%d.root",runnumber));
     TFile *f_sasha = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510ERT/12232/data/Pi0PP-%d.root",runnumber));
     if( f_mine->IsZombie() || f_sasha->IsZombie() ) continue;
 

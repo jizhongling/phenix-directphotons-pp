@@ -60,15 +60,15 @@ const double eratio = 0.1;
 
 HadronResponse::HadronResponse(const string &name, const char *filename):
   SubsysReco(name),
-  emcwarnmap(NULL),
-  dcdeadmap(NULL),
-  hm(NULL),
-  h_events(NULL),
-  hn_alphaboard(NULL),
-  hn_dclive(NULL),
-  hn_prob_photon(NULL),
-  hn_1photon(NULL),
-  hn_2photon(NULL),
+  emcwarnmap(nullptr),
+  dcdeadmap(nullptr),
+  hm(nullptr),
+  h_events(nullptr),
+  hn_alphaboard(nullptr),
+  hn_dclive(nullptr),
+  hn_prob_photon(nullptr),
+  hn_1photon(nullptr),
+  hn_2photon(nullptr),
   weight_pythia(1.)
 {
   /* Construct output file names */
@@ -80,7 +80,7 @@ HadronResponse::HadronResponse(const string &name, const char *filename):
   cross_ph->SetParameters(255., 5.98, 0.273, 14.43);
 
   for(int ih=0; ih<nh_eta_phi; ih++)
-    h2_eta_phi[ih] = NULL;
+    h2_eta_phi[ih] = nullptr;
 }
 
 HadronResponse::~HadronResponse()

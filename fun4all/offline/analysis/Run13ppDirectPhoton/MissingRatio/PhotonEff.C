@@ -39,9 +39,9 @@ const double PI = TMath::Pi();
 
 PhotonEff::PhotonEff(const string &name, const char *filename):
   SubsysReco(name),
-  emcwarnmap(NULL),
-  hm(NULL),
-  hn_1photon(NULL)
+  emcwarnmap(nullptr),
+  hm(nullptr),
+  hn_1photon(nullptr)
 {
   /* Construct output file names */
   outFileName = "histos/PhotonEff-";
@@ -53,7 +53,7 @@ PhotonEff::PhotonEff(const string &name, const char *filename):
 
   /* Initialize histograms */
   for(int part=0; part<3; part++)
-    h2_photon_eta_phi[part] = NULL;
+    h2_photon_eta_phi[part] = nullptr;
 }
 
 PhotonEff::~PhotonEff()

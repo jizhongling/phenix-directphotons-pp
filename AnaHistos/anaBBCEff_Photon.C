@@ -28,8 +28,8 @@ void anaBBCEff_Photon(const int process = 0)
 
     TH3 *h3_trig = (TH3*)f->Get("h3_bbc");
 
-    ULong64_t nclock = db->GetClockLive(runnumber);
-    ULong64_t nmb = db->GetBBCNovtxLive(runnumber);
+    unsigned long long nclock = db->GetClockLive(runnumber);
+    unsigned long long nmb = db->GetBBCNovtxLive(runnumber);
 
     for(int part=0; part<2; part++)
       for(int ipt=0; ipt<npT; ipt++)

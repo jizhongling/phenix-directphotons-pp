@@ -42,11 +42,11 @@ const double PI = TMath::Pi();
 
 PhotonNode::PhotonNode(const string &name) :
   SubsysReco(name),
-  emcrecalib(NULL),
-  emcrecalib_sasha(NULL),
-  emcwarnmap(NULL),
-  photoncont(NULL),
-  spinpattern(NULL),
+  emcrecalib(nullptr),
+  emcrecalib_sasha(nullptr),
+  emcwarnmap(nullptr),
+  photoncont(nullptr),
+  spinpattern(nullptr),
   runnumber(0),
   fillnumber(0)
 {

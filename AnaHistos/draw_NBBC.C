@@ -9,14 +9,14 @@ void draw_BBCCounts()
 
   for(int id=0; id<2; id++)
   {
-    ULong64_t sum_db = 0;
+    unsigned long long sum_db = 0;
 
     int runnumber;
     ifstream fin( Form("/phenix/plhf/zji/taxi/Run13pp510MinBias/%s.txt",fname[id]) );
 
     while( fin >> runnumber )
     {
-      ULong64_t N_bbc_live = db->GetBBCNarrowLive(runnumber) / ( db->GetERT4x4cScaledown(runnumber) + 1 );
+      unsigned long long N_bbc_live = db->GetBBCNarrowLive(runnumber) / ( db->GetERT4x4cScaledown(runnumber) + 1 );
       sum_db += N_bbc_live;
     }
 
@@ -164,7 +164,7 @@ void draw_NBBC()
     TH1 *h_events_ert = (TH1*)f_ert->Get("h_events");
     TH1 *h_events_mb = (TH1*)f_mb->Get("h_events");
 
-    ULong64_t N_bbc_live = db->GetBBCNarrowLive(runnumber) / ( db->GetERT4x4cScaledown(runnumber) + 1 );
+    unsigned long long N_bbc_live = db->GetBBCNarrowLive(runnumber) / ( db->GetERT4x4cScaledown(runnumber) + 1 );
     double N_r_bbc = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow") );
     double N_r_10cm = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm") );
     double r10cm = N_r_10cm / N_r_bbc;

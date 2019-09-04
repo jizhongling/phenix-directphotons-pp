@@ -44,7 +44,7 @@ AnaPHPythiaDirectPhoton::AnaPHPythiaDirectPhoton(const std::string &name): Subsy
                                                                            _tree_event_truth(nullptr),
 									   _ievent(0),
                                                                            _output_file_name("test.root"),
-                                                                           _fout(NULL)
+                                                                           _fout(nullptr)
 {
   /* define set of isolation cone sizes in mrad */
   _v_iso_conesize.push_back( 0.1 );

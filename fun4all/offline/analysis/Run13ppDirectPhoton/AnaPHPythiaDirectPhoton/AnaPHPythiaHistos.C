@@ -48,12 +48,12 @@ const double eTrkMax = 15.;
 AnaPHPythiaHistos::AnaPHPythiaHistos(const string &name, const char *filename):
   SubsysReco(name),
   outFileName(filename),
-  phpythiaheader(NULL),
-  phpythia(NULL),
-  hm(NULL),
-  h2_proc_pt(NULL),
-  hn_photon(NULL),
-  hn_corr(NULL)
+  phpythiaheader(nullptr),
+  phpythia(nullptr),
+  hm(nullptr),
+  h2_proc_pt(nullptr),
+  hn_photon(nullptr),
+  hn_corr(nullptr)
 {
 }
 
@@ -270,7 +270,7 @@ void AnaPHPythiaHistos::FillCorrelation(const TMCParticle *pref, int type)
         !InAcceptance(v3_part2) )
       continue;
 
-    double fill_hn_corr[] = {v3_pref.Pt(), v3_part2.Pt(), fabs(v3_pref.DeltaPhi(v3_part2)), (double)type};
+    double fill_hn_corr[] = {v3_pref.Pt(), v3_part2.Pt(), fabs(v3_part2.DeltaPhi(v3_pref)), (double)type};
     hn_corr->Fill(fill_hn_corr);
   } // ipart2
 

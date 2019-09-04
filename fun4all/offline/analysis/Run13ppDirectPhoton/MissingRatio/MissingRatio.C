@@ -49,19 +49,19 @@ const double merge_radius = 50.;
 
 MissingRatio::MissingRatio(const string &name, const char *filename):
   SubsysReco(name),
-  emcwarnmap(NULL),
-  hm(NULL),
-  hn_conversion_position(NULL),
-  h2_radius(NULL),
-  h2_angle(NULL),
-  h2_photon(NULL),
-  h2_noconv(NULL),
-  h2_vtxconv(NULL),
-  h2_eeinconv(NULL),
-  h2_eeoutconv(NULL),
-  hn_merge(NULL),
-  hn_photon(NULL),
-  hn_pion(NULL)
+  emcwarnmap(nullptr),
+  hm(nullptr),
+  hn_conversion_position(nullptr),
+  h2_radius(nullptr),
+  h2_angle(nullptr),
+  h2_photon(nullptr),
+  h2_noconv(nullptr),
+  h2_vtxconv(nullptr),
+  h2_eeinconv(nullptr),
+  h2_eeoutconv(nullptr),
+  hn_merge(nullptr),
+  hn_photon(nullptr),
+  hn_pion(nullptr)
 {
   /* Construct output file names */
   outFileName = "histos/MissingRatio-";

@@ -27,6 +27,7 @@ void draw_CrossSectionCmp(const int nameid)
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
 
   TString fname = "data/CrossSection-";
+  //QueryTree *qt_cross_0 = new QueryTree(fname+name+"-0.root");
   fname += name + ".root";
   QueryTree *qt_cross = new QueryTree(fname);
 
@@ -46,6 +47,7 @@ void draw_CrossSectionCmp(const int nameid)
     for(int part=0; part<3; part++)
     {
       double Cross, eCross;
+      //qt_cross_0->Query(ipt, part, xpt, Combine, eCombine);
       qt_cross->Query(ipt, part, xpt, Cross, eCross);
       double yy = (Cross - Combine) / Combine;
       double eyy = TMath::Abs(yy+1.) * sqrt( pow(eCross/Cross,2) + pow(eCombine/Combine,2) );

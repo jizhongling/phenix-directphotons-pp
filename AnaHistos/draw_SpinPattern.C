@@ -48,8 +48,8 @@ void draw_SpinPattern(const int process = 0)
     spin_cont.GetPolarizationYellow(1, py[0], py[1], py[2]);
 
     string pat[2];  // for even and odd crossings
-    ULong64_t lum_same[2] = {};  // for even and odd crossings
-    ULong64_t lum_opp[2] = {};  // for even and odd crossings
+    unsigned long long lum_same[2] = {};  // for even and odd crossings
+    unsigned long long lum_opp[2] = {};  // for even and odd crossings
 
     if( spin_out.CheckRunRow(runnumber,qa_level) == 1 &&
         spin_cont.GetRunNumber() == runnumber )
@@ -58,7 +58,7 @@ void draw_SpinPattern(const int process = 0)
         int blue = spin_cont.GetSpinPatternBlue(ib);
         int yellow = spin_cont.GetSpinPatternYellow(ib);
         int value = blue * yellow;
-        ULong64_t bbc_narrow = spin_cont.GetScalerBbcNoCut(ib);
+        unsigned long long bbc_narrow = spin_cont.GetScalerBbcNoCut(ib);
         char cond = 'N';
         if(value == 1)
         {

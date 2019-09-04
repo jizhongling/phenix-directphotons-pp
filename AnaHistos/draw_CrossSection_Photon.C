@@ -53,7 +53,7 @@ void draw_CrossSection_Photon()
   TH2 *h2_2photon2pt[3][3];
 
   int bbc10cm = 1;
-  int ival = 0;
+  int ival = 1;
 
   TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
   h_1photon_t = (TH1*)h_1photon_t->Clone();

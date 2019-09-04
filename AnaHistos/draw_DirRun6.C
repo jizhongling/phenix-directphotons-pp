@@ -1,7 +1,7 @@
 void draw_DirRun6()
 {
   const double PI = TMath::Pi();
-  const double jetphox_scale = 1./200.;  // combined 200 histograms
+  const double jetphox_scale = 1./400.;  // combined 400 histograms
 
   TGraph *gr_run6 = new TGraph("data/run6-cross.txt");
   //TGraph *gr_run6 = new TGraph("data/atlas-cross.txt");
@@ -12,13 +12,13 @@ void draw_DirRun6()
   TGraphErrors *gr_ratio = new TGraphErrors(20);
   int igp = 0;
 
-  TFile *f_th = new TFile("data/isoprompt-cteq66-run6.root");
-  //TFile *f_th = new TFile("data/isoprompt-cteq66-atlas.root");
+  TFile *f_th = new TFile("data/isoprompt-x400-cteq66-run6.root");
+  //TFile *f_th = new TFile("data/isoprompt-x400-cteq66-atlas.root");
   TH1 *h_th = (TH1*)f_th->Get("hp41");
   h_th->Scale(jetphox_scale);
 
   for(int ipt=0; ipt<18; ipt++)
-  //for(int ipt=0; ipt<8; ipt++)
+    //for(int ipt=0; ipt<8; ipt++)
   {
     double pT, run6;
     gr_run6->GetPoint(ipt, pT, run6);

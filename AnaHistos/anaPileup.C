@@ -35,9 +35,9 @@ void anaPileup(const int process = 0)
     hn_pion[0]->GetAxis(4)->SetRange(3,3);
     hn_pion[1]->GetAxis(4)->SetRange(1,1);
 
-    ULong64_t nclock = db->GetClockLive(runnumber);
-    ULong64_t nmb = db->GetBBCNarrowLive(runnumber);
-    ULong64_t scaledown = db->GetERT4x4cScaledown(runnumber) + 1;
+    unsigned long long nclock = db->GetClockLive(runnumber);
+    unsigned long long nmb = db->GetBBCNarrowLive(runnumber);
+    unsigned long long scaledown = db->GetERT4x4cScaledown(runnumber) + 1;
     
     double nev[2];
     //nev[0] = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );

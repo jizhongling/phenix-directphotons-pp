@@ -3,14 +3,14 @@ class DataBase
   public:
     DataBase();
 
-    ULong64_t GetClockLive(ULong64_t runnumber);
-    ULong64_t GetBBCNovtxLive(ULong64_t runnumber);
-    ULong64_t GetBBCNarrowLive(ULong64_t runnumber);
-    ULong64_t GetBBCNarrowScaledown(ULong64_t runnumber);
-    ULong64_t GetBBCNarrowScaledown(ULong64_t runnumber);
-    ULong64_t GetERT4x4aScaledown(ULong64_t runnumber);
-    ULong64_t GetERT4x4bScaledown(ULong64_t runnumber);
-    ULong64_t GetERT4x4cScaledown(ULong64_t runnumber);
+    unsigned long long GetClockLive(unsigned long long runnumber);
+    unsigned long long GetBBCNovtxLive(unsigned long long runnumber);
+    unsigned long long GetBBCNarrowLive(unsigned long long runnumber);
+    unsigned long long GetBBCNarrowScaledown(unsigned long long runnumber);
+    unsigned long long GetBBCNarrowScaledown(unsigned long long runnumber);
+    unsigned long long GetERT4x4aScaledown(unsigned long long runnumber);
+    unsigned long long GetERT4x4bScaledown(unsigned long long runnumber);
+    unsigned long long GetERT4x4cScaledown(unsigned long long runnumber);
 
     int GetSpinPattern(int runnumber);
     void GetPol(int runnumber, double pb[], double py[]);
@@ -24,7 +24,7 @@ class DataBase
      * 2: BBCLL1 novertex live count; 3: BBCLL1 narrowvtx live count;
      * 4: BBCLL1 novertex scaledown; 5: BBC narrowvtx scaledown;
      * 6-8: ERT_4x4a/b/c scaledown; */
-    ULong64_t n_db[NRUN][NVAL];
+    unsigned long long n_db[NRUN][NVAL];
 
     int spin_run[NRUN];  // runnumber from spin database
     char spin_pattern[NRUN][10];  // e.g. SSOO
@@ -56,9 +56,9 @@ void DataBase::DataBase()
   TTree *t1 = (TTree*)fin->Get("t1");
   t1->AddFriend("t1f = t1", "data/SpinPattern.root");
 
-  ULong64_t runno, clock, bbcnovtx_live, bbcnarrow_live;
-  ULong64_t bbcnovtx_scaledown, bbcnarrow_scaledown;
-  ULong64_t erta_scaledown, ertb_scaledown, ertc_scaledown;
+  unsigned long long runno, clock, bbcnovtx_live, bbcnarrow_live;
+  unsigned long long bbcnovtx_scaledown, bbcnarrow_scaledown;
+  unsigned long long erta_scaledown, ertb_scaledown, ertc_scaledown;
 
   int runnumber;
   char pattern[10];
@@ -110,7 +110,7 @@ void DataBase::DataBase()
   delete fin;
 }
 
-ULong64_t DataBase::GetClockLive(ULong64_t runnumber)
+unsigned long long DataBase::GetClockLive(unsigned long long runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(n_db[i][0] == runnumber)
@@ -119,7 +119,7 @@ ULong64_t DataBase::GetClockLive(ULong64_t runnumber)
   return 0;
 }
 
-ULong64_t DataBase::GetBBCNovtxLive(ULong64_t runnumber)
+unsigned long long DataBase::GetBBCNovtxLive(unsigned long long runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(n_db[i][0] == runnumber)
@@ -128,7 +128,7 @@ ULong64_t DataBase::GetBBCNovtxLive(ULong64_t runnumber)
   return 0;
 }
 
-ULong64_t DataBase::GetBBCNarrowLive(ULong64_t runnumber)
+unsigned long long DataBase::GetBBCNarrowLive(unsigned long long runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(n_db[i][0] == runnumber)
@@ -137,7 +137,7 @@ ULong64_t DataBase::GetBBCNarrowLive(ULong64_t runnumber)
   return 0;
 }
 
-ULong64_t DataBase::GetBBCNovtxScaledown(ULong64_t runnumber)
+unsigned long long DataBase::GetBBCNovtxScaledown(unsigned long long runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(n_db[i][0] == runnumber)
@@ -146,7 +146,7 @@ ULong64_t DataBase::GetBBCNovtxScaledown(ULong64_t runnumber)
   return 0;
 }
 
-ULong64_t DataBase::GetBBCNarrowScaledown(ULong64_t runnumber)
+unsigned long long DataBase::GetBBCNarrowScaledown(unsigned long long runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(n_db[i][0] == runnumber)
@@ -155,7 +155,7 @@ ULong64_t DataBase::GetBBCNarrowScaledown(ULong64_t runnumber)
   return 0;
 }
 
-ULong64_t DataBase::GetERT4x4aScaledown(ULong64_t runnumber)
+unsigned long long DataBase::GetERT4x4aScaledown(unsigned long long runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(n_db[i][0] == runnumber)
@@ -164,7 +164,7 @@ ULong64_t DataBase::GetERT4x4aScaledown(ULong64_t runnumber)
   return 0;
 }
 
-ULong64_t DataBase::GetERT4x4bScaledown(ULong64_t runnumber)
+unsigned long long DataBase::GetERT4x4bScaledown(unsigned long long runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(n_db[i][0] == runnumber)
@@ -173,7 +173,7 @@ ULong64_t DataBase::GetERT4x4bScaledown(ULong64_t runnumber)
   return 0;
 }
 
-ULong64_t DataBase::GetERT4x4cScaledown(ULong64_t runnumber)
+unsigned long long DataBase::GetERT4x4cScaledown(unsigned long long runnumber)
 {
   for(int i=0; i<NRUN; i++)
     if(n_db[i][0] == runnumber)

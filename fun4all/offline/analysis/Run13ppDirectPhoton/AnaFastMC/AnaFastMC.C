@@ -71,33 +71,33 @@ AnaFastMC::AnaFastMC(const string &name):
   SubsysReco(name),
   outFileName("histos/AnaFastMC-"),
   mcmethod(FastMC),
-  phpythia(NULL),
-  pdg_db(NULL),
-  emcwarnmap(NULL),
-  dcdeadmap(NULL),
-  hm(NULL),
-  h_events(NULL),
-  h_pion(NULL),
-  h_photon(NULL),
-  h_photon_eta050(NULL),
-  h_photon_eta025(NULL),
-  h_isophoton_eta050(NULL),
-  h_isophoton_eta025(NULL),
-  h3_isopi0(NULL),
-  h3_isoeta(NULL),
-  hn_pion(NULL),
-  hn_missing(NULL),
-  hn_missing_eta(NULL),
-  hn_photon(NULL),
-  hn_geom(NULL),
-  hn_isolated(NULL),
+  phpythia(nullptr),
+  pdg_db(nullptr),
+  emcwarnmap(nullptr),
+  dcdeadmap(nullptr),
+  hm(nullptr),
+  h_events(nullptr),
+  h_pion(nullptr),
+  h_photon(nullptr),
+  h_photon_eta050(nullptr),
+  h_photon_eta025(nullptr),
+  h_isophoton_eta050(nullptr),
+  h_isophoton_eta025(nullptr),
+  h3_isopi0(nullptr),
+  h3_isoeta(nullptr),
+  hn_pion(nullptr),
+  hn_missing(nullptr),
+  hn_missing_eta(nullptr),
+  hn_photon(nullptr),
+  hn_geom(nullptr),
+  hn_isolated(nullptr),
   weight_pythia(1.)
 {
   /* Initialize histograms */
   for(int part=0; part<3; part++)
   {
-    h2_pion_eta_phi[part] = NULL;
-    h2_photon_eta_phi[part] = NULL;
+    h2_pion_eta_phi[part] = nullptr;
+    h2_photon_eta_phi[part] = nullptr;
   }
 
   /* Initialize array for tower status */

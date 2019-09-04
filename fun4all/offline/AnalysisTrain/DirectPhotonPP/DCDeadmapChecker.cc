@@ -178,8 +178,8 @@ int DCDeadmapChecker::GetEmcMatchTrack(const emcClusterContent *cluster, const P
   for(int itrk=0; itrk<npart; itrk++)
   {
     TVector3 v3_track(tracks->get_pemcx(itrk), tracks->get_pemcy(itrk), tracks->get_pemcz(itrk));
-    double dphi = fabs((v3_track-v3_cluster).Phi());
-    double dz = fabs((v3_track-v3_cluster).Z());
+    double dphi = fabs( v3_track.DeltaPhi(v3_cluster) );
+    double dz = fabs( v3_track.Z() - v3_cluster.Z() );
     double mom = tracks->get_mom(itrk);
     if( dphi > 0.015 ||
         !TMath::Finite(mom) ||

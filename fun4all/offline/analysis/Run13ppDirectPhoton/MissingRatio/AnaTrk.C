@@ -10,10 +10,10 @@
 #include <boost/foreach.hpp>
 
 AnaTrk::AnaTrk(emcGeaTrackContent *trk, emcGeaClusterContainer *cluscont):
-  trkno(-9999), pid(-9999), anclvl(-9999), parent_trkno(-9999), parent_trk(NULL),
+  trkno(-9999), pid(-9999), anclvl(-9999), parent_trkno(-9999), parent_trk(nullptr),
   decayed(false), trkpt(-9999.), trkedep(-9999.), trkrbirth(-9999.),
   cid(-9999), arm(-9999), sector(-9999), ecore(-9999), cluspt(-9999.), prob_photon(-9999.),
-  emctrk(trk), emccluscont(cluscont), emcclus(NULL)
+  emctrk(trk), emccluscont(cluscont), emcclus(nullptr)
 {
   daughter_list.clear();
   trkvp.SetXYZ(-9999., -9999., -9999.);
@@ -65,7 +65,7 @@ void AnaTrk::FillCluster()
 
 void AnaTrk::FindCluster()
 {
-  emcclus = NULL;
+  emcclus = nullptr;
 
   float edepMax = 0.;
   emc_clusterlist_t clus_list = emctrk->get_cluster_list();

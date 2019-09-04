@@ -46,9 +46,9 @@ const double AsymCut = 0.8;
 
 Isolation::Isolation(const string &name, const char *filename):
   SubsysReco(name),
-  emcwarnmap(NULL),
-  hm(NULL),
-  hn_photon(NULL)
+  emcwarnmap(nullptr),
+  hm(nullptr),
+  hn_photon(nullptr)
 {
   /* Construct output file names */
   outFileName = "histos/Isolation-";

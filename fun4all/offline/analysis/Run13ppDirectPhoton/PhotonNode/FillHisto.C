@@ -41,22 +41,22 @@ const double AsymCut = 0.8;
 
 FillHisto::FillHisto(const string &name) :
   SubsysReco(name),
-  hm(NULL),
-  emcrecalib(NULL),
-  emcrecalib_sasha(NULL),
-  h_events(NULL),
-  h3_tof(NULL),
-  h3_tof_raw(NULL),
-  h3_minv(NULL),
-  h3_minv_raw(NULL),
-  h3_bbc(NULL),
-  hn_bbc_pion(NULL),
-  h3_ert(NULL),
-  hn_ert_pion(NULL),
-  hn_pion(NULL),
-  hn_1photon(NULL),
-  hn_2photon(NULL),
-  hn_photonbg(NULL),
+  hm(nullptr),
+  emcrecalib(nullptr),
+  emcrecalib_sasha(nullptr),
+  h_events(nullptr),
+  h3_tof(nullptr),
+  h3_tof_raw(nullptr),
+  h3_minv(nullptr),
+  h3_minv_raw(nullptr),
+  h3_bbc(nullptr),
+  hn_bbc_pion(nullptr),
+  h3_ert(nullptr),
+  hn_ert_pion(nullptr),
+  hn_pion(nullptr),
+  hn_1photon(nullptr),
+  hn_2photon(nullptr),
+  hn_photonbg(nullptr),
   runnumber(0),
   runtime(0.)
 {
@@ -78,8 +78,8 @@ FillHisto::FillHisto(const string &name) :
 
   for(Int_t part=0; part<3; part++)
   {
-    h2_photon_eta_phi[part] = NULL;
-    h2_cluster_eta_phi[part] = NULL;
+    h2_photon_eta_phi[part] = nullptr;
+    h2_cluster_eta_phi[part] = nullptr;
   }
 }
 

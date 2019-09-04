@@ -44,7 +44,7 @@ void draw_Jetphox()
       gr_ratio->SetTitle( Form("%s/%s;p_{T} [GeV];#frac{%s}{%s}",jetphox_setnum[iset],jetphox_setden[iset],jetphox_setnum[iset],jetphox_setden[iset]) );
       if(iset < 2)
       {
-        aset(gr_ratio, "","", 5.1,30., 0.6,1.5);
+        aset(gr_ratio, "","", 5.1,30., 0.7,1.1);
       }
       else if(iset == 2)
       {
