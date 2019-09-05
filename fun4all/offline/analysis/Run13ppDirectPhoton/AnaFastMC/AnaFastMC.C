@@ -94,10 +94,10 @@ AnaFastMC::AnaFastMC(const string &name):
   weight_pythia(1.)
 {
   /* Initialize histograms */
-  for(int part=0; part<3; part++)
+  for(int ih=0; ih<nh_eta_phi; ih++)
   {
-    h2_pion_eta_phi[part] = nullptr;
-    h2_photon_eta_phi[part] = nullptr;
+    h2_pion_eta_phi[ih] = nullptr;
+    h2_photon_eta_phi[ih] = nullptr;
   }
 
   /* Initialize array for tower status */
@@ -449,17 +449,17 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
   int npart = phpythia->size();
   for(int ipart=0; ipart<npart; ipart++)
   {
-    TMCParticle *part = phpythia->getParticle(ipart);
-    TMCParticle *parent = phpythia->getParent(part);
+    TMCParticle *particle = phpythia->getParticle(ipart);
+    TMCParticle *parent = phpythia->getParent(particle);
 
     /* Test if particle is a stable prompt photon */
-    if( part->GetKF() != PY_GAMMA ||
-        part->GetKS() != 1 ||
+    if( particle->GetKF() != PY_GAMMA ||
+        particle->GetKS() != 1 ||
         ( parent && abs(parent->GetKF()) > 100 ) )
       continue;
 
     /* Convert particle into TLorentzVector */
-    TLorentzVector pE_part(part->GetPx(), part->GetPy(), part->GetPz(), part->GetEnergy());
+    TLorentzVector pE_part(particle->GetPx(), particle->GetPy(), particle->GetPz(), particle->GetEnergy());
     double pt = pE_part.Pt();
 
     /* Only consider high-pT photons */
@@ -476,8 +476,8 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     TLorentzVector pE_reco(Vpart[0]);
 
     /* Get isolation cone energy */
-    double econe_all, econe_acc;
-    SumETruth(part, InAcc, econe_all, econe_acc);
+    double econe_all, econe_emc, econe_trk[3];
+    SumETruth(particle, InAcc, econe_all, econe_emc, econe_trk);
 
     /* Fill histogram for all prompt photons with |eta| < 0.5 */
     if( fabs(pE_part.Eta()) < 0.5 )
@@ -510,28 +510,33 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
       hn_geom->Fill(fill_hn_geom, weight_pythia);
 
       /* Eta and phi distribution and acceptance for isolated prompt photons */
-      if( econe_acc < eratio * pE_part.P() && pE_reco.P() > eMin)
+      int part = -1;
+      if(sec1 < 0) part = -1;
+      else if(sec1 < 4) part = 0;
+      else if(sec1 < 6) part = 1;
+      else if(sec1 < 8) part = 2;
+
+      double eta = pE_reco.Eta();
+      double phi = pE_reco.Phi();
+      if(sec1 >= 4)
       {
-        int part = -1;
-        if(sec1 < 0) part = -1;
-        else if(sec1 < 4) part = 0;
-        else if(sec1 < 6) part = 1;
-        else if(sec1 < 8) part = 2;
+        pE_reco.RotateZ(-PI);
+        phi = pE_reco.Phi() + PI;
+      }
 
-        double eta = pE_reco.Eta();
-        double phi = pE_reco.Phi();
-        if(sec1 >= 4)
+      for(int ival=0; ival<3; ival++)
+        if( econe_emc + econe_trk[ival] < eratio * pE_part.P() &&
+            pE_reco.P() > eMin )
         {
-          pE_reco.RotateZ(-PI);
-          phi = pE_reco.Phi() + PI;
-        }
+          if( part >= 0 && ptsim > 5. && ptsim < 10. )
+          {
+            int ih = part + 3*ival;
+            h2_photon_eta_phi[ih]->Fill(-eta, phi, weight_pythia);
+          }
 
-        if( part >= 0 && ptsim > 5. && ptsim < 10. )
-          h2_photon_eta_phi[part]->Fill(-eta, phi, weight_pythia);
-
-        double fill_hn_isolated[] = {pt, ptsim, (double)sec1};
-        hn_isolated->Fill(fill_hn_isolated, weight_pythia);
-      } // Iso & e1
+          double fill_hn_isolated[] = {pt, ptsim, (double)sec1, (double)ival};
+          hn_isolated->Fill(fill_hn_isolated, weight_pythia);
+        } // Iso & e1
     } // InFiducial
   } // ipart
 
@@ -550,11 +555,14 @@ int AnaFastMC::End(PHCompositeNode *topNode)
   return EVENT_OK;
 }
 
-void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe_all, double &econe_acc)
+void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc,
+    double &econe_all, double &econe_emc, double econe_trk[])
 {
   /* Sum up all energy in cone around particle */
   econe_all = 0.;
-  econe_acc = 0.;
+  econe_emc = 0.;
+  for(int ival=0; ival<3; ival++)
+    econe_trk[ival] = 0.;
 
   /* Get reference vector */
   TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
@@ -601,14 +609,27 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe
 
           /* Test if particle is in acceptance and not on hot tower */
           if( NPart == 1 && !emcwarnmap->IsBadTower(itw_part[0]) )
-            econe_acc += mom;
+            econe_emc += mom;
         }
 
+        /* For charged particles sum kinetic energy in EMCal
+         * with hadron response */
+        if( charge != 0 && mom > eClusMin )
+          econe_trk[0] += GetEMCResponse(mom);
+
         /* For charged particles sum momentum in DC
-         * if particle is in DC acceptance */
-        else if( charge != 0 && mom > pTrkMin && mom < pTrkMax &&
-            InDCAcceptance(v3_part2, charge) )
-          econe_acc += mom;
+         * if particle is in DC acceptance w/o deadmap */
+        if( charge != 0 && mom > pTrkMin && mom < pTrkMax )
+        {
+          dcdeadmap->Checkmap(false);
+          if( InDCAcceptance(v3_part2, charge) )
+          {
+            econe_trk[1] += mom;
+            dcdeadmap->Checkmap(true);
+            if( InDCAcceptance(v3_part2, charge) )
+              econe_trk[2] += mom;
+          }
+        }
       } // prefInAcc and id
     } // cone_angle
   } // ipart2
@@ -666,11 +687,12 @@ void AnaFastMC::BookHistograms()
   h_photon->Sumw2();
   hm->registerHisto(h_photon);
 
-  for(int part=0; part<3; part++)
+  // ih = part + 3*ival < 3*3
+  for(int ih=0; ih<nh_eta_phi; ih++)
   {
-    h2_photon_eta_phi[part] = new TH2F(Form("h2_photon_eta_phi_part%d",part), "Photon #eta and #phi distribution;#eta;#phi;", neta,etabin[part/2], nphi,phibin);
-    h2_photon_eta_phi[part]->Sumw2();
-    hm->registerHisto(h2_photon_eta_phi[part]);
+    h2_photon_eta_phi[ih] = new TH2F(Form("h2_photon_eta_phi_part%d",ih), "Photon #eta and #phi distribution;#eta;#phi;", neta,etabin[ih%3/2], nphi,phibin);
+    h2_photon_eta_phi[ih]->Sumw2();
+    hm->registerHisto(h2_photon_eta_phi[ih]);
   }
 
   const int nbins_hn_photon[] = {npT, npT, 8};
@@ -755,7 +777,13 @@ void AnaFastMC::BookHistograms()
     hn_geom->Sumw2();
     hm->registerHisto(hn_geom);
 
-    hn_isolated = (THnSparse*)hn_photon->Clone("hn_isolated");
+    const int nbins_hn_isolated[] = {npT, npT, 8, 3};
+    const double xmin_hn_isolated[] = {0., 0., -0.5, -0.5};
+    const double xmax_hn_isolated[] = {0., 0., 7.5, 2.5};
+    hn_isolated = new THnSparseF("hn_isolated", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;ival;",
+        4, nbins_hn_isolated, xmin_hn_isolated, xmax_hn_isolated);
+    hn_isolated->SetBinEdges(0, pTbin);
+    hn_isolated->SetBinEdges(1, pTbin);
     hn_isolated->Sumw2();
     hm->registerHisto(hn_isolated);
   }
@@ -1044,6 +1072,27 @@ bool AnaFastMC::InDCAcceptance( const TVector3 &v3_part, int charge )
     return true;
 
   return false;
+}
+
+double AnaFastMC::GetEMCResponse(double mom)
+  // EMCal hadron response
+{
+  double eout = 0.;
+
+  if( gRandom->Rndm() < 0.43 )
+  {
+    eout = gRandom->Gaus(0.28,0.04);
+    if( eout < 0. ) eout = 0.;
+  }
+  else
+  {
+    double emean = 0.26 + 0.44*mom - 0.0026*mom*mom;
+    double ss = (0.41+0.007*mom)*emean;
+    eout = gRandom->Gaus(emean,ss);
+    if( eout < 0. ) eout = 0.;
+  }
+
+  return eout;
 }
 
 bool AnaFastMC::GetImpactSectorTower(double px, double py, double pz,  

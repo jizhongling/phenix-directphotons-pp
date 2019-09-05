@@ -27,6 +27,7 @@ class DCDeadmapChecker
   public:
     DCDeadmapChecker(int eventsmod = 10000);
 
+    void Checkmap(bool check) { checkmap = check; }
     void SetMapByIndex(int mapindex) { imap = mapindex; }
     void SetMapByRunnumber(int runnumber); 
     void SetMapByEvent(); 
@@ -35,10 +36,10 @@ class DCDeadmapChecker
     bool IsDead(const PHCentralTrack *tracks, int itrk);
 
     bool ChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *tracks);
-    int GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *tracks);
 
   protected:
     static const int nmap = 15;
+    bool checkmap;
     int imap;
     int nevents;
     int nmod;

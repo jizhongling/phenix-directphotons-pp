@@ -6,14 +6,16 @@ INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include -I$(ROOTSYS)/include
 lib_LTLIBRARIES = \
   libMissingRatio.la
 
-#mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
-#dist_mydata_DATA = 
+mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
+dist_mydata_DATA = \
+  ERTEff-SM.root
 
 include_HEADERS =
 
 noinst_HEADERS = \
   AnaToolsTrack.h \
   AnaTrk.h \
+  ERTSimTrigger.h \
   MissingRatio.h \
   PhotonEff.h \
   IsolationCut.h \
@@ -23,6 +25,7 @@ noinst_HEADERS = \
 
 libMissingRatio_la_SOURCES = \
   AnaTrk.C \
+  ERTSimTrigger.C \
   MissingRatio.C \
   PhotonEff.C \
   IsolationCut.C \

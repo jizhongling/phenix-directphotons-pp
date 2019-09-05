@@ -4,6 +4,7 @@
 #include <SubsysReco.h>
 #include <string>
 
+class ERTSimTrigger;
 class EMCWarnmapChecker;
 class DCDeadmapChecker;
 
@@ -34,7 +35,7 @@ class HadronResponse: public SubsysReco
 
   protected:
     /* Number of histogram array */
-    static const int nh_eta_phi = 3*2;
+    static const int nh_eta_phi = 3*2*2*2;
 
     /* Create histograms */
     void BookHistograms();
@@ -50,6 +51,9 @@ class HadronResponse: public SubsysReco
     /* Check charge veto and tower status */
     bool TestPhoton(const emcClusterContent *cluster);
 
+    /* ERT sim trigger */
+    ERTSimTrigger *ertsim;
+
     /* EMC warnmap checker */
     EMCWarnmapChecker *emcwarnmap;
 
@@ -60,12 +64,14 @@ class HadronResponse: public SubsysReco
     Fun4AllHistoManager *hm;
 
     TH1 *h_events;
-    THnSparse *hn_alphaboard;
-    THnSparse *hn_dclive;
     TH2 *h2_eta_phi[nh_eta_phi];
-    THnSparse *hn_prob_photon;
     THnSparse *hn_1photon;
     THnSparse *hn_2photon;
+    THnSparse *hn_prob_photon;
+    THnSparse *hn_dcdphiz;
+    THnSparse *hn_alphaboard;
+    THnSparse *hn_dclive;
+    TH1 *h_prod;
 
     /* Pythia weight */
     TF1 *cross_ph;

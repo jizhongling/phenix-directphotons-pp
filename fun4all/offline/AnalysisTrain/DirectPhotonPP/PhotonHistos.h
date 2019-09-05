@@ -45,15 +45,14 @@ class PhotonHistos: public SubsysReco
     static const int nh_calib = 8*2;
     static const int nh_bbc = 3*2;
     static const int nh_ertsm = 8*2*3*2;
-    static const int nh_ert = 3*2*3*2*2*3;
+    static const int nh_ert = 3*2*3*2*2*2*3;
     static const int nh_etwr = 8*2*8*16;
     static const int nh_dcpartqual = 2*2*3;
     static const int nh_dcgood = 2;
-    static const int nh_dcpart = 2*2*2*2;
-    static const int nh_eta_phi = 3*2*3;
-    static const int nh_pion = 3*2*3*4*2*2*2*2*3;
-    static const int nh_1photon = 3*2*3*4*2*2*3;
-    static const int nh_2photon = 3*2*3*4*2*2*2*3;
+    static const int nh_pion = 3*2*3*4*2*2*2*2*2*3;
+    static const int nh_eta_phi = 3*2*2*3;
+    static const int nh_1photon = 3*2*3*4*2*2*2*3;
+    static const int nh_2photon = 3*2*3*4*2*2*2*2*3;
 
     /* Event counts */
     int FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
@@ -141,9 +140,8 @@ class PhotonHistos: public SubsysReco
     TH2 *h2_alphaboard[nh_dcpartqual];
     TH3 *h3_dclive[nh_dcgood];
     TH1 *h_prod;
-    TH2 *h2_emcdphiz[nh_dcpart];
-    TH2 *h2_eta_phi[nh_eta_phi];
     TH2 *h2_pion[nh_pion];
+    TH2 *h2_eta_phi[nh_eta_phi];
     TH1 *h_1photon[nh_1photon];
     TH2 *h2_2photon[nh_2photon];
     TH2 *h2_2photon2pt[nh_2photon];

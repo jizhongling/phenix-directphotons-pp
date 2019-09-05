@@ -56,9 +56,12 @@ class AnaFastMC: public SubsysReco
 
     static const int n_twrs = 24768;
 
+    static const int nh_eta_phi = 3*3;
+
     void FastMCInput();
     void PythiaInput(PHCompositeNode *topNode);
-    void SumETruth(const TMCParticle *pref, bool prefInAcc, double &econe_all, double &econe_acc);
+    void SumETruth(const TMCParticle *pref, bool prefInAcc,
+        double &econe_all, double &econe_emc, double econe_trk[]);
 
     void BookHistograms();
     void ReadSimWarnmap();
@@ -73,6 +76,7 @@ class AnaFastMC: public SubsysReco
     int GetNpeak();
     bool CheckWarnMap( int itower );
     bool InDCAcceptance( const TVector3 &v3_part, int charge );
+    double GetEMCResponse(double mom);
     bool GetImpactSectorTower(double px, double py, double pz,  
         int& sec, int& iz, int& iy, double& zz, double& yy, 
         double& phi0, double& ximp, double& yimp, double& zimp);
@@ -108,8 +112,8 @@ class AnaFastMC: public SubsysReco
     TH1 *h_photon_eta025;
     TH1 *h_isophoton_eta050;
     TH1 *h_isophoton_eta025;
-    TH2 *h2_pion_eta_phi[3];
-    TH2 *h2_photon_eta_phi[3];
+    TH2 *h2_pion_eta_phi[nh_eta_phi];
+    TH2 *h2_photon_eta_phi[nh_eta_phi];
     TH3 *h3_isopi0;
     TH3 *h3_isoeta;
     THnSparse* hn_pion;

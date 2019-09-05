@@ -15,7 +15,7 @@ void draw_CrossSection_IsoPhoton()
   const double NBBC =  3.52e11;  // from rejection power
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
-  const double Pile[3] = {1.10, 1.07, 1.05};
+  const double Pile[3] = {1.07, 1.07, 1.04};
   const double ePile = 0.02;
   const double TrigBBC = 0.91;
   const double eTrigBBC = 0.01;

@@ -16,6 +16,7 @@
 using namespace std;
 
 DCDeadmapChecker::DCDeadmapChecker(int eventsmod):
+  checkmap(true),
   imap(-1),
   nevents(0),
   nmod(eventsmod)
@@ -116,6 +117,9 @@ void DCDeadmapChecker::SetMapByEvent()
 
 bool DCDeadmapChecker::IsDead(string nswe, double board, double alpha)
 {
+  if(!checkmap)
+    return false;
+
   if(imap < 0 || imap >= nmap)
     return false;
 
@@ -139,7 +143,9 @@ bool DCDeadmapChecker::IsDead(string nswe, double board, double alpha)
 
 bool DCDeadmapChecker::IsDead(const PHCentralTrack *tracks, int itrk)
 {
-  /* phi and zed distributions */
+  if(!checkmap)
+    return false;
+
   double phi = tracks->get_phi(itrk);
   double zed = tracks->get_zed(itrk);
   double alpha = tracks->get_alpha(itrk);
@@ -158,20 +164,6 @@ bool DCDeadmapChecker::IsDead(const PHCentralTrack *tracks, int itrk)
 
 bool DCDeadmapChecker::ChargeVeto(const emcClusterContent *cluster, const PHCentralTrack *tracks)
 {
-  /* 3 sigma charge veto */
-  int itrk_match = GetEmcMatchTrack(cluster, tracks);
-  if( itrk_match >= 0 )
-    return true;
-  else 
-    return false;
-}
-
-int DCDeadmapChecker::GetEmcMatchTrack(const emcClusterContent *cluster, const PHCentralTrack *tracks)
-{
-  int itrk_match = -1;
-  double dzmin = 9999.;
-  double mommax = 0.;
-
   TVector3 v3_cluster(cluster->x(), cluster->y(), cluster->z());
 
   int npart = tracks->get_npart();
@@ -180,34 +172,11 @@ int DCDeadmapChecker::GetEmcMatchTrack(const emcClusterContent *cluster, const P
     TVector3 v3_track(tracks->get_pemcx(itrk), tracks->get_pemcy(itrk), tracks->get_pemcz(itrk));
     double dphi = fabs( v3_track.DeltaPhi(v3_cluster) );
     double dz = fabs( v3_track.Z() - v3_cluster.Z() );
-    double mom = tracks->get_mom(itrk);
-    if( dphi > 0.015 ||
-        !TMath::Finite(mom) ||
-        IsDead(tracks, itrk) )
-      continue;
-
-    if( itrk_match != -1 )
-    {
-      if( dz < 8. && dz < dzmin )
-      {
-        itrk_match = itrk;
-        dzmin = dz;
-        mommax = mom;
-      }
-      else if( dzmin >= 8. && mom > mommax )
-      {
-        itrk_match = itrk;
-        dzmin = dz;
-        mommax = mom;
-      }
-    }
-    else
-    {
-      itrk_match = itrk;
-      dzmin = dz;
-      mommax = mom;
-    }
+    /* 3 sigma charge veto */
+    if( dphi < 0.015 && dz < 12. &&
+        !IsDead(tracks, itrk) )
+      return true;
   }
 
-  return itrk_match;
+  return false;
 }
