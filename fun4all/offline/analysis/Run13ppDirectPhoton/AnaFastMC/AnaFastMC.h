@@ -76,7 +76,7 @@ class AnaFastMC: public SubsysReco
     int GetNpeak();
     bool CheckWarnMap( int itower );
     bool InDCAcceptance( const TVector3 &v3_part, int charge );
-    double GetEMCResponse(double mom);
+    double GetEMCResponse(int id, double mom);
     bool GetImpactSectorTower(double px, double py, double pz,  
         int& sec, int& iz, int& iy, double& zz, double& yy, 
         double& phi0, double& ximp, double& yimp, double& zimp);

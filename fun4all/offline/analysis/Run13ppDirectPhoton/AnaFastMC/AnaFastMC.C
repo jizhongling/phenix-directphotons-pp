@@ -609,13 +609,13 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc,
 
           /* Test if particle is in acceptance and not on hot tower */
           if( NPart == 1 && !emcwarnmap->IsBadTower(itw_part[0]) )
-            econe_emc += mom;
+            econe_emc += GetEMCResponse(id, mom);
         }
 
         /* For charged particles sum kinetic energy in EMCal
          * with hadron response */
         if( charge != 0 && mom > eClusMin )
-          econe_trk[0] += GetEMCResponse(mom);
+          econe_trk[0] += GetEMCResponse(id, mom);
 
         /* For charged particles sum momentum in DC
          * if particle is in DC acceptance w/o deadmap */
@@ -1074,9 +1074,13 @@ bool AnaFastMC::InDCAcceptance( const TVector3 &v3_part, int charge )
   return false;
 }
 
-double AnaFastMC::GetEMCResponse(double mom)
+double AnaFastMC::GetEMCResponse(int id, double mom)
   // EMCal hadron response
 {
+  if( id == PY_GAMMA ||
+      id == PY_ELECTRON )
+    return mom;
+
   double eout = 0.;
 
   if( gRandom->Rndm() < 0.43 )
