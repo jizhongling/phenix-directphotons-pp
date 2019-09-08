@@ -8,14 +8,14 @@
 /Isolation.h/1.3/Sat Aug 24 23:33:59 2019//
 /AnaTrk.C/1.8/Tue Sep  3 19:35:11 2019//
 /ERTEff-SM.root/1.1/Wed Sep  4 18:11:44 2019//
-/ERTSimTrigger.C/1.1/Thu Sep  5 15:49:27 2019//
 /ERTSimTrigger.h/1.1/Thu Sep  5 15:49:35 2019//
-/HadronResponse.C/1.6/Thu Sep  5 20:16:22 2019//
-/HadronResponse.h/1.3/Thu Sep  5 19:37:55 2019//
 /Isolation.C/1.5/Tue Sep  3 19:35:11 2019//
 /IsolationCut.C/1.5/Tue Sep  3 19:35:11 2019//
 /Makefile.am/1.11/Wed Sep  4 20:45:15 2019//
 /MissingRatio.C/1.20/Tue Sep  3 19:35:11 2019//
 /MissingRatio.h/1.17/Sun Aug 25 15:11:19 2019//
 /PhotonEff.C/1.6/Tue Sep  3 19:35:11 2019//
+/ERTSimTrigger.C/1.2/Sun Sep  8 21:24:47 2019//
+/HadronResponse.C/1.7/Sun Sep  8 21:55:44 2019//
+/HadronResponse.h/1.4/Sun Sep  8 21:55:22 2019//
 D

@@ -8,6 +8,7 @@
 
 #include <string>
 
+class PtWeights;
 class EMCWarnmapChecker;
 class DCDeadmapChecker;
 
@@ -23,7 +24,6 @@ class TH1;
 class TH2;
 class TH3;
 class THnSparse;
-class TF1;
 
 enum MCMethod {FastMC, PHParticleGen};
 
@@ -38,7 +38,7 @@ class AnaFastMC: public SubsysReco
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
 
-    void InitBatch(int thread, int scale);
+    void SetWeightPythia(double weight) { weight_pythia = weight; }
     void set_outfile(std::string filename) { outFileName = filename; }
     void set_mcmethod(MCMethod method) { mcmethod = method; }
 
@@ -100,7 +100,12 @@ class AnaFastMC: public SubsysReco
 
     PHPythiaContainer *phpythia;
 
+    /* Pythia pT weights and pT weights calculator */
+    double weight_pythia;
+    PtWeights *ptweights;
+
     TDatabasePDG *pdg_db;
+
     EMCWarnmapChecker *emcwarnmap;
     DCDeadmapChecker *dcdeadmap;
 
@@ -119,13 +124,10 @@ class AnaFastMC: public SubsysReco
     THnSparse* hn_pion;
     THnSparse* hn_missing;
     THnSparse* hn_missing_eta;
+    THnSparse *hn_hadron;
     THnSparse *hn_photon;
     THnSparse *hn_geom;
     THnSparse *hn_isolated;
-
-    TF1 *cross_pi0;
-    TF1 *cross_ph;
-    double weight_pythia;
 };
 
 #endif	/* __ANAFASTMC_H__ */

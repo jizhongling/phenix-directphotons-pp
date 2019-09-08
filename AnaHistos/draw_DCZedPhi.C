@@ -5,15 +5,39 @@ void draw_DCZedPhi()
 
   TH3 *h3_dclive_data = (TH3*)f_data->Get("h3_dclive_1");
   //h3_dclive_data->Add( (TH3*)f_data->Get("h3_dclive_0") );
-  h3_dclive_data->GetZaxis()->SetRange(7,30);
+  h3_dclive_data->GetZaxis()->SetRange(8,30);  // pT
   TH2 *h2_phized_data = (TH2*)h3_dclive_data->Project3D("yx")->Clone("h2_phized_data");
   TH1 *h_zed_data = (TH1*)h2_phized_data->ProjectionX("h_zed_data", 0,-1)->Clone("h_zed_data");
   TH1 *h_phi_data = (TH1*)h2_phized_data->ProjectionY("h_phi_data", 0,-1)->Clone("h_phi_data");;
 
   THnSparse *hn_dclive_sim = (THnSparse*)f_sim->Get("hn_dclive");
-  hn_dclive_sim->GetAxis(3)->SetRange(2,2);
-  hn_dclive_sim->GetAxis(2)->SetRange(7,30);
+
+  mc();
+  mcd();
+  const int sec[] = {1, 25, 40, 50};
+  for(int part=0; part<3; part++)
+  {
+    hn_dclive_sim->GetAxis(1)->SetRange(sec[part],sec[part+1]);  // Sector
+    hn_dclive_sim->GetAxis(3)->SetRange(2,2);  // isDCGood
+    hn_dclive_sim->GetAxis(4)->SetRange(1,2);  // ERT
+    TH1 *h_total = hn_dclive_sim->Projection(2);
+    hn_dclive_sim->GetAxis(4)->SetRange(2,2);  // ERT
+    TH1 *h_passed = hn_dclive_sim->Projection(2);
+    TGraphAsymmErrors *gr = new TGraphAsymmErrors(h_passed, h_total, "n");
+    aset(gr, "p_{T} [GeV]","", 3.1,15., 0.,0.2);
+    style(gr, part+20, part+1);
+    if(part==0)
+      gr->Draw("APE");
+    else
+      gr->Draw("PE");
+  }
+  return;
+
+  hn_dclive_sim->GetAxis(4)->SetRange(1,2);  // ERT
+  hn_dclive_sim->GetAxis(3)->SetRange(2,2);  // isDCGood
+  hn_dclive_sim->GetAxis(2)->SetRange(8,30);  // pT
   TH2 *h2_phized_sim = hn_dclive_sim->Projection(1,0);
+  
   TH1 *h_zed_sim = (TH1*)h2_phized_sim->ProjectionX("h_zed_sim", 0,-1)->Clone("h_zed_sim");
   TH1 *h_phi_sim = (TH1*)h2_phized_sim->ProjectionY("h_phi_sim", 0,-1)->Clone("h_phi_sim");;
 

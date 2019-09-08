@@ -33,7 +33,6 @@ void draw_InvMass_Calib_ByRun() {
       delete h_minv;
     }
 
-    delete h3_minv;
     delete f;
 
   }

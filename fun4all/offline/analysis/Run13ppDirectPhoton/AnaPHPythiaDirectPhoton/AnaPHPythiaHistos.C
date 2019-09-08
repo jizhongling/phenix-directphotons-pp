@@ -83,7 +83,8 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
   double pt_event = phpythiaheader->GetPt();
   h2_proc_pt->Fill(pt_event, (double)proc_id);
 
-  //return EVENT_OK;
+  /* Uncomment when only calculate the weights */
+  return EVENT_OK;
 
   /* Get PYTHIA Particles */
   phpythia = findNode::getClass<PHPythiaContainer>(topNode,"PHPythia");
@@ -171,7 +172,8 @@ void AnaPHPythiaHistos::BookHistograms()
   h2_proc_pt = new TH2F("h2_proc_pt", "Pt and process id", 500,0.,50., 120,0.5,120.5);
   hm->registerHisto(h2_proc_pt);
 
-  //return;
+  /* Uncomment when only calculate the weights */
+  return;
 
   /* pT bins */
   const int npT = 30;

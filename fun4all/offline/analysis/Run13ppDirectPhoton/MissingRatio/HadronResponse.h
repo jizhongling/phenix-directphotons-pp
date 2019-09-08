@@ -14,7 +14,6 @@ class emcClusterContainer;
 class emcClusterContent;
 class PHCentralTrack;
 
-class TF1;
 class TFile;
 class TH1;
 class TH2;
@@ -30,7 +29,7 @@ class HadronResponse: public SubsysReco
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
 
-    void InitBatch(int thread, int scale);
+    void SetWeightPythia(double weight) { weight_pythia = weight; }
     void set_outfile(std::string filename) { outFileName = filename; }
 
   protected:
@@ -50,6 +49,9 @@ class HadronResponse: public SubsysReco
 
     /* Check charge veto and tower status */
     bool TestPhoton(const emcClusterContent *cluster);
+
+    /* Pythia pT weights */
+    double weight_pythia;
 
     /* ERT sim trigger */
     ERTSimTrigger *ertsim;
@@ -72,10 +74,6 @@ class HadronResponse: public SubsysReco
     THnSparse *hn_alphaboard;
     THnSparse *hn_dclive;
     TH1 *h_prod;
-
-    /* Pythia weight */
-    TF1 *cross_ph;
-    double weight_pythia;
 };
 
 #endif /* __HADRONRESPONSE_H__ */

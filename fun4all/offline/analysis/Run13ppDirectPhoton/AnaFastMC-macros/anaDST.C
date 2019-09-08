@@ -7,7 +7,10 @@ void anaDST(const int process = 0,
   gSystem->Load("librecal.so");
   gSystem->Load("libcteval");
   gSystem->Load("libemcEmbed4all.so");
+  gSystem->Load("libAnaFastMC.so");
   gSystem->Load("libMissingRatio.so");
+
+  PtWeights *ptweights = new PtWeights();
 
   // Setup recoConsts
   recoConsts *rc = recoConsts::instance();
@@ -54,7 +57,9 @@ void anaDST(const int process = 0,
   }
 
   // Do the analysis for this DST file
-  my1->InitBatch(process, scale);
+  double pt_start = 3. + process/scale * 0.1;
+  double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "MinBias") / ptweights->Integral(3., 4., "MinBias");
+  my1->SetWeightPythia(weight_pythia);
   se->run(0);
 
   cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;

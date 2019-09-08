@@ -4,7 +4,4 @@
 #pragma link off all functions;
 
 #pragma link C++ class FillHisto-!;
-#pragma link C++ class EmcLocalRecalibrator-!;
-#pragma link C++ class EmcLocalRecalibratorSasha-!;
-#pragma link C++ class PhotonContainerClone-!;
 #endif /* __CINT__ */

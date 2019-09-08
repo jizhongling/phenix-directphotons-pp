@@ -12,6 +12,8 @@ void anaFastMC_PH(const int process = 0, const int scale = 4)
   recoConsts *rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER",0);
 
+  PtWeights *ptweights = new PtWeights();
+
   /////////////////////////////////////////////////////////////////
   //  Server...
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -68,7 +70,9 @@ void anaFastMC_PH(const int process = 0, const int scale = 4)
   // se->registerOutputManager(oscar_manager);
 
   // Run over all events
-  my1->InitBatch(process, scale);
+  double pt_start = 3. + process/scale * 0.1;
+  double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "Photon") / ptweights->Integral(3., 4., "Photon");
+  my1->SetWeightPythia(weight_pythia);
   se->run(500000);
 
   // Write histograms

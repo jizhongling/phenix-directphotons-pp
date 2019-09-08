@@ -4,6 +4,7 @@ void anaMissingRatio(const int process = 0, const int scale = 4)
   gSystem->Load("librecal.so");
   gSystem->Load("libcteval");
   gSystem->Load("libemcEmbed4all.so");
+  gSystem->Load("libAnaFastMC.so");
   gSystem->Load("libMissingRatio.so");
 
   const int nThread = 10;
@@ -13,6 +14,8 @@ void anaMissingRatio(const int process = 0, const int scale = 4)
   rc->set_IntFlag("RUNNUMBER", 390039);
   rc->set_IntFlag("EMCNEW_DEBUG", 0);  // set debugging verbosity level
   rc->set_IntFlag("EMCNEW_PI0VERBOUT", 2);  // 2 - write only clean pi->2g cases
+
+  PtWeights *ptweights = new PtWeights();
 
   // Server
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -61,7 +64,9 @@ void anaMissingRatio(const int process = 0, const int scale = 4)
     }
 
     // Do the analysis for this DST file
-    my1->InitBatch(thread, scale);
+    double pt_start = 3. + thread/scale * 0.1;
+    double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "Photon") / ptweights->Integral(3., 4., "Photon");
+    my1->SetWeightPythia(weight_pythia);
     se->run(0);
 
     cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;

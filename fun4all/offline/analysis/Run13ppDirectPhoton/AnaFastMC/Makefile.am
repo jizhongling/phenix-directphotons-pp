@@ -8,14 +8,17 @@ lib_LTLIBRARIES = \
 
 mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
 dist_mydata_DATA = \
-  dead_eff_run13pp500gev.dat
+  dead_eff_run13pp500gev.dat \
+  MinBiasPtWeights.root
 
 include_HEADERS =
 
 noinst_HEADERS = \
+  PtWeights.h \
   AnaFastMC.h
 
 libAnaFastMC_la_SOURCES = \
+  PtWeights.C \
   AnaFastMC.C \
   AnaFastMC_Dict.C
 
@@ -38,6 +41,7 @@ testexternals.C:
 	echo "int main() {return 0;}" >> $@
 
 AnaFastMC_Dict.C: \
+  PtWeights.h \
   AnaFastMC.h \
   AnaFastMCLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^

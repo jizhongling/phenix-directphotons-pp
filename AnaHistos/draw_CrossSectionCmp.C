@@ -128,6 +128,11 @@ void draw_CrossSectionCmp(const int nameid)
   legi(1, 0.2,0.8,0.9,0.9);
   leg1->SetNColumns(3);
 
+  TLine *line = new TLine();
+  line->SetLineColor(kRed);
+  line->SetLineWidth(5);
+  line->SetLineStyle(2);
+
   for(int imu=0; imu<3; imu++)
   {
     TGraphErrors *gr_nlo = new TGraphErrors(npT);
@@ -166,6 +171,7 @@ void draw_CrossSectionCmp(const int nameid)
       gr_nlo->Draw("ALE");
     else
       gr_nlo->Draw("LE");
+    line->DrawLine(6.1, 1., 30., 1.);
 
     delete h_nlo;
     delete f_nlo;

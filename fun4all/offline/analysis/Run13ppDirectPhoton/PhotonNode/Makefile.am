@@ -12,19 +12,19 @@ lib_LTLIBRARIES = \
 include_HEADERS =
 
 noinst_HEADERS = \
-  FillHisto.h \
+  AnaToolsTowerID.h \
+  AnaToolsPhoton.h \
   EmcLocalRecalibrator.h \
   EmcLocalRecalibratorSasha.h \
   PhotonContainerClone.h \
-  AnaToolsTowerID.h \
-  AnaToolsPhoton.h \
+  FillHisto.h \
   PhotonNodeLinkDef.h
 
 libPhotonNode_la_SOURCES = \
-  FillHisto.C \
   EmcLocalRecalibrator.C \
   EmcLocalRecalibratorSasha.C \
   PhotonContainerClone.C \
+  FillHisto.C \
   PhotonNode_Dict.C
 
 AM_LDFLAGS = \
@@ -47,9 +47,6 @@ testexternals.C:
 
 PhotonNode_Dict.C: \
   FillHisto.h \
-  EmcLocalRecalibrator.h \
-  EmcLocalRecalibratorSasha.h \
-  PhotonContainerClone.h \
   PhotonNodeLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 

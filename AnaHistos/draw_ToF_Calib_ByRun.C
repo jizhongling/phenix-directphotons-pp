@@ -33,7 +33,6 @@ void draw_ToF_Calib_ByRun() {
       delete h_tof;
     }
 
-    delete h3_tof;
     delete f;
 
   }

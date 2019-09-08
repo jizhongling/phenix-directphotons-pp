@@ -62,8 +62,6 @@ void draw_Jetphox()
       if(iset == 0)
         leg0->AddEntry(gr_ratio, Form("%s",jetphox_fname[imu]), "L");
 
-      delete h_num;
-      delete h_den;
       delete f_num;
       delete f_den;
     }

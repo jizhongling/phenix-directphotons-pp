@@ -1,5 +1,6 @@
 #include "AnaFastMC.h"
 
+#include "PtWeights.h"
 #include <AnaToolsTowerID.h>
 #include <EMCWarnmapChecker.h>
 #include <DCDeadmapChecker.h>
@@ -26,7 +27,7 @@
 #include <TMCParticle6.h>
 #endif
 
-#include <TF1.h>
+#include <TMath.h>
 #include <TLorentzVector.h>
 #include <TRandom.h>
 #include <TGenPhaseSpace.h>
@@ -72,6 +73,8 @@ AnaFastMC::AnaFastMC(const string &name):
   outFileName("histos/AnaFastMC-"),
   mcmethod(FastMC),
   phpythia(nullptr),
+  weight_pythia(1.),
+  ptweights(nullptr),
   pdg_db(nullptr),
   emcwarnmap(nullptr),
   dcdeadmap(nullptr),
@@ -88,10 +91,10 @@ AnaFastMC::AnaFastMC(const string &name):
   hn_pion(nullptr),
   hn_missing(nullptr),
   hn_missing_eta(nullptr),
+  hn_hadron(nullptr),
   hn_photon(nullptr),
   hn_geom(nullptr),
-  hn_isolated(nullptr),
-  weight_pythia(1.)
+  hn_isolated(nullptr)
 {
   /* Initialize histograms */
   for(int ih=0; ih<nh_eta_phi; ih++)
@@ -108,14 +111,6 @@ AnaFastMC::AnaFastMC(const string &name):
         tower_status_sim[sec][iy][iz] = 0;
         eTwr[sec][iy][iz] = 0.;
       }
-
-  /* Function for pT weight for pi0 */
-  cross_pi0 = new TF1("cross_pi0", "x*(1/(1+exp((x-[5])/[6]))*[0]/pow(1+x/[1],[2])+(1-1/(1+exp((x-[5])/[6])))*[3]/pow(x,[4]))", 0.1, 100.);
-  cross_pi0->SetParameters(2.02819e+04, 4.59173e-01, 7.51170e+00, 1.52867e+01, 7.22708e+00, 2.15396e+01, 3.65471e+00);
-
-  /* Function for pT weight for direct photon */
-  cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]", 0.1, 100.);
-  cross_ph->SetParameters(255., 5.98, 0.273, 14.43);
 
   NPart = 0;
   NPeak = 0;
@@ -135,6 +130,14 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
 {
   /* Create and register histograms */
   BookHistograms();
+
+  /* pT weights calculator */
+  PtWeights *ptweights = new PtWeights();
+  if(!ptweights)
+  {
+    cerr << "No ptweights" << endl;
+    exit(1);
+  }
 
   /* Get PDGDatabase object */
   pdg_db = new TDatabasePDG();
@@ -164,15 +167,6 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
   }
 
   return EVENT_OK;
-}
-
-void AnaFastMC::InitBatch(int thread, int scale)
-{
-  /* Set Pythia weight */
-  double pt_start = 3. + thread/scale * 0.1;
-  weight_pythia = cross_ph->Integral(pt_start, pt_start+1.) / cross_ph->Integral(3., 4.);
-
-  return;
 }
 
 int AnaFastMC::process_event(PHCompositeNode *topNode)
@@ -237,9 +231,9 @@ void AnaFastMC::FastMCInput()
 
   /* Get event weight for pi0 */
   if(pt > 1.)
-    weight_pi0 = cross_pi0->Eval(pt);
+    weight_pi0 = ptweights->EvalPi0(pt);
   else
-    weight_pi0 = cross_pi0->Eval(1.);
+    weight_pi0 = ptweights->EvalPi0(1.);
 
   /* Fill histogram for all generated pi0 */
   h_pion->Fill(pt, weight_pi0);
@@ -341,9 +335,9 @@ void AnaFastMC::FastMCInput()
   /* Get event weight for eta */
   double pteff = sqrt(pt*pt + mEta*mEta - mPi0*mPi0);
   if(pt > 1.)
-    weight_eta = cross_pi0->Eval(pteff);
+    weight_eta = ptweights->EvalPi0(pteff);
   else
-    weight_eta = cross_pi0->Eval(1.);
+    weight_eta = ptweights->EvalPi0(1.);
 
   for(int iph=0; iph<2; iph++)
     if( emcwarnmap->InFiducial(itw_part[iph]) &&
@@ -389,9 +383,9 @@ void AnaFastMC::FastMCInput()
 
   /* Get event weight for direct photon */
   if(pt > 1.)
-    weight_ph = cross_ph->Eval(pt);
+    weight_ph = ptweights->EvalPhoton(pt);
   else
-    weight_ph = cross_ph->Eval(1.);
+    weight_ph = ptweights->EvalPhoton(1.);
 
   /* Fill histogram for all generated direct photons */
   h_photon->Fill(pt, weight_ph);
@@ -452,18 +446,33 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     TMCParticle *particle = phpythia->getParticle(ipart);
     TMCParticle *parent = phpythia->getParent(particle);
 
-    /* Test if particle is a stable prompt photon */
-    if( particle->GetKF() != PY_GAMMA ||
-        particle->GetKS() != 1 ||
-        ( parent && abs(parent->GetKF()) > 100 ) )
-      continue;
-
     /* Convert particle into TLorentzVector */
     TLorentzVector pE_part(particle->GetPx(), particle->GetPy(), particle->GetPz(), particle->GetEnergy());
     double pt = pE_part.Pt();
 
-    /* Only consider high-pT photons */
+    /* Only consider high-pT particles */
     if( pt < 2. )
+      continue;
+
+    int id = particle->GetKF();
+
+    int hadronid = -1;
+    if( id == PY_PIZERO )
+      hadronid = 0;
+    else if( id == PY_ETA )
+      hadronid = 1;
+    else if( id == 223 )  // omega
+      hadronid = 2;
+    else if( id == 331 )  // eta prime
+      hadronid = 3;
+
+    double fill_hn_hadron[] = {pt, (double)hadronid};
+    hn_hadron->Fill(fill_hn_hadron, weight_pythia);
+
+    /* Test if particle is a stable prompt photon */
+    if( id != PY_GAMMA ||
+        particle->GetKS() != 1 ||
+        ( parent && abs(parent->GetKF()) > 100 ) )
       continue;
 
     /* Fill Vpart[], itwr_part[] and sec_part[]
@@ -548,6 +557,7 @@ int AnaFastMC::End(PHCompositeNode *topNode)
   /* Write histogram output to ROOT file */
   hm->dumpHistos(outFileName);
   delete hm;
+  delete ptweights;
   delete pdg_db;
   delete emcwarnmap;
   delete dcdeadmap;
@@ -776,6 +786,15 @@ void AnaFastMC::BookHistograms()
     hn_geom = (THnSparse*)hn_photon->Clone("hn_geom");
     hn_geom->Sumw2();
     hm->registerHisto(hn_geom);
+
+    const int nbins_hn_hadron[] = {npT, 4};
+    const double xmin_hn_hadron[] = {0., -0.5};
+    const double xmax_hn_hadron[] = {0., 3.5};
+    hn_hadron = new THnSparseF("hn_hadron", "Hadron count;p_{T} [GeV];Hadron ID;",
+        2, nbins_hn_hadron, xmin_hn_hadron, xmax_hn_hadron);
+    hn_hadron->SetBinEdges(0, pTbin);
+    hn_hadron->Sumw2();
+    hm->registerHisto(hn_hadron);
 
     const int nbins_hn_isolated[] = {npT, npT, 8, 3};
     const double xmin_hn_isolated[] = {0., 0., -0.5, -0.5};

@@ -22,13 +22,18 @@ ERTSimTrigger::ERTSimTrigger():
   t_ertsm(nullptr)
 {
   rnd = new TRandom3();
+  if(!rnd)
+  {
+    cout << "No rnd" << endl;
+    exit(1);
+  }
+
   ReadTriggerInfo();
 }
 
 ERTSimTrigger::~ERTSimTrigger()
 {
   delete rnd;
-  delete t_ertsm;
   delete f_ertsm;
 }
 
@@ -95,5 +100,6 @@ void ERTSimTrigger::ReadTriggerInfo()
     exit(1);
   }
 
+  delete toad_loader;
   return;
 }

@@ -7,7 +7,7 @@ lib_LTLIBRARIES = \
   libAnaPHPythiaDirectPhoton.la
 
 #mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
-#  dist_mydata_DATA =
+#dist_mydata_DATA =
 
 include_HEADERS =
 

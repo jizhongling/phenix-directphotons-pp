@@ -24,7 +24,7 @@ void anaPHPythiaHistos(const int process = 0)
   se->registerSubsystem(sync);
 
   PHPythia *phpythia = new PHPythia();
-  //phpythia->SetConfigFile("pythia_purehard.cfg");
+  phpythia->SetConfigFile("pythia_purehard.cfg");
   
   // Set your own seed, otherwise, seeds from /dev/random
   //phpythia->SetSeed(1999);			
@@ -66,6 +66,6 @@ void anaPHPythiaHistos(const int process = 0)
   // se->registerOutputManager(oscar_manager);
   
   // run over all events
-  se->run(1000000);  
+  se->run(5000000);  
   se->End();
 }

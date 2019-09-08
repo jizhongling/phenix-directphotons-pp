@@ -57,29 +57,24 @@ libDirectPhotonPP_la_SOURCES = \
   EmcLocalRecalibratorSasha.cc \
   EMCWarnmapChecker.cc \
   DCDeadmapChecker.cc \
-  DirectPhotonPP.cc \
   PhotonContainer.cc \
   Photon.cc \
   PhotonERT.cc \
+  SpinPattern.cc \
+  DirectPhotonPP.cc \
   PhotonNode.cc \
   PhotonHistos.cc \
-  SpinPattern.cc \
   DirectPhotonPP_Dict.C
 
 # Rule for generating CINT dictionaries from class headers.
 DirectPhotonPP_Dict.C: \
-  HistogramBooker.h \
-  EmcLocalRecalibrator.h \
-  EmcLocalRecalibratorSasha.h \
-  EMCWarnmapChecker.h \
-  DCDeadmapChecker.h \
-  DirectPhotonPP.h \
   PhotonContainer.h \
   Photon.h \
   PhotonERT.h \
+  SpinPattern.h \
+  DirectPhotonPP.h \
   PhotonNode.h \
   PhotonHistos.h \
-  SpinPattern.h \
   DirectPhotonPPLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 

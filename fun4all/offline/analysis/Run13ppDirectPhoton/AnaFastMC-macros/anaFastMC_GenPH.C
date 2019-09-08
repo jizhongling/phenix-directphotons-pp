@@ -15,6 +15,8 @@ void anaFastMC_GenPH(const int process = 0,
   recoConsts *rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER",0);
 
+  PtWeights *ptweights = new PtWeights();
+
   /////////////////////////////////////////////////////////////////
   //  Server...
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -71,7 +73,9 @@ void anaFastMC_GenPH(const int process = 0,
   // se->registerOutputManager(oscar_manager);
 
   // Run over all events
-  my1->InitBatch(process, scale);
+  double pt_start = 3. + process/scale * 0.1;
+  double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "MinBias") / ptweights->Integral(3., 4., "MinBias");
+  my1->SetWeightPythia(weight_pythia);
   se->run(10000);
 
   // Write histograms

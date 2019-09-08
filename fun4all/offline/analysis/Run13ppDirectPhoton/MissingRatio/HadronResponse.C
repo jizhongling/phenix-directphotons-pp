@@ -21,7 +21,7 @@
 #include <Fun4AllHistoManager.h>
 #include <Fun4AllReturnCodes.h>
 
-#include <TF1.h>
+#include <TMath.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
@@ -60,6 +60,7 @@ const double eratio = 0.1;
 
 HadronResponse::HadronResponse(const string &name, const char *filename):
   SubsysReco(name),
+  weight_pythia(1.),
   ertsim(nullptr),
   emcwarnmap(nullptr),
   dcdeadmap(nullptr),
@@ -71,16 +72,11 @@ HadronResponse::HadronResponse(const string &name, const char *filename):
   hn_dcdphiz(nullptr),
   hn_alphaboard(nullptr),
   hn_dclive(nullptr),
-  h_prod(nullptr),
-  weight_pythia(1.)
+  h_prod(nullptr)
 {
   /* Construct output file names */
   outFileName = "histos/HadronResponse-";
   outFileName.append(filename);
-
-  /* Function for pT weight for direct photon */
-  cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]", 0.1, 100.);
-  cross_ph->SetParameters(255., 5.98, 0.273, 14.43);
 
   for(int ih=0; ih<nh_eta_phi; ih++)
     h2_eta_phi[ih] = nullptr;
@@ -120,15 +116,6 @@ int HadronResponse::Init(PHCompositeNode *topNode)
   }
 
   return EVENT_OK;
-}
-
-void HadronResponse::InitBatch(int thread, int scale)
-{
-  /* Set Pythia weight */
-  double pt_start = 3. + thread/scale * 0.1;
-  weight_pythia = cross_ph->Integral(pt_start, pt_start+1.) / cross_ph->Integral(3., 4.);
-
-  return;
 }
 
 int HadronResponse::process_event(PHCompositeNode *topNode)

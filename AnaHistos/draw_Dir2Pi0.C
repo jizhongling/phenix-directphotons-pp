@@ -50,7 +50,6 @@ void draw_Dir2Pi0()
         leg0->Draw();
       }
 
-      delete h_ph;
       delete f_ph;
     }
 
