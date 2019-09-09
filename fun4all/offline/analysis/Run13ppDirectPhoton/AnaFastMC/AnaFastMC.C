@@ -446,15 +446,17 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     TMCParticle *particle = phpythia->getParticle(ipart);
     TMCParticle *parent = phpythia->getParent(particle);
 
-    /* Convert particle into TLorentzVector */
+    /* Get particle code */
+    int id = particle->GetKF();
+
+    /* Put particle's momentum and energy into TLorentzVector */
     TLorentzVector pE_part(particle->GetPx(), particle->GetPy(), particle->GetPz(), particle->GetEnergy());
     double pt = pE_part.Pt();
+    double eta = pE_part.Eta();
 
-    /* Only consider high-pT particles */
-    if( pt < 2. )
+    /* Only consider high-pT particles in central acceptance */
+    if( pt < 2. || fabs(eta) > 1. )
       continue;
-
-    int id = particle->GetKF();
 
     int hadronid = -1;
     if( id == PY_PIZERO )
@@ -489,12 +491,12 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     SumETruth(particle, InAcc, econe_all, econe_emc, econe_trk);
 
     /* Fill histogram for all prompt photons with |eta| < 0.5 */
-    if( fabs(pE_part.Eta()) < 0.5 )
+    if( fabs(eta) < 0.5 )
     {
       h_photon_eta050->Fill(pt, weight_pythia);
 
       /* Fill histogram for all prompt photons with |eta| < 0.25 */
-      if( fabs(pE_part.Eta()) < 0.25 )
+      if( fabs(eta) < 0.25 )
         h_photon_eta025->Fill(pt, weight_pythia);
 
       /* Fill histogram for all isolated prompt photons with |eta| < 0.5 */
@@ -503,7 +505,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
         h_isophoton_eta050->Fill(pt, weight_pythia);
 
         /* Fill histogram for all isolated prompt photons with |eta| < 0.25 */
-        if( fabs(pE_part.Eta()) < 0.25 )
+        if( fabs(eta) < 0.25 )
           h_isophoton_eta025->Fill(pt, weight_pythia);
       }
     }

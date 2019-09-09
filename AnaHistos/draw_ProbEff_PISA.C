@@ -8,7 +8,7 @@ void draw_ProbEff_PISA()
 
   QueryTree *qt_prob = new QueryTree("data/ProbEff-PISA.root", "RECREATE");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/HadronResponse-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/HadronResponse-histo-photon.root");
   THnSparse *hn_prob = (THnSparse*)f->Get("hn_prob_photon");
   TAxis *axis_pt = hn_prob->GetAxis(0);
   TAxis *axis_sec = hn_prob->GetAxis(1);

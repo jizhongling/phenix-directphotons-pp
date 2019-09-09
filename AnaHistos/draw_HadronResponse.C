@@ -9,7 +9,7 @@ void draw_HadronResponse()
 
   QueryTree *qt_res = new QueryTree("data/HadronResponse.root", "RECREATE");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/HadronResponse-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/HadronResponse-histo-photon.root");
   TFile *f_hadron = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/HadronResponse-hadron-histo.root");
   TFile *f_em = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/HadronResponse-em-histo.root");
 
