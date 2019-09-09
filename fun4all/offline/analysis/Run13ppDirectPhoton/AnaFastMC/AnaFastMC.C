@@ -468,8 +468,11 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     else if( id == 331 )  // eta prime
       hadronid = 3;
 
-    double fill_hn_hadron[] = {pt, (double)hadronid};
-    hn_hadron->Fill(fill_hn_hadron, weight_pythia);
+    if( hadronid >= 0 )
+    {
+      double fill_hn_hadron[] = {pt, (double)hadronid};
+      hn_hadron->Fill(fill_hn_hadron, weight_pythia);
+    }
 
     /* Test if particle is a stable prompt photon */
     if( id != PY_GAMMA ||
