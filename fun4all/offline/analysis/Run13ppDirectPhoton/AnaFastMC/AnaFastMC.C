@@ -454,8 +454,8 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     double pt = pE_part.Pt();
     double eta = pE_part.Eta();
 
-    /* Only consider high-pT particles in central acceptance */
-    if( pt < 2. || fabs(eta) > 1. )
+    /* Only consider high-pT particles */
+    if( pt < 2. )
       continue;
 
     int hadronid = -1;
@@ -468,7 +468,8 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     else if( id == 331 )  // eta prime
       hadronid = 3;
 
-    if( hadronid >= 0 )
+    /* For intrested hadrons in central acceptance */
+    if( hadronid >= 0 && fabs(eta) < 1. )
     {
       double fill_hn_hadron[] = {pt, (double)hadronid};
       hn_hadron->Fill(fill_hn_hadron, weight_pythia);

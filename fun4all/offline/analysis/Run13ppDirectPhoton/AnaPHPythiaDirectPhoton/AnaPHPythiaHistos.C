@@ -101,7 +101,7 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
     TMCParticle *part = phpythia->getParticle(ipart);
     TMCParticle *parent = phpythia->getParent(part);
 
-    /* Convert particle into TVector3 */
+    /* Put particle's momentum into TVector3 */
     TVector3 v3_part(part->GetPx(), part->GetPy(), part->GetPz());
     double pt = v3_part.Pt();
 
