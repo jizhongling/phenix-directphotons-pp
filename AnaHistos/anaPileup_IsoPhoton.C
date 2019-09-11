@@ -11,8 +11,8 @@ void anaPileup_IsoPhoton(const int process = 0)
 
   //const double Conv[3] = {0.849, 0.959, 0.959};
   //const double eConv[3] = {0.027, 0.023, 0.023};
-  //const double A = 0.24;
-  //const double eA = 0.04;
+  //const double A = 0.28;
+  //const double eA = 0.05;
 
   QueryTree *qt_pile = new QueryTree(Form("histos/Pileup-isophoton-%d.root",process), "RECREATE");
 

@@ -1408,21 +1408,15 @@ void PhotonHistos::SumEPi0(const emcClusterContent *cluster1, const emcClusterCo
 
 bool PhotonHistos::IsEventType(const int evtype, const TrigLvl1 *data_triggerlvl1)
 {
-  const unsigned lvl1_live = data_triggerlvl1->get_lvl1_triglive();
   const unsigned lvl1_scaled = data_triggerlvl1->get_lvl1_trigscaled();
 
-  if( datatype == ERT )
-  {
-    if( evtype < 3 && (lvl1_scaled & bit_ert4x4[evtype]) )
-      return true;
-    else if( evtype == 3 && (lvl1_live & bit_ert4x4[evtype]) )
-      return true;
-  }
-  else if( datatype == MB )
-  {
-    if( evtype == 0 && (lvl1_scaled & bit_bbcnarrow) )
-      return true;
-  }
+  if( datatype == ERT && evtype < 4 &&
+      (lvl1_scaled & bit_ert4x4[evtype]) )
+    return true;
+
+  if( datatype == MB && evtype == 0 &&
+      (lvl1_scaled & bit_bbcnarrow) )
+    return true;
 
   return false;
 }

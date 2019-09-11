@@ -12,8 +12,8 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
 
   const double Conv[3] = {0.8855, 0.9913, 0.9913};
   const double eConv[3] = {2e-4, 7e-5, 7e-5};
-  const double A = 0.24;
-  const double eA = 0.04;
+  const double A = 0.28;
+  const double eA = 0.05;
 
   QueryTree *qt_acc = new QueryTree("data/Acceptance-isophoton.root", "RECREATE");
 
@@ -33,15 +33,15 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
   TH1 *h_isolated = (TH1*)f_pythia->Get("h_isophoton_eta025");
   THnSparse *hn_geom = (THnSparse*)f_pythia->Get("hn_geom");
   THnSparse *hn_isolated = (THnSparse*)f_pythia->Get("hn_isolated");
-  hn_isolated->GetAxis(3)->SetRange(2,2); // econe_trk[ival]: EMCal, nomap, withmap
+  hn_isolated->GetAxis(3)->SetRange(3,3); // econe_trk[ival]: EMCal, nomap, withmap
 
   TFile *f_pisa = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/HadronResponse-histo-photon.root");
   THnSparse *hn_1photon = (THnSparse*)f_pisa->Get("hn_1photon");
   THnSparse *hn_2photon = (THnSparse*)f_pisa->Get("hn_2photon");
   hn_1photon->GetAxis(4)->SetRange(1,2);  // trig
   hn_2photon->GetAxis(7)->SetRange(1,2);  // trig
-  hn_1photon->GetAxis(3)->SetRange(1,1);  // checkmap
-  hn_2photon->GetAxis(6)->SetRange(1,1);  // checkmap
+  hn_1photon->GetAxis(3)->SetRange(2,2);  // checkmap
+  hn_2photon->GetAxis(6)->SetRange(2,2);  // checkmap
 
   TGraphErrors *gr_geom[3];
   TGraphErrors *gr_iso[3];

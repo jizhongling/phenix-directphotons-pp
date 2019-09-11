@@ -25,8 +25,8 @@ void draw_CrossSection_IsoPhoton()
   const double eConv[3] = {0.027, 0.023, 0.023};
   const double Norm[3] = {0.321, 0.321, 0.243};
   const double eNorm[3] = {0.005, 0.005, 0.005};
-  const double A = 0.24;
-  const double eA = 0.04;
+  const double A = 0.28;
+  const double eA = 0.05;
 
   const double Prob[2][npT] = {
     { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96 },
@@ -60,7 +60,7 @@ void draw_CrossSection_IsoPhoton()
   TH2 *h2_isopair2pt[3][3];
 
   int bbc10cm = 1;
-  int checkmap = 0;
+  int checkmap = 1;
   int ival = 1;
 
   TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");

@@ -12,8 +12,8 @@ void anaPileup_Photon(const int process = 0)
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
 
-  const double A = 0.24;
-  const double eA = 0.04;
+  const double A = 0.28;
+  const double eA = 0.05;
 
   QueryTree *qt_pile = new QueryTree(Form("histos/Pileup-photon-%d.root",process), "RECREATE");
 

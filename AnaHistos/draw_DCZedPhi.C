@@ -4,7 +4,7 @@ void draw_DCZedPhi()
   TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/HadronResponse-histo-minbias.root");
 
   TH3 *h3_dclive_data = (TH3*)f_data->Get("h3_dclive_1");
-  h3_dclive_data->Add( (TH3*)f_data->Get("h3_dclive_0") );
+  //h3_dclive_data->Add( (TH3*)f_data->Get("h3_dclive_0") );
   h3_dclive_data->GetZaxis()->SetRange(8,30);  // pT
   TH2 *h2_phized_data = (TH2*)h3_dclive_data->Project3D("yx")->Clone("h2_phized_data");
   TH1 *h_zed_data = (TH1*)h2_phized_data->ProjectionX("h_zed_data", 0,-1)->Clone("h_zed_data");
@@ -12,7 +12,7 @@ void draw_DCZedPhi()
 
   THnSparse *hn_dclive_sim = (THnSparse*)f_sim->Get("hn_dclive");
   hn_dclive_sim->GetAxis(4)->SetRange(2,2);  // ERT
-  hn_dclive_sim->GetAxis(3)->SetRange(1,2);  // isDCGood
+  hn_dclive_sim->GetAxis(3)->SetRange(2,2);  // isDCGood
   hn_dclive_sim->GetAxis(2)->SetRange(8,30);  // pT
   TH2 *h2_phized_sim = hn_dclive_sim->Projection(1,0);
 

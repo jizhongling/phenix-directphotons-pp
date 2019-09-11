@@ -1,5 +1,5 @@
 Universe        = vanilla
-Notification    = Complete
+Notification    = Never
 Executable      = /phenix/u/zji/bin/condor-root.csh
 Arguments       = $(Initialdir) anaFastMC_Fast.C $(Process)
 Requirements    = (CPU_Speed >= 2)

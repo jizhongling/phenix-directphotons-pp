@@ -468,8 +468,8 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     else if( id == 331 )  // eta prime
       hadronid = 3;
 
-    /* For intrested hadrons in central acceptance */
-    if( hadronid >= 0 && fabs(eta) < 1. )
+    /* Fill histogram for intrested hadrons with |eta| < 0.5 */
+    if( hadronid >= 0 && fabs(eta) < 0.5 )
     {
       double fill_hn_hadron[] = {pt, (double)hadronid};
       hn_hadron->Fill(fill_hn_hadron, weight_pythia);
