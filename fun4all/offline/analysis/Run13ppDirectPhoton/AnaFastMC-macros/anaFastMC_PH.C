@@ -1,4 +1,4 @@
-void anaFastMC_PH(const int process = 0, const int scale = 40)
+void anaFastMC_PH(const int process = 0, const int scale = 4)
 {
   //gSystem->Load("libfun4allfuncs.so");	// framework only
   gSystem->Load("libfun4all.so");	// framework + reco modules
@@ -70,10 +70,10 @@ void anaFastMC_PH(const int process = 0, const int scale = 40)
   // se->registerOutputManager(oscar_manager);
 
   // Run over all events
-  //double pt_start = 3. + process/scale * 0.1;
-  //double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "Photon") / ptweights->Integral(3., 4., "Photon");
-  //my1->SetWeightPythia(weight_pythia);
-  se->run(1000000);
+  double pt_start = 3. + process/scale * 0.1;
+  double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "Photon") / ptweights->Integral(3., 4., "Photon");
+  my1->SetWeightPythia(weight_pythia);
+  se->run(500000);
 
   // Write histograms
   se->End();
