@@ -444,37 +444,40 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
 
     /* Get particle code */
     int id = abs(particle->GetKF());
+    int pid = parent ? abs(parent->GetKF()) : -1;
 
     /* Put particle's momentum and energy into TLorentzVector */
     TLorentzVector pE_part(particle->GetPx(), particle->GetPy(), particle->GetPz(), particle->GetEnergy());
     double pt = pE_part.Pt();
     double eta = fabs(pE_part.Eta());
+    double ppt = parent ? TVector2(parent->GetPx(),parent->GetPy()).Mod() : 0.;
 
-    /* Only consider high-pT particles */
-    if( pt < 2. )
+    /* Only consider high-pT stable photons */
+    if( (pt < 2. && ppt < 2.) ||
+        id != PY_GAMMA ||
+        particle->GetKS() != 1 )
       continue;
 
-    /* fill_hn_hadron[2] = 0(prompt photon), 1(isolated prompt photon),
+    /* Photons from different hadrons
+     * fill_hn_hadron[2] = 0(prompt photon), 1(isolated prompt photon),
      *                     2(pi0), 3(eta), 4(omega), 5(eta prime) */
-    double fill_hn_hadron[] = {pt, eta, -1.};
+    double fill_hn_hadron[] = {ppt, eta, -1.};
 
-    if( id == PY_PIZERO )
+    if( pid == PY_PIZERO )
       fill_hn_hadron[2] = 2.;
-    else if( id == PY_ETA )
+    else if( pid == PY_ETA )
       fill_hn_hadron[2] = 3.;
-    else if( id == 223 )  // omega
+    else if( pid == 223 )  // omega
       fill_hn_hadron[2] = 4.;
-    else if( id == 331 )  // eta prime
+    else if( pid == 331 )  // eta prime
       fill_hn_hadron[2] = 5.;
 
-    /* Fill histogram for intrested hadrons */
+    /* Fill histogram for photons from intrested hadrons */
     if( fill_hn_hadron[2] > 0. )
       hn_hadron->Fill(fill_hn_hadron, weight_pythia);
 
-    /* Test if particle is a stable prompt photon */
-    if( id != PY_GAMMA ||
-        particle->GetKS() != 1 ||
-        ( parent && abs(parent->GetKF()) > 100 ) )
+    /* Test if particle is a prompt photon */
+    if( pid > 100 )
       continue;
 
     /* Fill Vpart[], itwr_part[] and sec_part[]
@@ -491,8 +494,10 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     SumETruth(particle, InAcc, econe_all, econe_emc, econe_trk);
 
     /* Fill histogram for prompt photons */
+    fill_hn_hadron[0] = pt;
     fill_hn_hadron[2] = 0.;
     hn_hadron->Fill(fill_hn_hadron, weight_pythia);
+
     /* Fill histogram for isolated prompt photons */
     if( econe_all < eratio * pE_part.E() )
     {

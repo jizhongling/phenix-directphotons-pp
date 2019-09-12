@@ -58,7 +58,7 @@ void anaDST(const int process = 0,
 
   // Do the analysis for this DST file
   double pt_start = 3. + process/scale * 0.1;
-  double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "MinBias") / ptweights->Integral(3., 4., "MinBias");
+  double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "Photon") / ptweights->Integral(3., 4., "Photon");
   my1->SetWeightPythia(weight_pythia);
   se->run(0);
 

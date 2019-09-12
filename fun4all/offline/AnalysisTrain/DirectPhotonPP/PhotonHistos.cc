@@ -1198,6 +1198,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcClusterC
      * or on bad towers or lower than energy threshold */
     if( clus2->id() == cluster->id() ||
         emcwarnmap->IsBadTower(clus2) ||
+        clus2->prob_photon() < probMin ||
         fabs( clus2->tofcorr() - bbc_t0 ) > tofMaxIso ||
         clus2->ecore() < eClusMin )
       continue;
@@ -1246,6 +1247,7 @@ void PhotonHistos::SumEEmcal(const emcClusterContent *cluster, const emcClusterC
     if( clus3->id() == cluster->id() ||
         clus3->id() == cluster_part->id() ||
         emcwarnmap->IsBadTower(clus3) ||
+        clus3->prob_photon() < probMin ||
         fabs( clus3->tofcorr() - bbc_t0 ) > tofMaxIso ||
         clus3->ecore() < eClusMin )
       continue;
@@ -1343,6 +1345,7 @@ void PhotonHistos::SumEPi0(const emcClusterContent *cluster1, const emcClusterCo
     if( clus3->id() == cluster1->id() ||
         clus3->id() == cluster2->id() ||
         emcwarnmap->IsBadTower(clus3) ||
+        clus3->prob_photon() < probMin ||
         fabs( clus3->tofcorr() - bbc_t0 ) > tofMaxIso ||
         clus3->ecore() < eClusMin )
       continue;
