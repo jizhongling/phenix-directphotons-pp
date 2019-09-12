@@ -82,10 +82,6 @@ AnaFastMC::AnaFastMC(const string &name):
   h_events(nullptr),
   h_pion(nullptr),
   h_photon(nullptr),
-  h_photon_eta050(nullptr),
-  h_photon_eta025(nullptr),
-  h_isophoton_eta050(nullptr),
-  h_isophoton_eta025(nullptr),
   h3_isopi0(nullptr),
   h3_isoeta(nullptr),
   hn_pion(nullptr),
@@ -447,33 +443,33 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     TMCParticle *parent = phpythia->getParent(particle);
 
     /* Get particle code */
-    int id = particle->GetKF();
+    int id = abs(particle->GetKF());
 
     /* Put particle's momentum and energy into TLorentzVector */
     TLorentzVector pE_part(particle->GetPx(), particle->GetPy(), particle->GetPz(), particle->GetEnergy());
     double pt = pE_part.Pt();
-    double eta = pE_part.Eta();
+    double eta = fabs(pE_part.Eta());
 
     /* Only consider high-pT particles */
     if( pt < 2. )
       continue;
 
-    int hadronid = -1;
-    if( id == PY_PIZERO )
-      hadronid = 0;
-    else if( id == PY_ETA )
-      hadronid = 1;
-    else if( id == 223 )  // omega
-      hadronid = 2;
-    else if( id == 331 )  // eta prime
-      hadronid = 3;
+    /* fill_hn_hadron[2] = 0(prompt photon), 1(isolated prompt photon),
+     *                     2(pi0), 3(eta), 4(omega), 5(eta prime) */
+    double fill_hn_hadron[] = {pt, eta, -1.};
 
-    /* Fill histogram for intrested hadrons with |eta| < 0.5 */
-    if( hadronid >= 0 && fabs(eta) < 0.5 )
-    {
-      double fill_hn_hadron[] = {pt, (double)hadronid};
+    if( id == PY_PIZERO )
+      fill_hn_hadron[2] = 2.;
+    else if( id == PY_ETA )
+      fill_hn_hadron[2] = 3.;
+    else if( id == 223 )  // omega
+      fill_hn_hadron[2] = 4.;
+    else if( id == 331 )  // eta prime
+      fill_hn_hadron[2] = 5.;
+
+    /* Fill histogram for intrested hadrons */
+    if( fill_hn_hadron[2] > 0. )
       hn_hadron->Fill(fill_hn_hadron, weight_pythia);
-    }
 
     /* Test if particle is a stable prompt photon */
     if( id != PY_GAMMA ||
@@ -494,24 +490,14 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     double econe_all, econe_emc, econe_trk[3];
     SumETruth(particle, InAcc, econe_all, econe_emc, econe_trk);
 
-    /* Fill histogram for all prompt photons with |eta| < 0.5 */
-    if( fabs(eta) < 0.5 )
+    /* Fill histogram for prompt photons */
+    fill_hn_hadron[2] = 0.;
+    hn_hadron->Fill(fill_hn_hadron, weight_pythia);
+    /* Fill histogram for isolated prompt photons */
+    if( econe_all < eratio * pE_part.E() )
     {
-      h_photon_eta050->Fill(pt, weight_pythia);
-
-      /* Fill histogram for all prompt photons with |eta| < 0.25 */
-      if( fabs(eta) < 0.25 )
-        h_photon_eta025->Fill(pt, weight_pythia);
-
-      /* Fill histogram for all isolated prompt photons with |eta| < 0.5 */
-      if( econe_all < eratio * pE_part.E() )
-      {
-        h_isophoton_eta050->Fill(pt, weight_pythia);
-
-        /* Fill histogram for all isolated prompt photons with |eta| < 0.25 */
-        if( fabs(eta) < 0.25 )
-          h_isophoton_eta025->Fill(pt, weight_pythia);
-      }
+      fill_hn_hadron[2] = 1.;
+      hn_hadron->Fill(fill_hn_hadron, weight_pythia);
     }
 
     /* Fill histogram for prompt photons in accpetance */
@@ -616,22 +602,26 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc,
         int charge = pdg_part2->Charge();
         double mom = v3_part2.Mag();
 
-        /* For neutral particles sum kinetic energy in EMCal */
-        if( charge == 0 && mom > eClusMin )
+        if( mom > eClusMin )
         {
           /* Fill itwr_part[] and sec_part[]
            * and set NPart */
           geom_sim(v3_part2);
 
-          /* Test if particle is in acceptance and not on hot tower */
+          /* Test if particle is in acceptance and not on hot towers */
           if( NPart == 1 && !emcwarnmap->IsBadTower(itw_part[0]) )
-            econe_emc += GetEMCResponse(id, mom);
+          {
+            /* For photons sum kinetic energy in EMCal */
+            if( id == PY_GAMMA )
+              econe_emc += GetEMCResponse(id, mom);
+            /* For eletrons and positrons sum kinetic energy in EMCal */
+            else if( id == PY_ELECTRON )
+              econe_trk[0] += GetEMCResponse(id, mom);
+            /* For hadron showers sum kinetic energy ONLY in PbSc */
+            else if( sec_part[0] < 6 )
+              econe_trk[0] += GetEMCResponse(id, mom);
+          }
         }
-
-        /* For charged particles sum kinetic energy in EMCal
-         * with hadron response */
-        if( charge != 0 && mom > eClusMin )
-          econe_trk[0] += GetEMCResponse(id, mom);
 
         /* For charged particles sum momentum in DC
          * if particle is in DC acceptance w/o deadmap */
@@ -773,31 +763,15 @@ void AnaFastMC::BookHistograms()
   /* Use PHParticleGen input */
   if( mcmethod == PHParticleGen )
   {
-    h_photon_eta050 = (TH1*)h_photon->Clone("h_photon_eta050");
-    h_photon_eta050->Sumw2();
-    hm->registerHisto(h_photon_eta050);
-
-    h_photon_eta025 = (TH1*)h_photon->Clone("h_photon_eta025");
-    h_photon_eta025->Sumw2();
-    hm->registerHisto(h_photon_eta025);
-
-    h_isophoton_eta050 = (TH1*)h_photon->Clone("h_isophoton_eta050");
-    h_isophoton_eta050->Sumw2();
-    hm->registerHisto(h_isophoton_eta050);
-
-    h_isophoton_eta025 = (TH1*)h_photon->Clone("h_isophoton_eta025");
-    h_isophoton_eta025->Sumw2();
-    hm->registerHisto(h_isophoton_eta025);
-
     hn_geom = (THnSparse*)hn_photon->Clone("hn_geom");
     hn_geom->Sumw2();
     hm->registerHisto(hn_geom);
 
-    const int nbins_hn_hadron[] = {npT, 4};
-    const double xmin_hn_hadron[] = {0., -0.5};
-    const double xmax_hn_hadron[] = {0., 3.5};
-    hn_hadron = new THnSparseF("hn_hadron", "Hadron count;p_{T} [GeV];Hadron ID;",
-        2, nbins_hn_hadron, xmin_hn_hadron, xmax_hn_hadron);
+    const int nbins_hn_hadron[] = {npT, 4, 6};
+    const double xmin_hn_hadron[] = {0., 0., -0.5};
+    const double xmax_hn_hadron[] = {0., 1., 5.5};
+    hn_hadron = new THnSparseF("hn_hadron", "Hadron count;p_{T} [GeV];#eta;Hadron ID;",
+        3, nbins_hn_hadron, xmin_hn_hadron, xmax_hn_hadron);
     hn_hadron->SetBinEdges(0, pTbin);
     hn_hadron->Sumw2();
     hm->registerHisto(hn_hadron);

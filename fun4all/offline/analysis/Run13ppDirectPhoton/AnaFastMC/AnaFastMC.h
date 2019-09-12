@@ -113,10 +113,6 @@ class AnaFastMC: public SubsysReco
     TH1 *h_events;
     TH1 *h_pion;
     TH1 *h_photon;
-    TH1 *h_photon_eta050;
-    TH1 *h_photon_eta025;
-    TH1 *h_isophoton_eta050;
-    TH1 *h_isophoton_eta025;
     TH2 *h2_pion_eta_phi[nh_eta_phi];
     TH2 *h2_photon_eta_phi[nh_eta_phi];
     TH3 *h3_isopi0;
