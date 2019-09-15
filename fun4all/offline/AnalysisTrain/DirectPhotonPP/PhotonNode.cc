@@ -446,10 +446,12 @@ void PhotonNode::UpdateSpinPattern(SpinDBContent &spin_cont)
       spinpattern->set_spinpattern_blue(i, spinpattern_blue[i]);
       spinpattern->set_spinpattern_yellow(i, spinpattern_yellow[i]);
 
-      spinpattern->set_bbc_narrow(i, bbc_narrow[i]);
-      spinpattern->set_bbc_wide(i, bbc_wide[i]);
-      spinpattern->set_zdc_narrow(i, zdc_narrow[i]);
-      spinpattern->set_zdc_wide(i, zdc_wide[i]);
+      /* For Run13, GL1p swap narrow and wide.
+       * So I swap narrow and wide to correct the error. */
+      spinpattern->set_bbc_narrow(i, bbc_wide[i]);
+      spinpattern->set_bbc_wide(i, bbc_narrow[i]);
+      spinpattern->set_zdc_narrow(i, zdc_wide[i]);
+      spinpattern->set_zdc_wide(i, zdc_narrow[i]);
     }
   }
 
