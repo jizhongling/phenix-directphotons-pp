@@ -23,8 +23,8 @@ void draw_CrossSection_Photon()
   const double eToF[3] = {0.002, 0.002, 0.002};
   const double Conv[3] = {0.849, 0.959, 0.959};
   const double eConv[3] = {0.027, 0.023, 0.023};
-  const double Norm[3] = {0.320, 0.320, 0.243};
-  const double eNorm[3] = {0.005, 0.006, 0.005};
+  const double Norm[3] = {0.320, 0.321, 0.250};
+  const double eNorm[3] = {0.005, 0.007, 0.005};
   const double A = 0.28;
   const double eA = 0.05;
 
@@ -64,7 +64,7 @@ void draw_CrossSection_Photon()
   h2_2photon_t = (TH2*)h2_2photon_t->Clone();
   h2_2photon_t->Reset();
 
-  for(int evtype=1; evtype<3; evtype++)
+  for(int evtype=0; evtype<3; evtype++)
     for(int part=0; part<3; part++)
     {
       h_1photon[evtype][part] = (TH1*)h_1photon_t->Clone(Form("h_1photon_type%d_part%d",evtype,part));
@@ -159,18 +159,18 @@ void draw_CrossSection_Photon()
       {
         if(part == 0)
         {
-          TrigERT = 0.961;
-          eTrigERT = 0.006;
+          TrigERT = 0.958;
+          eTrigERT = 0.010;
         }
         else if(part == 1)
         {
-          TrigERT = 0.953;
-          eTrigERT = 0.008;
+          TrigERT = 0.919;
+          eTrigERT = 0.015;
         }
         else
         {
-          TrigERT = 0.680;
-          eTrigERT = 0.011;
+          TrigERT = 0.679;
+          eTrigERT = 0.015;
         }
       }
 
@@ -184,7 +184,7 @@ void draw_CrossSection_Photon()
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
         ndir *= Norm[part];
-        endir *= Norm[part] * (1+eNorm[part]);
+        endir *= Norm[part];
       }
 
       yy[part] = (XBBC/NBBC) / (2*PI*xpt) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta

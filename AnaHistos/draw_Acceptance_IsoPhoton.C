@@ -29,15 +29,17 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
   } // subbg
 
   TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-GenPH-histo-photon.root");
-  THnSparse *hn_hadron = (THnSparse*)f_pythia->Get("hn_hadron");
-  hn_hadron->GetAxis(2)->SetRange(1,1);  // prompt photons
-  hn_hadron->GetAxis(1)->SetRange(1,1);  // |eta| < 0.25
-  TH1 *h_photon = hn_hadron->Projection(0);
-  h_photon->SetName("h_photon_eta025");
-  hn_hadron->GetAxis(2)->SetRange(2,2);  // isolated prompt photons
-  hn_hadron->GetAxis(1)->SetRange(1,1);  // |eta| < 0.25
-  TH1 *h_isolated = hn_hadron->Projection(0);
-  h_isolated->SetName("h_isophoton_eta025");
+  TH1 *h_photon = (TH1*)f_pythia->Get("h_photon_eta025");
+  TH1 *h_isolated = (TH1*)f_pythia->Get("h_isophoton_eta025");
+  //THnSparse *hn_hadron = (THnSparse*)f_pythia->Get("hn_hadron");
+  //hn_hadron->GetAxis(2)->SetRange(1,1);  // prompt photons
+  //hn_hadron->GetAxis(1)->SetRange(1,1);  // |eta| < 0.25
+  //TH1 *h_photon = hn_hadron->Projection(0);
+  //h_photon->SetName("h_photon_eta025");
+  //hn_hadron->GetAxis(2)->SetRange(2,2);  // isolated prompt photons
+  //hn_hadron->GetAxis(1)->SetRange(1,1);  // |eta| < 0.25
+  //TH1 *h_isolated = hn_hadron->Projection(0);
+  //h_isolated->SetName("h_isophoton_eta025");
   THnSparse *hn_geom = (THnSparse*)f_pythia->Get("hn_geom");
   THnSparse *hn_isolated = (THnSparse*)f_pythia->Get("hn_isolated");
   hn_isolated->GetAxis(3)->SetRange(3,3);  // econe_trk[ival]: EMCal, nomap, withmap
@@ -218,7 +220,7 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
       if( TMath::Finite(Acc+eAcc) )
         qt_acc->Fill(ipt, part, xpt, Acc, eAcc);
       else
-        cout << "Wrong!!! Not Finite!!!" << endl;
+        cout << xpt << ": Wrong!!! Not Finite!!!" << endl;
     } // ipt
 
     for(int pisa=0; pisa<2; pisa++)

@@ -25,8 +25,8 @@ void draw_CrossSection_Pion()
   const double eToF[3] = {0.003, 0.003, 0.003};
   const double Conv[3] = {0.720, 0.919, 0.919};
   const double eConv[3] = {0.046, 0.044, 0.044};
-  const double Norm[3] = {0.326, 0.326, 0.251};
-  const double eNorm[3] = {0.001, 0.001, 0.004};
+  const double Norm[3] = {0.323, 0.323, 0.253};
+  const double eNorm[3] = {0.005, 0.006, 0.004};
 
   const double xpt_shift[npT] =  { 0.25, 0.75, 1.215, 1.719, 2.223, 2.725, 3.228, 3.730, 4.231, 4.732, 5.234, 5.735, 6.237, 6.738, 7.238, 7.739, 8.240, 8.740, 9.241, 9.741, 10.88, 12.90, 14.91, 16.92, 18.93, 20.94, 22.94, 24.95, 27, 29 };
 
@@ -64,7 +64,7 @@ void draw_CrossSection_Pion()
   h2_pion_t = (TH2*)h2_pion_t->Clone();
   h2_pion_t->Reset();
 
-  for(int evtype=1; evtype<3; evtype++)
+  for(int evtype=0; evtype<3; evtype++)
     for(int part=0; part<3; part++)
     {
       h2_pion[evtype][part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_type%d_part%d",evtype,part));
@@ -118,7 +118,7 @@ void draw_CrossSection_Pion()
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
         npion *= Norm[part];
-        enpion *= Norm[part] * (1+eNorm[part]);
+        enpion *= Norm[part];
       }
       delete h_minv;
 
@@ -136,7 +136,7 @@ void draw_CrossSection_Pion()
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {
         nisopion *= Norm[part];
-        enisopion *= Norm[part] * (1+eNorm[part]);
+        enisopion *= Norm[part];
       }
       delete h_minv;
 

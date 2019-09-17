@@ -6,7 +6,12 @@ void draw_Eta_Phi()
   const int phibin[9] = {2, 2+19, 2+19*2, 2+19*3, 4+19*4, 4+19*5, 4+19*6, 4+19*6+25, 4+19*6+25*2};
 
   TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
-  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo.root");
+  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/HadronResponse-histo-photon.root");
+
+  int trig = 1;
+  int checkmap = 1;
+  int isolated = 1;
+  int ival = 1;
 
   mc(0, 4,5);
 
@@ -14,23 +19,17 @@ void draw_Eta_Phi()
   TH2 *h2_eta_phi_sim[3];
   for(int part=0; part<3; part++)
   {
-    h2_eta_phi_sim[part] = (TH2*)f_sim->Get( Form("h2_photon_eta_phi_part%d",part) );
-    h2_eta_phi_data[part] = (TH2*)f_data->Get( Form("h2_eta_phi_%d",part+3) );
-    //TH2 *h2_tmp = (TH2*)f_data->Get( Form("h2_eta_phi_%d",part+3) );
-    //h2_eta_phi_data[part]->Add(h2_tmp);
-    //delete h2_tmp;
+    int ih = part + 3*checkmap + 3*2*isolated + 3*2*2*ival;
+    h2_eta_phi_data[part] = (TH2*)f_data->Get( Form("h2_eta_phi_%d",ih) );
+    ih = part + 3*isolated + 3*2*checkmap + 3*2*2*trig;
+    h2_eta_phi_sim[part] = (TH2*)f_sim->Get( Form("h2_eta_phi_%d",ih) );
+    ih = part + 3*0 + 3*2*checkmap + 3*2*2*trig;
+    h2_eta_phi_sim[part]->Add( (TH2*)f_sim->Get( Form("h2_eta_phi_%d",ih) ) );
 
-    for(int binx=1; binx<=h2_eta_phi_data[part]->GetNbinsX(); binx++)
-      for(int biny=1; biny<=h2_eta_phi_data[part]->GetNbinsY(); biny++)
-      {
-        if( h2_eta_phi_data[part]->GetBinContent(binx,biny) <= 0. )
-          h2_eta_phi_sim[part]->SetBinContent(binx,biny,0.);
-        //if( biny >= 130 && biny <= 132 )
-        //{
-        //  h2_eta_phi_data[part]->SetBinContent(binx,biny,0.);
-        //  h2_eta_phi_sim[part]->SetBinContent(binx,biny,0.);
-        //}
-      }
+    //for(int binx=1; binx<=h2_eta_phi_data[part]->GetNbinsX(); binx++)
+    //  for(int biny=1; biny<=h2_eta_phi_data[part]->GetNbinsY(); biny++)
+    //    if( h2_eta_phi_data[part]->GetBinContent(binx,biny) <= 0. )
+    //      h2_eta_phi_sim[part]->SetBinContent(binx,biny,0.);
   }
 
   for(int sec=0; sec<8; sec++)
@@ -55,12 +54,13 @@ void draw_Eta_Phi()
     h_eta_sim->Draw("HIST SAME");
   }
 
-  for(int part=2; part>=0; part--)
+  double scale_phi = 1.;
+  for(int part=0; part<3; part++)
   {
     mcd(0, part+9);
     TH1 *h_eta_data =(TH1*)h2_eta_phi_data[part]->ProjectionX()->Clone("h_eta_data");
     TH1 *h_eta_sim = (TH1*)h2_eta_phi_sim[part]->ProjectionX()->Clone("h_eta_sim");
-    scale = h_eta_data->Integral(0,-1) / h_eta_sim->Integral(0,-1);
+    double scale = h_eta_data->Integral(0,-1) / h_eta_sim->Integral(0,-1);
     h_eta_sim->Scale(scale);
     h_eta_data->SetTitle( Form("#eta dist., part %d",part) );
     style(h_eta_data);
@@ -72,8 +72,9 @@ void draw_Eta_Phi()
     mcd(0, (part+1)/2+13);
     TH1 *h_phi_data =(TH1*)h2_eta_phi_data[part]->ProjectionY()->Clone("h_phi_data");
     TH1 *h_phi_sim = (TH1*)h2_eta_phi_sim[part]->ProjectionY()->Clone("h_phi_sim");
-    double scale = h_phi_data->Integral(0,-1) / h_phi_sim->Integral(0,-1);
-    h_phi_sim->Scale(scale);
+    if(part == 0)
+      scale_phi = h_phi_data->Integral(0,-1) / h_phi_sim->Integral(0,-1);
+    h_phi_sim->Scale(scale_phi);
     if(part == 2)
     {
       double sc2gl = 0.011 / 0.008;
@@ -94,7 +95,7 @@ void draw_Eta_Phi()
     style(h_phi_data);
     double max_phi = h_phi_data->GetMaximum();
     h_phi_data->SetMaximum(1.1*max_phi);
-    if(part != 1)
+    if(part != 2)
       h_phi_data->Draw("E");
     else
       h_phi_data->Draw("E SAME");

@@ -438,7 +438,6 @@ double HadronResponse::SumEEmcal(const emcClusterContent *cluster, const emcClus
      * and with 3 sigma charge veto */
     if( clus2->id() == cluster->id() ||
         emcwarnmap->IsBadTower(clus2) ||
-        clus2->prob_photon() < probMin ||
         //fabs( clus2->tofcorr() ) > tofMaxIso ||
         clus2->ecore() < eClusMin ||
         dcdeadmap->ChargeVeto(clus2, data_tracks) )
@@ -483,7 +482,6 @@ void HadronResponse::SumEEmcal(const emcClusterContent *cluster, const emcCluste
     if( clus3->id() == cluster->id() ||
         clus3->id() == cluster_part->id() ||
         emcwarnmap->IsBadTower(clus3) ||
-        clus3->prob_photon() < probMin ||
         //fabs( clus3->tofcorr() ) > tofMaxIso ||
         clus3->ecore() < eClusMin ||
         dcdeadmap->ChargeVeto(clus3, data_tracks) )
