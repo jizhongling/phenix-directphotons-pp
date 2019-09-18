@@ -295,17 +295,16 @@ int PhotonHistos::process_event(PHCompositeNode *topNode)
 
   //for(int itype=0; itype<4; itype++)
   for(int itype=0; itype<3; itype++)
-    for(int icut=0; icut<3; icut++)
-    {
-      /* Count events to calculate ERT efficiency */
-      FillERTEfficiency(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype, icut);
+  {
+    /* Count events to calculate ERT efficiency */
+    FillERTEfficiencyCut(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
 
-      /* Analyze photon for pi0 event */
-      FillPi0Spectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype, icut);
+    /* Analyze photon for pi0 event */
+    FillPi0SpectrumCut(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
 
-      /* Analyze photon for direct photon event */
-      FillPhotonSpectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype, icut);
-    }
+    /* Analyze photon for direct photon event */
+    FillPhotonSpectrumCut(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
+  }
 
   /* Clean up */
   delete data_emccontainer;
@@ -633,8 +632,8 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
   return EVENT_OK;
 }
 
-int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype, int icut)
+int PhotonHistos::FillERTEfficiencyCut(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
+    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype)
 {
   /* Check trigger */
   if( evtype > 2 || !IsEventType(evtype, data_triggerlvl1) )
@@ -1006,8 +1005,8 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
   return EVENT_OK;
 }
 
-int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype, int icut)
+int PhotonHistos::FillPi0SpectrumCut(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
+    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype)
 {
   /* Check trigger */
   if( evtype > 2 || !IsEventType(evtype, data_triggerlvl1) )
@@ -1054,9 +1053,10 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
           double tot_E = cluster1->ecore() + cluster2->ecore();
 
           int cut[3] = {};
-          if( PassPhotonCut(cluster1, icut) &&
-              PassPhotonCut(cluster2, icut) )
-            cut[icut] = 1;
+          for(int icut=0; icut<3; icut++)
+            if( PassPhotonCut(cluster1, icut) &&
+                PassPhotonCut(cluster2, icut) )
+              cut[icut] = 1;
 
           for(int checkmap=0; checkmap<2; checkmap++)
           {
@@ -1200,8 +1200,8 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
   return EVENT_OK;
 }
 
-int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype, int icut)
+int PhotonHistos::FillPhotonSpectrumCut(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
+    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype)
 {
   /* Check trigger */
   if( evtype < 2 || !IsEventType(evtype, data_triggerlvl1) )
