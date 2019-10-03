@@ -15,10 +15,12 @@ void draw_CrossSection_IsoPhoton()
   const double NBBC =  3.52e11;  // from rejection power
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
-  const double Pile[3] = {1.07, 1.07, 1.04};
+  const double Pile[3] = {1.10, 1.08, 1.05};
   const double ePile = 0.02;
   const double TrigBBC = 0.91;
   const double eTrigBBC = 0.01;
+  const double Prob = 0.96;
+  const double eProb = 0.02;
   const double ToF[3] = {0.992, 0.992, 0.997};
   const double eToF[3] = {0.002, 0.002, 0.002};
   const double Conv[3] = {0.849, 0.959, 0.959};
@@ -27,12 +29,6 @@ void draw_CrossSection_IsoPhoton()
   const double eNorm[3] = {0.005, 0.007, 0.005};
   const double A = 0.28;
   const double eA = 0.05;
-
-  const double Prob[2][npT] = {
-    { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96 },
-    { 1, 1, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97, 0.97 }
-  };
-  const double eProb = 0.02;
 
   // function for pT weight for direct photon
   cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]*[4]", 0, 30);
@@ -207,8 +203,9 @@ void draw_CrossSection_IsoPhoton()
         }
       }
 
+      double Eff = Conv[part] * Prob * ToF[part];
       double AIso = A * Veto * (1.+MissEta)/(1.+2.*MissEta) * (1+2.*Miss+Merge1);
-      double ndir = nphoton/Conv[part] - (1. + Merge1*Conv[part]*(1.-Conv[part])) * nisoboth/pow(Conv[part],2) - Miss * nisopair/pow(Conv[part],2) - Merge2/2.*BadPass * nisopair2pt - AIso * nisopair;
+      double ndir = nphoton/Eff - (1. + Merge1*Conv[part]*(1.-Conv[part])) * nisoboth/Eff/Eff - Miss * nisopair/Eff/Eff - Merge2/2.*BadPass * nisopair2pt/Eff/Eff - AIso * nisopair/Eff/Eff;
       double endir = sqrt(pow(enphoton,2)/pow(Conv[part],2) + (pow(enisoboth,2)* pow(1. + (1. - Conv[part])*Conv[part]*Merge1,2))/ pow(Conv[part],4) + 0.25*pow(BadPass,2)*pow(enisopair2pt,2)* pow(Merge2,2) + 0.25*pow(BadPass,2)*pow(eMerge2,2)* pow(nisopair2pt,2) + 0.25*pow(eBadPass,2)*pow(Merge2,2)* pow(nisopair2pt,2) + (pow(A,2)*pow(eVeto,2)* pow(1. + Miss,2)* pow(1 + Merge1 + 2.*Miss,2)* pow(nisopair,2))/pow(1. + 2.*Miss,2) + pow(eConv[part],2)* pow(-((((1. - Conv[part])*Merge1 - Conv[part]*Merge1)* nisoboth)/pow(Conv[part],2)) + (2*(1. + (1. - Conv[part])*Conv[part]*Merge1)* nisoboth)/pow(Conv[part],3) + (2*Miss*nisopair)/pow(Conv[part],3) - nphoton/pow(Conv[part],2),2) + (pow(eA,2)*pow(1. + Miss,2)* pow(1 + Merge1 + 2.*Miss,2)* pow(nisopair,2)*pow(Veto,2))/ pow(1. + 2.*Miss,2) + pow(enisopair,2)* pow(-(Miss/pow(Conv[part],2)) - (A*(1. + Miss)*(1 + Merge1 + 2.*Miss)* Veto)/(1. + 2.*Miss),2) + pow(eMerge1,2)* pow(-(((1. - Conv[part])*nisoboth)/Conv[part]) - (A*(1. + Miss)*nisopair*Veto)/ (1. + 2.*Miss),2) + pow(eMiss,2)*pow(-(nisopair/ pow(Conv[part],2)) - (2.*A*(1. + Miss)*nisopair*Veto)/ (1. + 2.*Miss) + (2.*A*(1. + Miss)*(1 + Merge1 + 2.*Miss)* nisopair*Veto)/pow(1. + 2.*Miss,2) - (A*(1 + Merge1 + 2.*Miss)*nisopair*Veto)/ (1. + 2.*Miss),2));
 
       if(ipt >= 22)  // >14GeV use ERT_4x4b
@@ -218,14 +215,14 @@ void draw_CrossSection_IsoPhoton()
       }
 
       yy[part] = (XBBC/NBBC) / (2*PI*xpt) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
-        * ndir / Acc / TrigERT / Prob[part/2][ipt]
-        / ToF[part] / TrigBBC * Pile[part];
+        * ndir / Acc / TrigERT / TrigBBC * Pile[part];
       eyy[part] = yy[part] * sqrt( pow(endir/ndir,2)
           + pow(eAcc/Acc,2)
           + pow(eTrigERT/TrigERT,2)
-          + pow(eProb/Prob[part/2][ipt],2)
           + pow(eToF[part]/ToF[part],2)
-          //+ pow(eTrigBBC/TrigBBC,2) + pow(ePile/Pile[part],2) + pow(eXBBC/XBBC,2)
+          + pow(eProb/Prob,2)
+          + pow(ePile/Pile[part],2)
+          //+ pow(eTrigBBC/TrigBBC,2) + pow(eXBBC/XBBC,2)
           );
       if( TMath::Finite(yy[part]+eyy[part]) )
         qt_cross->Fill(ipt, part, xpt, yy[part], eyy[part]);

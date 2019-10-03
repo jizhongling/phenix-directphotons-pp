@@ -45,19 +45,14 @@ class PhotonHistos: public SubsysReco
     static const int nh_calib = 8*2;
     static const int nh_bbc = 3*2;
     static const int nh_ertsm = 8*2*3*2;
-    //static const int nh_ert = 3*2*3*2*2*2*3;
-    static const int nh_ert = 3*2*3*2*2*2*2*2*3;
+    static const int nh_ert = 3*2*3*2*2*2*3;  // For cuts: 3*2*3*2*2*2*2*2*3
     static const int nh_etwr = 8*2*8*16;
     static const int nh_dcpartqual = 2*2*3;
     static const int nh_dcgood = 2;
-    //static const int nh_pion = 3*2*3*4*2*2*2*2*2*3;
-    static const int nh_pion = 3*3*2*2*2*2*2*3;
-    //static const int nh_eta_phi = 3*2*2*3;
-    static const int nh_eta_phi = 3*2*2*2*2*2*3;
-    //static const int nh_1photon = 3*2*3*4*2*2*2*3;
-    static const int nh_1photon = 3*3*2*2*2*2*2*3;
-    //static const int nh_2photon = 3*2*3*4*2*2*2*2*3;
-    static const int nh_2photon = 3*3*2*2*2*2*2*2*3;
+    static const int nh_pion = 3*2*3*4*2*2*2*2*2*3;  // For cuts: 3*3*2*2*2*2*2*3
+    static const int nh_eta_phi = 3*2*2*3;  // For cuts: 3*2*2*2*2*2*3
+    static const int nh_1photon = 3*2*3*4*2*2*2*3;  // For cuts: 3*3*2*2*2*2*2*3
+    static const int nh_2photon = 3*2*3*4*2*2*2*2*3;  // For cuts: 3*3*2*2*2*2*2*2*3
 
     /* Event counts */
     int FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);

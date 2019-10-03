@@ -1,43 +1,61 @@
 #include "GlobalVars.h"
+#include "QueryTree.h"
 #include "FitMinv.h"
 #include "GetEfficiency.h"
 
 void draw_ProbEff_Pion()
 {
-  const int secl[2] = {1, 7};
-  const int sech[2] = {6, 8};
+  const int secl[2] = {0, 2};
+  const int sech[2] = {1, 2};
 
-  TGraphAsymmErrors *gr[2];
-  int igp[2] = {};
+  QueryTree *qt_prob = new QueryTree("data/ProbEff-pion.root", "RECREATE");
+
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+
+  // h[icut][part]
+  TH2 *h2_pion[2][2];
+
+  int evtype = 2;
+  int bbc10cm = 1;
+  int tof = 1;
+  int checkmap = 1;
+  int ival = 1;
+
+  TH2 *h2_pion_t = (TH2*)f->Get("h2_pion_0");
+  h2_pion_t = (TH2*)h2_pion_t->Clone();
+  h2_pion_t->Reset();
+
   for(int part=0; part<2; part++)
   {
-    gr[part] = new TGraphAsymmErrors(npT);
-    gr[part]->SetName(Form("gr_%d",part));
-    for(int ic=0; ic<2; ic++)
-      mc(part*2+ic, 6,5);
+    h2_pion[0][part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_icut0_part%d",part));
+    h2_pion[1][part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_icut1_part%d",part));
+    for(int sector=secl[part]; sector<=sech[part]; sector++)
+      for(int evenodd=0; evenodd<2; evenodd++)
+        for(int pattern=0; pattern<3; pattern++)
+          for(int isolated=0; isolated<2; isolated++)
+            for(int prob=0; prob<2; prob++)
+            {
+              int ih = sector + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*tof + 3*2*3*4*2*prob + 3*2*3*4*2*2*bbc10cm + 3*2*3*4*2*2*2*checkmap + 3*2*3*4*2*2*2*2*isolated + 3*2*3*4*2*2*2*2*2*ival;
+              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
+              h2_pion[0][part]->Add(h2_tmp);
+              if(prob == 1)
+                h2_pion[1][part]->Add(h2_tmp);
+              delete h2_tmp;
+            } // isolated
   }
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
-
-  THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
-  TAxis *axis_sec = hn_pion->GetAxis(0);
-  TAxis *axis_pt = hn_pion->GetAxis(1);
-  TAxis *axis_minv = hn_pion->GetAxis(2);
-  TAxis *axis_cut = hn_pion->GetAxis(3);
-  TAxis *axis_type = hn_pion->GetAxis(4);
+  for(int part=0; part<2; part++)
+    for(int ic=0; ic<2; ic++)
+      mc(part*2+ic, 6,5);
 
   for(int part=0; part<2; part++)
     for(int ipt=0; ipt<npT; ipt++)
     {
-      axis_type->SetRange(3,3);
-      axis_sec->SetRange(secl[part],sech[part]);
-      axis_pt->SetRange(ipt+1,ipt+1);
       TH1 *h_minv;
 
       double nt, ent;
       mcd(part*2, ipt+1);
-      axis_cut->SetRange(2,2);
-      h_minv = hn_pion->Projection(2);
+      h_minv = (TH1*)h2_pion[0][part]->ProjectionY("_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
       FitMinv(h_minv, nt, ent);
@@ -47,8 +65,7 @@ void draw_ProbEff_Pion()
 
       double np, enp;
       mcd(part*2+1, ipt+1);
-      axis_cut->SetRange(4,4);
-      h_minv = hn_pion->Projection(2);
+      h_minv = (TH1*)h2_pion[1][part]->ProjectionY("_py", ipt+1,ipt+1)->Clone("h_minv");
       h_minv->Rebin(10);
       h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
       FitMinv(h_minv, np, enp);
@@ -64,39 +81,32 @@ void draw_ProbEff_Pion()
         eyyh = 0.;
       }
       if( TMath::Finite(yy+eyyl+eyyh) )
-      {
-        gr[part]->SetPoint(igp[part], xx, yy);
-        gr[part]->SetPointError(igp[part], 0.,0., eyyl,eyyh);
-        igp[part]++;
-      }
+        qt_prob->Fill(ipt, part, xx, yy, eyyl, eyyh);
     }
 
-  TFile *f_sasha = new TFile("data/sasha-prob.root");
-
   mc(5, 2,1);
-
-  gr[0]->SetTitle("Prob Eff for PbSc");
-  gr[1]->SetTitle("Prob Eff for PbGl");
-
+  TFile *f_sasha = new TFile("data/sasha-prob.root");
   for(int part=0; part<2; part++)
   {
     mcd(5, part+1);
-    gr[part]->Set(igp[part]);
-    aset(gr[part], "p_{T} [GeV]","Prob Eff", 0.,30., 0.8,1.1);
-    style(gr[part], part+20, part+1);
-    gr[part]->Draw("AP");
+    TGraphAsymmErrors *gr = qt_prob->GraphAsymm(part);
+    if(part == 0)
+      gr->SetTitle("Prob Eff for PbSc");
+    else if(part == 1)
+      gr->SetTitle("Prob Eff for PbGl");
+    aset(gr, "p_{T} [GeV]","Prob Eff", 0.,30., 0.8,1.1);
+    style(gr, part+20, part+1);
+    gr->Draw("AP");
     TGraphErrors *gr_sasha = (TGraphErrors*)f_sasha->Get( Form("gr_%d",part) );
     gr_sasha->Draw("C");
   }
+  c5->Print("plots/ProbEff-pion.pdf");
 
-  TFile *f_out = new TFile("data/ProbEff-pion.root", "RECREATE");
+  qt_prob->Write();
   for(int part=0; part<2; part++)
   {
-    gr[part]->Write();
     mcw( part*2, Form("part%d-total",part) );
     mcw( part*2+1, Form("part%d-passed",part) );
   }
-  f_out->Close();
-
-  c5->Print("plots/ProbEff-pion.pdf");
+  qt_prob->Close();
 }

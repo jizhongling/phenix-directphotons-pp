@@ -293,17 +293,16 @@ int PhotonHistos::process_event(PHCompositeNode *topNode)
   /* Fill DC track quality information */
   FillTrackQuality(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert);
 
-  //for(int itype=0; itype<4; itype++)
-  for(int itype=0; itype<3; itype++)
+  for(int itype=0; itype<4; itype++)
   {
     /* Count events to calculate ERT efficiency */
-    FillERTEfficiencyCut(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
+    FillERTEfficiency(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
 
     /* Analyze photon for pi0 event */
-    FillPi0SpectrumCut(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
+    FillPi0Spectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
 
     /* Analyze photon for direct photon event */
-    FillPhotonSpectrumCut(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
+    FillPhotonSpectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
   }
 
   /* Clean up */
@@ -1204,7 +1203,7 @@ int PhotonHistos::FillPhotonSpectrumCut(const emcClusterContainer *data_emcconta
     const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype)
 {
   /* Check trigger */
-  if( evtype < 2 || !IsEventType(evtype, data_triggerlvl1) )
+  if( evtype > 2 || !IsEventType(evtype, data_triggerlvl1) )
     return DISCARDEVENT;
 
   anatools::TriggerMode triggermode = (anatools::TriggerMode)evtype;

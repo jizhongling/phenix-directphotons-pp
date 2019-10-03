@@ -6,11 +6,10 @@ void draw_Eta_Phi()
   const int phibin[9] = {2, 2+19, 2+19*2, 2+19*3, 4+19*4, 4+19*5, 4+19*6, 4+19*6+25, 4+19*6+25*2};
 
   TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
-  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/HadronResponse-histo-photon.root");
+  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/HadronResponse-histo-minbias.root");
 
   int trig = 1;
   int checkmap = 1;
-  int isolated = 1;
   int ival = 1;
 
   mc(0, 4,5);
@@ -18,19 +17,29 @@ void draw_Eta_Phi()
   TH2 *h2_eta_phi_data[3];
   TH2 *h2_eta_phi_sim[3];
   for(int part=0; part<3; part++)
-  {
-    int ih = part + 3*checkmap + 3*2*isolated + 3*2*2*ival;
-    h2_eta_phi_data[part] = (TH2*)f_data->Get( Form("h2_eta_phi_%d",ih) );
-    ih = part + 3*isolated + 3*2*checkmap + 3*2*2*trig;
-    h2_eta_phi_sim[part] = (TH2*)f_sim->Get( Form("h2_eta_phi_%d",ih) );
-    ih = part + 3*0 + 3*2*checkmap + 3*2*2*trig;
-    h2_eta_phi_sim[part]->Add( (TH2*)f_sim->Get( Form("h2_eta_phi_%d",ih) ) );
+    for(int isolated=1; isolated>=1; isolated--)
+    {
+      int ih = part + 3*checkmap + 3*2*isolated + 3*2*2*ival;
+      TH2 *h2_data_tmp = (TH2*)f_data->Get( Form("h2_eta_phi_%d",ih) );
+      ih = part + 3*isolated + 3*2*checkmap + 3*2*2*trig;
+      TH2 *h2_sim_tmp = (TH2*)f_sim->Get( Form("h2_eta_phi_%d",ih) );
 
-    //for(int binx=1; binx<=h2_eta_phi_data[part]->GetNbinsX(); binx++)
-    //  for(int biny=1; biny<=h2_eta_phi_data[part]->GetNbinsY(); biny++)
-    //    if( h2_eta_phi_data[part]->GetBinContent(binx,biny) <= 0. )
-    //      h2_eta_phi_sim[part]->SetBinContent(binx,biny,0.);
-  }
+      if(isolated == 1)
+      {
+        h2_eta_phi_data[part] = h2_data_tmp;
+        h2_eta_phi_sim[part] = h2_sim_tmp;
+      }
+      else
+      {
+        h2_eta_phi_data[part]->Add(h2_data_tmp);
+        h2_eta_phi_sim[part]->Add(h2_sim_tmp);
+      }
+
+      //for(int binx=1; binx<=h2_eta_phi_data[part]->GetNbinsX(); binx++)
+      //  for(int biny=1; biny<=h2_eta_phi_data[part]->GetNbinsY(); biny++)
+      //    if( h2_eta_phi_data[part]->GetBinContent(binx,biny) <= 0. )
+      //      h2_eta_phi_sim[part]->SetBinContent(binx,biny,0.);
+    }
 
   for(int sec=0; sec<8; sec++)
   {
@@ -107,10 +116,10 @@ void draw_Eta_Phi()
     h2_eta_phi_data[part]->Draw("COLZ");
 
     mcd(0, part*2+16);
-    h2_eta_phi_sim[part]->SetTitle( Form("#eta and #phi from FastMC for part %d",part) );
+    h2_eta_phi_sim[part]->SetTitle( Form("#eta and #phi from PISA for part %d",part) );
     h2_eta_phi_sim[part]->GetYaxis()->SetRange(phibin[secl[part]-1], phibin[sech[part]]-3);
     h2_eta_phi_sim[part]->Draw("COLZ");
   }
 
-  c0->Print("plots/DirphEtaPhi-isolated.pdf");
+  c0->Print("plots/DirphEtaPhi-isolated-minbias.pdf");
 }

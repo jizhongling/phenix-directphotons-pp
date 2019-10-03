@@ -4,7 +4,7 @@
 
 void anaPileup_IsoPhoton(const int process = 0)
 {
-  const int nThread = 50;
+  const int nThread = 100;
   int thread = -1;
   int runnumber;
   ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist-DC3sigma.txt");
