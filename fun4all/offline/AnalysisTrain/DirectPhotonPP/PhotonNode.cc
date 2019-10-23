@@ -107,9 +107,6 @@ int PhotonNode::Init(PHCompositeNode *topNode)
     exit(1);
   }
 
-  // read EMCal recalibration file
-  EMCRecalibSetup();
-
   /* Initialize warnmap checker */
   emcwarnmap = new EMCWarnmapChecker();
   if(!emcwarnmap)
@@ -286,29 +283,6 @@ void PhotonNode::SelectMB()
 void PhotonNode::SelectERT()
 {
   datatype = ERT;
-  return;
-}
-
-void PhotonNode::EMCRecalibSetup()
-{
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  toad_loader->SetVerbosity(1);
-
-  string file_ecal_run = toad_loader->location("Run13pp_RunbyRun_Calib.dat");
-  string file_tofmap = toad_loader->location("Run13pp510_EMC_TOF_Correction.root");
-
-  emcrecalib->SetEnergyCorrectionFile( file_ecal_run );
-  emcrecalib->SetTofCorrectionFile( file_tofmap );
-
-  string _file_ecal = toad_loader->location("ecorr_run13pp500gev.txt");
-  string _file_ecal_run = toad_loader->location("ecorr_run_run13pp500gev.txt");
-  string _file_tcal = toad_loader->location("tcorr_run13pp500gev.txt");
-
-  emcrecalib_sasha->anaGetCorrCal( _file_ecal.c_str() );
-  emcrecalib_sasha->anaGetCorrCal_run( _file_ecal_run.c_str() );
-  emcrecalib_sasha->anaGetCorrTof( _file_tcal.c_str() );
-
-  delete toad_loader;
   return;
 }
 

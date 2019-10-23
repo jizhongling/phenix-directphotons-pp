@@ -5,6 +5,10 @@
 #include <TOAD.h>
 #include <emcClusterContent.h>
 
+#include <TFile.h>
+#include <TTree.h>
+
+#include <cstdlib>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -19,10 +23,12 @@ EMCWarnmapChecker::EMCWarnmapChecker()
       {
         tower_status_nils[sector][iypos][izpos] = 0;
         tower_status_sasha[sector][iypos][izpos] = 0;
+        tower_status_inseok[sector][iypos][izpos] = 0;
       }
 
   ReadWarnmapNils();
   ReadWarnmapSasha();
+  ReadWarnmapInseok();
 }
 
 bool EMCWarnmapChecker::InFiducial(const emcClusterContent *cluster)
@@ -99,6 +105,19 @@ bool EMCWarnmapChecker::IsBadTower(int itower)
       tower_status_sasha[sector][iypos][izpos] < 20 )
     return true;
   return false;
+}
+
+bool EMCWarnmapChecker::PassCut(const emcClusterContent *cluster)
+{
+  int arm = cluster->arm();
+  int rawsector = cluster->sector();
+  int armsect = 4*arm + rawsector;
+  int iypos = cluster->iypos();
+  int izpos = cluster->izpos();
+
+  if( tower_status_inseok[armsect][iypos][izpos] )
+    return false; 
+  return true;
 }
 
 int EMCWarnmapChecker::GetStatusNils(int sector, int iypos, int izpos)
@@ -221,5 +240,44 @@ void EMCWarnmapChecker::ReadWarnmapSasha()
   fin.close();
   delete toad_loader;
 
+  return;
+}
+
+void EMCWarnmapChecker::ReadWarnmapInseok()
+{
+  TOAD *toad_loader = new TOAD("DirectPhotonPP");
+  toad_loader->SetVerbosity(0);
+  string file_location = toad_loader->location("Run13pp510_WarnMap_05.root");
+  cout << "TOAD file location: " << file_location << endl;
+
+  TFile *warnmapf = new TFile(file_location.c_str());
+  if(!warnmapf->IsOpen())
+  {
+    cout << "Can not find " << file_location << endl;
+    delete toad_loader;
+    delete warnmapf;
+    exit(1);
+  }
+
+  TTree *Twarn = (TTree*)warnmapf->Get("T");
+  if(!Twarn)
+  {
+    cout << "Can not find T in warnmap root file." << endl;
+    delete toad_loader;
+    delete warnmapf;
+    exit(1);
+  }
+
+  int warn[NSEC][NY][NZ];
+  Twarn->SetBranchAddress("warnmap", warn);
+  Twarn->GetEntry(0);
+
+  for (int i=0; i<NSEC; i++)
+    for (int j=0; j<NY; j++)
+      for (int k=0; k<NZ; k++)
+        tower_status_inseok[i][j][k] = warn[i][j][k];
+
+  delete toad_loader;
+  delete warnmapf;
   return;
 }

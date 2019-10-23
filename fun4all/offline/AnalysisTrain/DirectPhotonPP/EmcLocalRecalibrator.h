@@ -41,6 +41,11 @@ class EmcLocalRecalibrator
     ~EmcLocalRecalibrator() {}
 
     /**
+     * Setup
+     */
+    void Setup();
+
+    /**
      * Correct data for all cluster in cluster container
      */
     void ApplyClusterCorrection( emcClusterContainer* data_emccontainer );

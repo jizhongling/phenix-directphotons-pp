@@ -49,10 +49,9 @@ const TVector2 v2_2PI(0.,2.*PI);
 /* Some cuts for photon identification */
 const double eMin = 0.3;
 const double probMin = 0.02;
-const double chi2Max = 3.;
-const double stoch2Min = 1.4;
 const double tofMax = 10.;
 const double tofMaxIso = 50.;
+const double tofMaxALL = 15.;
 const double AsymCut = 0.8;
 
 /* Some cuts for isolation cut */
@@ -69,6 +68,11 @@ const unsigned bit_ppg = 0x70000000;
 const unsigned bit_bbcnarrow = 0x00000010;
 const unsigned bit_bbcnovtx = 0x00000002;
 const unsigned bit_ert4x4[4] = {0x00000080, 0x00000040, 0x00000100, 0x000001C0};  // ert4x4a/b/c/or
+
+/* pT bins for ALL */
+double PhotonHistos::pTbin_pol[] = { 2.0,
+  2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 7.0, 8.0, 9.0,
+  10.0, 12.0, 15.0, 20.0, 30.0 };
 
 PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   SubsysReco(name),
@@ -105,8 +109,6 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
     h_ert[ih] = nullptr;
     h2_ert_pion[ih] = nullptr;
   }
-  for(int ih=0; ih<nh_etwr; ih++)
-    h3_etwr[ih] = nullptr;
   for(int ih=0; ih<nh_dcpartqual; ih++)
   {
     h3_dcdphiz[ih] = nullptr;
@@ -116,14 +118,33 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
     h3_dclive[ih] = nullptr;
   for(int ih=0; ih<nh_pion; ih++)
     h2_pion[ih] = nullptr;
+  for(int ih=0; ih<nh_pion_pol; ih++)
+    h2_pion_pol[ih] = nullptr;
   for(int ih=0; ih<nh_eta_phi; ih++)
     h2_eta_phi[ih] = nullptr;
   for(int ih=0; ih<nh_1photon; ih++)
     h_1photon[ih] = nullptr;
+  for(int ih=0; ih<nh_1photon_pol; ih++)
+    h_1photon_pol[ih] = nullptr;
   for(int ih=0; ih<nh_2photon; ih++)
   {
     h2_2photon[ih] = nullptr;
     h2_2photon2pt[ih] = nullptr;
+  }
+  for(int ih=0; ih<nh_2photon_pol; ih++)
+  {
+    h2_2photon_pol[ih] = nullptr;
+    h2_2photon2pt_pol[ih] = nullptr;
+  }
+  for(int ih=0; ih<nh_mul_pion; ih++)
+  {
+    h2_mul_pion_sig[ih] = nullptr;
+    h2_mul_pion_bg[ih] = nullptr;
+  }
+  for(int ih=0; ih<nh_mul_photon; ih++)
+  {
+    h2_mul_photon_sig[ih] = nullptr;
+    h2_mul_photon_bg[ih] = nullptr;
   }
 }
 
@@ -155,9 +176,6 @@ int PhotonHistos::Init(PHCompositeNode *topNode)
     cerr << "No emcrecalib_sasha" << endl;
     exit(1);
   }
-
-  /* Read EMCal recalibration file */
-  EMCRecalibSetup();
 
   /* Initialize warnmap checker */
   emcwarnmap = new EMCWarnmapChecker();
@@ -287,23 +305,17 @@ int PhotonHistos::process_event(PHCompositeNode *topNode)
   /* Count events to calculate BBC efficiency */
   FillBBCEfficiency(data_emccontainer, data_triggerlvl1);
 
-  /* Fill EMCal cluster energy distribution on towers */
-  //FillTowerEnergy(data_emccontainer_raw, data_emctwrcontainer, data_global, data_triggerlvl1);
+  /* Count events to calculate ERT efficiency */
+  FillERTEfficiency(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert);
 
   /* Fill DC track quality information */
   FillTrackQuality(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert);
 
-  for(int itype=0; itype<4; itype++)
-  {
-    /* Count events to calculate ERT efficiency */
-    FillERTEfficiency(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
+  /* Analyze photon for pi0 event */
+  FillPi0Spectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert);
 
-    /* Analyze photon for pi0 event */
-    FillPi0Spectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
-
-    /* Analyze photon for direct photon event */
-    FillPhotonSpectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert, itype);
-  }
+  /* Analyze photon for direct photon event */
+  FillPhotonSpectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert);
 
   /* Clean up */
   delete data_emccontainer;
@@ -325,9 +337,8 @@ int PhotonHistos::FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *d
   {
     for(int iert=0; iert<3; iert++)
       if( lvl1_scaled & bit_ert4x4[iert] )
-        for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
-          if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
-            h_events->Fill( Form("ert_%c_%d0cm", 97+iert, 3-bbc10cm*2), 1. );
+        if( BBC10cm(data_global, data_triggerlvl1) )
+          h_events->Fill(Form("ert_%c_10cm", 97+iert), 1.);
   }
 
   /* Fill BBC trigger counts */
@@ -343,12 +354,6 @@ int PhotonHistos::FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *d
           h_events->Fill("bbc_narrow_10cm_ert_c", 1.);
       }
     }
-    if( (lvl1_scaled & bit_bbcnovtx) && fabs(bbc_z) < 30. )
-    {
-      h_events->Fill("bbc_novtx_30cm", 1.);
-      if( lvl1_live & bit_ert4x4[2] )
-        h_events->Fill("bbc_novtx_30cm_ert_c", 1.);
-    }
   }
 
   return EVENT_OK;
@@ -358,8 +363,8 @@ int PhotonHistos::FillClusterTofSpectrum(const emcClusterContainer *data_emccont
 {
   /* Get event global parameters */
   double bbc_z = data_global->getBbcZVertex();
-  double bbc_t0 = data_global->getBbcTimeZero();
   if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
+  double bbc_t0 = data_global->getBbcTimeZero();
 
   unsigned ncluster = data_emccontainer->size();
 
@@ -393,8 +398,8 @@ int PhotonHistos::FillPi0InvariantMass(const emcClusterContainer *data_emccontai
 {
   /* Get event global parameters */
   double bbc_z = data_global->getBbcZVertex();
-  double bbc_t0 = data_global->getBbcTimeZero();
   if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
+  double bbc_t0 = data_global->getBbcTimeZero();
 
   unsigned ncluster = data_emccontainer->size();
   vector<unsigned> v_used;
@@ -496,24 +501,18 @@ int PhotonHistos::FillBBCEfficiency(const emcClusterContainer *data_emccontainer
 }
 
 int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype)
+    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert)
 {
-  /* Check trigger */
-  if( evtype > 2 || !IsEventType(evtype, data_triggerlvl1) )
-    return DISCARDEVENT;
-
-  anatools::TriggerMode triggermode = (anatools::TriggerMode)evtype;
-
   /* Get event global parameters */
-  double bbc_z = data_global->getBbcZVertex();
+  if( !BBC10cm(data_global, data_triggerlvl1) )
+    return DISCARDEVENT;
   double bbc_t0 = data_global->getBbcTimeZero();
-  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
 
   unsigned ncluster = data_emccontainer->size();
   vector<unsigned> v_used;
 
   /* Fire ERT on arm 0 (west) or 1 (east) */
-  bool FireERT[2] = {};
+  bool FireERT[3][2] = {};  // FireERT[evtype][arm]
   if( datatype == ERT )
   {
     int ert_n = data_ert->get_ERThit_N();
@@ -521,8 +520,9 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
     {
       int arm = data_ert->get_ERTarm(i);
       int trigmode = data_ert->get_ERTtrigmode(i);
-      if( arm >= 0 && arm <= 1 && trigmode == evtype )
-        FireERT[arm] = true;
+      if( trigmode >= 0 && trigmode <= 2 &&
+          arm >= 0 && arm <= 1 )
+        FireERT[trigmode][arm] = true;
     }
   }
 
@@ -532,18 +532,20 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
     int sector = anatools::GetSector(cluster1);
     int part = anatools::GetPart(cluster1);
     int arm = sector / 4;
-    int ert_trig = anatools::PassERT(data_ert, cluster1, triggermode) ? 1 : 0;
     double photon_pT = anatools::Get_pT(cluster1);
+
+    int ert_trig[3] = {};  // ert_trig[evtype]
+    for(int evtype=0; evtype<3; evtype++)
+      ert_trig[evtype] = anatools::PassERT(data_ert, cluster1, (anatools::TriggerMode)evtype) ? 1 : 0;
 
     /* Require the other arm to be fired for ERT sample */
     int oarm = ( arm==0 ? 1 : 0 );
-    if( datatype == ERT && !FireERT[oarm] ) continue;
 
     /* ERT efficiency for each of super modules */
-    for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
-      if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
+    for(int evtype=0; evtype<3; evtype++)
+      if( datatype == MB || FireERT[evtype][oarm] )
       {
-        int ih = sector + 8*ert_trig + 8*2*evtype + 8*2*3*bbc10cm;
+        int ih = sector + 8*ert_trig[evtype] + 8*2*evtype;
         h2_ertsm[ih]->Fill(photon_pT, (double)anatools::GetSM(cluster1));
       }
 
@@ -571,12 +573,12 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
               isolated[ival] = 1;
           }
 
-          for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
-            if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
+          for(int evtype=0; evtype<3; evtype++)
+            if( part >= 0 && (datatype == MB || FireERT[evtype][oarm]) )
               for(int ival=0; ival<3; ival++)
-                if( part >= 0 && ( ival == 0 || !dcdeadmap->ChargeVeto(cluster1, data_tracks) ) )
+                if( ival == 0 || !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
                 {
-                  int ih = part + 3*ert_trig + 3*2*evtype + 3*2*3*bbc10cm + 3*2*3*2*checkmap + 3*2*3*2*2*isolated[ival] + 3*2*3*2*2*2*ival;
+                  int ih = part + 3*ert_trig[evtype] + 3*2*evtype + 3*2*3*checkmap + 3*2*3*2*isolated[ival] + 3*2*3*2*2*ival;
                   h_ert[ih]->Fill(photon_pT);
                 }
         } // checkmap
@@ -590,18 +592,16 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
               TestPhoton(cluster2, bbc_t0) &&
               anatools::GetAsymmetry_E(cluster1, cluster2) < AsymCut )
           {
-            int part2 = anatools::GetPart( cluster2 );
+            int part2 = anatools::GetPart(cluster2);
             if( part2 != part ) continue;
-
-            if( cluster2->ecore() > cluster1->ecore() )
-            {
-              part = part2;
-              ert_trig = anatools::PassERT(data_ert, cluster2, triggermode) ? 1 : 0;
-            }
 
             double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
             double minv = anatools::GetInvMass(cluster1, cluster2);
             double tot_E = cluster1->ecore() + cluster2->ecore();
+
+            if( cluster2->ecore() > cluster1->ecore() )
+              for(int evtype=0; evtype<3; evtype++)
+                ert_trig[evtype] = anatools::PassERT(data_ert, cluster2, (anatools::TriggerMode)evtype) ? 1 : 0;
 
             for(int checkmap=0; checkmap<2; checkmap++)
             {
@@ -614,159 +614,11 @@ int PhotonHistos::FillERTEfficiency(const emcClusterContainer *data_emccontainer
                 if( econe[ival] < eratio * tot_E )
                   isolated[ival] = 1;
 
-              for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
-                if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
+              for(int evtype=0; evtype<3; evtype++)
+                if( part >= 0 && (datatype == MB || FireERT[evtype][oarm]) )
                   for(int ival=0; ival<3; ival++)
-                    if( part >= 0 )
-                    {
-                      int ih = part + 3*ert_trig + 3*2*evtype + 3*2*3*bbc10cm + 3*2*3*2*checkmap + 3*2*3*2*2*isolated[ival] + 3*2*3*2*2*2*ival;
-                      h2_ert_pion[ih]->Fill(tot_pT, minv);
-                    }
-            } // checkmap
-          } // check photon2
-        } // j loop
-    } // check photon1
-  } // i loop
-
-  return EVENT_OK;
-}
-
-int PhotonHistos::FillERTEfficiencyCut(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype)
-{
-  /* Check trigger */
-  if( evtype > 2 || !IsEventType(evtype, data_triggerlvl1) )
-    return DISCARDEVENT;
-
-  anatools::TriggerMode triggermode = (anatools::TriggerMode)evtype;
-
-  /* Get event global parameters */
-  double bbc_z = data_global->getBbcZVertex();
-  double bbc_t0 = data_global->getBbcTimeZero();
-  if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
-
-  unsigned ncluster = data_emccontainer->size();
-  vector<unsigned> v_used;
-
-  /* Fire ERT on arm 0 (west) or 1 (east) */
-  bool FireERT[2] = {};
-  if( datatype == ERT )
-  {
-    int ert_n = data_ert->get_ERThit_N();
-    for(int i=0; i<ert_n; i++)
-    {
-      int arm = data_ert->get_ERTarm(i);
-      int trigmode = data_ert->get_ERTtrigmode(i);
-      if( arm >= 0 && arm <= 1 && trigmode == evtype )
-        FireERT[arm] = true;
-    }
-  }
-
-  for(unsigned i=0; i<ncluster; i++)
-  {
-    emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
-    int sector = anatools::GetSector(cluster1);
-    int part = anatools::GetPart(cluster1);
-    int arm = sector / 4;
-    int ert_trig = anatools::PassERT(data_ert, cluster1, triggermode) ? 1 : 0;
-    double photon_pT = anatools::Get_pT(cluster1);
-
-    /* Require the other arm to be fired for ERT sample */
-    int oarm = ( arm==0 ? 1 : 0 );
-    if( datatype == ERT && !FireERT[oarm] ) continue;
-
-    /* ERT efficiency for each of super modules */
-    for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
-      if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
-      {
-        int ih = sector + 8*ert_trig + 8*2*evtype + 8*2*3*bbc10cm;
-        h2_ertsm[ih]->Fill(photon_pT, (double)anatools::GetSM(cluster1));
-      }
-
-    /* For pi0 consider good towers */
-    if( emcwarnmap->IsGoodTower(cluster1) &&
-        cluster1->ecore() > eMin &&
-        fabs( cluster1->tofcorr() - bbc_t0 ) < tofMax )
-    {
-      v_used.push_back(i);
-
-      int cut[3] = {};
-      for(int icut=0; icut<3; icut++)
-        if( PassPhotonCut(cluster1, icut) )
-          cut[icut] = 1;
-
-      /* For photon consider fiducial towers */
-      if( emcwarnmap->InFiducial(cluster1) )
-      {
-        for(int checkmap=0; checkmap<2; checkmap++)
-        {
-          dcdeadmap->Checkmap(checkmap);
-
-          int isolated[3] = {};
-          double econeEM[2], econeTrk[3];
-          SumEEmcal(cluster1, data_emccontainer, data_tracks, bbc_t0, econeEM);
-          SumPTrack(cluster1, data_tracks, econeTrk);
-          for(int ival=0; ival<3; ival++)
-          {
-            double econe = (ival == 0 ? econeEM[0] : econeEM[1]) + econeTrk[ival];
-            if( econe < eratio * cluster1->ecore() )
-              isolated[ival] = 1;
-          }
-
-          if( BBC10cm(data_global, data_triggerlvl1, 1) )
-            for(int ival=0; ival<3; ival++)
-              if( part >= 0 && ( ival == 0 || !dcdeadmap->ChargeVeto(cluster1, data_tracks) ) )
-              {
-                int ih = part + 3*ert_trig + 3*2*evtype + 3*2*3*cut[0] + 3*2*3*2*cut[1] + 3*2*3*2*2*cut[2] + 3*2*3*2*2*2*checkmap + 3*2*3*2*2*2*2*isolated[ival] + 3*2*3*2*2*2*2*2*ival;
-                h_ert[ih]->Fill(photon_pT);
-              }
-        } // checkmap
-      } // InFiducial
-
-      for(unsigned j=0; j<ncluster; j++)
-        if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
-        {
-          emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
-          if( emcwarnmap->IsGoodTower(cluster2) &&
-              cluster2->ecore() > eMin &&
-              fabs( cluster2->tofcorr() - bbc_t0 ) < tofMax &&
-              anatools::GetAsymmetry_E(cluster1, cluster2) < AsymCut )
-          {
-            int part2 = anatools::GetPart( cluster2 );
-            if( part2 != part ) continue;
-
-            int cut[3] = {};
-            for(int icut=0; icut<3; icut++)
-              if( PassPhotonCut(cluster1, icut) &&
-                  PassPhotonCut(cluster2, icut) )
-                cut[icut] = 1;
-
-            if( cluster2->ecore() > cluster1->ecore() )
-            {
-              part = part2;
-              ert_trig = anatools::PassERT(data_ert, cluster2, triggermode) ? 1 : 0;
-            }
-
-            double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
-            double minv = anatools::GetInvMass(cluster1, cluster2);
-            double tot_E = cluster1->ecore() + cluster2->ecore();
-
-            for(int checkmap=0; checkmap<2; checkmap++)
-            {
-              dcdeadmap->Checkmap(checkmap);
-
-              int isolated[3] = {};
-              double econe[3];
-              SumEPi0(cluster1, cluster2, data_emccontainer, data_tracks, bbc_t0, econe);
-              for(int ival=0; ival<3; ival++)
-                if( econe[ival] < eratio * tot_E )
-                  isolated[ival] = 1;
-
-              if( BBC10cm(data_global, data_triggerlvl1, 1) )
-                for(int ival=0; ival<3; ival++)
-                  if( part >= 0 )
                   {
-                    int ih = part + 3*ert_trig + 3*2*evtype + 3*2*3*cut[0] + 3*2*3*2*cut[1] + 3*2*3*2*2*cut[2] + 3*2*3*2*2*2*checkmap + 3*2*3*2*2*2*2*isolated[ival] + 3*2*3*2*2*2*2*2*ival;
+                    int ih = part + 3*ert_trig[evtype] + 3*2*evtype + 3*2*3*checkmap + 3*2*3*2*isolated[ival] + 3*2*3*2*2*ival;
                     h2_ert_pion[ih]->Fill(tot_pT, minv);
                   }
             } // checkmap
@@ -778,84 +630,13 @@ int PhotonHistos::FillERTEfficiencyCut(const emcClusterContainer *data_emccontai
   return EVENT_OK;
 }
 
-int PhotonHistos::FillTowerEnergy(const emcClusterContainer *data_emccontainer, const emcTowerContainer *data_emctwrcontainer,
-    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1)
-{
-  /* Get event global parameters */
-  double bbc_z = data_global->getBbcZVertex();
-  double bbc_t0 = data_global->getBbcTimeZero();
-
-  /* Check trigger */
-  const unsigned bit_trig[4] = {0x00000002, 0x00000080, 0x00000040, 0x00000100};
-  const unsigned lvl1_live = data_triggerlvl1->get_lvl1_triglive();
-  int trig = 0;
-  for(int i=0; i<4; i++)
-    if( lvl1_live & bit_trig[i] )
-      trig += pow(2,i);
-
-  /* Get crossing number */
-  int crossing = data_triggerlvl1->get_lvl1_clock_cross();
-  int crossing_shift = spinpattern->get_crossing_shift();
-  int bunch = (crossing + crossing_shift) % 120;
-  if(bunch < 0) return DISCARDEVENT;
-
-  int pattern_blue = spinpattern->get_spinpattern_blue(bunch);
-  int pattern_yellow = spinpattern->get_spinpattern_yellow(bunch);
-
-  /* Test whether at the beam abort gap or not */
-  int collision = 1;
-  if( pattern_blue == 10 || pattern_yellow == 10 )
-    collision = 0;
-
-  unsigned ncluster = data_emccontainer->size();
-  for(unsigned i=0; i<ncluster; i++)
-  {
-    emcClusterContent *cluster = data_emccontainer->getCluster(i);
-    if( emcwarnmap->IsGoodTower(cluster) &&
-        cluster->ecore() > eMin )
-    {
-      double pT = anatools::Get_pT(cluster);
-      double tof = cluster->tofcorr();
-      int cid = cluster->towerid(0);
-      int sector, iypos, izpos;
-      EmcIndexer::decodeTowerId(cid, sector, izpos, iypos);  // notice izpos, iypos
-
-      int cut = 0;
-      if( cluster->prob_photon() > probMin )
-        cut += 1;
-      if( fabs(tof - bbc_t0) < tofMax )
-        cut += 2;
-      if( fabs(bbc_z) < 10. )
-        cut += 4;
-
-      for(int iz=0; iz<7; iz++)
-        for(int iy=0; iy<7; iy++)
-        {
-          int twrid = EmcIndexer::getTowerId(sector, izpos+iz-3, iypos+iy-3);
-          emcTowerContent *tower = data_emctwrcontainer->findTower(twrid);
-          if(tower && sector >= 0 && sector <= 7)
-          {
-            double etwr = tower->Energy();
-            int ih = sector + 8*collision + 8*2*cut + 8*2*8*trig;
-            h3_etwr[ih]->Fill(pT, iy-3., iz-3., etwr);
-          }
-        }
-    }
-  }
-
-  return EVENT_OK;
-}
-
 int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
     const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert)
 {
-  /* Check trigger */
-  int evtype = 2;  // ERT_4x4c
-  if( !IsEventType(evtype, data_triggerlvl1) )
-    return DISCARDEVENT;
-
-  /* Require BBC 30cm vertex cut */
-  if( !BBC10cm(data_global, data_triggerlvl1, 0) )
+  /* Require ERT_4x4c and BBC 30cm vertex cut */
+  double bbc_z = data_global->getBbcZVertex();
+  if( !IsEventType(2, data_triggerlvl1) ||
+      fabs(bbc_z) > 30. )
     return DISCARDEVENT;
 
   int npart = data_tracks->get_npart();
@@ -915,26 +696,22 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
 }
 
 int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype)
+    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert)
 {
-  /* Check trigger */
-  if( !IsEventType(evtype, data_triggerlvl1) )
-    return DISCARDEVENT;
-
-  anatools::TriggerMode triggermode = anatools::ERT_4x4or;
-  if(evtype < 3)
-    triggermode = (anatools::TriggerMode)evtype;
-
   /* Get event global parameters */
   double bbc_z = data_global->getBbcZVertex();
-  double bbc_t0 = data_global->getBbcTimeZero();
   if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
+  double bbc_t0 = data_global->getBbcTimeZero();
 
   /* Get crossing number */
   int crossing = data_triggerlvl1->get_lvl1_clock_cross();
   int crossing_shift = spinpattern->get_crossing_shift();
   int evenodd = ( crossing + crossing_shift ) % 2;
-  int pattern = GetPattern(crossing);
+  int pattern = GetPattern(crossing) - 1;
+
+  /* Count event multiplicity */
+  int mul_sig[npT_pol] = {};
+  int mul_bg[npT_pol] = {};
 
   unsigned ncluster = data_emccontainer->size();
   vector<unsigned> v_used;
@@ -947,23 +724,24 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
       {
         emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
         emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
-        if( emcwarnmap->IsGoodTower(cluster1) &&
-            emcwarnmap->IsGoodTower(cluster2) &&
-            cluster1->ecore() > eMin &&
-            cluster2->ecore() > eMin &&
-            anatools::GetAsymmetry_E(cluster1, cluster2) < AsymCut )
+        if( cluster1->ecore() > eMin &&
+            cluster2->ecore() > eMin )
         {
+          bool trig[4] = {};
+          for(int evtype=0; evtype<4; evtype++)
+          {
+            anatools::TriggerMode trigmode = anatools::ERT_4x4or;
+            if(evtype < 3)
+              trigmode = (anatools::TriggerMode)evtype;
+            if( cluster1->ecore() > cluster2->ecore() )
+              trig[evtype] = anatools::PassERT(data_ert, cluster1, trigmode);
+            else
+              trig[evtype] = anatools::PassERT(data_ert, cluster2, trigmode);
+          }
+          if(datatype == ERT && !trig[3]) continue;
+
           int part1 = anatools::GetPart(cluster1);
           int part2 = anatools::GetPart(cluster2);
-          if( part1 != part2 ) continue;
-
-          bool trig = anatools::PassERT(data_ert, cluster1, triggermode);
-          if( cluster2->ecore() > cluster1->ecore() )
-            trig = anatools::PassERT(data_ert, cluster2, triggermode);
-
-          if( datatype == ERT && !trig )
-            continue;
-
           double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
           double minv = anatools::GetInvMass(cluster1, cluster2);
           double tot_E = cluster1->ecore() + cluster2->ecore();
@@ -988,121 +766,79 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
               if( econe[ival] < eratio * tot_E )
                 isolated[ival] = 1;
 
-            for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
-              if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
+            for(int evtype=0; evtype<3; evtype++)
+              if( part1 >= 0 && part1 == part2 &&
+                  IsEventType(evtype, data_triggerlvl1) && trig[evtype] &&
+                  BBC10cm(data_global, data_triggerlvl1) &&
+                  emcwarnmap->IsGoodTower(cluster1) &&
+                  emcwarnmap->IsGoodTower(cluster2) &&
+                  anatools::GetAsymmetry_E(cluster1, cluster2) < AsymCut )
                 for(int ival=0; ival<3; ival++)
-                  if( part1 >= 0 )
-                  {
-                    int ih = part1 + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*tof + 3*2*3*4*2*prob + 3*2*3*4*2*2*bbc10cm + 3*2*3*4*2*2*2*checkmap + 3*2*3*4*2*2*2*2*isolated[ival] + 3*2*3*4*2*2*2*2*2*ival;
-                    h2_pion[ih]->Fill(tot_pT, minv);
-                  }
+                {
+                  int ih = part1 + 3*evtype + 3*3*tof + 3*3*2*prob + 3*3*2*2*checkmap + 3*3*2*2*2*isolated[ival] + 3*3*2*2*2*2*ival;
+                  h2_pion[ih]->Fill(tot_pT, minv);
+                } // evtype, ival
           } // checkmap
-        } // IsGoodTower and asymmetry cut
-      } // j loop
-  } // i loop
 
-  return EVENT_OK;
-}
-
-int PhotonHistos::FillPi0SpectrumCut(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype)
-{
-  /* Check trigger */
-  if( evtype > 2 || !IsEventType(evtype, data_triggerlvl1) )
-    return DISCARDEVENT;
-
-  anatools::TriggerMode triggermode = (anatools::TriggerMode)evtype;
-
-  /* Get event global parameters */
-  double bbc_t0 = data_global->getBbcTimeZero();
-  if( !BBC10cm(data_global, data_triggerlvl1, 1) ) return DISCARDEVENT;
-
-  unsigned ncluster = data_emccontainer->size();
-  vector<unsigned> v_used;
-
-  for(unsigned i=0; i<ncluster; i++)
-  {
-    v_used.push_back(i);
-    for(unsigned j=0; j<ncluster; j++)
-      if( j != i && find(v_used.begin(), v_used.end(), j) == v_used.end() )
-      {
-        emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
-        emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
-        if( emcwarnmap->IsGoodTower(cluster1) &&
-            emcwarnmap->IsGoodTower(cluster2) &&
-            cluster1->ecore() > eMin &&
-            cluster2->ecore() > eMin &&
-            fabs( cluster1->tofcorr() - bbc_t0 ) < tofMax &&
-            fabs( cluster2->tofcorr() - bbc_t0 ) < tofMax &&
-            anatools::GetAsymmetry_E(cluster1, cluster2) < AsymCut )
-        {
-          int part1 = anatools::GetPart(cluster1);
-          int part2 = anatools::GetPart(cluster2);
-          if( part1 != part2 ) continue;
-
-          bool trig = anatools::PassERT(data_ert, cluster1, triggermode);
-          if( cluster2->ecore() > cluster1->ecore() )
-            trig = anatools::PassERT(data_ert, cluster2, triggermode);
-
-          if( datatype == ERT && !trig )
-            continue;
-
-          double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
-          double minv = anatools::GetInvMass(cluster1, cluster2);
-          double tot_E = cluster1->ecore() + cluster2->ecore();
-
-          int cut[3] = {};
-          for(int icut=0; icut<3; icut++)
-            if( PassPhotonCut(cluster1, icut) &&
-                PassPhotonCut(cluster2, icut) )
-              cut[icut] = 1;
-
-          for(int checkmap=0; checkmap<2; checkmap++)
+          if( evenodd >= 0 && pattern >= 0 && prob == 1 &&
+              IsEventType(3, data_triggerlvl1) && trig[3] &&
+              emcwarnmap->PassCut(cluster1) &&
+              emcwarnmap->PassCut(cluster2) &&
+              fabs( cluster1->tofcorr() - bbc_t0 ) < tofMaxALL &&
+              fabs( cluster2->tofcorr() - bbc_t0 ) < tofMaxALL &&
+              PassChargeVeto(cluster1) &&
+              PassChargeVeto(cluster2) )
           {
-            dcdeadmap->Checkmap(checkmap);
+            int ih = evenodd + 2*pattern;
+            h2_pion_pol[ih]->Fill(tot_pT, minv);
 
-            int isolated[3] = {};
-            double econe[3];
-            SumEPi0(cluster1, cluster2, data_emccontainer, data_tracks, bbc_t0, econe);
-            for(int ival=0; ival<3; ival++)
-              if( econe[ival] < eratio * tot_E )
-                isolated[ival] = 1;
+            if( tot_pT > pTbin_pol[0] )
+            {
+              int ipt = 0;
+              for(ipt=0; ipt<npT_pol; ipt++)
+                if( tot_pT < pTbin_pol[ipt+1] )
+                  break;
 
-            for(int ival=0; ival<3; ival++)
-              if( part1 >= 0 )
-              {
-                int ih = part1 + 3*evtype + 3*3*cut[0] + 3*3*2*cut[1] + 3*3*2*2*cut[2] + 3*3*2*2*2*checkmap + 3*3*2*2*2*2*isolated[ival] + 3*3*2*2*2*2*2*ival;
-                h2_pion[ih]->Fill(tot_pT, minv);
-              }
-          } // checkmap
-        } // IsGoodTower and asymmetry cut
+              if( minv > 0.112 && minv < 0.162 )
+                mul_sig[ipt]++;
+              else if( (minv > 0.047 && minv < 0.097) ||
+                  (minv > 177 && minv < 0.227) )
+                mul_bg[ipt]++;
+            }
+          }
+        } // min energy cut
       } // j loop
   } // i loop
+
+  if( evenodd >= 0 )
+    for(int ipt=0; ipt<npT_pol; ipt++)
+    {
+      double xpt = ( pTbin_pol[ipt] + pTbin_pol[ipt+1] ) / 2.;
+      int ih = evenodd;
+      h2_mul_pion_sig[ih]->Fill(xpt, (double)mul_sig[ipt]);
+      h2_mul_pion_bg[ih]->Fill(xpt, (double)mul_bg[ipt]);
+    }
 
   return EVENT_OK;
 }
 
 int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype)
+    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert)
 {
-  /* Check trigger */
-  if( !IsEventType(evtype, data_triggerlvl1) )
-    return DISCARDEVENT;
-
-  anatools::TriggerMode triggermode = anatools::ERT_4x4or;
-  if(evtype < 3)
-    triggermode = (anatools::TriggerMode)evtype;
-
   /* Get event global parameters */
   double bbc_z = data_global->getBbcZVertex();
-  double bbc_t0 = data_global->getBbcTimeZero();
   if( fabs(bbc_z) > 30. ) return DISCARDEVENT;
+  double bbc_t0 = data_global->getBbcTimeZero();
 
   /* Get crossing number */
   int crossing = data_triggerlvl1->get_lvl1_clock_cross();
   int crossing_shift = spinpattern->get_crossing_shift();
   int evenodd = ( crossing + crossing_shift ) % 2;
-  int pattern = GetPattern(crossing);
+  int pattern = GetPattern(crossing) - 1;
+
+  /* Count event multiplicity */
+  int mul_sig[2][npT_pol] = {};
+  int mul_bg[2][npT_pol] = {};
 
   unsigned ncluster = data_emccontainer->size();
 
@@ -1112,9 +848,15 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
     if( emcwarnmap->InFiducial(cluster1) &&
         TestPhoton(cluster1, bbc_t0) )
     {
-      bool trig = anatools::PassERT(data_ert, cluster1, triggermode);
-      if( datatype == ERT && !trig )
-        continue;
+      bool trig[4] = {};
+      for(int evtype=0; evtype<4; evtype++)
+      {
+        anatools::TriggerMode trigmode = anatools::ERT_4x4or;
+        if(evtype < 3)
+          trigmode = (anatools::TriggerMode)evtype;
+        trig[evtype] = anatools::PassERT(data_ert, cluster1, trigmode);
+      }
+      if(datatype == ERT && !trig[3]) continue;
 
       int part = anatools::GetPart(cluster1);
       double pT = anatools::Get_pT(cluster1);
@@ -1134,10 +876,11 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
             isolated[ival] = 1;
         }
 
-        if( BBC10cm(data_global, data_triggerlvl1, 1) &&
-            evtype == 2 && pT > 5. && pT < 10. )
+        if( part >= 0 && pT > 5. && pT < 10. &&
+            IsEventType(2, data_triggerlvl1) && trig[2] &&
+            BBC10cm(data_global, data_triggerlvl1) )
           for(int ival=0; ival<3; ival++)
-            if( part >= 0 && ( ival == 0 || !dcdeadmap->ChargeVeto(cluster1, data_tracks) ) )
+            if( ival == 0 || !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
             {
               TLorentzVector pE = anatools::Get_pE(cluster1);
               double eta = pE.Eta();
@@ -1152,14 +895,34 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
               h2_eta_phi[ih]->Fill(eta, phi);
             }
 
-        for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
-          if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
+        for(int evtype=0; evtype<3; evtype++)
+          if( part >= 0 &&
+              IsEventType(evtype, data_triggerlvl1) && trig[evtype] &&
+              BBC10cm(data_global, data_triggerlvl1) )
             for(int ival=0; ival<3; ival++)
-              if( part >= 0 && ( ival == 0 || !dcdeadmap->ChargeVeto(cluster1, data_tracks) ) )
+              if( ival == 0 || !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
               {
-                int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*checkmap + 3*2*3*4*2*2*isolated[ival] + 3*2*3*4*2*2*2*ival;
+                int ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isolated[ival] + 3*3*2*2*ival;
                 h_1photon[ih]->Fill(pT);
               }
+
+        if( evenodd >= 0 && pattern >= 0 && isolated[1] &&
+            IsEventType(3, data_triggerlvl1) && trig[3] &&
+            !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
+        {
+          int ih = evenodd + 2*pattern + 2*2*checkmap;
+          h_1photon_pol[ih]->Fill(pT);
+
+          if( pT > pTbin_pol[0] )
+          {
+            int ipt = 0;
+            for(ipt=0; ipt<npT_pol; ipt++)
+              if( pT < pTbin_pol[ipt+1] )
+                break;
+
+            mul_sig[checkmap][ipt]++;
+          }
+        }
 
         for(unsigned j=0; j<ncluster; j++)
           if(j != i)
@@ -1182,135 +945,53 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
                 isopair[ival] = 1;
             }
 
-            for(int bbc10cm=0; bbc10cm<2; bbc10cm++)
-              if( BBC10cm(data_global, data_triggerlvl1, bbc10cm) )
+            for(int evtype=0; evtype<3; evtype++)
+              if( part >= 0 &&
+                  IsEventType(evtype, data_triggerlvl1) && trig[evtype] &&
+                  BBC10cm(data_global, data_triggerlvl1) )
                 for(int ival=0; ival<3; ival++)
-                  if( part >= 0 && ( ival == 0 || !dcdeadmap->ChargeVeto(cluster1, data_tracks) ) )
+                  if( ival == 0 || !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
                   {
-                    int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*checkmap + 3*2*3*4*2*2*isolated[ival] + 3*2*3*4*2*2*2*isopair[ival] + 3*2*3*4*2*2*2*2*ival;
+                    int ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isolated[ival] + 3*3*2*2*isopair[ival] + 3*3*2*2*2*ival;
                     h2_2photon[ih]->Fill(pT, minv);
                     h2_2photon2pt[ih]->Fill(tot_pT, minv);
                   }
+
+            if( evenodd >= 0 && pattern >= 0 &&
+                IsEventType(3, data_triggerlvl1) && trig[3] &&
+                !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
+            {
+              int ih = evenodd + 2*pattern + 2*2*checkmap + 2*2*2*isolated[1] + 2*2*2*2*isopair[1];
+              h2_2photon_pol[ih]->Fill(pT, minv);
+              h2_2photon2pt_pol[ih]->Fill(tot_pT, minv);
+
+              if( isolated[1] && pT > pTbin_pol[0] )
+              {
+                int ipt = 0;
+                for(ipt=0; ipt<npT_pol; ipt++)
+                  if( pT < pTbin_pol[ipt+1] )
+                    break;
+
+                if( minv > 0.112 && minv < 0.162 )
+                  mul_bg[checkmap][ipt]++;
+              }
+            }
           } // j loop
       } // checkmap
     } // check photon1
   } // i loop
 
-  return EVENT_OK;
-}
-
-int PhotonHistos::FillPhotonSpectrumCut(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-    const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype)
-{
-  /* Check trigger */
-  if( evtype > 2 || !IsEventType(evtype, data_triggerlvl1) )
-    return DISCARDEVENT;
-
-  anatools::TriggerMode triggermode = (anatools::TriggerMode)evtype;
-
-  /* Get event global parameters */
-  double bbc_t0 = data_global->getBbcTimeZero();
-  if( !BBC10cm(data_global, data_triggerlvl1, 1) ) return DISCARDEVENT;
-
-  unsigned ncluster = data_emccontainer->size();
-
-  for(unsigned i=0; i<ncluster; i++)
-  {
-    emcClusterContent *cluster1 = data_emccontainer->getCluster(i);
-    if( emcwarnmap->InFiducial(cluster1) &&
-        cluster1->ecore() > eMin &&
-        fabs( cluster1->tofcorr() - bbc_t0 ) < tofMax )
+  if( evenodd >= 0 )
+    for(int ipt=0; ipt<npT_pol; ipt++)
     {
-      bool trig = anatools::PassERT(data_ert, cluster1, triggermode);
-      if( datatype == ERT && !trig )
-        continue;
-
-      int part = anatools::GetPart(cluster1);
-      double pT = anatools::Get_pT(cluster1);
-
-      int cut[3] = {};
-      for(int icut=0; icut<3; icut++)
-        if( PassPhotonCut(cluster1, icut) )
-          cut[icut] = 1;
-
+      double xpt = ( pTbin_pol[ipt] + pTbin_pol[ipt+1] ) / 2.;
       for(int checkmap=0; checkmap<2; checkmap++)
       {
-        dcdeadmap->Checkmap(checkmap);
-
-        int isolated[3] = {};
-        double econeEM[2], econeTrk[3];
-        SumEEmcal(cluster1, data_emccontainer, data_tracks, bbc_t0, econeEM);
-        SumPTrack(cluster1, data_tracks, econeTrk);
-        for(int ival=0; ival<3; ival++)
-        {
-          double econe = (ival == 0 ? econeEM[0] : econeEM[1]) + econeTrk[ival];
-          if( econe < eratio * cluster1->ecore() )
-            isolated[ival] = 1;
-        }
-
-        if( evtype == 2 && pT > 5. && pT < 10. )
-          for(int ival=0; ival<3; ival++)
-            if( part >= 0 && ( ival == 0 || !dcdeadmap->ChargeVeto(cluster1, data_tracks) ) )
-            {
-              TLorentzVector pE = anatools::Get_pE(cluster1);
-              double eta = pE.Eta();
-              double phi = pE.Phi();
-              if(part >= 1)
-              {
-                pE.RotateZ(-PI);
-                phi = pE.Phi() + PI;
-              }
-
-              int ih = part + 3*cut[0] + 3*2*cut[1] + 3*2*2*cut[2] + 3*2*2*2*checkmap + 3*2*2*2*2*isolated[ival] + 3*2*2*2*2*2*ival;
-              h2_eta_phi[ih]->Fill(eta, phi);
-            }
-
-        for(int ival=0; ival<3; ival++)
-          if( part >= 0 && ( ival == 0 || !dcdeadmap->ChargeVeto(cluster1, data_tracks) ) )
-          {
-            int ih = part + 3*evtype + 3*3*cut[0] + 3*3*2*cut[1] + 3*3*2*2*cut[2] + 3*3*2*2*2*checkmap + 3*3*2*2*2*2*isolated[ival] + 3*3*2*2*2*2*2*ival;
-            h_1photon[ih]->Fill(pT);
-          }
-
-        for(unsigned j=0; j<ncluster; j++)
-          if(j != i)
-          {
-            emcClusterContent *cluster2 = data_emccontainer->getCluster(j);
-            if( !emcwarnmap->IsGoodTower(cluster2) ||
-                cluster2->ecore() < eMin ||
-                fabs( cluster2->tofcorr() - bbc_t0 ) > tofMax )
-              continue;
-
-            double tot_pT = anatools::GetTot_pT(cluster1, cluster2);
-            double minv = anatools::GetInvMass(cluster1, cluster2);
-
-            int cut[3] = {};
-            for(int icut=0; icut<3; icut++)
-              if( PassPhotonCut(cluster1, icut) &&
-                  PassPhotonCut(cluster2, icut) )
-                cut[icut] = 1;
-
-            int isopair[3] = {};
-            double econeEMPair[2];
-            SumEEmcal(cluster1, cluster2, data_emccontainer, data_tracks, bbc_t0, econeEMPair);
-            for(int ival=0; ival<3; ival++)
-            {
-              double econePair = (ival == 0 ? econeEMPair[0] : econeEMPair[1]) + econeTrk[ival];
-              if( econePair < eratio * cluster1->ecore() )
-                isopair[ival] = 1;
-            }
-
-            for(int ival=0; ival<3; ival++)
-              if( part >= 0 && ( ival == 0 || !dcdeadmap->ChargeVeto(cluster1, data_tracks) ) )
-              {
-                int ih = part + 3*evtype + 3*3*cut[0] + 3*3*2*cut[1] + 3*3*2*2*cut[2] + 3*3*2*2*2*checkmap + 3*3*2*2*2*2*isolated[ival] + 3*3*2*2*2*2*2*isopair[ival] + 3*3*2*2*2*2*2*2*ival;
-                h2_2photon[ih]->Fill(pT, minv);
-                h2_2photon2pt[ih]->Fill(tot_pT, minv);
-              }
-          } // j loop
-      } // checkmap
-    } // check photon1
-  } // i loop
+        int ih = evenodd + 2*checkmap;
+        h2_mul_photon_sig[ih]->Fill(xpt, (double)mul_sig[checkmap][ipt]);
+        h2_mul_photon_bg[ih]->Fill(xpt, (double)mul_bg[checkmap][ipt]);
+      }
+    }
 
   return EVENT_OK;
 }
@@ -1385,22 +1066,17 @@ void PhotonHistos::BookHistograms()
   /* Events counter */
   if( datatype == ERT )
   {
-    h_events = new TH1F("h_events", "Events counter", 6,-0.5,5.5);
+    h_events = new TH1F("h_events", "Events counter", 3,-0.5,2.5);
     h_events->GetXaxis()->SetBinLabel(1, "ert_a_10cm");
     h_events->GetXaxis()->SetBinLabel(2, "ert_b_10cm");
     h_events->GetXaxis()->SetBinLabel(3, "ert_c_10cm");
-    h_events->GetXaxis()->SetBinLabel(4, "ert_a_30cm");
-    h_events->GetXaxis()->SetBinLabel(5, "ert_b_30cm");
-    h_events->GetXaxis()->SetBinLabel(6, "ert_c_30cm");
   }
   else if( datatype == MB )
   {
-    h_events = new TH1F("h_events", "Events counter", 5,-0.5,4.5);
+    h_events = new TH1F("h_events", "Events counter", 3,-0.5,2.5);
     h_events->GetXaxis()->SetBinLabel(1, "bbc_narrow");
     h_events->GetXaxis()->SetBinLabel(2, "bbc_narrow_10cm");
     h_events->GetXaxis()->SetBinLabel(3, "bbc_narrow_10cm_ert_c");
-    h_events->GetXaxis()->SetBinLabel(4, "bbc_novtx_30cm");
-    h_events->GetXaxis()->SetBinLabel(5, "bbc_novtx_30cm_ert_c");
   }
   hm->registerHisto(h_events);
 
@@ -1430,7 +1106,7 @@ void PhotonHistos::BookHistograms()
     /* Store photon bg information */
   }
 
-  // ih = sector + 8*ert_trig + 8*2*evtype + 8*2*3*bbc10cm < 8*2*3*2
+  // ih = sector + 8*ert_trig[evtype] + 8*2*evtype < 8*2*3
   for(int ih=0; ih<nh_ertsm; ih++)
   {
     /* ERT trigger efficiency for each of super modules */
@@ -1438,7 +1114,7 @@ void PhotonHistos::BookHistograms()
     hm->registerHisto(h2_ertsm[ih]);
   }
 
-  // ih = part + 3*ert_trig + 3*2*evtype + 3*2*3*bbc10cm + 3*2*3*2*checkmap + 3*2*3*2*2*isolated[ival] + 3*2*3*2*2*2*ival < 3*2*3*2*2*2*3
+  // ih = part + 3*ert_trig[evtype] + 3*2*evtype + 3*2*3*checkmap + 3*2*3*2*isolated[ival] + 3*2*3*2*2*ival < 3*2*3*2*2*3
   for(int ih=0; ih<nh_ert; ih++)
   {
     /* ERT trigger efficiency for photon */
@@ -1448,17 +1124,6 @@ void PhotonHistos::BookHistograms()
     h2_ert_pion[ih] = new TH2F(Form("h2_ert_pion_%d",ih), "ERT efficiency;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);
     hm->registerHisto(h2_ert_pion[ih]);
   }
-
-  /* Tower energy distribution */
-  // ih = sector + 8*collision + 8*2*cut + 8*2*8*trig < 8*2*8*16
-  //for(int ih=0; ih<nh_etwr; ih++)
-  //{
-  //  h3_etwr[ih] = new TH3F(Form("h3_etwr_%d",ih), "Tower energy;p_{T} [GeV];iy;iz;",
-  //      npT,0.,0., 7,-3.5,3.5, 7,-3.5,3.5);
-  //  h3_etwr[ih]->GetXaxis()->Set(npT, pTbin);
-  //  h3_etwr[ih]->Sumw2();
-  //  hm->registerHisto(h3_etwr[ih]);
-  //}
 
   /* Track quality study */
   // ih = dcns + 2*dcwe + 2*2*iqual < 2*2*3
@@ -1483,11 +1148,19 @@ void PhotonHistos::BookHistograms()
   hm->registerHisto(h_prod);
 
   /* Store pi0 information */
-  // ih = part1 + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*tof + 3*2*3*4*2*prob + 3*2*3*4*2*2*bbc10cm + 3*2*3*4*2*2*2*checkmap + 3*2*3*4*2*2*2*2*isolated[ival] + 3*2*3*4*2*2*2*2*2*ival < 3*2*3*4*2*2*2*2*2*3
+  // ih = part1 + 3*evtype + 3*3*tof + 3*3*2*prob + 3*3*2*2*checkmap + 3*3*2*2*2*isolated[ival] + 3*3*2*2*2*2*ival < 3*3*2*2*2*2*3
   for(int ih=0; ih<nh_pion; ih++)
   {
     h2_pion[ih] = new TH2F(Form("h2_pion_%d",ih), "#pi^{0} spectrum;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);
     hm->registerHisto(h2_pion[ih]);
+  }
+
+  /* Store polarized pi0 information */
+  // ih = evenodd + 2*pattern < 2*2
+  for(int ih=0; ih<nh_pion_pol; ih++)
+  {
+    h2_pion_pol[ih] = new TH2F(Form("h2_pion_pol_%d",ih), "Polarized #pi^{0} spectrum;p_{T} [GeV];m_{inv} [GeV];", 300,0.,30., 300,0.,0.3);
+    hm->registerHisto(h2_pion_pol[ih]);
   }
 
   /* Eta and phi distribution */
@@ -1499,21 +1172,59 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store single photon information */
-  // ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*checkmap + 3*2*3*4*2*2*isolated[ival] + 3*2*3*4*2*2*2*ival < 3*2*3*4*2*2*2*3
+  // ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isolated[ival] + 3*3*2*2*ival < 3*3*2*2*3
   for(int ih=0; ih<nh_1photon; ih++)
   {
     h_1photon[ih] = new TH1F(Form("h_1photon_%d",ih), "Single photon spectrum;p_{T} [GeV];", npT,pTbin);
     hm->registerHisto(h_1photon[ih]);
   }
 
+  /* Store polarized single photons information */
+  // ih = evenodd + 2*pattern + 2*2*checkmap < 2*2*2
+  for(int ih=0; ih<nh_1photon_pol; ih++)
+  {
+    h_1photon_pol[ih] = new TH1F(Form("h_1photon_pol_%d",ih), "Polarized single photon spectrum;p_{T} [GeV];", 300,0.,30.);
+    hm->registerHisto(h_1photon_pol[ih]);
+  }
+
   /* Store two photons information */
-  // ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*checkmap + 3*2*3*4*2*2*isolated[ival] + 3*2*3*4*2*2*2*isopair[ival] + 3*2*3*4*2*2*2*2*ival < 3*2*3*4*2*2*2*2*3
+  // ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isolated[ival] + 3*3*2*2*isopair[ival] + 3*3*2*2*2*ival < 3*3*2*2*2*3
   for(int ih=0; ih<nh_2photon; ih++)
   {
     h2_2photon[ih] = new TH2F(Form("h2_2photon_%d",ih), "Two photons spectrum;p_{T} [GeV];m_{inv} [GeV];", npT,pTbin, 300,0.,0.3);
-    h2_2photon2pt[ih] = (TH2*)h2_2photon[ih]->Clone(Form("h2_2photon2pt_%d",ih));
+    h2_2photon2pt[ih] = (TH2*)h2_2photon[0]->Clone(Form("h2_2photon2pt_%d",ih));
     hm->registerHisto(h2_2photon[ih]);
     hm->registerHisto(h2_2photon2pt[ih]);
+  }
+
+  /* Store polarized two photons information */
+  // ih = evenodd + 2*pattern + 2*2*checkmap + 2*2*2*isolated[1] + 2*2*2*2*isopair[1] < 2*2*2*2*2
+  for(int ih=0; ih<nh_2photon_pol; ih++)
+  {
+    h2_2photon_pol[ih] = new TH2F(Form("h2_2photon_pol_%d",ih), "Polarized two photons spectrum;p_{T} [GeV];m_{inv} [GeV];", 300,0.,30., 300,0.,0.3);
+    h2_2photon2pt_pol[ih] = (TH2*)h2_2photon_pol[0]->Clone(Form("h2_2photon2pt_pol_%d",ih));
+    hm->registerHisto(h2_2photon_pol[ih]);
+    hm->registerHisto(h2_2photon2pt_pol[ih]);
+  }
+
+  /* Store pion event multiplicity information */
+  // ih = evenodd < 2
+  for(int ih=0; ih<nh_mul_pion; ih++)
+  {
+    h2_mul_pion_sig[ih] = new TH2F(Form("h2_mul_pion_sig_%d",ih), "Event multiplity;p_{T} [GeV];Multiplicity;", npT_pol,pTbin_pol, 20,-0.5,19.5);
+    h2_mul_pion_bg[ih] = (TH2*)h2_mul_pion_sig[0]->Clone(Form("h2_mul_pion_bg_%d",ih));
+    hm->registerHisto(h2_mul_pion_sig[ih]);
+    hm->registerHisto(h2_mul_pion_bg[ih]);
+  }
+
+  /* Store isolated photon event multiplicity information */
+  // ih = evenodd + 2*checkmap < 2*2
+  for(int ih=0; ih<nh_mul_photon; ih++)
+  {
+    h2_mul_photon_sig[ih] = (TH2*)h2_mul_pion_sig[0]->Clone(Form("h2_mul_photon_sig_%d",ih));
+    h2_mul_photon_bg[ih] = (TH2*)h2_mul_pion_sig[0]->Clone(Form("h2_mul_photon_bg_%d",ih));
+    hm->registerHisto(h2_mul_photon_sig[ih]);
+    hm->registerHisto(h2_mul_photon_bg[ih]);
   }
 
   return;
@@ -1764,25 +1475,19 @@ bool PhotonHistos::IsEventType(int evtype, const TrigLvl1 *data_triggerlvl1)
   return false;
 }
 
-bool PhotonHistos::BBC10cm(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, int bbc10cm)
+bool PhotonHistos::BBC10cm(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1)
 {
   const unsigned lvl1_live = data_triggerlvl1->get_lvl1_triglive();
   double bbc_z = data_global->getBbcZVertex();
 
-  if( datatype == ERT )
-  {
-    if( bbc10cm && (lvl1_live & bit_bbcnarrow) && fabs(bbc_z) < 10. )
-      return true;
-    if( !bbc10cm && (lvl1_live & bit_bbcnovtx) && fabs(bbc_z) < 30. )
-      return true;
-  }
-  else if( datatype == MB )
-  {
-    if( bbc10cm && fabs(bbc_z) < 10. )
-      return true;
-    if( !bbc10cm && fabs(bbc_z) < 30. )
-      return true;
-  }
+  if( datatype == ERT &&
+      (lvl1_live & bit_bbcnarrow) &&
+      fabs(bbc_z) < 10. )
+    return true;
+
+  if( datatype == MB &&
+      fabs(bbc_z) < 10. )
+    return true;
 
   return false;
 }
@@ -1797,18 +1502,28 @@ bool PhotonHistos::TestPhoton(const emcClusterContent *cluster, double bbc_t0)
     return false;
 }
 
-bool PhotonHistos::PassPhotonCut(const emcClusterContent *cluster, int icut)
+bool PhotonHistos::PassChargeVeto(const emcClusterContent *cluster)
 {
-  double prob = cluster->prob_photon();
-  double chi2 = cluster->chi2();
-  double ecore = cluster->ecore();
-  double ecent = cluster->ecent();
-  if( ( icut == 0 && prob > probMin ) ||
-      ( icut == 1 && chi2 < chi2Max ) ||
-      ( icut == 2 && (0.3+4*exp(-ecore/ecent))*(1.9-0.67*chi2) > stoch2Min ) )
-    return true;
+  /* Angle between EMC cluster and PC3 track */
+  double theta_cv = anatools::GetTheta_CV(cluster);
 
-  return false;
+  /* Charge veto in medium dtheta */
+  double emc_e = cluster->ecore();
+  int sector = anatools::CorrectClusterSector(cluster->arm(), cluster->sector());
+  if(sector < 6)
+  {
+    if( theta_cv > 4.22e-4 - 1.16e-2*emc_e - 4.53e-3*pow(emc_e,2) &&
+        theta_cv < 1.01e-1 - 2.02e-1*emc_e + 1.51e-1*pow(emc_e,2) - 3.66e-2*pow(emc_e,3) )
+      return false;
+  }
+  else
+  {
+    if( theta_cv > 1.27e-2 - 2.41e-2*emc_e + 2.26e-2*pow(emc_e,2) &&
+        theta_cv < 1.64e-2 - 7.38e-3*emc_e + 1.45e-1*exp(-4.*emc_e) )
+      return false;
+  }
+
+  return true;
 }
 
 int PhotonHistos::GetPattern(int crossing)
@@ -1826,29 +1541,6 @@ int PhotonHistos::GetPattern(int crossing)
   pattern += 1;
 
   return pattern;
-}
-
-void PhotonHistos::EMCRecalibSetup()
-{
-  TOAD *toad_loader = new TOAD("DirectPhotonPP");
-  toad_loader->SetVerbosity(0);
-
-  string file_ecal_run = toad_loader->location("Run13pp_RunbyRun_Calib.dat");
-  string file_tofmap = toad_loader->location("Run13pp510_EMC_TOF_Correction.root");
-
-  emcrecalib->SetEnergyCorrectionFile( file_ecal_run );
-  emcrecalib->SetTofCorrectionFile( file_tofmap );
-
-  string _file_ecal = toad_loader->location("ecorr_run13pp500gev.txt");
-  string _file_ecal_run = toad_loader->location("ecorr_run_run13pp500gev.txt");
-  string _file_tcal = toad_loader->location("tcorr_run13pp500gev.txt");
-
-  emcrecalib_sasha->anaGetCorrCal( _file_ecal.c_str() );
-  emcrecalib_sasha->anaGetCorrCal_run( _file_ecal_run.c_str() );
-  emcrecalib_sasha->anaGetCorrTof( _file_tcal.c_str() );
-
-  delete toad_loader;
-  return;
 }
 
 void PhotonHistos::UpdateSpinPattern(SpinDBContent &spin_cont)

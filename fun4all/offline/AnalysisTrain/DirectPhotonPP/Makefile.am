@@ -9,6 +9,7 @@ lib_LTLIBRARIES = \
 mydatadir = $(datadir)/$(PACKAGE_INCLUDE_DIR)
 dist_mydata_DATA = \
   Warnmap_Run13pp510.txt \
+  Run13pp510_WarnMap_05.root \
   Run13pp510_EMC_TOF_Correction.root \
   Run13pp_RunbyRun_Calib.dat \
   warn_all_run13pp500gev.dat \

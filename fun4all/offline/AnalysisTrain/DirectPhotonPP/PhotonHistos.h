@@ -44,15 +44,23 @@ class PhotonHistos: public SubsysReco
     /* Number of histogram array */
     static const int nh_calib = 8*2;
     static const int nh_bbc = 3*2;
-    static const int nh_ertsm = 8*2*3*2;
-    static const int nh_ert = 3*2*3*2*2*2*3;  // For cuts: 3*2*3*2*2*2*2*2*3
-    static const int nh_etwr = 8*2*8*16;
+    static const int nh_ertsm = 8*2*3;
+    static const int nh_ert = 3*2*3*2*2*3;
     static const int nh_dcpartqual = 2*2*3;
     static const int nh_dcgood = 2;
-    static const int nh_pion = 3*2*3*4*2*2*2*2*2*3;  // For cuts: 3*3*2*2*2*2*2*3
-    static const int nh_eta_phi = 3*2*2*3;  // For cuts: 3*2*2*2*2*2*3
-    static const int nh_1photon = 3*2*3*4*2*2*2*3;  // For cuts: 3*3*2*2*2*2*2*3
-    static const int nh_2photon = 3*2*3*4*2*2*2*2*3;  // For cuts: 3*3*2*2*2*2*2*2*3
+    static const int nh_pion = 3*3*2*2*2*2*3;
+    static const int nh_pion_pol = 2*2;
+    static const int nh_eta_phi = 3*2*2*3;
+    static const int nh_1photon = 3*3*2*2*3;
+    static const int nh_1photon_pol = 2*2*2;
+    static const int nh_2photon = 3*3*2*2*2*3;
+    static const int nh_2photon_pol = 2*2*2*2*2;
+    static const int nh_mul_pion = 2;
+    static const int nh_mul_photon = 2*2;
+
+    /* pT bins for ALL */
+    static const int npT_pol = 15;
+    static double pTbin_pol[npT_pol+1];
 
     /* Event counts */
     int FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
@@ -64,13 +72,7 @@ class PhotonHistos: public SubsysReco
     /* BBC and ERT trigger efficiency */
     int FillBBCEfficiency(const emcClusterContainer *data_emccontainer, const TrigLvl1 *data_triggerlvl1);
     int FillERTEfficiency(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype);
-    int FillERTEfficiencyCut(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype);
-
-    /* Check tower energy distribution*/
-    int FillTowerEnergy(const emcClusterContainer *data_emccontainer, const emcTowerContainer *data_emctwrcontainer,
-        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
+        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert);
 
     /* Study DC track quality */
     int FillTrackQuality(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
@@ -78,15 +80,11 @@ class PhotonHistos: public SubsysReco
 
     /* Count pi0 yield */
     int FillPi0Spectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype);
-    int FillPi0SpectrumCut(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype);
+        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert);
 
     /* Count direct photon yield */
     int FillPhotonSpectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype);
-    int FillPhotonSpectrumCut(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
-        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert, int evtype);
+        const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert);
 
     /* Create histograms */
     void BookHistograms();
@@ -103,15 +101,12 @@ class PhotonHistos: public SubsysReco
 
     /* Check event type, BBC and photon cuts */
     bool IsEventType(int evtype, const TrigLvl1 *data_triggerlvl1);
-    bool BBC10cm(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, int bbc10cm);
+    bool BBC10cm(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
     bool TestPhoton(const emcClusterContent *cluster, double bbc_t0);
-    bool PassPhotonCut(const emcClusterContent *cluster, int icut);
+    bool PassChargeVeto(const emcClusterContent *cluster);
 
     /* Get spin pattern and EMCal associated track */
     int GetPattern(int crossing);
-
-    /* Setup energy and ToF calibrator */
-    void EMCRecalibSetup();
 
     /* Update spin pattern information and store in class */
     void UpdateSpinPattern(SpinDBContent &spin_cont);
@@ -140,16 +135,23 @@ class PhotonHistos: public SubsysReco
     TH2 *h2_ertsm[nh_ertsm];
     TH1 *h_ert[nh_ert];
     TH2 *h2_ert_pion[nh_ert];
-    TH3 *h3_etwr[nh_etwr];
     TH3 *h3_dcdphiz[nh_dcpartqual];
     TH2 *h2_alphaboard[nh_dcpartqual];
     TH3 *h3_dclive[nh_dcgood];
     TH1 *h_prod;
     TH2 *h2_pion[nh_pion];
+    TH2 *h2_pion_pol[nh_pion_pol];
     TH2 *h2_eta_phi[nh_eta_phi];
     TH1 *h_1photon[nh_1photon];
+    TH1 *h_1photon_pol[nh_1photon_pol];
     TH2 *h2_2photon[nh_2photon];
     TH2 *h2_2photon2pt[nh_2photon];
+    TH2 *h2_2photon_pol[nh_2photon_pol];
+    TH2 *h2_2photon2pt_pol[nh_2photon_pol];
+    TH2 *h2_mul_pion_sig[nh_mul_pion];
+    TH2 *h2_mul_pion_bg[nh_mul_pion];
+    TH2 *h2_mul_photon_sig[nh_mul_photon];
+    TH2 *h2_mul_photon_bg[nh_mul_photon];
 };
 
 #endif /* __PHOTONHISTOS_H__ */

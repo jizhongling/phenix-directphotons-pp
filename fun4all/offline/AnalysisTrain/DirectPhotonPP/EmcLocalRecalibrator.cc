@@ -1,5 +1,6 @@
 #include "EmcLocalRecalibrator.h"
 
+#include <TOAD.h>
 #include <emcClusterContainer.h>
 #include <emcClusterContent.h>
 #include <TH1.h>
@@ -30,8 +31,24 @@ EmcLocalRecalibrator::EmcLocalRecalibrator() : _file_warnmap(""),
   _pbsc_cor_func = new TF1("pbsc_cor_func", "0.003+(1-0.010/x)", 0.01, 100);
   _pbgl_cor_func = new TF1("pbgl_cor_func", "0.021+(1-0.020/x)", 0.01, 100);
 
+  Setup();
+
 }//EmcLocalRecalibrator::EmcLocalRecalibrator
 
+void EmcLocalRecalibrator::Setup()
+{
+  TOAD *toad_loader = new TOAD("DirectPhotonPP");
+  toad_loader->SetVerbosity(0);
+
+  string file_ecal_run = toad_loader->location("Run13pp_RunbyRun_Calib.dat");
+  string file_tofmap = toad_loader->location("Run13pp510_EMC_TOF_Correction.root");
+
+  SetEnergyCorrectionFile( file_ecal_run );
+  SetTofCorrectionFile( file_tofmap );
+
+  delete toad_loader;
+  return;
+}
 
 void EmcLocalRecalibrator::ApplyClusterCorrection( emcClusterContainer* data_emccontainer )
 {

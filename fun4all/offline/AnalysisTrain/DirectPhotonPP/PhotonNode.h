@@ -28,8 +28,6 @@ class PhotonNode: public SubsysReco
     void SelectERT();
 
   protected:
-    void EMCRecalibSetup();
-
     bool TestPhoton(const emcClusterContent *emccluster, float bbc_t0);
     bool DispCut(const emcClusterContent *emccluster);
     float GetTrackConeEnergy(const PHCentralTrack *tracks, const emcClusterContent *cluster, double cone_angle);

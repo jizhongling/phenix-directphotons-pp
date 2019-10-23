@@ -25,6 +25,11 @@ class EmcLocalRecalibratorSasha
     ~EmcLocalRecalibratorSasha() {}
 
     /**
+     * Setup
+     */
+    void Setup();
+
+    /**
      * Correct data for all cluster in cluster container
      */
     void ApplyClusterCorrection( const int runno, emcClusterContainer* data_emccontainer );

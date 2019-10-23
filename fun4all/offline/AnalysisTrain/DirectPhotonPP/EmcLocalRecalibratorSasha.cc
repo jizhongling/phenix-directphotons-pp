@@ -1,5 +1,6 @@
 #include "EmcLocalRecalibratorSasha.h"
 
+#include <TOAD.h>
 #include <emcClusterContainer.h>
 #include <emcClusterContent.h>
 
@@ -25,8 +26,26 @@ EmcLocalRecalibratorSasha::EmcLocalRecalibratorSasha()
     fCorrCal[i]=1.;
     fCorrTof[i]=0.;
   }
+
+  Setup();
 }
 
+void EmcLocalRecalibratorSasha::Setup()
+{
+  TOAD *toad_loader = new TOAD("DirectPhotonPP");
+  toad_loader->SetVerbosity(0);
+
+  string _file_ecal = toad_loader->location("ecorr_run13pp500gev.txt");
+  string _file_ecal_run = toad_loader->location("ecorr_run_run13pp500gev.txt");
+  string _file_tcal = toad_loader->location("tcorr_run13pp500gev.txt");
+
+  anaGetCorrCal( _file_ecal.c_str() );
+  anaGetCorrCal_run( _file_ecal_run.c_str() );
+  anaGetCorrTof( _file_tcal.c_str() );
+
+  delete toad_loader;
+  return;
+}
 
 void EmcLocalRecalibratorSasha::ApplyClusterCorrection( const int runno, emcClusterContainer* data_emccontainer )
 {

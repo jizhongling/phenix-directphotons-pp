@@ -16,6 +16,8 @@ class EMCWarnmapChecker
     bool IsGoodTower(int itower);
     bool IsBadTower(int itower);
 
+    bool PassCut(const emcClusterContent *cluster);
+
     int GetStatusNils(int sector, int iypos, int izpos);
     int GetStatusNils(const emcClusterContent *cluster);
     int GetStatusSasha(const emcClusterContent *cluster);
@@ -29,9 +31,11 @@ class EMCWarnmapChecker
 
     int tower_status_nils[NSEC][NY][NZ];
     int tower_status_sasha[NSEC][NY][NZ];
+    int tower_status_inseok[NSEC][NY][NZ];
 
     void ReadWarnmapNils();
     void ReadWarnmapSasha();
+    void ReadWarnmapInseok();
 };
 
 #endif /* __EMCWARNMAPCHECKER_H__ */
