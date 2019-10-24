@@ -710,8 +710,8 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
   int pattern = GetPattern(crossing) - 1;
 
   /* Count event multiplicity */
-  int mul_sig[npT_pol] = {};
-  int mul_bg[npT_pol] = {};
+  int mul_sig[npT_pol+1] = {};
+  int mul_bg[npT_pol+1] = {};
 
   unsigned ncluster = data_emccontainer->size();
   vector<unsigned> v_used;
@@ -837,8 +837,8 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
   int pattern = GetPattern(crossing) - 1;
 
   /* Count event multiplicity */
-  int mul_sig[2][npT_pol] = {};
-  int mul_bg[2][npT_pol] = {};
+  int mul_sig[2][npT_pol+1] = {};
+  int mul_bg[2][npT_pol+1] = {};
 
   unsigned ncluster = data_emccontainer->size();
 
