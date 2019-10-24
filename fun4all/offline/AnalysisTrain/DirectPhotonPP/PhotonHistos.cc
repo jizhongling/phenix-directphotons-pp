@@ -802,7 +802,7 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
               if( minv > 0.112 && minv < 0.162 )
                 mul_sig[ipt]++;
               else if( (minv > 0.047 && minv < 0.097) ||
-                  (minv > 177 && minv < 0.227) )
+                  (minv > 0.177 && minv < 0.227) )
                 mul_bg[ipt]++;
             }
           }
