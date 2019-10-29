@@ -5,7 +5,7 @@
 
 void draw_Acceptance_IsoPhoton(const int subbg = 0)
 {
-  const char *fname[2] = {"photon-emshower", "minbias"};
+  const char *fname[2] = {"photon", "minbias"};
   const char *simname[2] = {"FastMC", "PISA"};
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
   const int secl[3] = {1, 5, 7};
@@ -34,7 +34,7 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
   THnSparse *hn_1photon,*hn_2photon;
   for(int id=0; id<1; id++)
   {
-    TFile *f_pythia = new TFile( Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-GenPH-histo-%s.root",fname[id]) );
+    TFile *f_pythia = new TFile( Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-%s.root",fname[id]) );
     //TH1 *h_photon_tmp = (TH1*)f_pythia->Get("h_photon_eta025");
     //TH1 *h_isolated_tmp = (TH1*)f_pythia->Get("h_isophoton_eta025");
     THnSparse *hn_hadron = (THnSparse*)f_pythia->Get("hn_hadron");
@@ -73,7 +73,7 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
     }
   }
 
-  hn_isolated->GetAxis(3)->SetRange(1,1);  // econe_trk[ival]: EMCal, nomap, withmap
+  hn_isolated->GetAxis(3)->SetRange(3,3);  // econe_trk[ival]: EMCal, nomap, withmap
   hn_1photon->GetAxis(2)->SetRange(2,2);  // isolated
   hn_1photon->GetAxis(4)->SetRange(1,2);  // trig
   hn_2photon->GetAxis(7)->SetRange(1,2);  // trig

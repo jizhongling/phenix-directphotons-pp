@@ -61,7 +61,7 @@ class AnaFastMC: public SubsysReco
     void FastMCInput();
     void PythiaInput(PHCompositeNode *topNode);
     void SumETruth(const TMCParticle *pref, bool prefInAcc,
-        double &econe_all, double &econe_emc, double econe_trk[]);
+        double &econe_all, double econe_acc[]);
 
     void BookHistograms();
     void ReadSimWarnmap();

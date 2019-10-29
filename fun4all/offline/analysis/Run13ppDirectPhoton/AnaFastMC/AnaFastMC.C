@@ -490,8 +490,8 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
     TLorentzVector pE_reco(Vpart[0]);
 
     /* Get isolation cone energy */
-    double econe_all, econe_emc, econe_trk[3];
-    SumETruth(particle, InAcc, econe_all, econe_emc, econe_trk);
+    double econe_all, econe_acc[3];
+    SumETruth(particle, InAcc, econe_all, econe_acc);
 
     /* Fill histogram for prompt photons */
     fill_hn_hadron[0] = pt;
@@ -531,7 +531,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
       }
 
       for(int ival=0; ival<3; ival++)
-        if( econe_emc + econe_trk[ival] < eratio * pE_part.P() &&
+        if( econe_acc[ival] < eratio * pE_part.P() &&
             pE_reco.P() > eMin )
         {
           if( part >= 0 && ptsim > 5. && ptsim < 10. )
@@ -563,13 +563,18 @@ int AnaFastMC::End(PHCompositeNode *topNode)
 }
 
 void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc,
-    double &econe_all, double &econe_emc, double econe_trk[])
+    double &econe_all, double econe_acc[])
 {
   /* Sum up all energy in cone around particle */
   econe_all = 0.;
-  econe_emc = 0.;
+  double econe_emc[3] = {};
+  double econe_trk[3] = {};
   for(int ival=0; ival<3; ival++)
+  {
+    econe_emc[ival] = 0.;
     econe_trk[ival] = 0.;
+    econe_acc[ival] = 0.;
+  }
 
   /* Get reference vector */
   TVector3 v3_pref(pref->GetPx(), pref->GetPy(), pref->GetPz());
@@ -616,17 +621,29 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc,
           /* Test if particle is in acceptance and not on hot towers */
           if( NPart == 1 && !emcwarnmap->IsBadTower(itw_part[0]) )
           {
+            double edep = GetEMCResponse(id, mom);
             /* For photons sum kinetic energy in EMCal */
             if( id == PY_GAMMA )
-              econe_emc += GetEMCResponse(id, mom);
-            /* For eletrons and positrons sum kinetic energy in EMCal */
-            else if( id == PY_ELECTRON )
-              econe_trk[0] += GetEMCResponse(id, mom);
-            /* For hadron showers sum kinetic energy ONLY in PbSc */
-            else if( sec_part[0] < 6 )
-              econe_trk[0] += GetEMCResponse(id, mom);
-          }
-        }
+            {
+              for(int ival=0; ival<3; ival++)
+                econe_emc[ival] += edep;
+            }
+            /* For eletrons and positrons sum kinetic energy in EMCal
+             * For hadron showers sum kinetic energy ONLY in PbSc */
+            else if( id == PY_ELECTRON || sec_part[0] < 6 )
+            {
+              econe_emc[0] += edep;
+              dcdeadmap->Checkmap(true);
+              if( charge == 0 || !InDCAcceptance(v3_part2, charge) )
+              {
+                econe_emc[2] += edep;
+                dcdeadmap->Checkmap(false);
+                if( charge == 0 || !InDCAcceptance(v3_part2, charge) )
+                  econe_emc[1] += edep;
+              }
+            }
+          } // not bad tower
+        } // mom cut
 
         /* For charged particles sum momentum in DC
          * if particle is in DC acceptance w/o deadmap */
@@ -640,10 +657,13 @@ void AnaFastMC::SumETruth(const TMCParticle *pref, bool prefInAcc,
             if( InDCAcceptance(v3_part2, charge) )
               econe_trk[2] += mom;
           }
-        }
+        } // charged track
       } // prefInAcc and id
     } // cone_angle
   } // ipart2
+
+  for(int ival=0; ival<3; ival++)
+    econe_acc[ival] = econe_emc[ival] + econe_trk[ival];
 
   return;
 }
