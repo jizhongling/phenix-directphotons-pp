@@ -704,10 +704,10 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
   double bbc_t0 = data_global->getBbcTimeZero();
 
   /* Get crossing number */
-  int crossing = data_triggerlvl1->get_lvl1_clock_cross();
-  int crossing_shift = spinpattern->get_crossing_shift();
-  int evenodd = ( crossing + crossing_shift ) % 2;
-  int pattern = GetPattern(crossing);
+  const int crossing = data_triggerlvl1->get_lvl1_clock_cross();
+  const int crossing_shift = spinpattern->get_crossing_shift();
+  const int evenodd = ( crossing + crossing_shift ) % 2;
+  const int pattern = GetPattern(crossing);
 
   /* Count event multiplicity */
   int mul_sig[npT_pol+1] = {};
@@ -789,8 +789,8 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
               PassChargeVeto(cluster1) &&
               PassChargeVeto(cluster2) )
           {
-            pattern = pattern > 0 ? 1 : 0;
-            int ih = evenodd + 2*pattern;
+            int pol = pattern > 0 ? 1 : 0;
+            int ih = evenodd + 2*pol;
             h2_pion_pol[ih]->Fill(tot_pT, minv);
 
             if( tot_pT > pTbin_pol[0] )
@@ -832,10 +832,10 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
   double bbc_t0 = data_global->getBbcTimeZero();
 
   /* Get crossing number */
-  int crossing = data_triggerlvl1->get_lvl1_clock_cross();
-  int crossing_shift = spinpattern->get_crossing_shift();
-  int evenodd = ( crossing + crossing_shift ) % 2;
-  int pattern = GetPattern(crossing);
+  const int crossing = data_triggerlvl1->get_lvl1_clock_cross();
+  const int crossing_shift = spinpattern->get_crossing_shift();
+  const int evenodd = ( crossing + crossing_shift ) % 2;
+  const int pattern = GetPattern(crossing);
 
   /* Count event multiplicity */
   int mul_sig[2][npT_pol+1] = {};
@@ -911,8 +911,8 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
             IsEventType(3, data_triggerlvl1) && trig[3] &&
             !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
         {
-          pattern = pattern > 0 ? 1 : 0;
-          int ih = evenodd + 2*pattern + 2*2*checkmap;
+          int pol = pattern > 0 ? 1 : 0;
+          int ih = evenodd + 2*pol + 2*2*checkmap;
           h_1photon_pol[ih]->Fill(pT);
 
           if( pT > pTbin_pol[0] )
@@ -963,8 +963,8 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
                 IsEventType(3, data_triggerlvl1) && trig[3] &&
                 !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
             {
-              pattern = pattern > 0 ? 1 : 0;
-              int ih = evenodd + 2*pattern + 2*2*checkmap + 2*2*2*isolated[1] + 2*2*2*2*isopair[1];
+              int pol = pattern > 0 ? 1 : 0;
+              int ih = evenodd + 2*pol + 2*2*checkmap + 2*2*2*isolated[1] + 2*2*2*2*isopair[1];
               h2_2photon_pol[ih]->Fill(pT, minv);
               h2_2photon2pt_pol[ih]->Fill(tot_pT, minv);
 
@@ -1159,7 +1159,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store polarized pi0 information */
-  // ih = evenodd + 2*pattern < 2*2
+  // ih = evenodd + 2*pol < 2*2
   for(int ih=0; ih<nh_pion_pol; ih++)
   {
     h2_pion_pol[ih] = new TH2F(Form("h2_pion_pol_%d",ih), "Polarized #pi^{0} spectrum;p_{T} [GeV];m_{inv} [GeV];", 300,0.,30., 300,0.,0.3);
@@ -1183,7 +1183,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store polarized single photons information */
-  // ih = evenodd + 2*pattern + 2*2*checkmap < 2*2*2
+  // ih = evenodd + 2*pol + 2*2*checkmap < 2*2*2
   for(int ih=0; ih<nh_1photon_pol; ih++)
   {
     h_1photon_pol[ih] = new TH1F(Form("h_1photon_pol_%d",ih), "Polarized single photon spectrum;p_{T} [GeV];", 300,0.,30.);
@@ -1201,7 +1201,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store polarized two photons information */
-  // ih = evenodd + 2*pattern + 2*2*checkmap + 2*2*2*isolated[1] + 2*2*2*2*isopair[1] < 2*2*2*2*2
+  // ih = evenodd + 2*pol + 2*2*checkmap + 2*2*2*isolated[1] + 2*2*2*2*isopair[1] < 2*2*2*2*2
   for(int ih=0; ih<nh_2photon_pol; ih++)
   {
     h2_2photon_pol[ih] = new TH2F(Form("h2_2photon_pol_%d",ih), "Polarized two photons spectrum;p_{T} [GeV];m_{inv} [GeV];", 300,0.,30., 300,0.,0.3);
