@@ -14,8 +14,8 @@ void draw_ERTEff_Photon()
   TFile *f_pisa = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/HadronResponse-histo-photon.root");
   THnSparse *hn_1photon = (THnSparse*)f_pisa->Get("hn_1photon");
 
-  int bbc10cm = 1;
   int evtype = 2;
+  int checkmap = 1;
   int ival = 1;
 
   TH1 *h_ert_t = (TH1*)f->Get("h_ert_0");
@@ -28,7 +28,7 @@ void draw_ERTEff_Photon()
       h_ert[ert_trig] = (TH1*)h_ert_t->Clone(Form("h_ert_trig%d",ert_trig));
       for(int isolated=0; isolated<2; isolated++)
       {
-        int ih = part + 3*ert_trig + 3*2*evtype + 3*2*3*bbc10cm + 3*2*3*2*isolated + 3*2*3*2*2*ival;
+        int ih = part + 3*ert_trig + 3*2*evtype + 3*2*3*checkmap + 3*2*3*2*isolated + 3*2*3*2*2*ival;
         TH1 *h2_tmp = (TH1*)f->Get(Form("h_ert_%d",ih));
         h_ert[ert_trig]->Add(h2_tmp);
         delete h2_tmp;

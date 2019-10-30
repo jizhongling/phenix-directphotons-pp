@@ -1,9 +1,9 @@
 // To compile: g++ -Wall -o calcRelLum calcRelLum.cc -I$OFFLINE_MAIN/include -L$OFFLINE_MAIN/lib -m32 -luspin -lodbc -lgsl -lgslcblas -lm `root-config --cflags --libs`
 #include <cstdlib>
-#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
 #include <algorithm>
 #include <boost/foreach.hpp>
 
@@ -108,36 +108,75 @@ void rate_corr(double rate_obs[], double rate_true[])
   return;
 }
 
+void get_rlum_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont,
+    int runnumber, double pol[], double epol[], double rlum[])
+{
+  /* Retrieve entry from Spin DB and get fill number */
+  int qa_level = spin_out.GetDefaultQA(runnumber);
+  spin_out.StoreDBContent(runnumber, runnumber, qa_level);
+  spin_out.GetDBContentStore(spin_cont, runnumber);
+
+  if( spin_out.CheckRunRow(runnumber,qa_level) != 1 )
+  {
+    cerr << "Wrong spinDB info!" << endl;
+    exit(1);
+  }
+
+  double pbsyst;
+  double pysyst;
+  spin_cont.GetPolarizationBlue(1, pol[0], epol[0], pbsyst);
+  spin_cont.GetPolarizationYellow(1, pol[1], epol[1], pysyst);
+
+  long long bbc30_gl1p[2][2] = {};
+
+  for(int ib=0; ib<120; ib++)
+  {
+    int pb = spin_cont.GetSpinPatternBlue(ib);
+    int py = spin_cont.GetSpinPatternYellow(ib);
+    int pattern = (pb*py + 1)/2;
+    if(pattern == 0 || pattern == 1)
+      bbc30_gl1p[ib%2][pattern] += spin_cont.GetScaler(0, ib);
+  }
+
+  for(int evenodd=0; evenodd<2; evenodd++)
+    rlum[evenodd] = (double)bbc30_gl1p[evenodd][1]/bbc30_gl1p[evenodd][0];
+
+  return;
+}
+
 int main()
 {
   int runnumber;
-  int irun;
+  int spin_pattern = 0;
 
   TFile *f_rlum = new TFile("data/RelLum.root", "RECREATE");
+
   TTree *t_rlum = new TTree("T", "Relative luminosity");
-  TTree *t_rlum_check = new TTree("T1", "Relative luminosity check");
-  double rlum[2], gl1p[2], ss_raw[2], ss_pile[2];
+  double pol[2], epol[2], rlum[2];
   t_rlum->Branch("Runnumber", &runnumber, "Runnumber/I");
+  t_rlum->Branch("SpinPattern", &spin_pattern, "SpinPattern/I");
+  t_rlum->Branch("Pol", pol, "Pol[2]/D");
+  t_rlum->Branch("ePol", epol, "ePol[2]/D");
   t_rlum->Branch("RelLum", rlum, "RelLum[2]/D");
+
+  TTree *t_rlum_check = new TTree("T1", "Relative luminosity check");
+  double gl1p[2], ss_raw[2], ss_pile[2], ss_res[2];
   t_rlum_check->Branch("Runnumber", &runnumber, "Runnumber/I");
   t_rlum_check->Branch("GL1p", gl1p, "Gl1p[2]/D");
   t_rlum_check->Branch("SS_Uncorr", ss_raw, "SS_Uncorr[2]/D");
   t_rlum_check->Branch("SS_Pileup", ss_pile, "SS_Pileup[2]/D");
-  t_rlum_check->Branch("SS_Residual", rlum, "SS_Residual[2]/D");
+  t_rlum_check->Branch("SS_Residual", ss_res, "SS_Residual[2]/D");
 
-  vector<int> runnoInseok(1000);
-  ifstream finInseok("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist-Inseok.txt");
-  irun = 0;
-  while( finInseok >> runnoInseok[irun] )
-    irun++;
+  typedef map<int,int> map_int_t;
+  map_int_t runnoInseok;  // <runnumber, spin_pattern>
+  ifstream finInseok("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist-ALL.txt");
+  while( finInseok >> runnumber )
+  {
+    if(runnumber == 0) { spin_pattern++; continue; }
+    if(spin_pattern > 3) break;
+    runnoInseok.insert( make_pair(runnumber, spin_pattern) );
+  }
   finInseok.close();
-
-  vector<int> runnoSS(1000);
-  ifstream finSS("/phenix/plhf/zji/taxi/Run13pp510ERT/runlist-SS.txt");
-  irun = 0;
-  while( finSS >> runnoSS[irun] )
-    irun++;
-  finSS.close();
 
   SpinDBOutput spin_out;
   SpinDBContent spin_cont;
@@ -167,27 +206,7 @@ int main()
   {
     t_bbc->GetEntry(ien);
 
-    /* Retrieve entry from Spin DB and get fill number */
-    int qa_level = spin_out.GetDefaultQA(runnumber);
-    spin_out.StoreDBContent(runnumber, runnumber, qa_level);
-    spin_out.GetDBContentStore(spin_cont, runnumber);
-
-    if( spin_out.CheckRunRow(runnumber,qa_level) != 1 )
-      continue;
-
-    long long bbc30_gl1p[2][2] = {};
-
-    for(int ib=0; ib<120; ib++)
-    {
-      int pb = spin_cont.GetSpinPatternBlue(ib);
-      int py = spin_cont.GetSpinPatternYellow(ib);
-      int pattern = (pb*py + 1)/2;
-      if(pattern == 0 || pattern == 1)
-        bbc30_gl1p[ib%2][pattern] += spin_cont.GetScaler(0, ib);
-    }
-
-    for(int evenodd=0; evenodd<2; evenodd++)
-      gl1p[evenodd] = (double)bbc30_gl1p[evenodd][1]/bbc30_gl1p[evenodd][0];
+    get_rlum_gl1p(spin_out, spin_cont, runnumber, pol, epol, gl1p);
 
     double rate_raw[2][2] = {};
     double rate_pile[2][2] = {};
@@ -214,14 +233,19 @@ int main()
     {
       ss_raw[evenodd] = rate_raw[evenodd][1]/rate_raw[evenodd][0];
       ss_pile[evenodd] = rate_pile[evenodd][1]/rate_pile[evenodd][0];
-      rlum[evenodd] = rate_lum[evenodd][1]/rate_lum[evenodd][0];
+      ss_res[evenodd] = rate_lum[evenodd][1]/rate_lum[evenodd][0];
+      rlum[evenodd] = ss_res[evenodd];
     }
 
-    if( find(runnoInseok.begin(), runnoInseok.end(), runnumber) != runnoInseok.end() )
+    map_int_t::iterator it_Inseok = runnoInseok.find(runnumber);
+    if( it_Inseok != runnoInseok.end() )
     {
-      if( find(runnoSS.begin(), runnoSS.end(), runnumber) == runnoSS.end() )
+      spin_pattern = it_Inseok->second;
+
+      if(runnumber < 386946)
         for(int evenodd=0; evenodd<2; evenodd++)
           rlum[evenodd] = gl1p[evenodd];
+
       t_rlum->Fill();
       runnoDone.push_back(runnumber);
     }
@@ -229,32 +253,13 @@ int main()
     t_rlum_check->Fill();
   }
 
-  BOOST_FOREACH(const int &runno, runnoInseok)
-    if( find(runnoDone.begin(), runnoDone.end(), runno) == runnoDone.end() )
+  BOOST_FOREACH(const map_int_t::value_type &runno, runnoInseok)
+    if( find(runnoDone.begin(), runnoDone.end(), runno.first) == runnoDone.end() )
     {
-      runnumber = runno;
+      runnumber = runno.first;
+      spin_pattern = runno.second;
 
-      /* Retrieve entry from Spin DB and get fill number */
-      int qa_level = spin_out.GetDefaultQA(runnumber);
-      spin_out.StoreDBContent(runnumber, runnumber, qa_level);
-      spin_out.GetDBContentStore(spin_cont, runnumber);
-
-      if( spin_out.CheckRunRow(runnumber,qa_level) != 1 )
-        continue;
-
-      long long gl1p[2][2] = {};
-
-      for(int ib=0; ib<120; ib++)
-      {
-        int pb = spin_cont.GetSpinPatternBlue(ib);
-        int py = spin_cont.GetSpinPatternYellow(ib);
-        int pattern = (pb*py + 1)/2;
-        if(pattern == 0 || pattern == 1)
-          gl1p[ib%2][pattern] += spin_cont.GetScaler(0, ib);
-      }
-
-      for(int evenodd=0; evenodd<2; evenodd++)
-        rlum[evenodd] = (double)gl1p[evenodd][1]/gl1p[evenodd][0];
+      get_rlum_gl1p(spin_out, spin_cont, runnumber, pol, epol, rlum);
 
       t_rlum->Fill();
     }

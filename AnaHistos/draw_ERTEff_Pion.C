@@ -6,33 +6,33 @@
 void draw_ERTEff_Pion()
 {
   const char *pname[2] = {"PbSc", "PbGl"};
-  const int secl[2] = {1, 7};
-  const int sech[2] = {6, 8};
+  const int secl[2] = {0, 2};
+  const int sech[2] = {1, 2};
 
   QueryTree *qt_ert = new QueryTree("data/ERTEff-pion.root", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
-  // h[part][cond]
+  // h[part][ert_trig]
   TH2 *h2_ert_pion[2][2];
 
-  int bbc10cm = 1;
-  int ert_trig[2] = {2, 5};
+  int evtype = 2;
+  int checkmap = 1;
   int ival = 1;
 
   TH2 *h2_ert_pion_t = (TH2*)f->Get("h2_ert_pion_0");
   h2_ert_pion_t->Reset();
   for(int part=0; part<2; part++)
   {
-    for(int cond=0; cond<2; cond++)
+    for(int ert_trig=0; ert_trig<2; ert_trig++)
     {
-      h2_ert_pion[part][cond] = (TH2*)h2_ert_pion_t->Clone(Form("h2_ert_pion_part%d_cond%d",part,cond));
-      for(int sector=secl[part]-1; sector<=sech[part]-1; sector++)
+      h2_ert_pion[part][ert_trig] = (TH2*)h2_ert_pion_t->Clone(Form("h2_ert_pion_part%d_cond%d",part,ert_trig));
+      for(int sector=secl[part]; sector<=sech[part]; sector++)
         for(int isolated=0; isolated<2; isolated++)
         {
-          int ih = sector + 8*ert_trig[cond] + 8*6*bbc10cm + 8*6*2*isolated + 8*6*2*2*ival;
+          int ih = sector + 3*ert_trig + 3*2*evtype + 3*2*3*checkmap + 3*2*3*2*isolated + 3*2*3*2*2*ival;
           TH2 *h2_tmp = (TH2*)f->Get(Form("h2_ert_pion_%d",ih));
-          h2_ert_pion[part][cond]->Add(h2_tmp);
+          h2_ert_pion[part][ert_trig]->Add(h2_tmp);
           delete h2_tmp;
         }
     }

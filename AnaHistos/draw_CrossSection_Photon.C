@@ -48,7 +48,6 @@ void draw_CrossSection_Photon()
   TH2 *h2_2photon[3][3];
   TH2 *h2_2photon2pt[3][3];
 
-  int bbc10cm = 1;
   int checkmap = 1;
   int ival = 1;
 
@@ -67,30 +66,26 @@ void draw_CrossSection_Photon()
       h2_2photon[evtype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_2photon_type%d_part%d",evtype,part));
       h2_2photon2pt[evtype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_2photon2pt_type%d_part%d",evtype,part));
 
-      for(int evenodd=0; evenodd<2; evenodd++)
-        for(int pattern=0; pattern<3; pattern++)
+      for(int isolated=0; isolated<2; isolated++)
+      {
+        int ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isolated + 3*3*2*2*ival;
+        TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
+        h_1photon[evtype][part]->Add(h_tmp);
+        delete h_tmp;
+      } // isolated
+
+      for(int isoboth=0; isoboth<2; isoboth++)
+        for(int isopair=0; isopair<2; isopair++)
         {
-          for(int isolated=0; isolated<2; isolated++)
-          {
-            int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*checkmap + 3*2*3*4*2*2*isolated + 3*2*3*4*2*2*2*ival;
-            TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
-            h_1photon[evtype][part]->Add(h_tmp);
-            delete h_tmp;
-          } // isolated
+          int ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isoboth + 3*3*2*2*isopair + 3*3*2*2*2*ival;
+          TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
+          h2_2photon[evtype][part]->Add(h2_tmp);
+          delete h2_tmp;
 
-          for(int isoboth=0; isoboth<2; isoboth++)
-            for(int isopair=0; isopair<2; isopair++)
-            {
-              int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*checkmap + 3*2*3*4*2*2*isoboth + 3*2*3*4*2*2*2*isopair + 3*2*3*4*2*2*2*2*ival;
-              TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
-              h2_2photon[evtype][part]->Add(h2_tmp);
-              delete h2_tmp;
-
-              h2_tmp = (TH2*)f->Get(Form("h2_2photon2pt_%d",ih));
-              h2_2photon2pt[evtype][part]->Add(h2_tmp);
-              delete h2_tmp;
-            } // isoboth, isopair
-        }
+          h2_tmp = (TH2*)f->Get(Form("h2_2photon2pt_%d",ih));
+          h2_2photon2pt[evtype][part]->Add(h2_tmp);
+          delete h2_tmp;
+        } // isoboth, isopair
     }
 
   for(int part=0; part<3; part++)

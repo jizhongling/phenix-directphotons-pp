@@ -1,11 +1,15 @@
-/*
- * pT bins
- */
+/* pT bins */
 const int npT = 30;
 const double pTbin[npT+1] = { 0.0,
   0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
   5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
   12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
+
+/* pT bins for ALL */
+const int npT_pol = 15;
+const double pTbin_pol[npT_pol+1] = { 2.0,
+  2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 7.0, 8.0, 9.0,
+  10.0, 12.0, 15.0, 20.0, 30.0 };
 
 /* Get ipt for TGraph Xaxis gx */
 int Get_ipt(double *gx, double xpt)

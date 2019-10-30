@@ -707,7 +707,7 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
   int crossing = data_triggerlvl1->get_lvl1_clock_cross();
   int crossing_shift = spinpattern->get_crossing_shift();
   int evenodd = ( crossing + crossing_shift ) % 2;
-  int pattern = GetPattern(crossing) - 1;
+  int pattern = GetPattern(crossing);
 
   /* Count event multiplicity */
   int mul_sig[npT_pol+1] = {};
@@ -780,7 +780,7 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
                 } // evtype, ival
           } // checkmap
 
-          if( evenodd >= 0 && pattern >= 0 && prob == 1 &&
+          if( evenodd >= 0 && pattern && prob == 1 &&
               IsEventType(3, data_triggerlvl1) && trig[3] &&
               emcwarnmap->PassCut(cluster1) &&
               emcwarnmap->PassCut(cluster2) &&
@@ -789,6 +789,7 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
               PassChargeVeto(cluster1) &&
               PassChargeVeto(cluster2) )
           {
+            pattern = pattern > 0 ? 1 : 0;
             int ih = evenodd + 2*pattern;
             h2_pion_pol[ih]->Fill(tot_pT, minv);
 
@@ -834,7 +835,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
   int crossing = data_triggerlvl1->get_lvl1_clock_cross();
   int crossing_shift = spinpattern->get_crossing_shift();
   int evenodd = ( crossing + crossing_shift ) % 2;
-  int pattern = GetPattern(crossing) - 1;
+  int pattern = GetPattern(crossing);
 
   /* Count event multiplicity */
   int mul_sig[2][npT_pol+1] = {};
@@ -906,10 +907,11 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
                 h_1photon[ih]->Fill(pT);
               }
 
-        if( evenodd >= 0 && pattern >= 0 && isolated[1] &&
+        if( evenodd >= 0 && pattern && isolated[1] &&
             IsEventType(3, data_triggerlvl1) && trig[3] &&
             !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
         {
+          pattern = pattern > 0 ? 1 : 0;
           int ih = evenodd + 2*pattern + 2*2*checkmap;
           h_1photon_pol[ih]->Fill(pT);
 
@@ -957,10 +959,11 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
                     h2_2photon2pt[ih]->Fill(tot_pT, minv);
                   }
 
-            if( evenodd >= 0 && pattern >= 0 &&
+            if( evenodd >= 0 && pattern &&
                 IsEventType(3, data_triggerlvl1) && trig[3] &&
                 !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
             {
+              pattern = pattern > 0 ? 1 : 0;
               int ih = evenodd + 2*pattern + 2*2*checkmap + 2*2*2*isolated[1] + 2*2*2*2*isopair[1];
               h2_2photon_pol[ih]->Fill(pT, minv);
               h2_2photon2pt_pol[ih]->Fill(tot_pT, minv);
@@ -1537,8 +1540,9 @@ int PhotonHistos::GetPattern(int crossing)
     int pattern_yellow = spinpattern->get_spinpattern_yellow(bunch);
     pattern = pattern_blue * pattern_yellow;  
   }
-  if( fabs(pattern) > 1 ) pattern = 0;
-  pattern += 1;
+
+  if( abs(pattern) != 1 )
+    return 0;
 
   return pattern;
 }

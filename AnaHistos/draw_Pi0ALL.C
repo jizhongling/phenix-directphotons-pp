@@ -4,10 +4,9 @@
 
 void draw_Pi0ALL()
 {
-  const int ngroup = 2;
-  const char *region[2] = {"Sig+BG", "BG"};
-  const char *pattern_list[5] = {"SOOSSOO", "OSSOOSS", "SSOO", "OOSS", "NONE"};
   const char *crossing_list[2] = {"even", "odd"};
+  const char *pattern_list[4] = {"SOOSSOO", "OSSOOSS", "SSOO", "OOSS"};
+  const char *region[2] = {"Sig+BG", "BG"};
 
   QueryTree *qt_all = new QueryTree("data/Pi0ALL.root", "RECREATE");
 
@@ -18,16 +17,17 @@ void draw_Pi0ALL()
   vector<double> *vp_eALL = new vector<double>[8];
 
   for(int ibg=0; ibg<2; ibg++)
-    for(int ipt=0; ipt<npT/ngroup; ipt++)
+    for(int ipt=0; ipt<npT_pol; ipt++)
     {
-      for(int pattern=0; pattern<4; pattern++)
-        for(int icr=0; icr<2; icr++)
+      int count = 0;
+      for(int icr=0; icr<2; icr++)
+        for(int pattern=0; pattern<4; pattern++)
         {
           int id = icr + 2*pattern;
           vp_ALL[id].clear();
           vp_eALL[id].clear();
 
-          int ig = ipt + npT/ngroup*icr + 2*npT/ngroup*pattern + 4*2*npT/ngroup*ibg;
+          int ig = icr + 2*pattern + 2*4*ibg + 2*4*2*ipt;
           TSQLResult *res = qt_asym->Query(ig); // runnumber:runnumber:value:error:errorlow:errorhigh
           TSQLRow *row;
           while( row = res->Next() )
@@ -39,32 +39,36 @@ void draw_Pi0ALL()
 
             vp_ALL[id].push_back(ALL);
             vp_eALL[id].push_back(eALL);
+            count++;
             delete row;
           }
           delete res;
-        }
+        } // icr, pattern
 
-      double F, p;
-      Ftest(8, vp_ALL, vp_eALL, F, p);
-      cout << ibg << ", " << ipt << ": " << F << ", " << p << endl;
-    }
+      if(count == 8)
+      {
+        double F, p;
+        Ftest(8, vp_ALL, vp_eALL, F, p);
+        cout << ibg << ", " << ipt << ": " << F << ", " << p << endl;
+      }
+    } // ibg, ipt
 
   TF1 *fn_mean = new TF1("fn_mean", "pol0");
 
-  for(int ibg=0; ibg<2; ibg++)
+  for(int icr=0; icr<2; icr++)
     for(int pattern=0; pattern<4; pattern++)
-      for(int icr=0; icr<2; icr++)
+      for(int ibg=0; ibg<2; ibg++)
       {
-        int igr = icr + 2*pattern + 4*2*ibg;
+        int igr = icr + 2*pattern + 2*4*ibg;
         mc(igr);
 
-        for(int ipt=0; ipt<npT/ngroup; ipt++)
+        for(int ipt=0; ipt<npT_pol; ipt++)
         {
-          int ig = ipt + npT/ngroup*icr + 2*npT/ngroup*pattern + 4*2*npT/ngroup*ibg;
+          int ig = icr + 2*pattern + 2*4*ibg + 2*4*2*ipt;
 
           mcd(igr, ipt+1);
           TGraphErrors *gr = qt_asym->Graph(ig); 
-          gr->SetTitle(Form("p_{T}: %.1f-%.1f GeV",pTbin[ipt*ngroup],pTbin[(ipt+1)*ngroup]));
+          gr->SetTitle(Form("p_{T}: %.1f-%.1f GeV",pTbin_pol[ipt],pTbin_pol[ipt+1]));
           aset(gr, "runnumber","A_{LL}", 386700.,398200., -1.,1.);
           style(gr, 20, 1);
           gr->Draw("AP");  // must before GetXaxis()
@@ -75,22 +79,22 @@ void draw_Pi0ALL()
 
           if( TMath::Finite(mean+emean) )
           {
-            double xpt = ( pTbin[ipt*ngroup] + pTbin[(ipt+1)*ngroup] ) / 2.;
+            double xpt = ( pTbin_pol[ipt] + pTbin_pol[ipt+1] ) / 2.;
             qt_all->Fill(ipt, igr, xpt, mean, emean);
           }
-        }
-      }
+        } // ipt
+      } // icr, pattern, ibg
 
   mc(16, 2);
   legi(0, 0.2,0.8,0.7,0.9);
   leg0->SetNColumns(2);
   leg0->SetTextSize(0.02);
-  for(int ibg=0; ibg<2; ibg++)
+  for(int icr=0; icr<2; icr++)
     for(int pattern=0; pattern<4; pattern++)
-      for(int icr=0; icr<2; icr++)
+      for(int ibg=0; ibg<2; ibg++)
       {
         mcd(16, ibg+1);
-        int igr = icr + 2*pattern + 4*2*ibg;
+        int igr = icr + 2*pattern + 2*4*ibg;
         TGraphErrors *gr_all = qt_all->Graph(igr);
 
         gr_all->SetTitle( Form("#pi^{0} A_{LL} %s",region[ibg]) );
@@ -103,17 +107,17 @@ void draw_Pi0ALL()
           gr_all->Draw("P");
         if(ibg==0)
           leg0->AddEntry(gr_all, Form("%s %s",pattern_list[pattern],crossing_list[icr]), "L");
-      }
+      } // icr, pattern, ibg
   leg0->Draw();
   c16->Print("plots/Pi0ALL.pdf");
 
   qt_all->Write();
-  for(int ibg=0; ibg<2; ibg++)
+  for(int icr=0; icr<2; icr++)
     for(int pattern=0; pattern<4; pattern++)
-      for(int icr=0; icr<2; icr++)
+      for(int ibg=0; ibg<2; ibg++)
       {
-        int igr = icr + 2*pattern + 4*2*ibg;
+        int igr = icr + 2*pattern + 2*4*ibg;
         mcw( igr, Form("bg%d-pattern%d-cross%d", ibg, pattern, icr) );
-      }
+      } // icr, pattern, ibg
   qt_all->Close();
 }

@@ -54,10 +54,9 @@ bool ERTSimTrigger::Fired(const emcClusterContent *cluster)
     ipt--;
 
   int evtype = 2;
-  int bbc10cm = 0;
   int sector = anatools::GetSector(cluster);
   int sm = anatools::GetSM(cluster);
-  int part = sector + 8*sm + 8*32*evtype + 8*32*3*bbc10cm;
+  int part = sector + 8*sm + 8*32*evtype;
 
   TSQLResult *res = t_ertsm->Query("value", Form("ipt==%d&&part==%d",ipt,part));
   TSQLRow *row = res->Next();
