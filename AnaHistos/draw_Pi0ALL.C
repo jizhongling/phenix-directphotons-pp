@@ -19,7 +19,6 @@ void draw_Pi0ALL()
   for(int ibg=0; ibg<2; ibg++)
     for(int ipt=0; ipt<npT_pol; ipt++)
     {
-      int count = 0;
       for(int icr=0; icr<2; icr++)
         for(int pattern=0; pattern<4; pattern++)
         {
@@ -27,7 +26,7 @@ void draw_Pi0ALL()
           vp_ALL[id].clear();
           vp_eALL[id].clear();
 
-          int ig = icr + 2*pattern + 2*4*ibg + 2*4*2*ipt;
+          int ig = ibg + 2*icr + 2*2*pattern + 2*2*4*ipt;
           TSQLResult *res = qt_asym->Query(ig); // runnumber:runnumber:value:error:errorlow:errorhigh
           TSQLRow *row;
           while( row = res->Next() )
@@ -39,32 +38,28 @@ void draw_Pi0ALL()
 
             vp_ALL[id].push_back(ALL);
             vp_eALL[id].push_back(eALL);
-            count++;
             delete row;
           }
           delete res;
         } // icr, pattern
 
-      if(count == 8)
-      {
-        double F, p;
-        Ftest(8, vp_ALL, vp_eALL, F, p);
-        cout << ibg << ", " << ipt << ": " << F << ", " << p << endl;
-      }
+      double F, p;
+      Ftest(8, vp_ALL, vp_eALL, F, p);
+      cout << pTbin_pol[ipt] << "-" << pTbin_pol[ipt+1] << ": " << F << ", " << p << endl;
     } // ibg, ipt
 
   TF1 *fn_mean = new TF1("fn_mean", "pol0");
 
-  for(int icr=0; icr<2; icr++)
-    for(int pattern=0; pattern<4; pattern++)
-      for(int ibg=0; ibg<2; ibg++)
+  for(int ibg=0; ibg<2; ibg++)
+    for(int icr=0; icr<2; icr++)
+      for(int pattern=0; pattern<4; pattern++)
       {
         int igr = icr + 2*pattern + 2*4*ibg;
         mc(igr);
 
         for(int ipt=0; ipt<npT_pol; ipt++)
         {
-          int ig = icr + 2*pattern + 2*4*ibg + 2*4*2*ipt;
+          int ig = ibg + 2*icr + 2*2*pattern + 2*2*4*ipt;
 
           mcd(igr, ipt+1);
           TGraphErrors *gr = qt_asym->Graph(ig); 
@@ -83,15 +78,15 @@ void draw_Pi0ALL()
             qt_all->Fill(ipt, igr, xpt, mean, emean);
           }
         } // ipt
-      } // icr, pattern, ibg
+      } // ibg, icr, pattern
 
   mc(16, 2);
   legi(0, 0.2,0.8,0.7,0.9);
   leg0->SetNColumns(2);
   leg0->SetTextSize(0.02);
-  for(int icr=0; icr<2; icr++)
-    for(int pattern=0; pattern<4; pattern++)
-      for(int ibg=0; ibg<2; ibg++)
+  for(int ibg=0; ibg<2; ibg++)
+    for(int icr=0; icr<2; icr++)
+      for(int pattern=0; pattern<4; pattern++)
       {
         mcd(16, ibg+1);
         int igr = icr + 2*pattern + 2*4*ibg;
@@ -107,17 +102,17 @@ void draw_Pi0ALL()
           gr_all->Draw("P");
         if(ibg==0)
           leg0->AddEntry(gr_all, Form("%s %s",pattern_list[pattern],crossing_list[icr]), "L");
-      } // icr, pattern, ibg
+      } // ibg, icr, pattern
   leg0->Draw();
   c16->Print("plots/Pi0ALL.pdf");
 
   qt_all->Write();
-  for(int icr=0; icr<2; icr++)
-    for(int pattern=0; pattern<4; pattern++)
-      for(int ibg=0; ibg<2; ibg++)
+  for(int ibg=0; ibg<2; ibg++)
+    for(int icr=0; icr<2; icr++)
+      for(int pattern=0; pattern<4; pattern++)
       {
         int igr = icr + 2*pattern + 2*4*ibg;
         mcw( igr, Form("bg%d-pattern%d-cross%d", ibg, pattern, icr) );
-      } // icr, pattern, ibg
+      } // ibg, icr, pattern
   qt_all->Close();
 }

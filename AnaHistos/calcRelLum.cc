@@ -56,8 +56,11 @@ void rate_fdf(double x, void *params, double *y, double *dy)
 }
 
 // Input: rate_obs[2] = {rate_vtx, rate_novtx}
+// Input: erate_obs[2] = {error for rate_obs}
 // Output: rate_true[3] = {rate_vtx_true, rate_novtx_true, rate_vtx_res}
-void rate_corr(double rate_obs[], double rate_true[])
+// Output: erate_true[3] = {error for rate_ture}
+void rate_corr(double rate_obs[], double erate_obs[],
+    double rate_true[], double erate_true[])
 {
   const int max_iter = 100;
   const double epsrel = 1e-6;
@@ -71,6 +74,8 @@ void rate_corr(double rate_obs[], double rate_true[])
   FDF.df = &rate_df;
   FDF.fdf = &rate_fdf;
   FDF.params = &params;
+
+  double erel_obs[2], erel_true[3];
 
   for(int i=0; i<3; i++)
   {
@@ -102,14 +107,26 @@ void rate_corr(double rate_obs[], double rate_true[])
     }
 
     rate_true[i] = x;
+    if(i < 2)
+    {
+      erel_obs[i] = erate_obs[i]/params;
+      erel_true[i] = erel_obs[i];
+    }
+    else
+    {
+      erel_true[i] = sqrt(4*erel_obs[0]*erel_obs[0] + erel_obs[1]*erel_obs[1] +
+          erel_true[0]*erel_true[0] + erel_true[1]*erel_true[1]);
+    }
+    erel_true[i] *= params/x/rate_df(x,0);
+    erate_true[i] = erel_true[i]*x;
   }
 
   gsl_root_fdfsolver_free(solver);
   return;
 }
 
-void get_rlum_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont,
-    int runnumber, double pol[], double epol[], double rlum[])
+void get_rlum_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont, int runnumber,
+    double pol[], double epol[], double rlum[], double erlum[])
 {
   /* Retrieve entry from Spin DB and get fill number */
   int qa_level = spin_out.GetDefaultQA(runnumber);
@@ -139,7 +156,10 @@ void get_rlum_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont,
   }
 
   for(int evenodd=0; evenodd<2; evenodd++)
+  {
     rlum[evenodd] = (double)bbc30_gl1p[evenodd][1]/bbc30_gl1p[evenodd][0];
+    erlum[evenodd] = rlum[evenodd]*sqrt(1./bbc30_gl1p[evenodd][1] + 1./bbc30_gl1p[evenodd][0]);
+  }
 
   return;
 }
@@ -152,20 +172,26 @@ int main()
   TFile *f_rlum = new TFile("data/RelLum.root", "RECREATE");
 
   TTree *t_rlum = new TTree("T", "Relative luminosity");
-  double pol[2], epol[2], rlum[2];
+  double pol[2], epol[2], rlum[2], erlum[2];
   t_rlum->Branch("Runnumber", &runnumber, "Runnumber/I");
   t_rlum->Branch("SpinPattern", &spin_pattern, "SpinPattern/I");
   t_rlum->Branch("Pol", pol, "Pol[2]/D");
   t_rlum->Branch("ePol", epol, "ePol[2]/D");
   t_rlum->Branch("RelLum", rlum, "RelLum[2]/D");
+  t_rlum->Branch("eRelLum", erlum, "eRelLum[2]/D");
 
   TTree *t_rlum_check = new TTree("T1", "Relative luminosity check");
-  double gl1p[2], ss_raw[2], ss_pile[2], ss_res[2];
+  double gl1p[2], egl1p[2], ss_raw[2], ess_raw[2],
+         ss_pile[2], ess_pile[2], ss_res[2], ess_res[2];
   t_rlum_check->Branch("Runnumber", &runnumber, "Runnumber/I");
   t_rlum_check->Branch("GL1p", gl1p, "Gl1p[2]/D");
+  t_rlum_check->Branch("eGL1p", egl1p, "eGl1p[2]/D");
   t_rlum_check->Branch("SS_Uncorr", ss_raw, "SS_Uncorr[2]/D");
+  t_rlum_check->Branch("eSS_Uncorr", ess_raw, "eSS_Uncorr[2]/D");
   t_rlum_check->Branch("SS_Pileup", ss_pile, "SS_Pileup[2]/D");
+  t_rlum_check->Branch("eSS_Pileup", ess_pile, "eSS_Pileup[2]/D");
   t_rlum_check->Branch("SS_Residual", ss_res, "SS_Residual[2]/D");
+  t_rlum_check->Branch("eSS_Residual", ess_res, "eSS_Residual[2]/D");
 
   typedef map<int,int> map_int_t;
   map_int_t runnoInseok;  // <runnumber, spin_pattern>
@@ -206,11 +232,14 @@ int main()
   {
     t_bbc->GetEntry(ien);
 
-    get_rlum_gl1p(spin_out, spin_cont, runnumber, pol, epol, gl1p);
+    get_rlum_gl1p(spin_out, spin_cont, runnumber, pol, epol, gl1p, egl1p);
 
     double rate_raw[2][2] = {};
+    double e2rate_raw[2][2] = {};
     double rate_pile[2][2] = {};
-    double rate_lum[2][2] = {};
+    double e2rate_pile[2][2] = {};
+    double rate_res[2][2] = {};
+    double e2rate_res[2][2] = {};
 
     for(int ib=0; ib<120; ib++)
       if( abs(pb[ib]*py[ib]) == 1 && clock[ib] > 0 && bbcn[ib] > 0 && bbcs[ib] > 0 &&
@@ -219,22 +248,36 @@ int main()
         int pattern = (pb[ib]*py[ib] + 1)/2;
 
         double bbc_vtx = (double)bbc30[ib]/clock[ib];
+        double ebbc_vtx = bbc_vtx*sqrt(1./bbc30[ib] + 1./clock[ib]);
         double bbc_novtx = (double)bbcnovtx[ib]/clock[ib];
+        double ebbc_novtx = bbc_novtx*sqrt(1./bbcnovtx[ib] + 1./clock[ib]);
+
         double rate_obs[2] = {bbc_vtx, bbc_novtx};
-        double rate_true[3];
-        rate_corr(rate_obs, rate_true);
+        double erate_obs[2] = {ebbc_vtx, ebbc_novtx};
+        double rate_true[3], erate_true[3];
+        rate_corr(rate_obs, erate_obs, rate_true, erate_true);
 
         rate_raw[ib%2][pattern] += rate_obs[0];
+        e2rate_raw[ib%2][pattern] += erate_obs[0]*erate_obs[0];
         rate_pile[ib%2][pattern] += rate_true[0];
-        rate_lum[ib%2][pattern] += rate_true[2];
+        e2rate_pile[ib%2][pattern] += erate_true[0]*erate_true[0];
+        rate_res[ib%2][pattern] += rate_true[2];
+        e2rate_res[ib%2][pattern] += erate_true[2]*erate_true[2];
       }
 
     for(int evenodd=0; evenodd<2; evenodd++)
     {
       ss_raw[evenodd] = rate_raw[evenodd][1]/rate_raw[evenodd][0];
+      ess_raw[evenodd] = ss_raw[evenodd]*sqrt(e2rate_raw[evenodd][1]/rate_raw[evenodd][1]/rate_raw[evenodd][1]
+          + e2rate_raw[evenodd][0]/rate_raw[evenodd][0]/rate_raw[evenodd][0]);
       ss_pile[evenodd] = rate_pile[evenodd][1]/rate_pile[evenodd][0];
-      ss_res[evenodd] = rate_lum[evenodd][1]/rate_lum[evenodd][0];
+      ess_pile[evenodd] = ss_pile[evenodd]*sqrt(e2rate_pile[evenodd][1]/rate_pile[evenodd][1]/rate_pile[evenodd][1]
+          + e2rate_pile[evenodd][0]/rate_pile[evenodd][0]/rate_pile[evenodd][0]);
+      ss_res[evenodd] = rate_res[evenodd][1]/rate_res[evenodd][0];
+      ess_res[evenodd] = ss_res[evenodd]*sqrt(e2rate_res[evenodd][1]/rate_res[evenodd][1]/rate_res[evenodd][1]
+          + e2rate_res[evenodd][0]/rate_res[evenodd][0]/rate_res[evenodd][0]);
       rlum[evenodd] = ss_res[evenodd];
+      erlum[evenodd] = ess_res[evenodd];
     }
 
     map_int_t::iterator it_Inseok = runnoInseok.find(runnumber);
@@ -244,7 +287,10 @@ int main()
 
       if(runnumber < 386946)
         for(int evenodd=0; evenodd<2; evenodd++)
+        {
           rlum[evenodd] = gl1p[evenodd];
+          erlum[evenodd] = egl1p[evenodd];
+        }
 
       t_rlum->Fill();
       runnoDone.push_back(runnumber);
@@ -259,7 +305,7 @@ int main()
       runnumber = runno.first;
       spin_pattern = runno.second;
 
-      get_rlum_gl1p(spin_out, spin_cont, runnumber, pol, epol, rlum);
+      get_rlum_gl1p(spin_out, spin_cont, runnumber, pol, epol, rlum, erlum);
 
       t_rlum->Fill();
     }

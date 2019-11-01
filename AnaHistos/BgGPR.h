@@ -6,7 +6,7 @@ void BgGPR(vector<double> &x, vector<double> &y, vector<double> &sigma_y,
 
   const double xmin = 0.047;
   const double xmax = 0.227;
-  const int nPredictions = 90;
+  const int nPredictions = 180;
 
   GausProc a(x, y, sigma_y, xmin, xmax, nPredictions, outfile);
   //gSystem->Exec(Form("rm -f %s",outfile));

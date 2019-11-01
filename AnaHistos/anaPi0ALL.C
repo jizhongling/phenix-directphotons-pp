@@ -6,12 +6,13 @@ void anaPi0ALL()
   TFile *f_rlum = new TFile("data/RelLum.root");
   TTree *t_rlum = (TTree*)f_rlum->Get("T");
   int runnumber, spin_pattern;
-  double pol[2], epol[2], rlum[2];
+  double pol[2], epol[2], rlum[2], erlum[2];
   t_rlum->SetBranchAddress("Runnumber", &runnumber);
   t_rlum->SetBranchAddress("SpinPattern", &spin_pattern);
   t_rlum->SetBranchAddress("Pol", pol);
   t_rlum->SetBranchAddress("ePol", epol);
   t_rlum->SetBranchAddress("RelLum", rlum);
+  t_rlum->SetBranchAddress("eRelLum", erlum);
 
   QueryTree *qt_asym = new QueryTree("data/pion-asym.root", "RECREATE");
 
@@ -22,14 +23,14 @@ void anaPi0ALL()
 
     t_rlum->GetEntry(ien);
 
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15642/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15666/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() )
     {
       cout << "Cannot open file for runnumber = " << runnumber << endl;
       break;
     }
 
-    double npeak[2][2][npT_pol], nbg[2][2][npT_pol];  // icr, ipol, ipt
+    double npion[2][2][2][npT_pol];  // ibg, icr, ipol, ipt
 
     for(int icr=0; icr<2; icr++)
       for(int ipol=0; ipol<2; ipol++)
@@ -42,18 +43,18 @@ void anaPi0ALL()
           int ptbin_first = h2_pion->GetXaxis()->FindBin(pTbin_pol[ipt]);
           int ptbin_last = h2_pion->GetXaxis()->FindBin(pTbin_pol[ipt+1]) - 1;
 
-          npeak[icr][ipol][ipt] = h2_pion->Integral(ptbin_first,ptbin_last, 113,162);
-          nbg[icr][ipol][ipt] = h2_pion->Integral(ptbin_first,ptbin_last, 48,97) +
+          npion[0][icr][ipol][ipt] = h2_pion->Integral(ptbin_first,ptbin_last, 113,162);
+          npion[1][icr][ipol][ipt] = h2_pion->Integral(ptbin_first,ptbin_last, 48,97) +
             h2_pion->Integral(ptbin_first,ptbin_last, 178,227);
         } // ipt
       } // icr, ipol
 
-    for(int icr=0; icr<2; icr++)
-      for(int ibg=0; ibg<2; ibg++)
+    for(int ibg=0; ibg<2; ibg++)
+      for(int icr=0; icr<2; icr++)
         for(int ipt=0; ipt<npT_pol; ipt++)
         {
-          if( npeak[icr][1][ipt] + npeak[icr][0][ipt] < 10. ||
-              nbg[icr][1][ipt] < 1. || nbg[icr][0][ipt] < 1. )
+          if( npion[0][icr][1][ipt] + npion[0][icr][0][ipt] < 10. ||
+              npion[1][icr][1][ipt] < 1. || npion[1][icr][0][ipt] < 1. )
             continue;
 
           double pb = pol[0];
@@ -61,20 +62,21 @@ void anaPi0ALL()
           double epb = epol[0];
           double epy = epol[1];
           double r = rlum[icr];
+          double er = erlum[icr];
 
-          double npp = npeak[icr][1][ipt]*(1-ibg) + nbg[icr][1][ipt];
-          double npm = npeak[icr][0][ipt]*(1-ibg) + nbg[icr][0][ipt];
+          double npp = npion[ibg][icr][1][ipt];
+          double npm = npion[ibg][icr][0][ipt];
 
           double ALL = 1./(pb*py)*(npp - r*npm)/(npp + r*npm);
-          double eALL = sqrt(pow(2*r*npp*npm/pb/py,2)/pow(npp + r*npm,4)*(1./npp + 1./npm)
-              + (pow(epb/pb,2)+pow(epy/py,2))*ALL*ALL);
+          double eALL = sqrt(pow(2*r*npp*npm/pb/py,2)/pow(npp + r*npm,4)*(1./npp + 1./npm + er*er/r/r)
+              + (pow(epb/pb,2) + pow(epy/py,2))*ALL*ALL);
 
           if( TMath::Finite(ALL+eALL) && eALL > 0. )
           {
-            int ig = icr + 2*spin_pattern + 2*4*ibg + 2*4*2*ipt;
+            int ig = ibg + 2*icr + 2*2*spin_pattern + 2*2*4*ipt;
             qt_asym->Fill(runnumber, ig, runnumber, ALL, eALL);
           }
-        } // icr, ibg, ipt
+        } // ibg, icr, ipt
 
     delete f;
   } // ien
