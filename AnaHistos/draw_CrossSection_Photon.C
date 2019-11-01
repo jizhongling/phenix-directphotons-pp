@@ -71,7 +71,6 @@ void draw_CrossSection_Photon()
         int ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isolated + 3*3*2*2*ival;
         TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
         h_1photon[evtype][part]->Add(h_tmp);
-        delete h_tmp;
       } // isolated
 
       for(int isoboth=0; isoboth<2; isoboth++)
@@ -80,11 +79,9 @@ void draw_CrossSection_Photon()
           int ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isoboth + 3*3*2*2*isopair + 3*3*2*2*2*ival;
           TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
           h2_2photon[evtype][part]->Add(h2_tmp);
-          delete h2_tmp;
 
           h2_tmp = (TH2*)f->Get(Form("h2_2photon2pt_%d",ih));
           h2_2photon2pt[evtype][part]->Add(h2_tmp);
-          delete h2_tmp;
         } // isoboth, isopair
     }
 

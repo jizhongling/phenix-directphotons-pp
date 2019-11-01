@@ -14,6 +14,8 @@ void anaPi0ALL()
   t_rlum->SetBranchAddress("RelLum", rlum);
   t_rlum->SetBranchAddress("eRelLum", erlum);
 
+  QueryTree *qt_ken2 = new QueryTree("data/YeildKEN2-pion.pdf");
+
   QueryTree *qt_asym = new QueryTree("data/pion-asym.root", "RECREATE");
 
   for(int ien=0; ien<t_rlum->GetEntries(); ien++)
@@ -64,12 +66,16 @@ void anaPi0ALL()
           double r = rlum[icr];
           double er = erlum[icr];
 
+          int part = ibg + 2*icr;
+          double xpt, k2, ek2;
+          qt_ken2->Query(ipt, part, xpt, k2, ek2);
+
           double npp = npion[ibg][icr][1][ipt];
           double npm = npion[ibg][icr][0][ipt];
 
           double ALL = 1./(pb*py)*(npp - r*npm)/(npp + r*npm);
-          double eALL = sqrt(pow(2*r*npp*npm/pb/py,2)/pow(npp + r*npm,4)*(1./npp + 1./npm + er*er/r/r)
-              + (pow(epb/pb,2) + pow(epy/py,2))*ALL*ALL);
+          double eALL = sqrt(pow(2*r*npp*npm/pb/py,2)/pow(npp + r*npm,4)*(k2/npp + k2/npm + er*er/r/r)
+              + (epb*epb/pb/pb + epy*epy/py/py)*ALL*ALL);
 
           if( TMath::Finite(ALL+eALL) && eALL > 0. )
           {

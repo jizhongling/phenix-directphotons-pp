@@ -55,10 +55,10 @@ void rate_fdf(double x, void *params, double *y, double *dy)
   *dy = df;
 }
 
-// Input: rate_obs[2] = {rate_vtx, rate_novtx}
-// Input: erate_obs[2] = {error for rate_obs}
-// Output: rate_true[3] = {rate_vtx_true, rate_novtx_true, rate_vtx_res}
-// Output: erate_true[3] = {error for rate_ture}
+// Input: rate_obs[2] = {rate_obs_vtx, rate_obs_novtx}
+// Input: erate_obs[2] = {errors for rate_obs}
+// Output: rate_true[3] = {rate_true_vtx, rate_true_novtx, rate_true_res}
+// Output: erate_true[3] = {errors for rate_ture}
 void rate_corr(double rate_obs[], double erate_obs[],
     double rate_true[], double erate_true[])
 {
@@ -181,9 +181,11 @@ int main()
   t_rlum->Branch("eRelLum", erlum, "eRelLum[2]/D");
 
   TTree *t_rlum_check = new TTree("T1", "Relative luminosity check");
+  bool runqa;
   double gl1p[2], egl1p[2], ss_raw[2], ess_raw[2],
          ss_pile[2], ess_pile[2], ss_res[2], ess_res[2];
   t_rlum_check->Branch("Runnumber", &runnumber, "Runnumber/I");
+  t_rlum_check->Branch("RunQA", &runqa, "RunQA/O");
   t_rlum_check->Branch("GL1p", gl1p, "Gl1p[2]/D");
   t_rlum_check->Branch("eGL1p", egl1p, "eGl1p[2]/D");
   t_rlum_check->Branch("SS_Uncorr", ss_raw, "SS_Uncorr[2]/D");
@@ -280,6 +282,7 @@ int main()
       erlum[evenodd] = ess_res[evenodd];
     }
 
+    runqa = false;
     map_int_t::iterator it_Inseok = runnoInseok.find(runnumber);
     if( it_Inseok != runnoInseok.end() )
     {
@@ -291,6 +294,8 @@ int main()
           rlum[evenodd] = gl1p[evenodd];
           erlum[evenodd] = egl1p[evenodd];
         }
+      else
+        runqa = true;
 
       t_rlum->Fill();
       runnoDone.push_back(runnumber);

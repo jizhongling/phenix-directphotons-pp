@@ -76,7 +76,6 @@ void draw_CrossSection_Pion()
         h2_pion[evtype][part]->Add(h2_tmp);
         if(isolated == 1)
           h2_isopion[evtype][part]->Add(h2_tmp);
-        delete h2_tmp;
       } // isolated
     }
 
