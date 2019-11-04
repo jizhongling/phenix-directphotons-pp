@@ -14,7 +14,30 @@ void anaPi0ALL()
   t_rlum->SetBranchAddress("RelLum", rlum);
   t_rlum->SetBranchAddress("eRelLum", erlum);
 
-  QueryTree *qt_ken2 = new QueryTree("data/YeildKEN2-pion.pdf");
+  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-pion.pdf");
+
+  TFile *f_ken2 = new TFile("/phenix/plhf/zji/sources/offline/AnalysisTrain/Run13_Pi0Ana_YIS/KENFactor.root");
+  TTree *t_ken2 = (TTree*)f_ken2->Get("T");
+  double k_total_even, k_total_odd, k_back_even, k_back_odd;
+  t_ken2->SetBranchAddress("K_Total_Even", &k_total_even);
+  t_ken2->SetBranchAddress("K_Total_Odd", &k_total_odd);
+  t_ken2->SetBranchAddress("K_Back_Even", &k_back_even);
+  t_ken2->SetBranchAddress("K_Back_Odd", &k_back_odd);
+
+  double ken2[2][2][npT_pol];  // ibg, icr, ipt
+  for(int ibg=0; ibg<2; ibg++)
+    for(int icr=0; icr<2; icr++)
+      for(int ipt=0; ipt<npT_pol; ipt++)
+        ken2[ibg][icr][ipt] = 1.;
+
+  for(int ien=0; ien<t_ken2->GetEntries(); ien++)
+  {
+    t_ken2->GetEntry(ien);
+    ken2[0][0][ien] = k_total_even;
+    ken2[0][1][ien] = k_total_odd;
+    ken2[1][0][ien] = k_back_even;
+    ken2[1][1][ien] = k_back_odd;
+  }
 
   QueryTree *qt_asym = new QueryTree("data/pion-asym.root", "RECREATE");
 
@@ -25,7 +48,7 @@ void anaPi0ALL()
 
     t_rlum->GetEntry(ien);
 
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15666/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15673/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() )
     {
       cout << "Cannot open file for runnumber = " << runnumber << endl;
@@ -56,6 +79,7 @@ void anaPi0ALL()
         for(int ipt=0; ipt<npT_pol; ipt++)
         {
           if( npion[0][icr][1][ipt] + npion[0][icr][0][ipt] < 10. ||
+              npion[0][icr][1][ipt] < 1. || npion[0][icr][0][ipt] < 1. ||
               npion[1][icr][1][ipt] < 1. || npion[1][icr][0][ipt] < 1. )
             continue;
 
@@ -69,6 +93,8 @@ void anaPi0ALL()
           int part = ibg + 2*icr;
           double xpt, k2, ek2;
           qt_ken2->Query(ipt, part, xpt, k2, ek2);
+          //k2 = ken2[ibg][icr][ipt];
+          //k2 = 1.;
 
           double npp = npion[ibg][icr][1][ipt];
           double npm = npion[ibg][icr][0][ipt];

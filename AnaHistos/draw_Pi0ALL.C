@@ -5,15 +5,19 @@
 void draw_Pi0ALL()
 {
   const char *region[4] = {"Sig+BG", "BG", "Sig", "Combined"};
-  const char *crossing_list[2] = {"even", "odd"};
+  const char *crossing_list[2] = {"Even", "Odd"};
   const char *pattern_list[4] = {"SOOSSOO", "OSSOOSS", "SSOO", "OOSS"};
 
   QueryTree *qt_all = new QueryTree("data/Pi0ALL.root", "RECREATE");
+
+  TGraphErrors *gr_inseok = new TGraphErrors("data/inseok-all.txt", "%lg %lg %lg");
 
   QueryTree *qt_asym = new QueryTree("data/pion-asym.root");
   qt_asym->SetQuiet();
 
   QueryTree *qt_rbg = new QueryTree("data/BgRatio-pion.root");
+
+  TFile *f_rbg = new TFile("/phenix/plhf/zji/sources/offline/AnalysisTrain/Run13_Pi0Ana_YIS/BGF_Syst.root");
 
   vector<double> *vp_ALL = new vector<double>[8];
   vector<double> *vp_eALL = new vector<double>[8];
@@ -60,6 +64,12 @@ void draw_Pi0ALL()
       {
         double xpt, rbg, erbg;
         qt_rbg->Query(ipt, icr, xpt, rbg, erbg);
+        if(ipt < -1)
+        {
+          TH1 *h_rbg = (TH1*)f_rbg->Get( Form("BGF_%s_Pt_%d_%d", crossing_list[icr],
+                (int)(pTbin_pol[ipt]*10), (int)(pTbin_pol[ipt+1]*10)) );
+          rbg = h_rbg->GetMean();
+        }
         double mean[2], emean[2];
 
         for(int ibg=0; ibg<2; ibg++)
@@ -129,13 +139,20 @@ void draw_Pi0ALL()
   leg0->Draw();
 
   mcd(16, 4);
+  legi(1, 0.2,0.8,0.6,0.9);
   gPad->SetGridy();
   TGraphErrors *gr_all = qt_all->Graph(2*4*3);
   gr_all->SetTitle( Form("#pi^{0} A_{LL} %s",region[3]) );
   aset(gr_all, "p_{T} [GeV]","A_{LL}", 0.,20., -0.01,0.03);
   style(gr_all, 1, 1);
+  style(gr_inseok, 1, 2);
   gr_all->SetMarkerSize(0.);
+  gr_inseok->SetMarkerSize(0.);
   gr_all->Draw("AP");
+  gr_inseok->Draw("P");
+  leg1->AddEntry(gr_all, "My check", "L");
+  leg1->AddEntry(gr_inseok, "Inseok", "L");
+  leg1->Draw();
 
   c16->Print("plots/Pi0ALL.pdf");
 

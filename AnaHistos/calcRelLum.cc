@@ -1,5 +1,6 @@
 // To compile: g++ -Wall -o calcRelLum calcRelLum.cc -I$OFFLINE_MAIN/include -L$OFFLINE_MAIN/lib -m32 -luspin -lodbc -lgsl -lgslcblas -lm `root-config --cflags --libs`
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -11,21 +12,22 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_roots.h>
 
+#include <TF1.h>
 #include <TFile.h>
 #include <TTree.h>
+#include <TGraphErrors.h>
 
 #include <SpinDBOutput.hh>
 #include <SpinDBContent.hh>
 
 using namespace std;
 
-const double kn = 0.2278;
-const double ks = 0.2278;
-
 double rate_f(double x, void *params)
 {
   double *p = (double*)params;
-  double rate_obs = *p;
+  double kn = p[0];
+  double ks = p[1];
+  double rate_obs = p[2];
 
   double rate_true = 1 - exp(-x*(1+kn)) - exp(-x*(1+ks)) + exp(-x*(1+kn+ks));
 
@@ -34,6 +36,10 @@ double rate_f(double x, void *params)
 
 double rate_df(double x, void *params)
 {
+  double *p = (double*)params;
+  double kn = p[0];
+  double ks = p[1];
+
   double df = (1+kn)*exp(-x*(1+kn)) + (1+ks)*exp(-x*(1+ks)) - (1+kn+ks)*exp(-x*(1+kn+ks));
 
   return df;
@@ -42,7 +48,9 @@ double rate_df(double x, void *params)
 void rate_fdf(double x, void *params, double *y, double *dy)
 {
   double *p = (double*)params;
-  double rate_obs = *p;
+  double kn = p[0];
+  double ks = p[1];
+  double rate_obs = p[2];
 
   double expkn = exp(-x*(1+kn));
   double expks = exp(-x*(1+ks));
@@ -55,11 +63,12 @@ void rate_fdf(double x, void *params, double *y, double *dy)
   *dy = df;
 }
 
+// Input: KFactor[2] = {kn, ks}
 // Input: rate_obs[2] = {rate_obs_vtx, rate_obs_novtx}
 // Input: erate_obs[2] = {errors for rate_obs}
 // Output: rate_true[3] = {rate_true_vtx, rate_true_novtx, rate_true_res}
 // Output: erate_true[3] = {errors for rate_ture}
-void rate_corr(double rate_obs[], double erate_obs[],
+void rate_corr(double KFactor[], double rate_obs[], double erate_obs[],
     double rate_true[], double erate_true[])
 {
   const int max_iter = 100;
@@ -68,25 +77,25 @@ void rate_corr(double rate_obs[], double erate_obs[],
   const gsl_root_fdfsolver_type *solver_type = gsl_root_fdfsolver_newton;
   gsl_root_fdfsolver *solver = gsl_root_fdfsolver_alloc(solver_type);
 
-  double params;
+  double params[3] = {KFactor[0], KFactor[1]};
   gsl_function_fdf FDF;
   FDF.f = &rate_f;
   FDF.df = &rate_df;
   FDF.fdf = &rate_fdf;
-  FDF.params = &params;
+  FDF.params = params;
 
   double erel_obs[2], erel_true[3];
 
   for(int i=0; i<3; i++)
   {
     if(i < 2)
-      params = rate_obs[i];
+      params[2] = rate_obs[i];
     else
-      params = rate_obs[0]*(rate_obs[0]/rate_obs[1])/(rate_true[0]/rate_true[1]);
+      params[2] = rate_obs[0]*(rate_obs[0]/rate_obs[1])/(rate_true[0]/rate_true[1]);
 
     int status;
     int iter = 0;
-    double x0, x = params;
+    double x0, x = params[2];
     gsl_root_fdfsolver_set(solver, &FDF, x);
 
     do
@@ -109,7 +118,7 @@ void rate_corr(double rate_obs[], double erate_obs[],
     rate_true[i] = x;
     if(i < 2)
     {
-      erel_obs[i] = erate_obs[i]/params;
+      erel_obs[i] = erate_obs[i]/params[2];
       erel_true[i] = erel_obs[i];
     }
     else
@@ -117,7 +126,7 @@ void rate_corr(double rate_obs[], double erate_obs[],
       erel_true[i] = sqrt(4*erel_obs[0]*erel_obs[0] + erel_obs[1]*erel_obs[1] +
           erel_true[0]*erel_true[0] + erel_true[1]*erel_true[1]);
     }
-    erel_true[i] *= params/x/rate_df(x,0);
+    erel_true[i] *= params[2]/x/rate_df(x,params);
     erate_true[i] = erel_true[i]*x;
   }
 
@@ -161,6 +170,33 @@ void get_rlum_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont, int runnumb
     erlum[evenodd] = rlum[evenodd]*sqrt(1./bbc30_gl1p[evenodd][1] + 1./bbc30_gl1p[evenodd][0]);
   }
 
+  return;
+}
+
+void ReadKFactor(double KFactor[][2])
+{
+  TFile *f_k = new TFile("/phenix/plhf/zji/sources/offline/AnalysisTrain/Run13_Pi0Ana_YIS/ResultKFactor.root");
+
+  for(int i=0; i<5; i++)
+  {
+    string pattern;
+    if(i==0) pattern = "SOOSSOO";
+    else if(i==1) pattern = "OSSOOSS";
+    else if(i==2) pattern = "SSOO";
+    else if(i==3) pattern = "OOSS";
+    else if(i==4) pattern = "ALL";
+
+    TGraphErrors *gr_bbc_north = (TGraphErrors*)f_k->Get(Form("Rate_Ratio_Corr_BBC_North_%s_0", pattern.c_str()));
+    TGraphErrors *gr_bbc_south = (TGraphErrors*)f_k->Get(Form("Rate_Ratio_Corr_BBC_South_%s_0", pattern.c_str()));
+
+    TF1 *fr_bbc_north = gr_bbc_north->GetFunction(Form("BBC_NORTH_CORR_%s", pattern.c_str()));
+    TF1 *fr_bbc_south = gr_bbc_south->GetFunction(Form("BBC_SOUTH_CORR_%s", pattern.c_str()));
+
+    KFactor[i][0] = fr_bbc_north->GetParameter(0);
+    KFactor[i][1] = fr_bbc_south->GetParameter(0);
+  }
+
+  delete f_k;
   return;
 }
 
@@ -228,11 +264,21 @@ int main()
   t_bbc->SetBranchAddress("BBC_30cm", bbc30);
   t_bbc->SetBranchAddress("BBCnovtx", bbcnovtx);
 
+  double KFactor[2] = {0.2278, 0.2278};
+  double KFactorInseok[5][2];
+  ReadKFactor(KFactorInseok);
+
   vector<int> runnoDone(1000);
 
   for(int ien=0; ien<t_bbc->GetEntries(); ien++)
   {
     t_bbc->GetEntry(ien);
+
+    map_int_t::iterator it_Inseok = runnoInseok.find(runnumber);
+    if( it_Inseok != runnoInseok.end() )
+      spin_pattern = it_Inseok->second;
+    else
+      spin_pattern = 4;
 
     get_rlum_gl1p(spin_out, spin_cont, runnumber, pol, epol, gl1p, egl1p);
 
@@ -257,7 +303,7 @@ int main()
         double rate_obs[2] = {bbc_vtx, bbc_novtx};
         double erate_obs[2] = {ebbc_vtx, ebbc_novtx};
         double rate_true[3], erate_true[3];
-        rate_corr(rate_obs, erate_obs, rate_true, erate_true);
+        rate_corr(KFactor, rate_obs, erate_obs, rate_true, erate_true);
 
         rate_raw[ib%2][pattern] += rate_obs[0];
         e2rate_raw[ib%2][pattern] += erate_obs[0]*erate_obs[0];
@@ -283,11 +329,8 @@ int main()
     }
 
     runqa = false;
-    map_int_t::iterator it_Inseok = runnoInseok.find(runnumber);
     if( it_Inseok != runnoInseok.end() )
     {
-      spin_pattern = it_Inseok->second;
-
       if(runnumber < 386946)
         for(int evenodd=0; evenodd<2; evenodd++)
         {
@@ -302,7 +345,7 @@ int main()
     }
 
     t_rlum_check->Fill();
-  }
+  } // ien
 
   BOOST_FOREACH(const map_int_t::value_type &runno, runnoInseok)
     if( find(runnoDone.begin(), runnoDone.end(), runno.first) == runnoDone.end() )
