@@ -25,6 +25,8 @@ void draw_Acceptance_Pion()
   TAxis *axis_peak = hn_pion->GetAxis(4);
 
   for(int part=0; part<3; part++)
+  {
+    mc(part, 6,5);
     for(int ipt=0; ipt<npT; ipt++)
     {
       double xpt = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
@@ -60,6 +62,7 @@ void draw_Acceptance_Pion()
       if( TMath::Finite(yy+eyyl+eyyh) )
         qt_acc->Fill(ipt, part, xpt, yy, eyyl, eyyh);
     }
+  }
 
 
   mc(3);

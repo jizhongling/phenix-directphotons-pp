@@ -23,8 +23,8 @@ void draw_CrossSection_Photon()
   const double eProb = 0.02;
   const double ToF[3] = {0.992, 0.992, 0.997};
   const double eToF[3] = {0.002, 0.002, 0.002};
-  const double Conv[3] = {0.849, 0.959, 0.959};
-  const double eConv[3] = {0.027, 0.023, 0.023};
+  const double Conv[3] = {0.849, 0.971, 0.959};
+  const double eConv[3] = {0.027, 0.023, 0.029};
   const double Norm[3] = {0.320, 0.321, 0.250};
   const double eNorm[3] = {0.005, 0.007, 0.005};
   const double A = 0.28;
@@ -147,18 +147,18 @@ void draw_CrossSection_Photon()
       {
         if(part == 0)
         {
-          TrigERT = 0.958;
-          eTrigERT = 0.010;
+          TrigERT = 0.971;
+          eTrigERT = 0.003;
         }
         else if(part == 1)
         {
-          TrigERT = 0.919;
-          eTrigERT = 0.015;
+          TrigERT = 0.950;
+          eTrigERT = 0.004;
         }
         else
         {
-          TrigERT = 0.679;
-          eTrigERT = 0.015;
+          TrigERT = 0.693;
+          eTrigERT = 0.006;
         }
       }
 
@@ -168,7 +168,7 @@ void draw_CrossSection_Photon()
       qt_asee->Fill(ipt, part, xpt, ASee, eASee);
 
       double ndir = nphoton/Eff - (1. + Miss + Merge1*Conv[part]*(1.-Conv[part]) + ASee) * n2photon/Eff/Eff - Merge2/2.*BadPass * n2photon2pt/Eff/Eff;
-      double endir = sqrt(pow(enphoton,2)/pow(Conv[part],2) + 0.25*pow(BadPass,2)*pow(en2photon2pt,2)* pow(Merge2,2) + (pow(en2photon,2)* pow(1. + (1. - Conv[part])*Conv[part]*Merge1 + Miss + (A*(1. + Miss)* (1. + Merge1 + 2.*Miss))/ (1. + 2.*Miss),2))/pow(Conv[part],4) + (pow(eA,2)*pow(1. + Miss,2)* pow(1. + Merge1 + 2.*Miss,2)* pow(n2photon,2))/ (pow(Conv[part],4)*pow(1. + 2.*Miss,2)) + (pow(eMerge1,2)* pow((1. - Conv[part])*Conv[part] + (A*(1. + Miss))/(1. + 2.*Miss),2)* pow(n2photon,2))/pow(Conv[part],4) + (pow(eMiss,2)* pow(1 + (2.*A*(1. + Miss))/ (1. + 2.*Miss) - (2.*A*(1. + Miss)* (1. + Merge1 + 2.*Miss))/ pow(1. + 2.*Miss,2) + (A*(1. + Merge1 + 2.*Miss))/ (1. + 2.*Miss),2)*pow(n2photon,2))/ pow(Conv[part],4) + 0.25*pow(BadPass,2)*pow(eMerge2,2)* pow(n2photon2pt,2) + 0.25*pow(eBadPass,2)*pow(Merge2,2)* pow(n2photon2pt,2) + pow(eConv[part],2)*pow(-((((1. - Conv[part])* Merge1 - Conv[part]*Merge1)*n2photon)/ pow(Conv[part],2)) + (2*(1. + (1. - Conv[part])*Conv[part]*Merge1 + Miss + (A*(1. + Miss)* (1. + Merge1 + 2.*Miss))/ (1. + 2.*Miss))*n2photon)/ pow(Conv[part],3) - nphoton/pow(Conv[part],2),2));
+      double endir = sqrt(pow(enphoton,2)/pow(Conv[part],2) + 0.25*pow(BadPass,2)*pow(en2photon2pt,2)*pow(Merge2,2) + (pow(en2photon,2)*pow(1. + (1. - Conv[part])*Conv[part]*Merge1 + Miss + (A*(1. + Miss)*(1. + Merge1 + 2.*Miss))/(1. + 2.*Miss),2))/pow(Conv[part],4) + (pow(eA,2)*pow(1. + Miss,2)*pow(1. + Merge1 + 2.*Miss,2)*pow(n2photon,2))/(pow(Conv[part],4)*pow(1. + 2.*Miss,2)) + (pow(eMerge1,2)*pow((1. - Conv[part])*Conv[part] + (A*(1. + Miss))/(1. + 2.*Miss),2)*pow(n2photon,2))/pow(Conv[part],4) + (pow(eMiss,2)*pow(1 + (2.*A*(1. + Miss))/(1. + 2.*Miss) - (2.*A*(1. + Miss)*(1. + Merge1 + 2.*Miss))/pow(1. + 2.*Miss,2) + (A*(1. + Merge1 + 2.*Miss))/(1. + 2.*Miss),2)*pow(n2photon,2))/pow(Conv[part],4) + 0.25*pow(BadPass,2)*pow(eMerge2,2)*pow(n2photon2pt,2) + 0.25*pow(eBadPass,2)*pow(Merge2,2)*pow(n2photon2pt,2) + pow(eConv[part],2)*pow(-((((1. - Conv[part])*Merge1 - Conv[part]*Merge1)*n2photon)/pow(Conv[part],2)) + (2*(1. + (1. - Conv[part])*Conv[part]*Merge1 + Miss + (A*(1. + Miss)*(1. + Merge1 + 2.*Miss))/(1. + 2.*Miss))*n2photon)/pow(Conv[part],3) - nphoton/pow(Conv[part],2),2));
 
       if(ipt >= 22)  // >14GeV use ERT_4x4b
       {

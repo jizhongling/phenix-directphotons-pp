@@ -6,7 +6,7 @@ double Chi2Fit(int n, double *x, double *ex, double &xbar, double &exbar)
   double sumx2 = 0.;
 
   for(int i=0; i<n; i++)
-    if( TMath::Finite(ex[i]) && ex[i] > 0. )
+    if( TMath::Finite(x[i]+ex[i]) && ex[i] > 0. )
     {
       sumN++;
       sumw += 1./ex[i]/ex[i];
@@ -19,4 +19,21 @@ double Chi2Fit(int n, double *x, double *ex, double &xbar, double &exbar)
 
   double chi2 = sumN > 1 ? ( sumx2 - sumw*xbar*xbar ) / ( sumN - 1 ) : 0.;
   return chi2;
+}
+
+double Pol0Fit(int n, double *x, double *ex, double &xbar, double &exbar)
+{
+  double *dummy = new double[n];
+  for(int i=0; i<n; i++)
+    dummy[i] = i;
+
+  TGraphErrors *gr_fit = new TGraphErrors(n, dummy, x, 0, ex);
+  TFitResultPtr r_fit = gr_fit->Fit("pol0", "QS");
+  xbar = r_fit->Value(0);
+  exbar = r_fit->ParError(0);
+  unsigned ndf = r_fit->Ndf();
+  double chi2 = r_fit->Chi2();
+
+  delete[] dummy;
+  return (ndf>0 ? chi2/ndf : chi2);
 }

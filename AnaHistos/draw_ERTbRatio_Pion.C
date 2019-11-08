@@ -7,7 +7,6 @@ void draw_ERTbRatio_Pion()
   // h[evtype][part]
   TH2 *h2_pion[3][3];
 
-  int bbc10cm = 1;
   int tof = 1;
   int prob = 1;
   int checkmap = 1;
@@ -21,15 +20,13 @@ void draw_ERTbRatio_Pion()
     for(int part=0; part<3; part++)
     {
       h2_pion[evtype][part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_type%d_part%d",evtype,part));
-      for(int evenodd=0; evenodd<2; evenodd++)
-        for(int pattern=0; pattern<3; pattern++)
-          for(int isolated=0; isolated<2; isolated++)
-          {
-            int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*tof + 3*2*3*4*2*prob + 3*2*3*4*2*2*bbc10cm + 3*2*3*4*2*2*2*checkmap + 3*2*3*4*2*2*2*2*isolated + 3*2*3*4*2*2*2*2*2*ival;
-            TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
-            h2_pion[evtype][part]->Add(h2_tmp);
-            delete h2_tmp;
-          }
+      for(int isolated=0; isolated<2; isolated++)
+      {
+        int ih = part + 3*evtype + 3*3*tof + 3*3*2*prob + 3*3*2*2*checkmap + 3*3*2*2*2*isolated + 3*3*2*2*2*2*ival;
+        TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_%d",ih));
+        h2_pion[evtype][part]->Add(h2_tmp);
+        delete h2_tmp;
+      }
     }
 
   mc(0, 3,2);

@@ -128,7 +128,7 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
   BookHistograms();
 
   /* pT weights calculator */
-  PtWeights *ptweights = new PtWeights();
+  ptweights = new PtWeights();
   if(!ptweights)
   {
     cerr << "No ptweights" << endl;
@@ -306,12 +306,7 @@ void AnaFastMC::FastMCInput()
       double fill_hn_missing[] = {ptsim, Vpart[iph].Pt(), (double)sec_part[iph], (double)npart, (double)npeak};
       hn_missing->Fill(fill_hn_missing, weight_pi0);
 
-      if( npart == 1 )
-      {
-        int isolated = 1;
-        h3_isopi0->Fill(Vpart[iph].Pt(), (double)sec_part[iph], (double)isolated);
-      }
-      else if( npart == 2 && npeak == 2 )
+      if( npart == 2 && npeak == 2 )
       {
         int isolated = 0;
         double angle = Vpart[0].Angle( Vpart[1].Vect() );
@@ -355,12 +350,7 @@ void AnaFastMC::FastMCInput()
       double fill_hn_missing_eta[] = {ptsim, Vpart[iph].Pt(), (double)sec_part[iph], (double)npart, (double)npeak};
       hn_missing_eta->Fill(fill_hn_missing_eta, weight_eta);
 
-      if( npart == 1 )
-      {
-        int isolated = 1;
-        h3_isoeta->Fill(Vpart[iph].Pt(), (double)sec_part[iph], (double)isolated);
-      }
-      else if( npart == 2 && npeak == 2 )
+      if( npart == 2 && npeak == 2 )
       {
         int isolated = 0;
         double angle = Vpart[0].Angle( Vpart[1].Vect() );

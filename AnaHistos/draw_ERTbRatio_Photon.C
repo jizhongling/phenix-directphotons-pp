@@ -13,7 +13,6 @@ void draw_ERTbRatio_Photon()
   // h[evtype][part]
   TH1 *h_1photon[3][3];
 
-  int bbc10cm = 1;
   int checkmap = 1;
   int ival = 1;
 
@@ -25,15 +24,13 @@ void draw_ERTbRatio_Photon()
     for(int part=0; part<3; part++)
     {
       h_1photon[evtype][part] = (TH1*)h_1photon_t->Clone(Form("h_1photon_type%d_part%d",evtype,part));
-      for(int pattern=0; pattern<3; pattern++)
-        for(int evenodd=0; evenodd<2; evenodd++)
-          for(int isolated=0; isolated<2; isolated++)
-          {
-            int ih = part + 3*evenodd + 3*2*pattern + 3*2*3*evtype + 3*2*3*4*bbc10cm + 3*2*3*4*2*checkmap + 3*2*3*4*2*2*isolated + 3*2*3*4*2*2*2*ival;
-            TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
-            h_1photon[evtype][part]->Add(h_tmp);
-            delete h_tmp;
-          }
+      for(int isolated=0; isolated<2; isolated++)
+      {
+        int ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isolated[ival] + 3*3*2*2*ival;
+        TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
+        h_1photon[evtype][part]->Add(h_tmp);
+        delete h_tmp;
+      }
     }
 
   for(int part=0; part<3; part++)

@@ -96,10 +96,15 @@ void draw_CrossSectionCmp(const int nameid)
     else
     {
       if( name.EqualTo("pion") )
+      {
         gr_parts[part]->SetTitle("Diff with PRD 93, 011501;p_{T} [GeV];Diff;");
+        aset(gr_parts[part], "","", 6.1,30., -0.1,0.1);
+      }
       else
+      {
         gr_parts[part]->SetTitle("#gamma/#pi^{0};p_{T} [GeV];#gamma/#pi^{0};");
-      aset(gr_parts[part], "","", 6.1,30.);
+        aset(gr_parts[part], "","", 6.1,30.);
+      }
     }
     style(gr_parts[part], part+20, part+1);
 

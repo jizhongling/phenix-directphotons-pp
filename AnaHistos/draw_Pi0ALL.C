@@ -1,6 +1,7 @@
 #include "GlobalVars.h"
 #include "QueryTree.h"
 #include "Ftest.h"
+#include "Chi2Fit.h"
 
 void draw_Pi0ALL()
 {
@@ -54,11 +55,12 @@ void draw_Pi0ALL()
       cout << pTbin_pol[ipt] << "-" << pTbin_pol[ipt+1] << ": " << F << ", " << p << endl;
     } // ibg, ipt
 
-  TGraphErrors *gr_pattern = new TGraphErrors(8);
   TF1 *fn_mean = new TF1("fn_mean", "pol0");
 
   for(int ipt=0; ipt<npT_pol; ipt++)
   {
+    double sig[8] = {};
+    double esig[8] = {};
     for(int icr=0; icr<2; icr++)
       for(int pattern=0; pattern<4; pattern++)
       {
@@ -93,23 +95,18 @@ void draw_Pi0ALL()
             qt_all->Fill(ipt, igr, xpt, mean[ibg], emean[ibg]);
         } // ibg
 
-        int igr = icr + 2*pattern + 2*4*2;
-        double sig = (mean[0] - rbg*mean[1])/(1 - rbg);
-        double esig = sqrt(emean[0]*emean[0] + rbg*rbg*emean[1]*emean[1])/(1 - rbg);
-        qt_all->Fill(ipt, igr, xpt, sig, esig);
-
         int ipat = icr + 2*pattern;
-        gr_pattern->SetPoint(ipat, (double)ipat, sig);
-        gr_pattern->SetPointError(ipat, 0., esig);
+        sig[ipat] = (mean[0] - rbg*mean[1])/(1 - rbg);
+        esig[ipat] = sqrt(emean[0]*emean[0] + rbg*rbg*emean[1]*emean[1])/(1 - rbg);
+
+        int igr = icr + 2*pattern + 2*4*2;
+        qt_all->Fill(ipt, igr, xpt, sig[ipat], esig[ipat]);
       } // icr, pattern
 
-    gr_pattern->Fit(fn_mean, "Q");
-    double comb = fn_mean->GetParameter(0);
-    double ecomb = fn_mean->GetParError(0);
+    double comb, ecomb;
+    Chi2Fit(8, sig, esig, comb, ecomb);
     if( TMath::Finite(comb+ecomb) )
       qt_all->Fill(ipt, 2*4*3, xpt, comb, ecomb);
-    cout << fixed << setprecision(1) << pTbin_pol[ipt] << "-" << pTbin_pol[ipt+1] << ": ";
-    cout << scientific << setprecision(5) << comb << ", " << ecomb << endl;
   } //ipt
 
   mc(16, 2,2);
