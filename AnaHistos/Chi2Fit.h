@@ -16,9 +16,10 @@ double Chi2Fit(int n, double *x, double *ex, double &xbar, double &exbar)
 
   xbar = sumx/sumw;
   exbar = 1./sqrt(sumw);
+  int ndf = sumN - 1;
+  int chi2 = sumx2 - sumw*xbar*xbar;
 
-  double chi2 = sumN > 1 ? ( sumx2 - sumw*xbar*xbar ) / ( sumN - 1 ) : 0.;
-  return chi2;
+  return (ndf>0 ? chi2/ndf : chi2);
 }
 
 double Pol0Fit(int n, double *x, double *ex, double &xbar, double &exbar)
@@ -35,5 +36,4 @@ double Pol0Fit(int n, double *x, double *ex, double &xbar, double &exbar)
   double chi2 = r_fit->Chi2();
 
   delete[] dummy;
-  return (ndf>0 ? chi2/ndf : chi2);
 }

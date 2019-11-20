@@ -94,7 +94,6 @@ void anaPi0ALL()
           double xpt, k2, ek2;
           qt_ken2->Query(ipt, part, xpt, k2, ek2);
           //k2 = ken2[ibg][icr][ipt];
-          //k2 = 1.;
 
           double npp = npion[ibg][icr][1][ipt];
           double npm = npion[ibg][icr][0][ipt];

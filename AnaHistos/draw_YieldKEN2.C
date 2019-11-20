@@ -5,7 +5,7 @@ void draw_YieldKEN2()
 {
   const char *tname[2] = {"sig", "bg"};
 
-  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-pion.pdf", "RECREATE");
+  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-isophoton.pdf", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
