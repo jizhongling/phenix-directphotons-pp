@@ -134,13 +134,16 @@ void rate_corr(double KFactor[], double rate_obs[], double erate_obs[],
   return;
 }
 
-void get_rlum_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont, int runnumber,
-    double pol[], double epol[], double rlum[], double erlum[])
+void get_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont,
+    int runnumber, int &fillnumber,
+    double pol[], double epol[], double rlum[][2], double erlum[][2],
+    double rate_bunch[], double erate_bunch[])
 {
   /* Retrieve entry from Spin DB and get fill number */
   int qa_level = spin_out.GetDefaultQA(runnumber);
   spin_out.StoreDBContent(runnumber, runnumber, qa_level);
   spin_out.GetDBContentStore(spin_cont, runnumber);
+  fillnumber = spin_cont.GetFillNumber();
 
   if( spin_out.CheckRunRow(runnumber,qa_level) != 1 )
   {
@@ -153,22 +156,35 @@ void get_rlum_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont, int runnumb
   spin_cont.GetPolarizationBlue(1, pol[0], epol[0], pbsyst);
   spin_cont.GetPolarizationYellow(1, pol[1], epol[1], pysyst);
 
-  long long bbc30_gl1p[2][2] = {};
+  long long bbc30_gl1p[3][2][2] = {};
 
   for(int ib=0; ib<120; ib++)
   {
+    rate_bunch[ib] = 0.;
+    erate_bunch[ib] = 0.;
     int pb = spin_cont.GetSpinPatternBlue(ib);
     int py = spin_cont.GetSpinPatternYellow(ib);
-    int pattern = (pb*py + 1)/2;
-    if(pattern == 0 || pattern == 1)
-      bbc30_gl1p[ib%2][pattern] += spin_cont.GetScaler(0, ib);
+    int pattern[3] = {pb, py, pb*py};
+    for(int beam=0; beam<3; beam++)
+      if( abs(pattern[beam]) == 1 )
+      {
+        int ipol = (pattern[beam] + 1)/2;
+        long long count = spin_cont.GetScaler(0, ib);
+        bbc30_gl1p[beam][ib%2][ipol] += count;
+        if(beam == 2)
+        {
+          rate_bunch[ib] = (double)count;
+          erate_bunch[ib] = sqrt(rate_bunch[ib]);
+        }
+      }
   }
 
-  for(int evenodd=0; evenodd<2; evenodd++)
-  {
-    rlum[evenodd] = (double)bbc30_gl1p[evenodd][1]/bbc30_gl1p[evenodd][0];
-    erlum[evenodd] = rlum[evenodd]*sqrt(1./bbc30_gl1p[evenodd][1] + 1./bbc30_gl1p[evenodd][0]);
-  }
+  for(int beam=0; beam<3; beam++)
+    for(int evenodd=0; evenodd<2; evenodd++)
+    {
+      rlum[beam][evenodd] = (double)bbc30_gl1p[beam][evenodd][1]/bbc30_gl1p[beam][evenodd][0];
+      erlum[beam][evenodd] = rlum[beam][evenodd]*sqrt(1./bbc30_gl1p[beam][evenodd][1] + 1./bbc30_gl1p[beam][evenodd][0]);
+    }
 
   return;
 }
@@ -202,28 +218,35 @@ void ReadKFactor(double KFactor[][2])
 
 int main()
 {
-  int runnumber;
+  int runnumber, fillnumber;
   int spin_pattern = 0;
 
   TFile *f_rlum = new TFile("data/RelLum.root", "RECREATE");
 
   TTree *t_rlum = new TTree("T", "Relative luminosity");
-  double pol[2], epol[2], rlum[2], erlum[2];
+  double pol[2], epol[2], rlum[3][2], erlum[3][2], rate_bunch[120], erate_bunch[120];
   t_rlum->Branch("Runnumber", &runnumber, "Runnumber/I");
+  t_rlum->Branch("Fillnumber", &fillnumber, "Fillnumber/I");
   t_rlum->Branch("SpinPattern", &spin_pattern, "SpinPattern/I");
   t_rlum->Branch("Pol", pol, "Pol[2]/D");
   t_rlum->Branch("ePol", epol, "ePol[2]/D");
-  t_rlum->Branch("RelLum", rlum, "RelLum[2]/D");
-  t_rlum->Branch("eRelLum", erlum, "eRelLum[2]/D");
+  t_rlum->Branch("YellowRelLum", rlum[0], "YellowRelLum[2]/D");
+  t_rlum->Branch("eYellowRelLum", erlum[0], "eYellowRelLum[2]/D");
+  t_rlum->Branch("BlueRelLum", rlum[1], "BlueRelLum[2]/D");
+  t_rlum->Branch("eBlueRelLum", erlum[1], "eBlueRelLum[2]/D");
+  t_rlum->Branch("RelLum", rlum[2], "RelLum[2]/D");
+  t_rlum->Branch("eRelLum", erlum[2], "eRelLum[2]/D");
+  t_rlum->Branch("Rate", rate_bunch, "Rate[120]/D");
+  t_rlum->Branch("eRate", erate_bunch, "eRate[120]/D");
 
   TTree *t_rlum_check = new TTree("T1", "Relative luminosity check");
   bool runqa;
-  double gl1p[2], egl1p[2], ss_raw[2], ess_raw[2],
+  double gl1p[3][2], egl1p[3][2], ss_raw[2], ess_raw[2],
          ss_pile[2], ess_pile[2], ss_res[2], ess_res[2];
   t_rlum_check->Branch("Runnumber", &runnumber, "Runnumber/I");
   t_rlum_check->Branch("RunQA", &runqa, "RunQA/O");
-  t_rlum_check->Branch("GL1p", gl1p, "Gl1p[2]/D");
-  t_rlum_check->Branch("eGL1p", egl1p, "eGl1p[2]/D");
+  t_rlum_check->Branch("GL1p", gl1p[2], "Gl1p[2]/D");
+  t_rlum_check->Branch("eGL1p", egl1p[2], "eGl1p[2]/D");
   t_rlum_check->Branch("SS_Uncorr", ss_raw, "SS_Uncorr[2]/D");
   t_rlum_check->Branch("eSS_Uncorr", ess_raw, "eSS_Uncorr[2]/D");
   t_rlum_check->Branch("SS_Pileup", ss_pile, "SS_Pileup[2]/D");
@@ -280,21 +303,21 @@ int main()
     else
       spin_pattern = 4;
 
-    get_rlum_gl1p(spin_out, spin_cont, runnumber, pol, epol, gl1p, egl1p);
+    get_gl1p(spin_out, spin_cont, runnumber, fillnumber,
+        pol, epol, gl1p, egl1p, rate_bunch, erate_bunch);
 
     double rate_raw[2][2] = {};
     double e2rate_raw[2][2] = {};
     double rate_pile[2][2] = {};
     double e2rate_pile[2][2] = {};
-    double rate_res[2][2] = {};
-    double e2rate_res[2][2] = {};
+    double rate_res[3][2][2] = {};
+    double e2rate_res[3][2][2] = {};
 
     for(int ib=0; ib<120; ib++)
-      if( abs(pb[ib]*py[ib]) == 1 && clock[ib] > 0 && bbcn[ib] > 0 && bbcs[ib] > 0 &&
+    {
+      if( clock[ib] > 0 && bbcn[ib] > 0 && bbcs[ib] > 0 &&
           bbcns[ib] > 0 && bbc30[ib] > 0 && bbcnovtx[ib] > 0 )
       {
-        int pattern = (pb[ib]*py[ib] + 1)/2;
-
         double bbc_vtx = (double)bbc30[ib]/clock[ib];
         double ebbc_vtx = bbc_vtx*sqrt(1./bbc30[ib] + 1./clock[ib]);
         double bbc_novtx = (double)bbcnovtx[ib]/clock[ib];
@@ -305,13 +328,25 @@ int main()
         double rate_true[3], erate_true[3];
         rate_corr(KFactor, rate_obs, erate_obs, rate_true, erate_true);
 
-        rate_raw[ib%2][pattern] += rate_obs[0];
-        e2rate_raw[ib%2][pattern] += erate_obs[0]*erate_obs[0];
-        rate_pile[ib%2][pattern] += rate_true[0];
-        e2rate_pile[ib%2][pattern] += erate_true[0]*erate_true[0];
-        rate_res[ib%2][pattern] += rate_true[2];
-        e2rate_res[ib%2][pattern] += erate_true[2]*erate_true[2];
+        int pattern[3] = {pb[ib], py[ib], pb[ib]*py[ib]};
+        for(int beam=0; beam<3; beam++)
+          if( abs(pattern[beam]) == 1 )
+          {
+            int ipol = (pattern[beam] + 1)/2;
+            if(beam == 2)
+            {
+              rate_raw[ib%2][ipol] += rate_obs[0];
+              e2rate_raw[ib%2][ipol] += erate_obs[0]*erate_obs[0];
+              rate_pile[ib%2][ipol] += rate_true[0];
+              e2rate_pile[ib%2][ipol] += erate_true[0]*erate_true[0];
+              rate_bunch[ib] = rate_true[2];
+              erate_bunch[ib] = erate_true[2];
+            }
+            rate_res[beam][ib%2][ipol] += rate_true[2];
+            e2rate_res[beam][ib%2][ipol] += erate_true[2]*erate_true[2];
+          }
       }
+    }
 
     for(int evenodd=0; evenodd<2; evenodd++)
     {
@@ -321,22 +356,31 @@ int main()
       ss_pile[evenodd] = rate_pile[evenodd][1]/rate_pile[evenodd][0];
       ess_pile[evenodd] = ss_pile[evenodd]*sqrt(e2rate_pile[evenodd][1]/rate_pile[evenodd][1]/rate_pile[evenodd][1]
           + e2rate_pile[evenodd][0]/rate_pile[evenodd][0]/rate_pile[evenodd][0]);
-      ss_res[evenodd] = rate_res[evenodd][1]/rate_res[evenodd][0];
-      ess_res[evenodd] = ss_res[evenodd]*sqrt(e2rate_res[evenodd][1]/rate_res[evenodd][1]/rate_res[evenodd][1]
-          + e2rate_res[evenodd][0]/rate_res[evenodd][0]/rate_res[evenodd][0]);
-      rlum[evenodd] = ss_res[evenodd];
-      erlum[evenodd] = ess_res[evenodd];
+      for(int beam=0; beam<3; beam++)
+      {
+        double sum_res = rate_res[beam][evenodd][1]/rate_res[beam][evenodd][0];
+        double esum_res = sum_res*sqrt(e2rate_res[beam][evenodd][1]/rate_res[beam][evenodd][1]/rate_res[beam][evenodd][1]
+            + e2rate_res[beam][evenodd][0]/rate_res[beam][evenodd][0]/rate_res[beam][evenodd][0]);
+        if(beam == 2)
+        {
+          ss_res[evenodd] = sum_res;
+          ess_res[evenodd] = esum_res;
+        }
+        rlum[beam][evenodd] = sum_res;
+        erlum[beam][evenodd] = esum_res;
+      }
     }
 
     runqa = false;
     if( it_Inseok != runnoInseok.end() )
     {
       if(runnumber < 386946)
-        for(int evenodd=0; evenodd<2; evenodd++)
-        {
-          rlum[evenodd] = gl1p[evenodd];
-          erlum[evenodd] = egl1p[evenodd];
-        }
+        for(int beam=0; beam<3; beam++)
+          for(int evenodd=0; evenodd<2; evenodd++)
+          {
+            rlum[beam][evenodd] = gl1p[beam][evenodd];
+            erlum[beam][evenodd] = egl1p[beam][evenodd];
+          }
       else
         runqa = true;
 
@@ -353,7 +397,8 @@ int main()
       runnumber = runno.first;
       spin_pattern = runno.second;
 
-      get_rlum_gl1p(spin_out, spin_cont, runnumber, pol, epol, rlum, erlum);
+      get_gl1p(spin_out, spin_cont, runnumber, fillnumber,
+          pol, epol, rlum, erlum, rate_bunch, erate_bunch);
 
       t_rlum->Fill();
     }

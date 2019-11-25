@@ -119,13 +119,17 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   for(int ih=0; ih<nh_pion; ih++)
     h2_pion[ih] = nullptr;
   for(int ih=0; ih<nh_pion_pol; ih++)
-    h3_pion_pol[ih] = nullptr;
+    h2_pion_pol[ih] = nullptr;
+  for(int ih=0; ih<nh_pion_bunch; ih++)
+    h2_pion_bunch[ih] = nullptr;
   for(int ih=0; ih<nh_eta_phi; ih++)
     h2_eta_phi[ih] = nullptr;
   for(int ih=0; ih<nh_1photon; ih++)
     h_1photon[ih] = nullptr;
   for(int ih=0; ih<nh_1photon_pol; ih++)
-    h2_1photon_pol[ih] = nullptr;
+    h_1photon_pol[ih] = nullptr;
+  for(int ih=0; ih<nh_1photon_bunch; ih++)
+    h_1photon_bunch[ih] = nullptr;
   for(int ih=0; ih<nh_2photon; ih++)
   {
     h2_2photon[ih] = nullptr;
@@ -133,8 +137,13 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   }
   for(int ih=0; ih<nh_2photon_pol; ih++)
   {
-    h3_2photon_pol[ih] = nullptr;
-    h3_2photon2pt_pol[ih] = nullptr;
+    h2_2photon_pol[ih] = nullptr;
+    h2_2photon2pt_pol[ih] = nullptr;
+  }
+  for(int ih=0; ih<nh_2photon_bunch; ih++)
+  {
+    h2_2photon_bunch[ih] = nullptr;
+    h2_2photon2pt_bunch[ih] = nullptr;
   }
   for(int ih=0; ih<nh_mul_pion; ih++)
   {
@@ -705,14 +714,15 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
   const int crossing_shift = spinpattern->get_crossing_shift();
   const int bunch = ( crossing + crossing_shift ) % 120;
   const int evenodd = bunch % 2;
-  const int pattern[3] = {GetPattern(crossing),
+  const int pattern[3] = {
     spinpattern->get_spinpattern_blue(bunch),
-    spinpattern->get_spinpattern_yellow(bunch)};
+    spinpattern->get_spinpattern_yellow(bunch),
+    GetPattern(crossing)};
 
   /* Count event multiplicity */
   // mul[beam][ipT]
-  int mul_sig[2][npT_pol+1] = {};
-  int mul_bg[2][npT_pol+1] = {};
+  int mul_sig[3][npT_pol+1] = {};
+  int mul_bg[3][npT_pol+1] = {};
 
   unsigned ncluster = data_emccontainer->size();
   vector<unsigned> v_used;
@@ -800,7 +810,13 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
               {
                 int pol = pattern[beam] > 0 ? 1 : 0;
                 int ih = beam + 3*evenodd + 3*2*pol;
-                h3_pion_pol[ih]->Fill(tot_pT, minv, (double)(bunch/2));
+                h2_pion_pol[ih]->Fill(tot_pT, minv);
+
+                if(beam == 2)
+                {
+                  int ih = evenodd + 2*(bunch/2);
+                  h2_pion_bunch[ih]->Fill(tot_pT, minv);
+                }
 
                 if( tot_pT > pTbin_pol[0] )
                 {
@@ -844,9 +860,10 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
   const int crossing_shift = spinpattern->get_crossing_shift();
   const int bunch = ( crossing + crossing_shift ) % 120;
   const int evenodd = bunch % 2;
-  const int pattern[3] = {GetPattern(crossing),
+  const int pattern[3] = {
     spinpattern->get_spinpattern_blue(bunch),
-    spinpattern->get_spinpattern_yellow(bunch)};
+    spinpattern->get_spinpattern_yellow(bunch),
+    GetPattern(crossing)};
 
   /* Count event multiplicity */
   // mul[imul][beam][checkmap][ipt]
@@ -932,7 +949,13 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
             {
               int pol = pattern[beam] > 0 ? 1 : 0;
               int ih = beam + 3*evenodd + 3*2*pol + 3*2*2*checkmap;
-              h2_1photon_pol[ih]->Fill(pT, (double)(bunch/2));
+              h_1photon_pol[ih]->Fill(pT);
+
+              if(beam == 2)
+              {
+                int ih = evenodd + 2*(bunch/2) + 2*60*checkmap;
+                h_1photon_bunch[ih]->Fill(pT);
+              }
 
               if( pT > pTbin_pol[0] )
                 mul_photon[0][beam][checkmap][ipt]++;
@@ -988,8 +1011,15 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
                 {
                   int pol = pattern[beam] > 0 ? 1 : 0;
                   int ih = beam + 3*evenodd + 3*2*pol + 3*2*2*checkmap + 3*2*2*2*isolated[1] + 3*2*2*2*2*isopair[1];
-                  h3_2photon_pol[ih]->Fill(pT, minv, (double)(bunch/2));
-                  h3_2photon2pt_pol[ih]->Fill(tot_pT, minv, (double)(bunch/2));
+                  h2_2photon_pol[ih]->Fill(pT, minv);
+                  h2_2photon2pt_pol[ih]->Fill(tot_pT, minv);
+
+                  if(beam == 2)
+                  {
+                    int ih = evenodd + 2*(bunch/2) + 2*60*checkmap + 2*60*2*isolated[1] + 2*60*2*2*isopair[1];
+                    h2_2photon_bunch[ih]->Fill(pT, minv);
+                    h2_2photon2pt_bunch[ih]->Fill(tot_pT, minv);
+                  }
 
                   for(int pttype=0; pttype<2; pttype++)
                     if( pTcmp[pttype] > pTbin_pol[0] )
@@ -1090,6 +1120,10 @@ void PhotonHistos::BookHistograms()
   phibin[iphi++] = PI*19/16 + 0.02;
   sort(phibin, phibin+nphi);
 
+  /* Invariant mass bins */
+  const int nminv= 5;
+  const double minvbins[nminv+1] = {0.047, 0.097, 0.112, 0.162, 0.177, 0.227};
+
   /* Events counter */
   if( datatype == ERT )
   {
@@ -1186,9 +1220,18 @@ void PhotonHistos::BookHistograms()
   // ih = beam + 3*evenodd + 3*2*pol < 3*2*2
   for(int ih=0; ih<nh_pion_pol; ih++)
   {
-    h3_pion_pol[ih] = new TH3F(Form("h3_pion_pol_%d",ih), "Polarized spectrum;p_{T} [GeV];m_{inv} [GeV];Bunch;",
-        300,0.,30., 300,0.,0.3, 60,-0.5,59.5);
-    hm->registerHisto(h3_pion_pol[ih]);
+    h2_pion_pol[ih] = new TH2F(Form("h2_pion_pol_%d",ih), "Polarized spectrum;p_{T} [GeV];m_{inv} [GeV];",
+        300,0.,30., 300,0.,0.3);
+    hm->registerHisto(h2_pion_pol[ih]);
+  }
+
+  /* Store polarized pi0 information for bunch shuffling */
+  // ih = evenodd + 2*(bunch/2) < 2*60
+  for(int ih=0; ih<nh_pion_bunch; ih++)
+  {
+    h2_pion_bunch[ih] = new TH2F(Form("h2_pion_bunch_%d",ih), "Polarized spectrum;p_{T} [GeV];m_{inv} [GeV];",
+        npT_pol,pTbin_pol, nminv,minvbins);
+    hm->registerHisto(h2_pion_bunch[ih]);
   }
 
   /* Eta and phi distribution */
@@ -1211,8 +1254,16 @@ void PhotonHistos::BookHistograms()
   // ih = beam + 3*evenodd + 3*2*pol + 3*2*2*checkmap < 3*2*2*2
   for(int ih=0; ih<nh_1photon_pol; ih++)
   {
-    h2_1photon_pol[ih] = new TH2F(Form("h2_1photon_pol_%d",ih), "Polarized single photon spectrum;p_{T} [GeV];", 300,0.,30., 60,-0.5,59.5);
-    hm->registerHisto(h2_1photon_pol[ih]);
+    h_1photon_pol[ih] = new TH1F(Form("h_1photon_pol_%d",ih), "Polarized single photon spectrum;p_{T} [GeV];", 300,0.,30.);
+    hm->registerHisto(h_1photon_pol[ih]);
+  }
+
+  /* Store polarized single photons information for bunch shuffling */
+  // ih = evenodd + 2*(bunch/2) + 2*60*checkmap < 2*60*2
+  for(int ih=0; ih<nh_1photon_bunch; ih++)
+  {
+    h_1photon_bunch[ih] = new TH1F(Form("h_1photon_bunch_%d",ih), "Polarized single photon spectrum;p_{T} [GeV];", npT_pol,pTbin_pol);
+    hm->registerHisto(h_1photon_bunch[ih]);
   }
 
   /* Store two photons information */
@@ -1229,10 +1280,20 @@ void PhotonHistos::BookHistograms()
   // ih = beam + 3*evenodd + 3*2*pol + 3*2*2*checkmap + 3*2*2*2*isolated[1] + 3*2*2*2*2*isopair[1] < 3*2*2*2*2*2
   for(int ih=0; ih<nh_2photon_pol; ih++)
   {
-    h3_2photon_pol[ih] = (TH3*)h3_pion_pol[0]->Clone(Form("h3_2photon_pol_%d",ih));
-    h3_2photon2pt_pol[ih] = (TH3*)h3_pion_pol[0]->Clone(Form("h3_2photon2pt_pol_%d",ih));
-    hm->registerHisto(h3_2photon_pol[ih]);
-    hm->registerHisto(h3_2photon2pt_pol[ih]);
+    h2_2photon_pol[ih] = (TH2*)h2_pion_pol[0]->Clone(Form("h2_2photon_pol_%d",ih));
+    h2_2photon2pt_pol[ih] = (TH2*)h2_pion_pol[0]->Clone(Form("h2_2photon2pt_pol_%d",ih));
+    hm->registerHisto(h2_2photon_pol[ih]);
+    hm->registerHisto(h2_2photon2pt_pol[ih]);
+  }
+
+  /* Store polarized two photons information for bunch shuffling */
+  // ih = evenodd + 2*(bunch/2) + 2*60*checkmap + 2*60*2*isolated[1] + 2*60*2*2*isopair[1] < 2*60*2*2*2
+  for(int ih=0; ih<nh_2photon_bunch; ih++)
+  {
+    h2_2photon_bunch[ih] = (TH2*)h2_pion_bunch[0]->Clone(Form("h2_2photon_bunch%d",ih));
+    h2_2photon2pt_bunch[ih] = (TH2*)h2_pion_bunch[0]->Clone(Form("h2_2photon2pt_bunch%d",ih));
+    hm->registerHisto(h2_2photon_bunch[ih]);
+    hm->registerHisto(h2_2photon2pt_bunch[ih]);
   }
 
   /* Store pion event multiplicity information */

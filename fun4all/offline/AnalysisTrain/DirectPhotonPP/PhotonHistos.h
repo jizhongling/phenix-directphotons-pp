@@ -50,11 +50,14 @@ class PhotonHistos: public SubsysReco
     static const int nh_dcgood = 2;
     static const int nh_pion = 3*3*2*2*2*2*3;
     static const int nh_pion_pol = 3*2*2;
+    static const int nh_pion_bunch = 2*60;
     static const int nh_eta_phi = 3*2*2*3;
     static const int nh_1photon = 3*3*2*2*3;
     static const int nh_1photon_pol = 3*2*2*2;
+    static const int nh_1photon_bunch = 2*60*2;
     static const int nh_2photon = 3*3*2*2*2*3;
     static const int nh_2photon_pol = 3*2*2*2*2*2;
+    static const int nh_2photon_bunch = 2*60*2*2*2;
     static const int nh_mul_pion = 3*2;
     static const int nh_mul_photon = 5*3*2*2;
 
@@ -140,14 +143,18 @@ class PhotonHistos: public SubsysReco
     TH3 *h3_dclive[nh_dcgood];
     TH1 *h_prod;
     TH2 *h2_pion[nh_pion];
-    TH3 *h3_pion_pol[nh_pion_pol];
+    TH2 *h2_pion_pol[nh_pion_pol];
+    TH2 *h2_pion_bunch[nh_pion_bunch];
     TH2 *h2_eta_phi[nh_eta_phi];
     TH1 *h_1photon[nh_1photon];
-    TH2 *h2_1photon_pol[nh_1photon_pol];
+    TH1 *h_1photon_pol[nh_1photon_pol];
+    TH1 *h_1photon_bunch[nh_1photon_bunch];
     TH2 *h2_2photon[nh_2photon];
     TH2 *h2_2photon2pt[nh_2photon];
-    TH3 *h3_2photon_pol[nh_2photon_pol];
-    TH3 *h3_2photon2pt_pol[nh_2photon_pol];
+    TH2 *h2_2photon_pol[nh_2photon_pol];
+    TH2 *h2_2photon2pt_pol[nh_2photon_pol];
+    TH2 *h2_2photon_bunch[nh_2photon_bunch];
+    TH2 *h2_2photon2pt_bunch[nh_2photon_bunch];
     TH2 *h2_mul_pion_sig[nh_mul_pion];
     TH2 *h2_mul_pion_bg[nh_mul_pion];
     TH2 *h2_mul_photon[nh_mul_photon];
