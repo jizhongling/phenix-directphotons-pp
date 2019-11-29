@@ -2,22 +2,30 @@
 #include "QueryTree.h"
 #include "BgGPR.h"
 
-void draw_BgRatio_Pion()
+void draw_Each(const QueryTree *qt_rbg, const int beam, const int isotype, const int pttype)
 {
-  gSystem->Load("libGausProc.so");
-
-  QueryTree *qt_rbg = new QueryTree("data/BgRatio-pion.root", "RECREATE");
+  const int checkmap = 1;
+  const char *ptname = pttype ? "2pt" : "";
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+
+  TH2 *h2_pion = (TH2*)f->Get("h2_2photon_pol_0");
+  h2_pion = (TH2*)h2_pion->Clone();
+  h2_pion->Reset();
 
   const unsigned nData = 45;
   vector<double> x(nData), y(nData), sigma_y(nData);
 
   for(int icr=0; icr<2; icr++)
   {
-    TH2 *h2_pion = (TH2*)f->Get(Form("h2_pion_pol_%d",icr));
-    TH2 *h2_tmp = (TH2*)f->Get(Form("h2_pion_pol_%d",icr+2));
-    h2_pion->Add(h2_tmp);
+    h2_pion->Reset();
+    for(int iso=0; iso<2; iso++)
+      for(int ipol=0; ipol<2; ipol++)
+      {
+        int ih = beam + 3*icr + 3*2*ipol + 3*2*2*checkmap + 3*2*2*2*(1-isotype*iso) + 3*2*2*2*2*(1-(1-isotype)*iso);
+        TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon%s_pol_%d",ptname,ih));
+        h2_pion->Add(h2_tmp);
+      }
 
     for(int ipt=0; ipt<npT_pol; ipt++)
     {
@@ -57,11 +65,29 @@ void draw_BgRatio_Pion()
       double npeak = h_minv->Integral(113, 162);
       double rbg = nbg/npeak;
       double erbg = rbg*sqrt(dnbg*dnbg/nbg/nbg + 1./npeak);
+      if( !TMath::Finite(rbg+erbg) || rbg < 0. || erbg > 1. )
+      {
+        rbg = 0.;
+        erbg = 1.;
+      }
 
       double xpt = (pTbin_pol[ipt] + pTbin_pol[ipt+1]) / 2.;
-      qt_rbg->Fill(ipt, icr, xpt, rbg, erbg);
+      int part = beam + 3*isotype + 3*2*pttype + 3*2*2*icr;
+      qt_rbg->Fill(ipt, part, xpt, rbg, erbg);
     } // ipt
   } // icr
+}
+
+void draw_BgRatio_IsoPion()
+{
+  gSystem->Load("libGausProc.so");
+
+  QueryTree *qt_rbg = new QueryTree("data/BgRatio-isophoton.root", "RECREATE");
+
+  for(int beam=0; beam<3; beam++)
+    for(int isotype=0; isotype<2; isotype++)
+      for(int pttype=0; pttype<2; pttype++)
+        draw_Each(qt_rbg, beam, isotype, pttype);
 
   qt_rbg->Save();
 }

@@ -32,7 +32,10 @@ void anaBBCEff_Pion(const int process = 0)
   while( fin >> runnumber )
   {
     thread++;
-    if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
+    if( thread < process*nThread )
+      continue;
+    else if( thread >= (process+1)*nThread )
+      break;
 
     TFile *f = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
     if( f->IsZombie() ) continue;

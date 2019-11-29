@@ -867,7 +867,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
 
   /* Count event multiplicity */
   // mul[imul][beam][checkmap][ipt]
-  int mul_photon[5][3][2][npT_pol+1] = {};
+  int mul_photon[9][3][2][npT_pol+1] = {};
 
   unsigned ncluster = data_emccontainer->size();
 
@@ -1025,10 +1025,20 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
                     if( pTcmp[pttype] > pTbin_pol[0] )
                     {
                       if( minv > 0.112 && minv < 0.162 )
-                        mul_photon[1+2*pttype][beam][checkmap][ipt[pttype]]++;
+                      {
+                        if(isolated[1])
+                          mul_photon[1+4*pttype][beam][checkmap][ipt[pttype]]++;
+                        if(isopair[1])
+                          mul_photon[2+4*pttype][beam][checkmap][ipt[pttype]]++;
+                      }
                       else if( (minv > 0.047 && minv < 0.097) ||
                           (minv > 0.177 && minv < 0.227) )
-                        mul_photon[2+2*pttype][beam][checkmap][ipt[pttype]]++;
+                      {
+                        if(isolated[1])
+                          mul_photon[3+4*pttype][beam][checkmap][ipt[pttype]]++;
+                        if(isopair[1])
+                          mul_photon[4+4*pttype][beam][checkmap][ipt[pttype]]++;
+                      }
                     } // calc mul
                 } // fill pol
             } // fill pol, calc mul
@@ -1041,11 +1051,11 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
     for(int ipt=0; ipt<npT_pol; ipt++)
     {
       double xpt = ( pTbin_pol[ipt] + pTbin_pol[ipt+1] ) / 2.;
-      for(int imul=0; imul<5; imul++)
+      for(int imul=0; imul<9; imul++)
         for(int beam=0; beam<3; beam++)
           for(int checkmap=0; checkmap<2; checkmap++)
           {
-            int ih = imul + 5*beam + 5*3*evenodd + 5*3*2*checkmap;
+            int ih = imul + 9*beam + 9*3*evenodd + 9*3*2*checkmap;
             h2_mul_photon[ih]->Fill(xpt, (double)mul_photon[imul][beam][checkmap][ipt]);
           }
     }
@@ -1307,7 +1317,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store isolated photon event multiplicity information */
-  // ih = imul + 5*beam + 5*3*evenodd + 5*3*2*checkmap < 5*3*2*2
+  // ih = imul + 9*beam + 9*3*evenodd + 9*3*2*checkmap < 9*3*2*2
   for(int ih=0; ih<nh_mul_photon; ih++)
   {
     h2_mul_photon[ih] = (TH2*)h2_mul_pion_sig[0]->Clone(Form("h2_mul_photon_%d",ih));

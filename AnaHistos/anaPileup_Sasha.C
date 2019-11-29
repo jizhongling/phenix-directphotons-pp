@@ -23,7 +23,10 @@ void anaPileup_Sasha(const int process = 0)
   while( fin >> runnumber )
   {
     thread++;
-    if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
+    if( thread < process*nThread )
+      continue;
+    else if( thread >= (process+1)*nThread )
+      break;
 
     TFile *f = new TFile(Form("/phenix/plhf/zji/taxi/Run13pp510MinBias/12233/data/Pi0PP-%d.root",runnumber));
     if( f->IsZombie() ) continue;

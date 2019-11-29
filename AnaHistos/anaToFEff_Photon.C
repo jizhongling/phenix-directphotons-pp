@@ -27,8 +27,12 @@ void anaToFEff_Photon(const int process = 0)
   while( fin >> runnumber )
   {
     thread++;
-    if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
-    if( thread%10 == 0 ) cout << "nfile = " << thread << endl;
+    if( thread < process*nThread )
+      continue;
+    else if( thread >= (process+1)*nThread )
+      break;
+    if( thread && thread%10 == 0 )
+      cout << "nfile = " << thread << endl;
 
     TFile *f = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
     if( f->IsZombie() ) continue;

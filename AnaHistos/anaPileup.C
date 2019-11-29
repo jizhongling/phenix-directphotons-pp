@@ -21,7 +21,10 @@ void anaPileup(const int process = 0)
   while( fin >> runnumber )
   {
     thread++;
-    if( thread < process*nThread || thread >= (process+1)*nThread ) continue;
+    if( thread < process*nThread )
+      continue;
+    else if( thread >= (process+1)*nThread )
+      break;
 
     TFile *f_ert = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
     TFile *f_mb = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-MB/PhotonNode-%d.root",runnumber));
