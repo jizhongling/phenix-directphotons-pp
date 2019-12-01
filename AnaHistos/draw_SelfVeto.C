@@ -2,8 +2,8 @@
 
 void draw_SelfVeto()
 {
-  const int secl[3] = {1, 5, 7};
-  const int sech[3] = {4, 6, 8};
+  const int secl[4] = {1, 5, 7, 1};
+  const int sech[4] = {4, 6, 8, 8};
 
   QueryTree *qt_veto = new QueryTree("data/SelfVeto.root", "RECREATE");
 
@@ -13,7 +13,7 @@ void draw_SelfVeto()
   mc();
   mcd();
 
-  for(int part=0; part<3; part++)
+  for(int part=0; part<4; part++)
   {
     TH1 *h_total = h3_isopair->ProjectionX("h_total", secl[part],sech[part], 1,2);
     TH1 *h_passed = h3_isopair->ProjectionX("h_passed", secl[part],sech[part], 2,2);

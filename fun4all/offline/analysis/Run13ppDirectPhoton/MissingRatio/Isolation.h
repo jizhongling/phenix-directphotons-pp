@@ -16,12 +16,14 @@ class THnSparse;
 class Isolation: public SubsysReco
 {
   public:
-    Isolation(const std::string &name = "Isolation", const char *filename = "histo.root");
+    Isolation(const std::string &name = "Isolation");
     virtual ~Isolation();
 
     int Init(PHCompositeNode *topNode);
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
+
+    void set_outfile(std::string filename) { outFileName = filename; }
 
   protected:
     void BookHistograms();

@@ -42,7 +42,7 @@
 
 using namespace std;
 
-IsolationCut::IsolationCut(const char *filename) : _ievent(0),
+IsolationCut::IsolationCut(const string &name) : _ievent(0),
   _event_nphotons(0),
   _emcwarnmap( nullptr ),
   _hn_energy_cone( nullptr ),
@@ -56,12 +56,8 @@ IsolationCut::IsolationCut(const char *filename) : _ievent(0),
   _truth_pt(-9999.),
   _truth_eta(-9999.),
   _truth_phi(-9999.),
-  _output_file_name("IsolationCut_output.root"),
   _file_output( nullptr )
 {
-  /* construct output file names */
-  _output_file_name = "histos/IsolationCut-";
-  _output_file_name.append(filename);
 }
 
 IsolationCut::~IsolationCut()
@@ -71,7 +67,7 @@ IsolationCut::~IsolationCut()
 int IsolationCut::Init(PHCompositeNode *topNode)
 {
   /* create output file */
-  _file_output = new TFile( _output_file_name.c_str(), "RECREATE" );
+  _file_output = new TFile( outFileName.c_str(), "RECREATE" );
 
   /* Initialize EMC warnmap checker */
   _emcwarnmap = new EMCWarnmapChecker();

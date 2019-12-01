@@ -47,7 +47,7 @@ const double AsymCut = 0.8;
 const double merge_angle = 0.03;
 const double merge_radius = 50.;
 
-MissingRatio::MissingRatio(const string &name, const char *filename):
+MissingRatio::MissingRatio(const string &name):
   SubsysReco(name),
   emcwarnmap(nullptr),
   hm(nullptr),
@@ -64,9 +64,6 @@ MissingRatio::MissingRatio(const string &name, const char *filename):
   hn_pion(nullptr)
 {
   /* Construct output file names */
-  outFileName = "histos/MissingRatio-";
-  outFileName.append(filename);
-
   cross = new TF1("cross", "x*(1/(1+exp((x-[5])/[6]))*[0]/pow(1+x/[1],[2])+(1-1/(1+exp((x-[5])/[6])))*[3]/pow(x,[4]))", 0, 30);
   cross->SetParameters(2.02819e+04, 4.59173e-01, 7.51170e+00, 1.52867e+01, 7.22708e+00, 2.15396e+01, 3.65471e+00);
 }

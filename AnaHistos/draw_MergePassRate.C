@@ -2,8 +2,8 @@
 
 void draw_MergePassRate()
 {
-  const int secl[2] = {1, 7};
-  const int sech[2] = {6, 8};
+  const int secl[3] = {1, 7, 1};
+  const int sech[3] = {6, 8, 8};
 
   QueryTree *qt_badpass = new QueryTree("data/MergePassRate.root", "RECREATE");
 
@@ -16,7 +16,7 @@ void draw_MergePassRate()
   legi(0, 0.5,0.7,0.8,0.9);
 
   for(int ieta=7; ieta<8; ieta++)
-    for(int part=0; part<2; part++)
+    for(int part=0; part<3; part++)
     {
       //mcd(0, ieta+1);
       hn_merge->GetAxis(3)->SetRange(ieta+1-ieta/7*7,ieta+1-ieta/7*3);  // |eta|

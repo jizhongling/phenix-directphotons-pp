@@ -37,16 +37,12 @@ const int PIZERO_PID = 7;
 const double eMin = 0.3;
 const double PI = TMath::Pi();
 
-PhotonEff::PhotonEff(const string &name, const char *filename):
+PhotonEff::PhotonEff(const string &name):
   SubsysReco(name),
   emcwarnmap(nullptr),
   hm(nullptr),
   hn_1photon(nullptr)
 {
-  /* Construct output file names */
-  outFileName = "histos/PhotonEff-";
-  outFileName.append(filename);
-
   /* Function for pT weight for direct photon */
   cross = new TF1("cross", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]", 0, 30);
   cross->SetParameters(255., 5.98, 0.273, 14.43);

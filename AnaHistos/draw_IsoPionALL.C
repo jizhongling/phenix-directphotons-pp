@@ -5,6 +5,9 @@
 
 void draw_Each(const QueryTree *qt_all, const int beam, const int isotype, const int pttype)
 {
+  static int ncalled = 0;
+  const int nstart = 3*2*2*ncalled;
+  ncalled++;
 
   const char *region[4] = {"Sig+BG", "BG", "Sig", "Combined"};
   const char *crossing_list[2] = {"Even", "Odd"};
@@ -71,7 +74,7 @@ void draw_Each(const QueryTree *qt_all, const int beam, const int isotype, const
 
         for(int ibg=0; ibg<2; ibg++)
         {
-          int igr = icr + 2*pattern + 2*4*ibg;
+          int igr = icr + 2*pattern + 2*4*ibg + nstart;
           if(ipt == 0)
             mc(igr, 4,4);
           mcd(igr, ipt+1);
@@ -95,17 +98,17 @@ void draw_Each(const QueryTree *qt_all, const int beam, const int isotype, const
         sig[ipat] = (mean[0] - rbg*mean[1])/(1 - rbg);
         esig[ipat] = sqrt(emean[0]*emean[0] + rbg*rbg*emean[1]*emean[1])/(1 - rbg);
 
-        int igr = icr + 2*pattern + 2*4*2;
+        int igr = icr + 2*pattern + 2*4*2 + nstart;
         qt_all->Fill(ipt, igr, xpt, sig[ipat], esig[ipat]);
       } // icr, pattern
 
     double comb, ecomb;
     Chi2Fit(8, sig, esig, comb, ecomb);
     if( TMath::Finite(comb+ecomb) )
-      qt_all->Fill(ipt, 2*4*3, xpt, comb, ecomb);
+      qt_all->Fill(ipt, 2*4*3+nstart, xpt, comb, ecomb);
   } //ipt
 
-  mc(16, 2,2);
+  mc(16+nstart, 2,2);
   legi(0, 0.2,0.8,0.7,0.9);
   leg0->SetNColumns(2);
   leg0->SetTextSize(0.02);
@@ -114,9 +117,9 @@ void draw_Each(const QueryTree *qt_all, const int beam, const int isotype, const
     for(int icr=0; icr<2; icr++)
       for(int pattern=0; pattern<4; pattern++)
       {
-        mcd(16, ibg+1);
+        mcd(16+nstart, ibg+1);
         int igr = icr + 2*pattern + 2*4*ibg;
-        TGraphErrors *gr_all = qt_all->Graph(igr);
+        TGraphErrors *gr_all = qt_all->Graph(igr+nstart);
 
         gr_all->SetTitle( Form("#pi^{0} A_{LL} %s",region[ibg]) );
         aset(gr_all, "p_{T} [GeV]","A_{LL}", 0.,20., -0.2,0.4);
@@ -131,9 +134,9 @@ void draw_Each(const QueryTree *qt_all, const int beam, const int isotype, const
       } // ibg, icr, pattern
   leg0->Draw();
 
-  mcd(16, 4);
+  mcd(16+nstart, 4);
   gPad->SetGridy();
-  TGraphErrors *gr_all = qt_all->Graph(2*4*3);
+  TGraphErrors *gr_all = qt_all->Graph(2*4*3+nstart);
   gr_all->SetTitle( Form("#pi^{0} A_{LL} %s",region[3]) );
   aset(gr_all, "p_{T} [GeV]","A_{LL}", 0.,20., -0.01,0.03);
   style(gr_all, 1, 1);
@@ -145,12 +148,12 @@ void draw_Each(const QueryTree *qt_all, const int beam, const int isotype, const
     for(int icr=0; icr<2; icr++)
       for(int pattern=0; pattern<4; pattern++)
       {
-        int igr = icr + 2*pattern + 2*4*ibg;
+        int igr = icr + 2*pattern + 2*4*ibg + nstart;
         mcw( igr, Form("beam%d-isotype%d-pttype%d-bg%d-pattern%d-cross%d",
               beam, isotype, pttype, ibg, pattern, icr) );
       } // ibg, icr, pattern
-  mcw( 16, Form("beam%d-isotype%d-pttype%d-bg%d-pattern%d-cross%d-combined",
-        beam, isotype, pttype, ibg, pattern, icr) );
+  mcw( 16+nstart, Form("beam%d-isotype%d-pttype%d-combined",
+        beam, isotype, pttype) );
 }
 
 void draw_IsoPionALL()

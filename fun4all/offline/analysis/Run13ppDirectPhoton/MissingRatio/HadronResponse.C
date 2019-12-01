@@ -58,7 +58,7 @@ const double pTrkMax = 15.;
 const double cone_angle = 0.5;
 const double eratio = 0.1;
 
-HadronResponse::HadronResponse(const string &name, const char *filename):
+HadronResponse::HadronResponse(const string &name):
   SubsysReco(name),
   weight_pythia(1.),
   ertsim(nullptr),
@@ -74,10 +74,6 @@ HadronResponse::HadronResponse(const string &name, const char *filename):
   hn_dclive(nullptr),
   h_prod(nullptr)
 {
-  /* Construct output file names */
-  outFileName = "histos/HadronResponse-";
-  outFileName.append(filename);
-
   for(int ih=0; ih<nh_eta_phi; ih++)
     h2_eta_phi[ih] = nullptr;
 }

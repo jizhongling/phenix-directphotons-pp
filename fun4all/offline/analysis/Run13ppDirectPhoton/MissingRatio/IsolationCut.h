@@ -21,12 +21,14 @@ class THnSparse;
 class IsolationCut: public SubsysReco
 {
   public:
-    IsolationCut( const char *filename = "isocut.root");
+    IsolationCut(const std::string &name = "IsolationCut");
     virtual ~IsolationCut();
 
     int Init(PHCompositeNode *topNode);
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
+
+    void set_outfile(std::string filename) { outFileName = filename; }
 
   protected:
 
@@ -93,7 +95,7 @@ class IsolationCut: public SubsysReco
     float _truth_phi;
 
     /** output file name */
-    std::string _output_file_name;
+    std::string outFileName;
 
     /** output file */
     TFile *_file_output;

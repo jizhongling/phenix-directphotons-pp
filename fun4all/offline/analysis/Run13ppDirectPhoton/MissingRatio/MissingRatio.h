@@ -17,12 +17,14 @@ class THnSparse;
 class MissingRatio: public SubsysReco
 {
   public:
-    MissingRatio(const std::string &name = "MissingRatio", const char *filename = "histo.root");
+    MissingRatio(const std::string &name = "MissingRatio");
     virtual ~MissingRatio();
 
     int Init(PHCompositeNode *topNode);
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
+
+    void set_outfile(std::string filename) { outFileName = filename; }
 
   protected:
     /* Number of pT bins */

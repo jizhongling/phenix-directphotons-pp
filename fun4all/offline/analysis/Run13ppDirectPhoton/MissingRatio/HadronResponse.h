@@ -22,7 +22,7 @@ class THnSparse;
 class HadronResponse: public SubsysReco
 {
   public:
-    HadronResponse(const std::string &name = "HadronResponse", const char *filename = "histo.root");
+    HadronResponse(const std::string &name = "HadronResponse");
     virtual ~HadronResponse();
 
     int Init(PHCompositeNode *topNode);

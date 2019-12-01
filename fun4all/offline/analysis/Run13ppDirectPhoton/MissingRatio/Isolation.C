@@ -44,15 +44,12 @@ const int PIZERO_PID = 7;
 const double eMin = 0.3;
 const double AsymCut = 0.8;
 
-Isolation::Isolation(const string &name, const char *filename):
+Isolation::Isolation(const string &name):
   SubsysReco(name),
   emcwarnmap(nullptr),
   hm(nullptr),
   hn_photon(nullptr)
 {
-  /* Construct output file names */
-  outFileName = "histos/Isolation-";
-  outFileName.append(filename);
 }
 
 Isolation::~Isolation()

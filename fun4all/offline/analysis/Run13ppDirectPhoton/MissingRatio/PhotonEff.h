@@ -17,12 +17,14 @@ class THnSparse;
 class PhotonEff: public SubsysReco
 {
   public:
-    PhotonEff(const std::string &name = "PhotonEff", const char *filename = "histo.root");
+    PhotonEff(const std::string &name = "PhotonEff");
     virtual ~PhotonEff();
 
     int Init(PHCompositeNode *topNode);
     int process_event(PHCompositeNode *topNode);
     int End(PHCompositeNode *topNode);
+
+    void set_outfile(std::string filename) { outFileName = filename; }
 
   protected:
     void BookHistograms();
