@@ -20,6 +20,7 @@
 #include <Fun4AllReturnCodes.h>
 
 #include <TF1.h>
+#include <TH1.h>
 #include <TH2.h>
 #include <THnSparse.h>
 
@@ -41,6 +42,7 @@ PhotonEff::PhotonEff(const string &name):
   SubsysReco(name),
   emcwarnmap(nullptr),
   hm(nullptr),
+  h_events(nullptr),
   hn_1photon(nullptr)
 {
   /* Function for pT weight for direct photon */
@@ -74,6 +76,9 @@ int PhotonEff::Init(PHCompositeNode *topNode)
 
 int PhotonEff::process_event(PHCompositeNode *topNode)
 {
+  /* Count events */
+  h_events->Fill(1.);
+
   /* Global info */
   PHGlobal *data_global = findNode::getClass<PHGlobal>(topNode, "PHGlobal");
   if(!data_global)
@@ -228,6 +233,10 @@ void PhotonEff::BookHistograms()
   phibin[iphi++] = PI*11/16 - 0.02;
   phibin[iphi++] = PI*19/16 + 0.02;
   sort(phibin, phibin+nphi);
+
+  /* Count events */
+  h_events = new TH1F("h_events", "Events count", 1, 0.5, 1.5);
+  hm->registerHisto(h_events);
 
   /* Store single photon information */
   const int nbins_hn_1photon[] = {8, npT, npT, 4, 60, 60};

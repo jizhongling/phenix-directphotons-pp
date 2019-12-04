@@ -1,7 +1,7 @@
 void draw_MergeAngle()
 {
   TFile *f = new TFile("/phenix/plhf/zji/data/pisaRun13/AnaPHPythia-histo.root");
-  TFile *f1 = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
+  TFile *f1 = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/MissingRatio-histo.root");
 
   const int reco = 1; // truth pT:0; reconstructed pT: 1
 

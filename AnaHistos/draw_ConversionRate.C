@@ -2,7 +2,7 @@ void draw_ConversionRate()
 {
   const char *cname[3] = {"vtxconv", "eeinconv", "eeoutconv"};
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/MissingRatio-histo.root");
 
   TH2 *h2_total = (TH2*)f->Get("h2_photon");
   TH2 *h2_passed[3]; for(int ic=0; ic<3; ic++)

@@ -1,7 +1,7 @@
 void draw_ClusterEShare()
 {
   char name[100];
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/MissingRatio-histo.root");
   THnSparse *hn_sharing = (THnSparse*)f->Get("hn_sharing");
 
   mc(0, 6,5);

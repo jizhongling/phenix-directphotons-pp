@@ -1,6 +1,6 @@
 void draw_ConversionPosition()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/MissingRatio-macros/MissingRatio-histo.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/MissingRatio-histo.root");
   TH2 *h2_radius= (TH2*)f->Get("h2_radius");
   TH2 *h2_angle= (TH2*)f->Get("h2_angle");
   THnSparse *hn_position = (THnSparse*)f->Get("hn_conversion_position");

@@ -22,6 +22,7 @@
 #include <Fun4AllReturnCodes.h>
 
 #include <TMath.h>
+#include <TH1.h>
 #include <THnSparse.h>
 
 #include <iostream>
@@ -48,6 +49,7 @@ Isolation::Isolation(const string &name):
   SubsysReco(name),
   emcwarnmap(nullptr),
   hm(nullptr),
+  h_events(nullptr),
   hn_photon(nullptr)
 {
 }
@@ -74,6 +76,9 @@ int Isolation::Init(PHCompositeNode *topNode)
 
 int Isolation::process_event(PHCompositeNode *topNode)
 {
+  /* Count events */
+  h_events->Fill(1.);
+
   /* Global info */
   PHGlobal *data_global = findNode::getClass<PHGlobal>(topNode, "PHGlobal");
   if(!data_global)
@@ -178,6 +183,10 @@ void Isolation::BookHistograms()
     0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
     5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
     12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
+
+  /* Count events */
+  h_events = new TH1F("h_events", "Events count", 1, 0.5, 1.5);
+  hm->registerHisto(h_events);
 
   const int nbins_hn_photon[] = {npT, 11, 20, 2, 2};
   const double xmin_hn_photon[] = {0., -0.05, 0.01, -0.5, -0.5};

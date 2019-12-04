@@ -11,6 +11,7 @@ class Fun4AllHistoManager;
 class PHCompositeNode;
 class PHCentralTrack;
 
+class TH1;
 class THnSparse;
 
 class Isolation: public SubsysReco
@@ -39,6 +40,7 @@ class Isolation: public SubsysReco
     EMCWarnmapChecker *emcwarnmap;
 
     Fun4AllHistoManager *hm;
+    TH1 *h_events;
     THnSparse *hn_photon;
 };
 

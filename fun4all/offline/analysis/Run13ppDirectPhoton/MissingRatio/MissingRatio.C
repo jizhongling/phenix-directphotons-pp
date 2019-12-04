@@ -20,6 +20,7 @@
 
 #include <TF1.h>
 #include <TFile.h>
+#include <TH1.h>
 #include <TH2.h>
 #include <THnSparse.h>
 
@@ -51,6 +52,7 @@ MissingRatio::MissingRatio(const string &name):
   SubsysReco(name),
   emcwarnmap(nullptr),
   hm(nullptr),
+  h_events(nullptr),
   hn_conversion_position(nullptr),
   h2_radius(nullptr),
   h2_angle(nullptr),
@@ -90,6 +92,9 @@ int MissingRatio::Init(PHCompositeNode *topNode)
 
 int MissingRatio::process_event(PHCompositeNode *topNode)
 {
+  /* Count events */
+  h_events->Fill(1.);
+
   /* EMC track info */
   emcGeaTrackContainer *emctrkcont = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
   if(!emctrkcont)
@@ -332,6 +337,10 @@ void MissingRatio::BookHistograms()
   /* Initialize histogram manager */
   hm = new Fun4AllHistoManager("HistoManager");
   hm->setOutfileName(outFileName);
+
+  /* Count events */
+  h_events = new TH1F("h_events", "Events count", 1, 0.5, 1.5);
+  hm->registerHisto(h_events);
 
   /* Photon conversion XY position */
   int nbins_hn_conversion_position[] = {npT, 300, 300};

@@ -1,3 +1,4 @@
+#include "GlobalVars.h"
 #include "QueryTree.h"
 
 void draw_MissingRatio()
@@ -32,6 +33,11 @@ void draw_MissingRatio()
     hn_missing->GetAxis(3)->SetRange(2,2);
     hn_missing->GetAxis(4)->SetRange(2,2);
     TH1 *h_1photon = hn_missing->Projection(1);
+    if(part == 3)
+    {
+      h_2photon = h_2photon->Rebin(npT_pol, "h_2photon_pol", pTbin_pol);
+      h_1photon = h_1photon->Rebin(npT_pol, "h_1photon_pol", pTbin_pol);
+    }
 
     qt_miss->Fill(h_1photon, h_2photon, part);
     TGraphErrors *gr_miss = qt_miss->Graph(part);
@@ -57,6 +63,11 @@ void draw_MissingRatio()
     hn_missing_eta->GetAxis(3)->SetRange(2,2);
     hn_missing_eta->GetAxis(4)->SetRange(2,2);
     h_1photon = hn_missing_eta->Projection(1);
+    if(part == 3)
+    {
+      h_2photon = h_2photon->Rebin(npT_pol, "h_2photon_pol", pTbin_pol);
+      h_1photon = h_1photon->Rebin(npT_pol, "h_1photon_pol", pTbin_pol);
+    }
 
     qt_miss_eta->Fill(h_1photon, h_2photon, part);
     TGraphErrors *gr_miss_eta = qt_miss_eta->Graph(part);
@@ -74,9 +85,14 @@ void draw_MissingRatio()
     hn_missing->GetAxis(2)->SetRange(secl[part],sech[part]);
     hn_missing->GetAxis(3)->SetRange(3,3);
     hn_missing->GetAxis(4)->SetRange(3,3);
-    h_separated = hn_missing->Projection(1);
+    TH1 *h_separated = hn_missing->Projection(1);
     hn_missing->GetAxis(4)->SetRange(2,2);
-    h_merged = hn_missing->Projection(1);
+    TH1 *h_merged = hn_missing->Projection(1);
+    if(part == 3)
+    {
+      h_separated = h_separated->Rebin(npT_pol, "h_separated_pol", pTbin_pol);
+      h_merged = h_merged->Rebin(npT_pol, "h_merged_pol", pTbin_pol);
+    }
 
     qt_merge1->Fill(h_merged, h_separated, part);
     TGraphErrors *gr_merge1 = qt_merge1->Graph(part);
@@ -99,9 +115,14 @@ void draw_MissingRatio()
     hn_missing->GetAxis(2)->SetRange(secl[part],sech[part]);
     hn_missing->GetAxis(3)->SetRange(3,3);
     hn_missing->GetAxis(4)->SetRange(3,3);
-    TH1 *h_separated = hn_missing->Projection(0);
+    h_separated = hn_missing->Projection(0);
     hn_missing->GetAxis(4)->SetRange(2,2);
-    TH1 *h_merged = hn_missing->Projection(0);
+    h_merged = hn_missing->Projection(0);
+    if(part == 3)
+    {
+      h_separated = h_separated->Rebin(npT_pol, "h_separated_pol", pTbin_pol);
+      h_merged = h_merged->Rebin(npT_pol, "h_merged_pol", pTbin_pol);
+    }
 
     qt_merge2->Fill(h_merged, h_separated, part);
     TGraphErrors *gr_merge2 = qt_merge2->Graph(part);

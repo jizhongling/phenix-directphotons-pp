@@ -11,6 +11,7 @@ class PHCompositeNode;
 class emcClusterContent;
 
 class TF1;
+class TH1;
 class TH2;
 class THnSparse;
 
@@ -34,6 +35,7 @@ class PhotonEff: public SubsysReco
     EMCWarnmapChecker *emcwarnmap;
 
     Fun4AllHistoManager *hm;
+    TH1 *h_events;
     TH2 *h2_photon_eta_phi[3];
     THnSparse *hn_1photon;
 

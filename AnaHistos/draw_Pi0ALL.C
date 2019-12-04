@@ -23,7 +23,10 @@ void draw_Pi0ALL()
   vector<double> *vp_ALL = new vector<double>[8];
   vector<double> *vp_eALL = new vector<double>[8];
 
+  cout.precision(4);
   for(int ibg=0; ibg<2; ibg++)
+  {
+    cout << "bg " << ibg << endl;
     for(int ipt=0; ipt<npT_pol; ipt++)
     {
       for(int icr=0; icr<2; icr++)
@@ -52,8 +55,9 @@ void draw_Pi0ALL()
 
       double F, p;
       Ftest(8, vp_ALL, vp_eALL, F, p);
-      cout << pTbin_pol[ipt] << "-" << pTbin_pol[ipt+1] << ": " << F << ", " << p << endl;
-    } // ibg, ipt
+      cout << pTbin_pol[ipt] << "-" << pTbin_pol[ipt+1] << " & " << F << " & " << p << " \\\\" << endl;
+    } // ipt
+  } // ibg
 
   TF1 *fn_mean = new TF1("fn_mean", "pol0");
 
