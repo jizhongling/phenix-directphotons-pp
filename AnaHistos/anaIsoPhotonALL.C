@@ -100,7 +100,7 @@ void anaIsoPhotonALL(const int process = 0)
 
           for(int pttype=0; pttype<2; pttype++)
           {
-            if( npion[beam][pttype][0][icr][1][ipt] + npion[beam][pttype][0][icr][0][ipt] < 5. ||
+            if( npion[beam][pttype][0][icr][1][ipt] + npion[beam][pttype][0][icr][0][ipt] < 10. ||
                 npion[beam][pttype][0][icr][1][ipt] < 1. || npion[beam][pttype][0][icr][0][ipt] < 1. ||
                 npion[beam][pttype][1][icr][1][ipt] < 1. || npion[beam][pttype][1][icr][0][ipt] < 1. )
               continue;
@@ -127,7 +127,7 @@ void anaIsoPhotonALL(const int process = 0)
             } // ibg
           } // pttype
 
-          if( nphoton[beam][icr][1][ipt] + nphoton[beam][icr][0][ipt] < 5. ||
+          if( nphoton[beam][icr][1][ipt] + nphoton[beam][icr][0][ipt] < 10. ||
               nphoton[beam][icr][1][ipt] < 1. || nphoton[beam][icr][0][ipt] < 1. )
             continue;
 

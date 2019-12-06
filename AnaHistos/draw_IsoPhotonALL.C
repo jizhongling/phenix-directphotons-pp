@@ -23,7 +23,7 @@ void draw_IsoPhotonALL()
   vector<double> *vp_eALL = new vector<double>[8];
 
   cout.precision(4);
-  for(int beam=0; beam<0; beam++)
+  for(int beam=0; beam<3; beam++)
   {
     cout << "beam " << beam << endl;
 
@@ -82,7 +82,7 @@ void draw_IsoPhotonALL()
           }
           for(int ibg=0; ibg<3; ibg++)
           {
-            part = ibg + 3*beam + 3*3*icr;
+            part = ibg + 3*icr;
             qt_rbg->Query(ipt, part, xpt, rbg[ibg], erbg[ibg]);
             if( !TMath::Finite(rbg[ibg]) )
               rbg[ibg] = 0.;
@@ -160,7 +160,7 @@ void draw_IsoPhotonALL()
     int igr = beam + ngr_photon*2;
     TGraphErrors *gr_all = qt_all->Graph(igr);
     gr_all->SetTitle( Form("#pi^{0} %s %s",beam_list[beam],region[2]) );
-    aset(gr_all, "p_{T} [GeV]",beam_list[beam], 0.,20., -0.01,0.03);
+    aset(gr_all, "p_{T} [GeV]",beam_list[beam], 0.,20., -0.06,0.05);
     style(gr_all, 1, 1);
     gr_all->SetMarkerSize(0.);
     gr_all->Draw("AP");

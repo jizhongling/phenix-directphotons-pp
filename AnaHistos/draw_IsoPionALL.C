@@ -2,6 +2,7 @@
 #include "QueryTree.h"
 #include "Ftest.h"
 #include "Chi2Fit.h"
+#include "IsoPhotonALL.h"
 
 void draw_IsoPionALL()
 {
@@ -72,7 +73,7 @@ void draw_IsoPionALL()
           for(int pattern=0; pattern<4; pattern++)
           {
             double xpt, rbg, erbg;
-            int part = beam + 3*pttype + 3*2*icr;
+            int part = pttype + 2*icr;
             qt_rbg->Query(ipt, part, xpt, rbg, erbg);
             double mean[2], emean[2];
 
