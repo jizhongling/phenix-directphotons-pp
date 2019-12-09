@@ -142,7 +142,7 @@ void draw_IsoPhotonALL()
           int igr = beam + 3*icr + 3*2*pattern + 3*2*4*ibg;
           TGraphErrors *gr_all = qt_all->Graph(igr);
 
-          gr_all->SetTitle( Form("#pi^{0} %s %s",beam_list[beam],region[ibg]) );
+          gr_all->SetTitle( Form("#gamma^{dir} %s %s",beam_list[beam],region[ibg]) );
           aset(gr_all, "p_{T} [GeV]",beam_list[beam], 0.,20., -0.2,0.4);
           style(gr_all, 1, 1+icr+2*pattern);
           gr_all->SetMarkerSize(0.);
@@ -159,7 +159,7 @@ void draw_IsoPhotonALL()
     gPad->SetGridy();
     int igr = beam + ngr_photon*2;
     TGraphErrors *gr_all = qt_all->Graph(igr);
-    gr_all->SetTitle( Form("#pi^{0} %s %s",beam_list[beam],region[2]) );
+    gr_all->SetTitle( Form("#gamma^{dir} %s %s",beam_list[beam],region[2]) );
     aset(gr_all, "p_{T} [GeV]",beam_list[beam], 0.,20., -0.06,0.05);
     style(gr_all, 1, 1);
     gr_all->SetMarkerSize(0.);

@@ -49,7 +49,7 @@ void draw_BgRatio_IsoPhoton()
 
     for(int pttype=0; pttype<2; pttype++)
     {
-      char *ptname = pttype ? "2pt" : "";
+      const char *ptname = pttype ? "2pt" : "";
       for(int isotype=0; isotype<2; isotype++)
       {
         int ic = isotype + 2*pttype + 2*2*icr;

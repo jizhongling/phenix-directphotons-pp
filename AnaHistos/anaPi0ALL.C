@@ -52,7 +52,7 @@ void anaPi0ALL()
     if( f->IsZombie() )
     {
       cout << "Cannot open file for runnumber = " << runnumber << endl;
-      break;
+      continue;
     }
 
     double npion[2][2][2][npT_pol];  // ibg, icr, ipol, ipt

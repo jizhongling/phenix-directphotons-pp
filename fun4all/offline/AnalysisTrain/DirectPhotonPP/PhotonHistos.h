@@ -57,7 +57,7 @@ class PhotonHistos: public SubsysReco
     static const int nh_1photon_bunch = 2*60*2;
     static const int nh_2photon = 3*3*2*2*2*3;
     static const int nh_2photon_pol = 3*2*2*2*2*2;
-    static const int nh_2photon_bunch = 2*60*2*2*2;
+    static const int nh_2photon_bunch = 2*60*2;
     static const int nh_mul_pion = 3*2;
     static const int nh_mul_photon = 5*3*2*2;
 

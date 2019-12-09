@@ -22,7 +22,7 @@ void draw_BgRatio_IsoPion()
   for(int pttype=0; pttype<2; pttype++)
     for(int icr=0; icr<2; icr++)
     {
-      char *ptname = pttype ? "2pt" : "";
+      const char *ptname = pttype ? "2pt" : "";
       h2_pion->Reset();
       for(int isoboth=0; isoboth<2; isoboth++)
         for(int isopair=0; isopair<2; isopair++)

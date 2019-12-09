@@ -39,7 +39,7 @@ void anaIsoPhotonALL(const int process = 0)
     if( f->IsZombie() )
     {
       cout << "Cannot open file for runnumber = " << runnumber << endl;
-      break;
+      continue;
     }
 
     double nphoton[3][2][2][npT_pol] = {};  // beam, icr, ipol, ipt
@@ -64,7 +64,7 @@ void anaIsoPhotonALL(const int process = 0)
             for(int isoboth=0; isoboth<2; isoboth++)
               for(int isopair=0; isopair<2; isopair++)
               {
-                char *ptname = pttype ? "2pt" : "";
+                const char *ptname = pttype ? "2pt" : "";
                 int ih = beam + 3*icr + 3*2*ipol + 3*2*2*checkmap + 3*2*2*2*isoboth + 3*2*2*2*2*isopair;
                 TH2 *h2_pion = (TH2*)f->Get(Form("h2_2photon%s_pol_%d",ptname,ih));
                 for(int ipt=0; ipt<npT_pol; ipt++)

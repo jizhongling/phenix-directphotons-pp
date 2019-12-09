@@ -1016,7 +1016,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
 
                   if(beam == 2)
                   {
-                    int ih = evenodd + 2*(bunch/2) + 2*60*checkmap + 2*60*2*isolated[1] + 2*60*2*2*isopair[1];
+                    int ih = evenodd + 2*(bunch/2) + 2*60*checkmap;
                     h2_2photon_bunch[ih]->Fill(pT, minv);
                     h2_2photon2pt_bunch[ih]->Fill(tot_pT, minv);
                   }
@@ -1287,7 +1287,7 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store polarized two photons information for bunch shuffling */
-  // ih = evenodd + 2*(bunch/2) + 2*60*checkmap + 2*60*2*isolated[1] + 2*60*2*2*isopair[1] < 2*60*2*2*2
+  // ih = evenodd + 2*(bunch/2) + 2*60*checkmap < 2*60*2
   for(int ih=0; ih<nh_2photon_bunch; ih++)
   {
     h2_2photon_bunch[ih] = (TH2*)h2_pion_bunch[0]->Clone(Form("h2_2photon_bunch%d",ih));
