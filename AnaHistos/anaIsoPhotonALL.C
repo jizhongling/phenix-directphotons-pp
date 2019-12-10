@@ -110,7 +110,7 @@ void anaIsoPhotonALL(const int process = 0)
               int imul = 1 + ibg + 2*pttype;
               int part = imul + 5*beam + 5*3*icr + 5*3*2*checkmap;
               double xpt, k2 = 1., ek2;
-              //qt_ken2->Query(ipt, part, xpt, k2, ek2);
+              qt_ken2->Query(ipt, part, xpt, k2, ek2);
 
               double npp = npion[beam][pttype][ibg][icr][1][ipt];
               double npm = npion[beam][pttype][ibg][icr][0][ipt];
@@ -134,7 +134,7 @@ void anaIsoPhotonALL(const int process = 0)
           int imul = 0;
           int part = imul + 5*beam + 5*3*icr + 5*3*2*checkmap;
           double xpt, k2 = 1., ek2;
-          //qt_ken2->Query(ipt, part, xpt, k2, ek2);
+          qt_ken2->Query(ipt, part, xpt, k2, ek2);
 
           double npp = nphoton[beam][icr][1][ipt];
           double npm = nphoton[beam][icr][0][ipt];

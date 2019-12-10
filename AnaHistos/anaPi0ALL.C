@@ -91,7 +91,7 @@ void anaPi0ALL()
           double er = erlum[icr];
 
           int part = ibg + 2*icr;
-          double xpt, k2, ek2;
+          double xpt, k2 = 1., ek2;
           qt_ken2->Query(ipt, part, xpt, k2, ek2);
           //k2 = ken2[ibg][icr][ipt];
 
