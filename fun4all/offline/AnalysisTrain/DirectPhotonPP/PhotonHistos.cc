@@ -1290,8 +1290,8 @@ void PhotonHistos::BookHistograms()
   // ih = evenodd + 2*(bunch/2) + 2*60*checkmap < 2*60*2
   for(int ih=0; ih<nh_2photon_bunch; ih++)
   {
-    h2_2photon_bunch[ih] = (TH2*)h2_pion_bunch[0]->Clone(Form("h2_2photon_bunch%d",ih));
-    h2_2photon2pt_bunch[ih] = (TH2*)h2_pion_bunch[0]->Clone(Form("h2_2photon2pt_bunch%d",ih));
+    h2_2photon_bunch[ih] = (TH2*)h2_pion_bunch[0]->Clone(Form("h2_2photon_bunch_%d",ih));
+    h2_2photon2pt_bunch[ih] = (TH2*)h2_pion_bunch[0]->Clone(Form("h2_2photon2pt_bunch_%d",ih));
     hm->registerHisto(h2_2photon_bunch[ih]);
     hm->registerHisto(h2_2photon2pt_bunch[ih]);
   }

@@ -35,7 +35,7 @@ void anaIsoPhotonALL(const int process = 0)
 
     t_rlum->GetEntry(ien);
 
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15717/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15763/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() )
     {
       cout << "Cannot open file for runnumber = " << runnumber << endl;

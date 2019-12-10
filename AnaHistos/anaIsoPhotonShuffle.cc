@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include <TMath.h>
-#include <TF1.h>
+#include <TFitResult.h>
 #include <TRandom3.h>
 
 #include <TFile.h>
@@ -30,27 +30,29 @@ int main(int argc, char *argv[])
 
   /* pT bins for ALL */
   const int npT_pol = 15;
-  const double pTbin_pol[npT_pol+1] = { 2.0,
-    2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 7.0, 8.0, 9.0,
-    10.0, 12.0, 15.0, 20.0, 30.0 };
 
   TFile *f_rlum = new TFile("data/RelLum.root");
   TTree *t_rlum = (TTree*)f_rlum->Get("T");
+  const int nruns = t_rlum->GetEntries();
   int runnumber, fillnumber, lastfill = 0;
   double pol[2], epol[2], rate_bunch[120], erate_bunch[120];
-  double pattern[120], rlum[2], erlum[2];
+  int pattern[120];
+  double rlum[2], erlum[2];
   t_rlum->SetBranchAddress("Runnumber", &runnumber);
   t_rlum->SetBranchAddress("Fillnumber", &fillnumber);
-  t_rlum->SetBranchAddress("Pol", pol); t_rlum->SetBranchAddress("ePol", epol);
+  t_rlum->SetBranchAddress("Pol", pol);
+  t_rlum->SetBranchAddress("ePol", epol);
   t_rlum->SetBranchAddress("Rate", rate_bunch);
   t_rlum->SetBranchAddress("eRate", erate_bunch);
 
   TFile *f_all = new TFile(Form("histos/isophoton-shuffle-%d.root",process), "RECREATE");
   TTree *t_all = new TTree("T", "ALL bunch shuffling");
-  int type;
-  double ALLmean, eALLmean;
+  int ALLtype, ALLndf;
+  double ALLchi2, ALLmean, eALLmean;
   t_all->Branch("Process", &process, "Process/I");
-  t_all->Branch("Type", &type, "Type/I");
+  t_all->Branch("Type", &ALLtype, "Type/I");
+  t_all->Branch("NDF", &ALLndf, "NDF/I");
+  t_all->Branch("Chi2", &ALLchi2, "Chi2/D");
   t_all->Branch("ALL", &ALLmean, "ALL/D");
   t_all->Branch("eALL", &eALLmean, "eALL/D");
 
@@ -58,14 +60,11 @@ int main(int argc, char *argv[])
   TGraphErrors *gr_asym[ngr_asym];
   int igr_asym[ngr_asym] = {};
   for(int ig=0; ig<ngr_asym; ig++)
-    gr_asym[ig] = new TGraphErrors(800);
+    gr_asym[ig] = new TGraphErrors(nruns);
 
   TRandom3 *rnd = new TRandom3();
 
-  TF1 *fn_mean = new TF1("fn_mean", "pol0");
-
-  //for(int ien=0; ien<t_rlum->GetEntries(); ien++)
-  for(int ien=0; ien<10; ien++)
+  for(int ien=0; ien<nruns; ien++)
   {
     t_rlum->GetEntry(ien);
 
@@ -93,10 +92,11 @@ int main(int argc, char *argv[])
     }
 
     /* Calculate ALL for each run */
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15717/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15763/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() )
     {
       cout << "Cannot open file for runnumber = " << runnumber << endl;
+      delete f;
       continue;
     }
 
@@ -112,24 +112,19 @@ int main(int argc, char *argv[])
         int ih = icr + 2*ib + 2*60*checkmap;
         TH1 *h_photon = (TH1*)f->Get(Form("h_1photon_bunch_%d",ih));
         for(int ipt=0; ipt<npT_pol; ipt++)
-        {
-          int ptbin_first = h_photon->GetXaxis()->FindBin(pTbin_pol[ipt]);
-          int ptbin_last = h_photon->GetXaxis()->FindBin(pTbin_pol[ipt+1]) - 1;
-          nphoton[icr][ipol][ipt] += h_photon->Integral(ptbin_first,ptbin_last);
-        } // ipt
+          nphoton[icr][ipol][ipt] += h_photon->GetBinContent(ipt+1);
 
         for(int pttype=0; pttype<2; pttype++)
         {
           const char *ptname = pttype ? "2pt" : "";
           int ih = icr + 2*ib + 2*60*checkmap;
-          TH2 *h2_pion = (TH2*)f->Get(Form("h2_2photon%s_bunch_%d",ptname,ih));
+          // TODO: TAXI will have name h2_2photon%s_bunch_%d
+          TH2 *h2_pion = (TH2*)f->Get(Form("h2_2photon%s_bunch%d",ptname,ih));
           for(int ipt=0; ipt<npT_pol; ipt++)
           {
-            int ptbin_first = h2_pion->GetXaxis()->FindBin(pTbin_pol[ipt]);
-            int ptbin_last = h2_pion->GetXaxis()->FindBin(pTbin_pol[ipt+1]) - 1;
-            npion[pttype][0][icr][ipol][ipt] += h2_pion->Integral(ptbin_first,ptbin_last, 113,162);
-            npion[pttype][1][icr][ipol][ipt] += h2_pion->Integral(ptbin_first,ptbin_last, 48,97) +
-              h2_pion->Integral(ptbin_first,ptbin_last, 178,227);
+            npion[pttype][0][icr][ipol][ipt] += h2_pion->GetBinContent(ipt+1,3);
+            npion[pttype][1][icr][ipol][ipt] += h2_pion->GetBinContent(ipt+1,1) +
+              h2_pion->GetBinContent(ipt+1,5);
           } // ipt
         } // pttype
       } // icr, ib
@@ -189,19 +184,28 @@ int main(int argc, char *argv[])
   /* Fit ALL for different regions and crossings */
   for(int ig=0; ig<ngr_asym; ig++)
   {
-    type = ig;
+    ALLtype = ig;
     gr_asym[ig]->Set(igr_asym[ig]);
 
-    gr_asym[ig]->Fit(fn_mean, "Q");
-    ALLmean = fn_mean->GetParameter(0);
-    eALLmean = fn_mean->GetParError(0);
-    if( TMath::Finite(ALLmean+eALLmean) )
-      t_all->Fill();
+    TFitResultPtr r_asym = gr_asym[ig]->Fit("pol0", "QS");
+    ALLndf = r_asym->Ndf();
+    if(ALLndf > 0)
+    {
+      ALLchi2 = r_asym->Chi2();
+      ALLmean = r_asym->Value(0);
+      eALLmean = r_asym->ParError(0);
+      if( TMath::Finite(ALLmean+eALLmean) )
+        t_all->Fill();
+    }
+
+    delete gr_asym[ig];
   }
 
   f_all->cd();
   t_all->Write();
   f_all->Close();
+  f_rlum->Close();
+  delete rnd;
 
   return 0;
 }
