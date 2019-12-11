@@ -1,0 +1,17 @@
+Universe        = vanilla
+Notification    = Never
+Executable      = anaIsoPhotonShuffle.csh
+Arguments       = $(Initialdir) $(Process)
+Requirements    = (CPU_Speed >= 2)
+Rank		= CPU_Speed
+request_memory  = 128M
+request_cpus    = 1
+Priority        = 20
+GetEnv          = False
+Initialdir      = $ENV(PWD)
+Input           = /dev/null
+Output          = /dev/null
+Error           = /dev/null
+Log             = /dev/null
+Notify_user     = zji@rcf.rhic.bnl.gov
+Queue 2000

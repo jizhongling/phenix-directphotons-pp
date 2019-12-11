@@ -21,7 +21,7 @@ void anaIsoPhotonALL(const int process = 0)
   t_rlum->SetBranchAddress("RelLum", rlum[2]);
   t_rlum->SetBranchAddress("eRelLum", erlum[2]);
 
-  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-isophoton.pdf");
+  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-isophoton.root");
 
   QueryTree *qt_asym = new QueryTree(Form("histos/isophoton-asym-%d.root",process), "RECREATE");
 

@@ -14,7 +14,7 @@ void anaPi0ALL()
   t_rlum->SetBranchAddress("RelLum", rlum);
   t_rlum->SetBranchAddress("eRelLum", erlum);
 
-  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-pion.pdf");
+  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-pion.root");
 
   TFile *f_ken2 = new TFile("/phenix/plhf/zji/sources/offline/AnalysisTrain/Run13_Pi0Ana_YIS/KENFactor.root");
   TTree *t_ken2 = (TTree*)f_ken2->Get("T");
