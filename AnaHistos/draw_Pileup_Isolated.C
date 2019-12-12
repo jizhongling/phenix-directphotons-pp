@@ -17,7 +17,7 @@ void draw_Pileup_Isolated()
   fn_fit[1] = new TF1("fn_log", "-[0]*log(1-[1]*x)/([1]*x)", 1e-3, 0.2);
 
   mc(0, 3,1);
-  c0->Print("plots/Pileup-isolated.pdf(", "pdf");
+  c0->Print("plots/Pileup-isolated.pdf[");
   for(int iph=0; iph<3; iph++)
     for(int ipt=0; ipt<npT; ipt++)
       for(int im=0; im<2; im++)
@@ -59,7 +59,7 @@ void draw_Pileup_Isolated()
           } // ipt > 0
         } // part
 
-        c0->Print("plots/Pileup-isolated.pdf", "pdf");
+        c0->Print("plots/Pileup-isolated.pdf");
         c0->Clear("D");
       } // iph, ipt, im
 
@@ -79,10 +79,10 @@ void draw_Pileup_Isolated()
         gr_ratio->Draw("AP");
         gr_ratio->Fit("pol0", "Q");
       }
-    c1->Print("plots/Pileup-isolated.pdf", "pdf");
+    c1->Print("plots/Pileup-isolated.pdf");
     c1->Clear("D");
   }
-  c1->Print("plots/Pileup-isolated.pdf)", "pdf");
+  c1->Print("plots/Pileup-isolated.pdf]");
 
   qt_fit->Save();
 }
