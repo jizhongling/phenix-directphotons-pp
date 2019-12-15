@@ -1,5 +1,4 @@
 // To compile: g++ -Wall -o anaIsoPhotonShuffle anaIsoPhotonShuffle.cc `root-config --cflags --libs`
-#include <cstdlib>
 #include <iostream>
 #include <sstream>
 
@@ -20,7 +19,7 @@ int main(int argc, char *argv[])
   if(argc != 2)
   {
     cout << "Usage: " << argv[0] << " <Process>" << endl;
-    exit(1);
+    return 1;
   }
 
   int process;
