@@ -5,6 +5,8 @@ void draw_IsoPhotonShuffle()
   const int ntype = 5*2*npT_pol;
   const char *type_names[5] = {"photon", "pion-pt1-peak", "pion-pt1-side", "pion-pt2-peak", "pion-pt2-side"};
 
+  TFile *f_out = new TFile("data/IsoPhotonShuffle.root", "RECREATE");
+
   TH1 *h_ndf[ntype];
   TH1 *h_chi2[ntype];
   for(int imul=0; imul<5; imul++)
@@ -34,8 +36,6 @@ void draw_IsoPhotonShuffle()
   TF1 *fn_chi2 = new TF1("fn_chi2", "ROOT::Math::chisquared_pdf(x*[0],[0])*[1]", 0., 2.);
 
   mc(0, 5,3);
-  gStyle->SetOptStat(1110);
-  c0->Print("plots/IsoPhoton-shuffle.pdf[");
   for(int imul=0; imul<5; imul++)
     for(int icr=0; icr<2; icr++)
     {
@@ -57,8 +57,10 @@ void draw_IsoPhotonShuffle()
         h_chi2[ih]->Draw();
         fn_chi2->DrawCopy("SAME");
       }
-      c0->Print("plots/IsoPhoton-shuffle.pdf");
+      f_out->cd();
+      mcw( 0, Form("region%d-crossing%d", imul, icr) );
       c0->Clear("D");
     }
-  c0->Print("plots/IsoPhoton-shuffle.pdf]");
+
+  f_out->Close();
 }
