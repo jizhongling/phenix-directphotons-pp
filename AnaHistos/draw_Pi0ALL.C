@@ -156,8 +156,6 @@ void draw_Pi0ALL()
   leg1->AddEntry(gr_inseok, "Inseok", "L");
   leg1->Draw();
 
-  c16->Print("plots/Pi0ALL.pdf");
-
   qt_all->Write();
   for(int ibg=0; ibg<2; ibg++)
     for(int icr=0; icr<2; icr++)
@@ -166,5 +164,6 @@ void draw_Pi0ALL()
         int igr = icr + 2*pattern + 2*4*ibg;
         mcw( igr, Form("bg%d-pattern%d-cross%d", ibg, pattern, icr) );
       } // ibg, icr, pattern
+  mcw( 16, "combined" );
   qt_all->Close();
 }
