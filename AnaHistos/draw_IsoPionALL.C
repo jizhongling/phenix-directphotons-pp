@@ -37,8 +37,8 @@ void draw_IsoPionALL()
               vp_ALL[id].clear();
               vp_eALL[id].clear();
 
-              int imul = 1 + ibg + 2*pttype;
-              int ig = imul + 5*beam + 5*3*icr + 5*3*2*pattern + 5*3*2*4*ipt;
+              int imul = 2 + ibg + 2*pttype;
+              int ig = imul + 6*beam + 6*3*icr + 6*3*2*pattern + 6*3*2*4*ipt;
               TSQLResult *res = qt_asym->Query(ig); // runnumber:runnumber:value:error:errorlow:errorhigh
               TSQLRow *row;
               while( row = res->Next() )
@@ -84,8 +84,8 @@ void draw_IsoPionALL()
                 mc(igr, 4,4);
               mcd(igr, ipt+1);
 
-              int imul = 1 + ibg + 2*pttype;
-              int ig = imul + 5*beam + 5*3*icr + 5*3*2*pattern + 5*3*2*4*ipt;
+              int imul = 2 + ibg + 2*pttype;
+              int ig = imul + 6*beam + 6*3*icr + 6*3*2*pattern + 6*3*2*4*ipt;
               TGraphErrors *gr = qt_asym->Graph(ig); 
               gr->SetTitle(Form("p_{T}: %.1f-%.1f GeV",pTbin_pol[ipt],pTbin_pol[ipt+1]));
               aset(gr, "runnumber",beam_list[beam], 386700.,398200., -0.5,0.5);

@@ -10,7 +10,7 @@ void draw_BgRatio_IsoPhoton()
   const double eProb = 0.02;
   const double ToF = 0.995;
   const double eToF = 0.005;
-  const double Conv = 0.90;
+  const double Conv = 0.91;
   const double eConv = 0.05;
   const double A = 0.28;
   const double eA = 0.05;

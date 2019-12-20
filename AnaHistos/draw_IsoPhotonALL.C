@@ -11,9 +11,11 @@ void draw_IsoPhotonALL()
   const char *crossing_list[2] = {"Even", "Odd"};
   const char *pattern_list[4] = {"SOOSSOO", "OSSOOSS", "SSOO", "OOSS"};
 
-  QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root", "RECREATE");
+  //QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root", "RECREATE");
+  QueryTree *qt_all = new QueryTree("histos/IsoPhotonALL.root", "RECREATE");
 
-  QueryTree *qt_asym = new QueryTree("data/isophoton-asym.root");
+  //QueryTree *qt_asym = new QueryTree("data/isophoton-asym.root");
+  QueryTree *qt_asym = new QueryTree("histos/isophoton-shuffle-0.root");
   qt_asym->SetQuiet();
 
   QueryTree *qt_allpion = new QueryTree("data/IsoPionALL.root");
@@ -23,7 +25,7 @@ void draw_IsoPhotonALL()
   vector<double> *vp_eALL = new vector<double>[8];
 
   cout.precision(4);
-  for(int beam=0; beam<3; beam++)
+  for(int beam=2; beam<3; beam++)
   {
     cout << "beam " << beam << endl;
 
@@ -36,8 +38,8 @@ void draw_IsoPhotonALL()
           vp_ALL[id].clear();
           vp_eALL[id].clear();
 
-          int imul = 0;
-          int ig = imul + 5*beam + 5*3*icr + 5*3*2*pattern + 5*3*2*4*ipt;
+          int imul = 1;
+          int ig = imul + 6*beam + 6*3*icr + 6*3*2*pattern + 5*3*2*4*ipt;
           TSQLResult *res = qt_asym->Query(ig); // runnumber:runnumber:value:error:errorlow:errorhigh
           TSQLRow *row;
           while( row = res->Next() )
@@ -62,7 +64,7 @@ void draw_IsoPhotonALL()
 
   TF1 *fn_mean = new TF1("fn_mean", "pol0");
 
-  for(int beam=0; beam<3; beam++)
+  for(int beam=2; beam<3; beam++)
     for(int ipt=0; ipt<npT_pol; ipt++)
     {
       double sig[8] = {};
@@ -95,8 +97,8 @@ void draw_IsoPhotonALL()
             mc(igr, 4,4);
           mcd(igr, ipt+1);
 
-          int imul = 0;
-          int ig = imul + 5*beam + 5*3*icr + 5*3*2*pattern + 5*3*2*4*ipt;
+          int imul = 1;
+          int ig = imul + 6*beam + 6*3*icr + 6*3*2*pattern + 6*3*2*4*ipt;
           TGraphErrors *gr = qt_asym->Graph(ig); 
           gr->SetTitle(Form("p_{T}: %.1f-%.1f GeV",pTbin_pol[ipt],pTbin_pol[ipt+1]));
           aset(gr, "runnumber",beam_list[beam], 386700.,398200., -0.5,0.5);
@@ -126,7 +128,7 @@ void draw_IsoPhotonALL()
       }
     } // beam, ipt
 
-  for(int beam=0; beam<3; beam++)
+  for(int beam=2; beam<3; beam++)
   {
     int ic = beam + ngr_photon;
     mc(ic, 2,2);

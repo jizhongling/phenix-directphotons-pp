@@ -120,16 +120,14 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
     h2_pion[ih] = nullptr;
   for(int ih=0; ih<nh_pion_pol; ih++)
     h2_pion_pol[ih] = nullptr;
-  for(int ih=0; ih<nh_pion_bunch; ih++)
-    h2_pion_bunch[ih] = nullptr;
   for(int ih=0; ih<nh_eta_phi; ih++)
     h2_eta_phi[ih] = nullptr;
   for(int ih=0; ih<nh_1photon; ih++)
     h_1photon[ih] = nullptr;
   for(int ih=0; ih<nh_1photon_pol; ih++)
     h_1photon_pol[ih] = nullptr;
-  for(int ih=0; ih<nh_1photon_bunch; ih++)
-    h_1photon_bunch[ih] = nullptr;
+  for(int ih=0; ih<nh_photon_bunch; ih++)
+    h_photon_bunch[ih] = nullptr;
   for(int ih=0; ih<nh_2photon; ih++)
   {
     h2_2photon[ih] = nullptr;
@@ -139,11 +137,6 @@ PhotonHistos::PhotonHistos(const string &name, const char *filename) :
   {
     h2_2photon_pol[ih] = nullptr;
     h2_2photon2pt_pol[ih] = nullptr;
-  }
-  for(int ih=0; ih<nh_2photon_bunch; ih++)
-  {
-    h2_2photon_bunch[ih] = nullptr;
-    h2_2photon2pt_bunch[ih] = nullptr;
   }
   for(int ih=0; ih<nh_mul_pion; ih++)
   {
@@ -293,38 +286,43 @@ int PhotonHistos::process_event(PHCompositeNode *topNode)
   if( (lvl1_live & bit_ppg) || (lvl1_scaled & bit_ppg) ) return DISCARDEVENT;
 
   /* Run local recalibration of EMCal cluster data */
-  emcClusterContainer *data_emccontainer = data_emccontainer_raw->clone();
-  //emcrecalib->ApplyClusterCorrection( data_emccontainer );
-  emcrecalib_sasha->ApplyClusterCorrection( runnumber, data_emccontainer );
+  emcClusterContainer *data_emccontainer[2];
+  for(int i=0; i<2; i++)
+    data_emccontainer[i] = data_emccontainer_raw->clone();
+  emcrecalib_sasha->ApplyClusterCorrection( runnumber, data_emccontainer[0] );
+  emcrecalib->ApplyClusterCorrection( data_emccontainer[1] );
 
   /* Event counts */
   FillEventCounts(data_global, data_triggerlvl1);
 
   /* Store ToF information for cluster as calibration check */
   FillClusterTofSpectrum(data_emccontainer_raw, data_global, "raw");
-  FillClusterTofSpectrum(data_emccontainer, data_global);
+  FillClusterTofSpectrum(data_emccontainer[0], data_global);
 
   /* Analyze pi0s events for crosscheck */
   FillPi0InvariantMass(data_emccontainer_raw, data_global, "raw");
-  FillPi0InvariantMass(data_emccontainer, data_global);
+  FillPi0InvariantMass(data_emccontainer[0], data_global);
 
   /* Count events to calculate BBC efficiency */
-  FillBBCEfficiency(data_emccontainer, data_triggerlvl1);
+  FillBBCEfficiency(data_emccontainer[0], data_triggerlvl1);
 
   /* Count events to calculate ERT efficiency */
-  FillERTEfficiency(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert);
+  FillERTEfficiency(data_emccontainer[0], data_tracks, data_global, data_triggerlvl1, data_ert);
 
   /* Fill DC track quality information */
-  FillTrackQuality(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert);
+  FillTrackQuality(data_emccontainer[0], data_tracks, data_global, data_triggerlvl1, data_ert);
 
   /* Analyze photon for pi0 event */
-  FillPi0Spectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert);
+  for(int i=0; i<2; i++)
+    FillPi0Spectrum(i, data_emccontainer[i], data_tracks, data_global, data_triggerlvl1, data_ert);
 
   /* Analyze photon for direct photon event */
-  FillPhotonSpectrum(data_emccontainer, data_tracks, data_global, data_triggerlvl1, data_ert);
+  for(int i=0; i<2; i++)
+    FillPhotonSpectrum(i, data_emccontainer[i], data_tracks, data_global, data_triggerlvl1, data_ert);
 
   /* Clean up */
-  delete data_emccontainer;
+  for(int i=0; i<2; i++)
+    delete data_emccontainer[i];
 
   return EVENT_OK;
 }
@@ -701,7 +699,7 @@ int PhotonHistos::FillTrackQuality(const emcClusterContainer *data_emccontainer,
   return EVENT_OK;
 }
 
-int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
+int PhotonHistos::FillPi0Spectrum(const int ical, const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
     const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert)
 {
   /* Get event global parameters */
@@ -766,32 +764,33 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
               cluster2->prob_photon() > probMin )
             prob = 1;
 
-          for(int checkmap=0; checkmap<2; checkmap++)
-          {
-            dcdeadmap->Checkmap(checkmap);
+          if(ical == 0)
+            for(int checkmap=0; checkmap<2; checkmap++)
+            {
+              dcdeadmap->Checkmap(checkmap);
 
-            int isolated[3] = {};
-            double econe[3];
-            SumEPi0(cluster1, cluster2, data_emccontainer, data_tracks, bbc_t0, econe);
-            for(int ival=0; ival<3; ival++)
-              if( econe[ival] < eratio * tot_E )
-                isolated[ival] = 1;
+              int isolated[3] = {};
+              double econe[3];
+              SumEPi0(cluster1, cluster2, data_emccontainer, data_tracks, bbc_t0, econe);
+              for(int ival=0; ival<3; ival++)
+                if( econe[ival] < eratio * tot_E )
+                  isolated[ival] = 1;
 
-            for(int evtype=0; evtype<3; evtype++)
-              if( part1 >= 0 && part1 == part2 &&
-                  IsEventType(evtype, data_triggerlvl1) && trig[evtype] &&
-                  BBC10cm(data_global, data_triggerlvl1) &&
-                  emcwarnmap->IsGoodTower(cluster1) &&
-                  emcwarnmap->IsGoodTower(cluster2) &&
-                  anatools::GetAsymmetry_E(cluster1, cluster2) < AsymCut )
-                for(int ival=0; ival<3; ival++)
-                {
-                  int ih = part1 + 3*evtype + 3*3*tof + 3*3*2*prob + 3*3*2*2*checkmap + 3*3*2*2*2*isolated[ival] + 3*3*2*2*2*2*ival;
-                  h2_pion[ih]->Fill(tot_pT, minv);
-                } // evtype, ival
-          } // checkmap
+              for(int evtype=0; evtype<3; evtype++)
+                if( part1 >= 0 && part1 == part2 &&
+                    IsEventType(evtype, data_triggerlvl1) && trig[evtype] &&
+                    BBC10cm(data_global, data_triggerlvl1) &&
+                    emcwarnmap->IsGoodTower(cluster1) &&
+                    emcwarnmap->IsGoodTower(cluster2) &&
+                    anatools::GetAsymmetry_E(cluster1, cluster2) < AsymCut )
+                  for(int ival=0; ival<3; ival++)
+                  {
+                    int ih = part1 + 3*evtype + 3*3*tof + 3*3*2*prob + 3*3*2*2*checkmap + 3*3*2*2*2*isolated[ival] + 3*3*2*2*2*2*ival;
+                    h2_pion[ih]->Fill(tot_pT, minv);
+                  } // evtype, ival
+            } // checkmap
 
-          if( evenodd >= 0 && prob == 1 &&
+          if( ical == 1 && evenodd >= 0 && prob == 1 &&
               IsEventType(3, data_triggerlvl1) && trig[3] &&
               emcwarnmap->PassCut(cluster1) &&
               emcwarnmap->PassCut(cluster2) &&
@@ -812,12 +811,6 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
                 int ih = beam + 3*evenodd + 3*2*pol;
                 h2_pion_pol[ih]->Fill(tot_pT, minv);
 
-                if(beam == 2)
-                {
-                  int ih = evenodd + 2*(bunch/2);
-                  h2_pion_bunch[ih]->Fill(tot_pT, minv);
-                }
-
                 if( tot_pT > pTbin_pol[0] )
                 {
                   if( minv > 0.112 && minv < 0.162 )
@@ -825,14 +818,14 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
                   else if( (minv > 0.047 && minv < 0.097) ||
                       (minv > 0.177 && minv < 0.227) )
                     mul_bg[beam][ipt]++;
-                } // calc mul
+                }
               } // fill pol
           } // fill pol, calc mul
         } // min energy cut
       } // j loop
   } // i loop
 
-  if( evenodd >= 0 )
+  if( ical == 1 && evenodd >= 0 )
     for(int ipt=0; ipt<npT_pol; ipt++)
     {
       double xpt = ( pTbin_pol[ipt] + pTbin_pol[ipt+1] ) / 2.;
@@ -847,7 +840,7 @@ int PhotonHistos::FillPi0Spectrum(const emcClusterContainer *data_emccontainer, 
   return EVENT_OK;
 }
 
-int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
+int PhotonHistos::FillPhotonSpectrum(const int ical, const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
     const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert)
 {
   /* Get event global parameters */
@@ -867,7 +860,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
 
   /* Count event multiplicity */
   // mul[imul][beam][checkmap][ipt]
-  int mul_photon[5][3][2][npT_pol+1] = {};
+  int mul_photon[6][3][2][npT_pol+1] = {};
 
   unsigned ncluster = data_emccontainer->size();
 
@@ -905,7 +898,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
             isolated[ival] = 1;
         }
 
-        if( part >= 0 && pT > 5. && pT < 10. &&
+        if( ical == 0 && part >= 0 && pT > 5. && pT < 10. &&
             IsEventType(2, data_triggerlvl1) && trig[2] &&
             BBC10cm(data_global, data_triggerlvl1) )
           for(int ival=0; ival<3; ival++)
@@ -925,7 +918,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
             }
 
         for(int evtype=0; evtype<3; evtype++)
-          if( part >= 0 &&
+          if( ical == 0 && part >= 0 &&
               IsEventType(evtype, data_triggerlvl1) && trig[evtype] &&
               BBC10cm(data_global, data_triggerlvl1) )
             for(int ival=0; ival<3; ival++)
@@ -935,7 +928,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
                 h_1photon[ih]->Fill(pT);
               }
 
-        if( evenodd >= 0 && isolated[1] &&
+        if( evenodd >= 0 &&
             IsEventType(3, data_triggerlvl1) && trig[3] &&
             !dcdeadmap->ChargeVeto(cluster1, data_tracks) )
         {
@@ -948,17 +941,17 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
             if( abs(pattern[beam]) == 1 )
             {
               int pol = pattern[beam] > 0 ? 1 : 0;
-              int ih = beam + 3*evenodd + 3*2*pol + 3*2*2*checkmap;
+              int ih = beam + 3*evenodd + 3*2*pol + 3*2*2*checkmap + 3*2*2*2*isolated[1] + 3*2*2*2*2*ical;
               h_1photon_pol[ih]->Fill(pT);
 
               if(beam == 2)
               {
-                int ih = evenodd + 2*(bunch/2) + 2*60*checkmap;
-                h_1photon_bunch[ih]->Fill(pT);
+                int ih = isolated[1] + 6*evenodd + 6*2*(bunch/2) + 6*2*60*checkmap + 6*2*60*2*ical;
+                h_photon_bunch[ih]->Fill(pT);
               }
 
               if( pT > pTbin_pol[0] )
-                mul_photon[0][beam][checkmap][ipt]++;
+                mul_photon[isolated[1]][beam][checkmap][ipt]++;
             } // beam
         } // fill pol, calc mul
 
@@ -984,7 +977,7 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
             }
 
             for(int evtype=0; evtype<3; evtype++)
-              if( part >= 0 &&
+              if( ical == 0 && part >= 0 &&
                   IsEventType(evtype, data_triggerlvl1) && trig[evtype] &&
                   BBC10cm(data_global, data_triggerlvl1) )
                 for(int ival=0; ival<3; ival++)
@@ -1010,26 +1003,30 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
                 if( abs(pattern[beam]) == 1 )
                 {
                   int pol = pattern[beam] > 0 ? 1 : 0;
-                  int ih = beam + 3*evenodd + 3*2*pol + 3*2*2*checkmap + 3*2*2*2*isolated[1] + 3*2*2*2*2*isopair[1];
+                  int ih = beam + 3*evenodd + 3*2*pol + 3*2*2*checkmap + 3*2*2*2*isolated[1] + 3*2*2*2*2*isopair[1] + 3*2*2*2*2*2*ical;
                   h2_2photon_pol[ih]->Fill(pT, minv);
                   h2_2photon2pt_pol[ih]->Fill(tot_pT, minv);
 
-                  if(beam == 2)
-                  {
-                    int ih = evenodd + 2*(bunch/2) + 2*60*checkmap;
-                    h2_2photon_bunch[ih]->Fill(pT, minv);
-                    h2_2photon2pt_bunch[ih]->Fill(tot_pT, minv);
-                  }
-
                   for(int pttype=0; pttype<2; pttype++)
-                    if( pTcmp[pttype] > pTbin_pol[0] )
+                  {
+                    int ih = 6*evenodd + 6*2*(bunch/2) + 6*2*60*checkmap + 6*2*60*2*ical;
+                    double fill_pT = pttype ? tot_pT : pT;
+                    if( minv > 0.112 && minv < 0.162 )
                     {
-                      if( minv > 0.112 && minv < 0.162 )
-                        mul_photon[1+2*pttype][beam][checkmap][ipt[pttype]]++;
-                      else if( (minv > 0.047 && minv < 0.097) ||
-                          (minv > 0.177 && minv < 0.227) )
+                      if(beam == 2)
+                        h_photon_bunch[2+2*pttype+ih]->Fill(fill_pT);
+                      if( pTcmp[pttype] > pTbin_pol[0] )
                         mul_photon[2+2*pttype][beam][checkmap][ipt[pttype]]++;
-                    } // calc mul
+                    }
+                    else if( (minv > 0.047 && minv < 0.097) ||
+                        (minv > 0.177 && minv < 0.227) )
+                    {
+                      if(beam == 2)
+                        h_photon_bunch[3+2*pttype+ih]->Fill(fill_pT);
+                      if( pTcmp[pttype] > pTbin_pol[0] )
+                        mul_photon[3+2*pttype][beam][checkmap][ipt[pttype]]++;
+                    }
+                  } // pttype
                 } // fill pol
             } // fill pol, calc mul
           } // j loop
@@ -1041,11 +1038,11 @@ int PhotonHistos::FillPhotonSpectrum(const emcClusterContainer *data_emccontaine
     for(int ipt=0; ipt<npT_pol; ipt++)
     {
       double xpt = ( pTbin_pol[ipt] + pTbin_pol[ipt+1] ) / 2.;
-      for(int imul=0; imul<5; imul++)
+      for(int imul=0; imul<6; imul++)
         for(int beam=0; beam<3; beam++)
           for(int checkmap=0; checkmap<2; checkmap++)
           {
-            int ih = imul + 5*beam + 5*3*evenodd + 5*3*2*checkmap;
+            int ih = imul + 6*beam + 6*3*evenodd + 6*3*2*checkmap + 6*3*2*2*ical;
             h2_mul_photon[ih]->Fill(xpt, (double)mul_photon[imul][beam][checkmap][ipt]);
           }
     }
@@ -1119,10 +1116,6 @@ void PhotonHistos::BookHistograms()
   phibin[iphi++] = PI*11/16 - 0.02;
   phibin[iphi++] = PI*19/16 + 0.02;
   sort(phibin, phibin+nphi);
-
-  /* Invariant mass bins */
-  const int nminv= 5;
-  const double minvbins[nminv+1] = {0.047, 0.097, 0.112, 0.162, 0.177, 0.227};
 
   /* Events counter */
   if( datatype == ERT )
@@ -1225,15 +1218,6 @@ void PhotonHistos::BookHistograms()
     hm->registerHisto(h2_pion_pol[ih]);
   }
 
-  /* Store polarized pi0 information for bunch shuffling */
-  // ih = evenodd + 2*(bunch/2) < 2*60
-  for(int ih=0; ih<nh_pion_bunch; ih++)
-  {
-    h2_pion_bunch[ih] = new TH2F(Form("h2_pion_bunch_%d",ih), "Polarized spectrum;p_{T} [GeV];m_{inv} [GeV];",
-        npT_pol,pTbin_pol, nminv,minvbins);
-    hm->registerHisto(h2_pion_bunch[ih]);
-  }
-
   /* Eta and phi distribution */
   // ih = part + 3*checkmap + 3*2*isolated[ival] + 3*2*2*ival < 3*2*2*3
   for(int ih=0; ih<nh_eta_phi; ih++)
@@ -1251,19 +1235,11 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store polarized single photons information */
-  // ih = beam + 3*evenodd + 3*2*pol + 3*2*2*checkmap < 3*2*2*2
+  // ih = beam + 3*evenodd + 3*2*pol + 3*2*2*checkmap + 3*2*2*2*isolated[1] + 3*2*2*2*2*ical < 3*2*2*2*2*2
   for(int ih=0; ih<nh_1photon_pol; ih++)
   {
     h_1photon_pol[ih] = new TH1F(Form("h_1photon_pol_%d",ih), "Polarized single photon spectrum;p_{T} [GeV];", 300,0.,30.);
     hm->registerHisto(h_1photon_pol[ih]);
-  }
-
-  /* Store polarized single photons information for bunch shuffling */
-  // ih = evenodd + 2*(bunch/2) + 2*60*checkmap < 2*60*2
-  for(int ih=0; ih<nh_1photon_bunch; ih++)
-  {
-    h_1photon_bunch[ih] = new TH1F(Form("h_1photon_bunch_%d",ih), "Polarized single photon spectrum;p_{T} [GeV];", npT_pol,pTbin_pol);
-    hm->registerHisto(h_1photon_bunch[ih]);
   }
 
   /* Store two photons information */
@@ -1277,23 +1253,13 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store polarized two photons information */
-  // ih = beam + 3*evenodd + 3*2*pol + 3*2*2*checkmap + 3*2*2*2*isolated[1] + 3*2*2*2*2*isopair[1] < 3*2*2*2*2*2
+  // ih = beam + 3*evenodd + 3*2*pol + 3*2*2*checkmap + 3*2*2*2*isolated[1] + 3*2*2*2*2*isopair[1] + 3*2*2*2*2*2*ical < 3*2*2*2*2*2*2
   for(int ih=0; ih<nh_2photon_pol; ih++)
   {
     h2_2photon_pol[ih] = (TH2*)h2_pion_pol[0]->Clone(Form("h2_2photon_pol_%d",ih));
     h2_2photon2pt_pol[ih] = (TH2*)h2_pion_pol[0]->Clone(Form("h2_2photon2pt_pol_%d",ih));
     hm->registerHisto(h2_2photon_pol[ih]);
     hm->registerHisto(h2_2photon2pt_pol[ih]);
-  }
-
-  /* Store polarized two photons information for bunch shuffling */
-  // ih = evenodd + 2*(bunch/2) + 2*60*checkmap < 2*60*2
-  for(int ih=0; ih<nh_2photon_bunch; ih++)
-  {
-    h2_2photon_bunch[ih] = (TH2*)h2_pion_bunch[0]->Clone(Form("h2_2photon_bunch_%d",ih));
-    h2_2photon2pt_bunch[ih] = (TH2*)h2_pion_bunch[0]->Clone(Form("h2_2photon2pt_bunch_%d",ih));
-    hm->registerHisto(h2_2photon_bunch[ih]);
-    hm->registerHisto(h2_2photon2pt_bunch[ih]);
   }
 
   /* Store pion event multiplicity information */
@@ -1307,11 +1273,19 @@ void PhotonHistos::BookHistograms()
   }
 
   /* Store isolated photon event multiplicity information */
-  // ih = imul + 5*beam + 5*3*evenodd + 5*3*2*checkmap < 5*3*2*2
+  // ih = imul + 6*beam + 6*3*evenodd + 6*3*2*checkmap + 6*3*2*2*ical < 6*3*2*2*2
   for(int ih=0; ih<nh_mul_photon; ih++)
   {
     h2_mul_photon[ih] = (TH2*)h2_mul_pion_sig[0]->Clone(Form("h2_mul_photon_%d",ih));
     hm->registerHisto(h2_mul_photon[ih]);
+  }
+
+  /* Store polarized photon information for bunch shuffling */
+  // ih = imul + 6*evenodd + 6*2*(bunch/2) + 6*2*60*checkmap + 6*2*60*2*ical < 6*2*60*2*2
+  for(int ih=0; ih<nh_photon_bunch; ih++)
+  {
+    h_photon_bunch[ih] = new TH1F(Form("h_photon_bunch_%d",ih), "Polarized photon spectrum;p_{T} [GeV];", npT_pol,pTbin_pol);
+    hm->registerHisto(h_photon_bunch[ih]);
   }
 
   return;

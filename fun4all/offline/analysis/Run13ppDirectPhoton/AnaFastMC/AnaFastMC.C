@@ -741,7 +741,7 @@ void AnaFastMC::BookHistograms()
     }
 
     h3_isopi0 = new TH3F("h3_isopi0", "Self veto for #pi^{0};p_{T} [GeV];sector;isolated;",
-        npT,0.,0., 8,-0.5,7.5, 2,-0.5,1.5);
+        60,0.,30., 8,-0.5,7.5, 2,-0.5,1.5);
     h3_isopi0->GetXaxis()->Set(npT, pTbin);
     hm->registerHisto(h3_isopi0);
 
@@ -759,9 +759,9 @@ void AnaFastMC::BookHistograms()
     hn_pion->Sumw2();
     hm->registerHisto(hn_pion);
 
-    const int nbins_hn_missing[] = {npT, npT, 8, 3, 3};
+    const int nbins_hn_missing[] = {60, 60, 8, 3, 3};
     const double xmin_hn_missing[] = {0., 0., -0.5, -0.5, -0.5};
-    const double xmax_hn_missing[] = {0., 0., 7.5, 2.5, 2.5};
+    const double xmax_hn_missing[] = {30., 30., 7.5, 2.5, 2.5};
     hn_missing = new THnSparseF("hn_missing", "#pi^{0} missing ratio;p^{#pi^{0}}_{T} [GeV];p^{#gamma}_{T} [GeV];sector;NPart;NPeak;",
         5, nbins_hn_missing, xmin_hn_missing, xmax_hn_missing);
     hn_missing->SetBinEdges(0, pTbin);

@@ -10,18 +10,20 @@ void draw_ConversionRate()
 
   mc(0, 3,1);
 
-  TGraphAsymmErrors *gr[3][2];  // gr[ic][arm]
+  TGraphAsymmErrors *gr[3][3];  // gr[ic][arm]
   for(int ic=0; ic<3; ic++)
-    for(int arm=0; arm<2; arm++)
+    for(int arm=0; arm<3; arm++)
     {
-      TH1 *h_total = h2_total->ProjectionX("h_total", arm+1, arm+1);
-      TH1 *h_passed = h2_passed[ic]->ProjectionX("h_passed", arm+1, arm+1);
+      int armlow = arm<2 ? arm+1 : 1;
+      int armhigh = arm<2 ? arm+1 : 2;
+      TH1 *h_total = h2_total->ProjectionX("h_total", armlow, armhigh);
+      TH1 *h_passed = h2_passed[ic]->ProjectionX("h_passed", armlow, armhigh);
       gr[ic][arm] = new TGraphAsymmErrors(h_passed, h_total);
       delete h_total;
       delete h_passed;
 
       mcd(0, ic+1);
-      aset(gr[ic][arm], "p_{T} [GeV]","rate", 0.,30., 0.,0.2);
+      aset(gr[ic][arm], "p_{T} [GeV]","rate", 0.,30., 0.,0.2*(1+ic/2));
       style(gr[ic][arm], arm+20, arm+1);
       if(arm == 0)
         gr[ic][arm]->Draw("AP");
@@ -31,13 +33,10 @@ void draw_ConversionRate()
       if(ic == 0)
       {
         gr[ic][arm]->Fit("pol0", "Q","", 2.,28.);
-        if(arm == 0)
-        {
-          gPad->Update();
-          TPaveStats *st = (TPaveStats*)gr[ic][arm]->FindObject("stats");
-          st->SetX1NDC(0.2);
-          st->SetX2NDC(0.6);
-        } // arm == 0
+        gPad->Update();
+        TPaveStats *st = (TPaveStats*)gr[ic][arm]->FindObject("stats");
+        st->SetX1NDC(0.3*arm);
+        st->SetX2NDC(0.3*(arm+1));
       } // ic == 0
     }
 

@@ -373,9 +373,9 @@ void MissingRatio::BookHistograms()
   hm->registerHisto(h2_eeinconv);
   hm->registerHisto(h2_eeoutconv);
 
-  int nbins_hn_merge[] = {npT, 8, 2, 7};
+  int nbins_hn_merge[] = {60, 8, 2, 7};
   double xmin_hn_merge[] = {0., -0.5, -0.5, 0.};
-  double xmax_hn_merge[] = {0., 7.5, 1.5, 0.35};
+  double xmax_hn_merge[] = {30., 7.5, 1.5, 0.35};
   hn_merge = new THnSparseF("hn_merge", "Merged photon count;p_{T} truth [GeV];sector;passed;eta;",
       4, nbins_hn_merge, xmin_hn_merge, xmax_hn_merge);
   hn_merge->SetBinEdges(0, vpT);

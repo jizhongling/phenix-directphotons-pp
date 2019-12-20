@@ -45,6 +45,7 @@ void anaIsoPhotonALL(const int process = 0)
     double nphoton[3][2][2][npT_pol] = {};  // beam, icr, ipol, ipt
     double npion[3][2][2][2][2][npT_pol] = {};  // beam, pttype(pt|2pt), ibg, icr, ipol, ipt
 
+    int ical = 0;
     int checkmap = 1;
 
     for(int beam=0; beam<3; beam++)
@@ -107,8 +108,8 @@ void anaIsoPhotonALL(const int process = 0)
 
             for(int ibg=0; ibg<2; ibg++)
             {
-              int imul = 1 + ibg + 2*pttype;
-              int part = imul + 5*beam + 5*3*icr + 5*3*2*checkmap;
+              int imul = 2 + ibg + 2*pttype;
+              int part = imul + 6*beam + 6*3*icr + 6*3*2*checkmap + 6*3*2*2*ical;
               double xpt, k2 = 1., ek2;
               qt_ken2->Query(ipt, part, xpt, k2, ek2);
 
@@ -121,7 +122,7 @@ void anaIsoPhotonALL(const int process = 0)
 
               if( TMath::Finite(ALL+eALL) && eALL > 0. )
               {
-                int ig = imul + 5*beam + 5*3*icr + 5*3*2*spin_pattern + 5*3*2*4*ipt;
+                int ig = imul + 6*beam + 6*3*icr + 6*3*2*spin_pattern + 6*3*2*4*ipt;
                 qt_asym->Fill(runnumber, ig, runnumber, ALL, eALL);
               }
             } // ibg
@@ -131,8 +132,8 @@ void anaIsoPhotonALL(const int process = 0)
               nphoton[beam][icr][1][ipt] < 1. || nphoton[beam][icr][0][ipt] < 1. )
             continue;
 
-          int imul = 0;
-          int part = imul + 5*beam + 5*3*icr + 5*3*2*checkmap;
+          int imul = 1;
+          int part = imul + 6*beam + 6*3*icr + 6*3*2*checkmap + 6*3*2*2*ical;
           double xpt, k2 = 1., ek2;
           qt_ken2->Query(ipt, part, xpt, k2, ek2);
 
@@ -145,7 +146,7 @@ void anaIsoPhotonALL(const int process = 0)
 
           if( TMath::Finite(ALL+eALL) && eALL > 0. )
           {
-            int ig = imul + 5*beam + 5*3*icr + 5*3*2*spin_pattern + 5*3*2*4*ipt;
+            int ig = imul + 6*beam + 6*3*icr + 6*3*2*spin_pattern + 6*3*2*4*ipt;
             qt_asym->Fill(runnumber, ig, runnumber, ALL, eALL);
           }
         } // ipt

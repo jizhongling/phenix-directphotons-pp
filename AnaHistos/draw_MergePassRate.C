@@ -20,6 +20,9 @@ void draw_MergePassRate()
   for(int ieta=7; ieta<8; ieta++)
     for(int part=0; part<3; part++)
     {
+      int npT_rebin = part<2 ? npT : npT_pol;
+      double *pTrebin = part<2 ? pTbin : pTbin_pol;
+
       //mcd(0, ieta+1);
       hn_merge->GetAxis(3)->SetRange(ieta+1-ieta/7*7,ieta+1-ieta/7*3);  // |eta|
       hn_merge->GetAxis(1)->SetRange(secl[part],sech[part]);  // sector
@@ -30,11 +33,8 @@ void draw_MergePassRate()
       hn_merge->GetAxis(2)->SetRange(2,2);  // passed = 1
       TH1 *h_passed = hn_merge->Projection(0);
 
-      if(part == 2)
-      {
-        h_total = h_total->Rebin(npT_pol, "h_total_pol", pTbin_pol);
-        h_passed = h_passed->Rebin(npT_pol, "h_passed_pol", pTbin_pol);
-      }
+      h_total = h_total->Rebin(npT_rebin, "h_total", pTrebin);
+      h_passed = h_passed->Rebin(npT_rebin, "h_passed", pTrebin);
 
       if(ieta==7)
         qt_badpass->Fill(h_passed, h_total, part);

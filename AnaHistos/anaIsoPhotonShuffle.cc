@@ -9,25 +9,27 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1.h>
-#include <TH2.h>
 #include <TGraphErrors.h>
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
-  if(argc != 2)
+  if(argc != 3)
   {
-    cout << "Usage: " << argv[0] << " <Process>" << endl;
+    cout << "Usage: " << argv[0] << " <TAXI> <Process>" << endl;
     return 1;
   }
 
-  int process;
+  int taxi, process;
   stringstream ss;
-  ss << argv[1];
-  ss >> process;
+  ss << argv[1] << ' ' << argv[2];
+  ss >> taxi >> process;
 
   const int npT_pol = 15;
+  const int ical = 0;
+  const int checkmap = 1;
+  const int beam = 2;
 
   TFile *f_rlum = new TFile("data/RelLum.root");
   TTree *t_rlum = (TTree*)f_rlum->Get("T");
@@ -56,7 +58,7 @@ int main(int argc, char *argv[])
   for(int ien=0; ien<nken2; ien++)
   {
     t_ken2->GetEntry(ien);
-    int index = ken2_part + 5*3*2*2*ken2_ipt; 
+    int index = ken2_part + 6*3*2*2*2*ken2_ipt; 
     ken2[index] = ken2_value;
   }
 
@@ -110,7 +112,7 @@ int main(int argc, char *argv[])
     }
 
     /* Calculate ALL for each run */
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15763/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/%d/data/PhotonHistos-%d.root",taxi,runnumber));
     if( f->IsZombie() )
     {
       cout << "Cannot open file for runnumber = " << runnumber << endl;
@@ -118,37 +120,18 @@ int main(int argc, char *argv[])
       continue;
     }
 
-    double nphoton[2][2][npT_pol] = {};  // icr, ipol, ipt
-    double npion[2][2][2][2][npT_pol] = {};  // pttype(pt|2pt), ibg, icr, ipol, ipt
-
-    int checkmap = 1;
-    int beam = 2;
-
-    for(int icr=0; icr<2; icr++)
-      for(int ib=0; ib<60; ib++)
-        if(abs(spin_pol[icr + 2*ib]) == 1)
-        {
-          int ipol = spin_rnd[icr + 2*ib];
-          int ih = icr + 2*ib + 2*60*checkmap;
-          // TODO: future TAXI will have different names
-          TH1 *h_photon = (TH1*)f->Get(Form("h_1photon_bunch_%d",ih));
-          for(int ipt=0; ipt<npT_pol; ipt++)
-            nphoton[icr][ipol][ipt] += h_photon->GetBinContent(ipt+1);
-
-          for(int pttype=0; pttype<2; pttype++)
+    double nphoton[6][2][2][npT_pol] = {};  // imul, icr, ipol, ipt
+    for(int imul=0; imul<6; imul++)
+      for(int icr=0; icr<2; icr++)
+        for(int ib=0; ib<60; ib++)
+          if(abs(spin_pol[icr + 2*ib]) == 1)
           {
-            const char *ptname = pttype ? "2pt" : "";
-            int ih = icr + 2*ib + 2*60*checkmap;
-            // TODO: future TAXI will have different names
-            TH2 *h2_pion = (TH2*)f->Get(Form("h2_2photon%s_bunch%d",ptname,ih));
+            int ipol = spin_rnd[icr + 2*ib];
+            int ih = imul + 6*icr + 6*2*ib + 6*2*60*checkmap + 6*2*60*2*ical;
+            TH1 *h_photon_bunch = (TH1*)f->Get(Form("h_photon_bunch_%d",ih));
             for(int ipt=0; ipt<npT_pol; ipt++)
-            {
-              npion[pttype][0][icr][ipol][ipt] += h2_pion->GetBinContent(ipt+1,3);
-              npion[pttype][1][icr][ipol][ipt] += h2_pion->GetBinContent(ipt+1,1) +
-                h2_pion->GetBinContent(ipt+1,5);
-            } // ipt
-          } // pttype
-        } // icr, ib
+              nphoton[imul][icr][ipol][ipt] += h_photon_bunch->GetBinContent(ipt+1);
+          } // icr, ib, imul
 
     for(int icr=0; icr<2; icr++)
     {
@@ -157,48 +140,26 @@ int main(int argc, char *argv[])
       double r = rlum[icr];
       double er = erlum[icr];
 
-      for(int ipt=0; ipt<npT_pol; ipt++)
-      {
-        for(int pttype=0; pttype<2; pttype++)
-          for(int ibg=0; ibg<2; ibg++)
-          {
-            double npp = npion[pttype][ibg][icr][1][ipt];
-            double npm = npion[pttype][ibg][icr][0][ipt];
-
-            int imul = 1 + ibg + 2*pttype;
-            int index = imul + 5*beam + 5*3*icr + 5*3*2*checkmap + 5*3*2*2*ipt;
-            double k2 = ken2[index];
-            double ALL = 1./pbeam*(npp - r*npm)/(npp + r*npm);
-            double eALL = sqrt(pow(2*r*npp*npm/pbeam,2)/pow(npp + r*npm,4)*(k2/npp + k2/npm + er*er/r/r)
-                + e2pbeam*ALL*ALL);
-
-            if( TMath::Finite(ALL+eALL) && eALL > 0. )
-            {
-              int ig = imul + 5*icr + 5*2*ipt;
-              gr_asym[ig]->SetPoint(igr_asym[ig], (double)runnumber, ALL);
-              gr_asym[ig]->SetPointError(igr_asym[ig], 0., eALL);
-              igr_asym[ig]++;
-            }
-          } // pttype, ibg
-
-        double npp = nphoton[icr][1][ipt];
-        double npm = nphoton[icr][0][ipt];
-
-        int imul = 0;
-        int index = imul + 5*beam + 5*3*icr + 5*3*2*checkmap + 5*3*2*2*ipt;
-        double k2 = ken2[index];
-        double ALL = 1./pbeam*(npp - r*npm)/(npp + r*npm);
-        double eALL = sqrt(pow(2*r*npp*npm/pbeam,2)/pow(npp + r*npm,4)*(k2/npp + k2/npm + er*er/r/r)
-            + e2pbeam*ALL*ALL);
-
-        if( TMath::Finite(ALL+eALL) && eALL > 0. )
+      for(int imul=0; imul<6; imul++)
+        for(int ipt=0; ipt<npT_pol; ipt++)
         {
-          int ig = imul + 5*icr + 5*2*ipt;
-          gr_asym[ig]->SetPoint(igr_asym[ig], (double)runnumber, ALL);
-          gr_asym[ig]->SetPointError(igr_asym[ig], 0., eALL);
-          igr_asym[ig]++;
-        }
-      } // ipt
+          double npp = nphoton[imul][icr][1][ipt];
+          double npm = nphoton[imul][icr][0][ipt];
+
+          int index = imul + 6*beam + 6*3*icr + 6*3*2*checkmap + 6*3*2*2*ical + 6*3*2*2*2*ipt;
+          double k2 = ken2[index];
+          double ALL = 1./pbeam*(npp - r*npm)/(npp + r*npm);
+          double eALL = sqrt(pow(2*r*npp*npm/pbeam,2)/pow(npp + r*npm,4)*(k2/npp + k2/npm + er*er/r/r)
+              + e2pbeam*ALL*ALL);
+
+          if( TMath::Finite(ALL+eALL) && eALL > 0. )
+          {
+            int ig = imul + 6*icr + 6*2*ipt;
+            gr_asym[ig]->SetPoint(igr_asym[ig], (double)runnumber, ALL);
+            gr_asym[ig]->SetPointError(igr_asym[ig], 0., eALL);
+            igr_asym[ig]++;
+          }
+        } // imul, ipt
     } // icr
 
     delete f;

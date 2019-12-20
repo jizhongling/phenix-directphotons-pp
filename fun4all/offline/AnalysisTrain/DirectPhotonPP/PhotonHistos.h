@@ -50,16 +50,14 @@ class PhotonHistos: public SubsysReco
     static const int nh_dcgood = 2;
     static const int nh_pion = 3*3*2*2*2*2*3;
     static const int nh_pion_pol = 3*2*2;
-    static const int nh_pion_bunch = 2*60;
     static const int nh_eta_phi = 3*2*2*3;
     static const int nh_1photon = 3*3*2*2*3;
-    static const int nh_1photon_pol = 3*2*2*2;
-    static const int nh_1photon_bunch = 2*60*2;
+    static const int nh_1photon_pol = 3*2*2*2*2*2;
+    static const int nh_photon_bunch = 6*2*60*2*2;
     static const int nh_2photon = 3*3*2*2*2*3;
-    static const int nh_2photon_pol = 3*2*2*2*2*2;
-    static const int nh_2photon_bunch = 2*60*2;
+    static const int nh_2photon_pol = 3*2*2*2*2*2*2;
     static const int nh_mul_pion = 3*2;
-    static const int nh_mul_photon = 5*3*2*2;
+    static const int nh_mul_photon = 6*3*2*2*2;
 
     /* pT bins for ALL */
     static const int npT_pol = 15;
@@ -82,11 +80,11 @@ class PhotonHistos: public SubsysReco
         const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert);
 
     /* Count pi0 yield */
-    int FillPi0Spectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
+    int FillPi0Spectrum(const int ical, const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
         const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert);
 
     /* Count direct photon yield */
-    int FillPhotonSpectrum(const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
+    int FillPhotonSpectrum(const int ical, const emcClusterContainer *data_emccontainer, const PHCentralTrack *data_tracks,
         const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1, const ErtOut *data_ert);
 
     /* Create histograms */
@@ -144,17 +142,14 @@ class PhotonHistos: public SubsysReco
     TH1 *h_prod;
     TH2 *h2_pion[nh_pion];
     TH2 *h2_pion_pol[nh_pion_pol];
-    TH2 *h2_pion_bunch[nh_pion_bunch];
     TH2 *h2_eta_phi[nh_eta_phi];
     TH1 *h_1photon[nh_1photon];
     TH1 *h_1photon_pol[nh_1photon_pol];
-    TH1 *h_1photon_bunch[nh_1photon_bunch];
+    TH1 *h_photon_bunch[nh_photon_bunch];
     TH2 *h2_2photon[nh_2photon];
     TH2 *h2_2photon2pt[nh_2photon];
     TH2 *h2_2photon_pol[nh_2photon_pol];
     TH2 *h2_2photon2pt_pol[nh_2photon_pol];
-    TH2 *h2_2photon_bunch[nh_2photon_bunch];
-    TH2 *h2_2photon2pt_bunch[nh_2photon_bunch];
     TH2 *h2_mul_pion_sig[nh_mul_pion];
     TH2 *h2_mul_pion_bg[nh_mul_pion];
     TH2 *h2_mul_photon[nh_mul_photon];

@@ -18,13 +18,13 @@ void draw_SelfVeto()
 
   for(int part=0; part<4; part++)
   {
-    TH1 *h_total = h3_isopair->ProjectionX("h_total", secl[part],sech[part], 1,2);
-    TH1 *h_passed = h3_isopair->ProjectionX("h_passed", secl[part],sech[part], 2,2);
-    if(part == 3)
-    {
-      h_total = h_total->Rebin(npT_pol, "h_total_pol", pTbin_pol);
-      h_passed = h_passed->Rebin(npT_pol, "h_passed_pol", pTbin_pol);
-    }
+    int npT_rebin = part<3 ? npT : npT_pol;
+    double *pTrebin = part<3 ? pTbin : pTbin_pol;
+
+    TH1 *h_total = h3_isopair->ProjectionX("h_total0", secl[part],sech[part], 1,2);
+    TH1 *h_passed = h3_isopair->ProjectionX("h_passed0", secl[part],sech[part], 2,2);
+    h_total = h_total->Rebin(npT_rebin, "h_total", pTrebin);
+    h_passed = h_passed->Rebin(npT_rebin, "h_passed", pTrebin);
 
     qt_veto->Fill(h_passed, h_total, part);
     TGraphErrors *gr = qt_veto->Graph(part);
