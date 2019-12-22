@@ -2,8 +2,8 @@
 
 void draw_IsoPhotonShuffle()
 {
-  const int ntype = 5*2*npT_pol;
-  const char *type_names[5] = {"photon", "pion-pt1-peak", "pion-pt1-side", "pion-pt2-peak", "pion-pt2-side"};
+  const int ntype = 6*2*npT_pol;
+  const char *type_names[5] = {"incphoton", "isophoton", "pion-pt1-peak", "pion-pt1-side", "pion-pt2-peak", "pion-pt2-side"};
 
   TFile *f_out = new TFile("data/IsoPhotonShuffle.root", "RECREATE");
 

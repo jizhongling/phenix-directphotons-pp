@@ -27,9 +27,6 @@ int main(int argc, char *argv[])
   ss >> taxi >> process;
 
   const int npT_pol = 15;
-  const int ical = 0;
-  const int checkmap = 1;
-  const int beam = 2;
 
   TFile *f_rlum = new TFile("data/RelLum.root");
   TTree *t_rlum = (TTree*)f_rlum->Get("T");
@@ -73,7 +70,7 @@ int main(int argc, char *argv[])
   t_all->Branch("ALL", &ALLmean, "ALL/D");
   t_all->Branch("eALL", &eALLmean, "eALL/D");
 
-  const int ngr_asym = 5*2*npT_pol;
+  const int ngr_asym = 6*2*npT_pol;
   TGraphErrors *gr_asym[ngr_asym];
   int igr_asym[ngr_asym] = {};
   for(int ig=0; ig<ngr_asym; ig++)
@@ -120,6 +117,10 @@ int main(int argc, char *argv[])
       continue;
     }
 
+    int ical = 0;
+    int checkmap = 1;
+    int beam = 2;
+
     double nphoton[6][2][2][npT_pol] = {};  // imul, icr, ipol, ipt
     for(int imul=0; imul<6; imul++)
       for(int icr=0; icr<2; icr++)
@@ -132,6 +133,10 @@ int main(int argc, char *argv[])
             for(int ipt=0; ipt<npT_pol; ipt++)
               nphoton[imul][icr][ipol][ipt] += h_photon_bunch->GetBinContent(ipt+1);
           } // icr, ib, imul
+    for(int icr=0; icr<2; icr++)
+      for(int ipol=0; ipol<2; ipol++)
+        for(int ipt=0; ipt<npT_pol; ipt++)
+          nphoton[0][icr][ipol][ipt] += nphoton[1][icr][ipol][ipt];
 
     for(int icr=0; icr<2; icr++)
     {

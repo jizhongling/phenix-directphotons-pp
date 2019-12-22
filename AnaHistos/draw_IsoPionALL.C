@@ -135,7 +135,7 @@ void draw_IsoPionALL()
 
             gr_all->SetTitle( Form("#pi^{0} %s %s",beam_list[beam],region[ibg]) );
             aset(gr_all, "p_{T} [GeV]",beam_list[beam], 0.,20., -0.2,0.4);
-            style(gr_all, 1, 1+icr+2*pattern);
+            style(gr_all, 1+icr, 1+pattern);
             gr_all->SetMarkerSize(0.);
             if(icr==0 && pattern==0)
               gr_all->Draw("AP");
