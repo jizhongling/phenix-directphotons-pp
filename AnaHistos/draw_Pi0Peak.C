@@ -22,11 +22,58 @@ void draw_Pi0Peak()
 
   SetWeight();
 
-  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/total.root");
+  TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
   TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-histo.root");
-  //TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/MissingRatio-histo.root");
 
-  THnSparse *hn_data = (THnSparse*)f_data->Get("hn_pion");
+  TH2 *h2_pion_data[2][3];
+
+  int tof = 1;
+  int prob = 1;
+  int evtype = 2;
+  int checkmap = 1;
+  int ival = 1;
+
+  //TH2 *h2_2photon_t = (TH2*)f_data->Get("h2_2photon_0");
+  //h2_2photon_t = (TH2*)h2_2photon_t->Clone();
+  //h2_2photon_t->Reset();
+
+  //for(int pttype=0; pttype<2; pttype++)
+  //{
+  //  for(int part=0; part<3; part++)
+  //  {
+  //    const char *ptname = pttype ? "2pt" : "";
+  //    h2_pion_data[pttype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_pion_data_type%d_part%d",pttype,part));
+
+  //    for(int isoboth=0; isoboth<2; isoboth++)
+  //      for(int isopair=0; isopair<2; isopair++)
+  //      {
+  //        int ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isoboth + 3*3*2*2*isopair + 3*3*2*2*2*ival;
+  //        TH2 *h2_tmp = (TH2*)f_data->Get(Form("h2_2photon%s_%d",ptname,ih));
+  //        h2_pion_data[pttype][part]->Add(h2_tmp);
+  //      } // isoboth, isopair
+  //  }
+  //  h2_pion_data[pttype][0]->Add(h2_pion_data[pttype][1]);
+  //  h2_pion_data[pttype][1] = h2_pion_data[pttype][2];
+  //}
+
+  TH2 *h2_pion_t = (TH2*)f_data->Get("h2_pion_0");
+  h2_pion_t = (TH2*)h2_pion_t->Clone();
+  h2_pion_t->Reset();
+
+  for(int part=0; part<3; part++)
+  {
+    h2_pion_data[1][part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_data_part%d",part));
+
+    for(int isolated=0; isolated<2; isolated++)
+    {
+      int ih = part + 3*evtype + 3*3*tof + 3*3*2*prob + 3*3*2*2*checkmap + 3*3*2*2*2*isolated + 3*3*2*2*2*2*ival;
+      TH2 *h2_tmp = (TH2*)f_data->Get(Form("h2_pion_%d",ih));
+      h2_pion_data[1][part]->Add(h2_tmp);
+    } // isolated
+  }
+  h2_pion_data[1][0]->Add(h2_pion_data[1][1]);
+  h2_pion_data[1][1] = h2_pion_data[1][2];
+
   THnSparse *hn_sim = (THnSparse*)f_sim->Get("hn_pion");
 
   mc(4, 2,2);
@@ -36,16 +83,13 @@ void draw_Pi0Peak()
     for(int ipt=0; ipt<npT; ipt++)
     {
       double xx = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
-      double ww = cross->Eval(xx);
+      double ww = cross_pi0->Eval(xx);
       double mass, emass, width, ewidth;
       TH1 *h_minv;
 
       mcd(part*2, ipt+1);
-      hn_data->GetAxis(4)->SetRange(3,3);
-      hn_data->GetAxis(3)->SetRange(4,4);
-      hn_data->GetAxis(0)->SetRange(secl[part],sech[part]);
-      hn_data->GetAxis(1)->SetRange(ipt+1,ipt+1);
-      h_minv = hn_data->Projection(2);
+      h2_pion_data[1][part]->GetXaxis()->SetRange(ipt+1,ipt+1);
+      h_minv = (TH1*)h2_pion_data[1][part]->ProjectionY()->Clone();
       h_minv->Rebin(10);
       if( GetMassWidth(h_minv, mass, emass, width, ewidth) )
       {

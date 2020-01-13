@@ -84,7 +84,7 @@ int AnaPHPythiaHistos::process_event(PHCompositeNode *topNode)
   h2_proc_pt->Fill(pt_event, (double)proc_id);
 
   /* Uncomment when only calculate the weights */
-  return EVENT_OK;
+  //return EVENT_OK;
 
   /* Get PYTHIA Particles */
   phpythia = findNode::getClass<PHPythiaContainer>(topNode,"PHPythia");

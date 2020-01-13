@@ -72,6 +72,10 @@ AnaFastMC::AnaFastMC(const string &name):
   SubsysReco(name),
   outFileName("histos/AnaFastMC-"),
   mcmethod(FastMC),
+  calcsys(false),
+  sysengl(false),
+  sysenlin(false),
+  sysgeom(false),
   phpythia(nullptr),
   weight_pythia(1.),
   ptweights(nullptr),
@@ -87,10 +91,9 @@ AnaFastMC::AnaFastMC(const string &name):
   hn_pion(nullptr),
   hn_missing(nullptr),
   hn_missing_eta(nullptr),
-  hn_hadron(nullptr),
   hn_photon(nullptr),
-  hn_geom(nullptr),
-  hn_isolated(nullptr)
+  hn_hadron(nullptr),
+  hn_geom(nullptr)
 {
   /* Initialize histograms */
   for(int ih=0; ih<nh_eta_phi; ih++)
@@ -425,116 +428,180 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
   /* Set DC deadmap */
   dcdeadmap->SetMapByEvent();
 
-  /* Loop over all signal particles */
-  int npart = phpythia->size();
-  for(int ipart=0; ipart<npart; ipart++)
+  /* Systematic switches */
+  bool *sys[3] = {&sysengl, &sysenlin, &sysgeom};
+
+  for(int isys=0; isys<(calcsys?4:1); isys++)
   {
-    TMCParticle *particle = phpythia->getParticle(ipart);
-    TMCParticle *parent = phpythia->getParent(particle);
-
-    /* Get particle code */
-    int id = abs(particle->GetKF());
-    int pid = parent ? abs(parent->GetKF()) : -1;
-
-    /* Put particle's momentum and energy into TLorentzVector */
-    TLorentzVector pE_part(particle->GetPx(), particle->GetPy(), particle->GetPz(), particle->GetEnergy());
-    double pt = pE_part.Pt();
-    double eta = fabs(pE_part.Eta());
-    double ppt = parent ? TVector2(parent->GetPx(),parent->GetPy()).Mod() : 0.;
-
-    /* Only consider high-pT stable photons */
-    if( (pt < 2. && ppt < 2.) ||
-        id != PY_GAMMA ||
-        particle->GetKS() != 1 )
-      continue;
-
-    /* Photons from different hadrons
-     * fill_hn_hadron[2] = 0(prompt photon), 1(isolated prompt photon),
-     *                     2(pi0), 3(eta), 4(omega), 5(eta prime) */
-    double fill_hn_hadron[] = {ppt, eta, -1.};
-
-    if( pid == PY_PIZERO )
-      fill_hn_hadron[2] = 2.;
-    else if( pid == PY_ETA )
-      fill_hn_hadron[2] = 3.;
-    else if( pid == 223 )  // omega
-      fill_hn_hadron[2] = 4.;
-    else if( pid == 331 )  // eta prime
-      fill_hn_hadron[2] = 5.;
-
-    /* Fill histogram for photons from intrested hadrons */
-    if( fill_hn_hadron[2] > 0. )
-      hn_hadron->Fill(fill_hn_hadron, weight_pythia);
-
-    /* Test if particle is a prompt photon */
-    if( pid > 100 )
-      continue;
-
-    /* Fill Vpart[], itwr_part[] and sec_part[]
-     * and set NPart and NPeak */
-    photon_sim(pE_part);
-
-    /* Copy parameters for reconstructed photon */
-    bool InAcc = emcwarnmap->InFiducial(itw_part[0]);
-    int sec1 = sec_part[0];
-    TLorentzVector pE_reco(Vpart[0]);
-
-    /* Get isolation cone energy */
-    double econe_all, econe_acc[3];
-    SumETruth(particle, InAcc, econe_all, econe_acc);
-
-    /* Fill histogram for prompt photons */
-    fill_hn_hadron[0] = pt;
-    fill_hn_hadron[2] = 0.;
-    hn_hadron->Fill(fill_hn_hadron, weight_pythia);
-
-    /* Fill histogram for isolated prompt photons */
-    if( econe_all < eratio * pE_part.E() )
+    for(int jsys=0; jsys<3; jsys++)
     {
-      fill_hn_hadron[2] = 1.;
-      hn_hadron->Fill(fill_hn_hadron, weight_pythia);
-    }
+      if(isys == 0)
+        *sys[jsys] = false;
+      else if(jsys == isys-1)
+        *sys[jsys] = true;
+      else
+        *sys[jsys] = false;
+    } // jsys
 
-    /* Fill histogram for prompt photons in accpetance */
-    if( InAcc )
+    /* Loop over all signal particles */
+    int npart = phpythia->size();
+    for(int ipart=0; ipart<npart; ipart++)
     {
-      /* Parameters for prompt photon */
-      double ptsim = pE_reco.Pt();
+      TMCParticle *particle = phpythia->getParticle(ipart);
+      TMCParticle *parent = phpythia->getParent(particle);
 
-      /* All prompt photons in acceptance */
-      double fill_hn_geom[] = {pt, ptsim, (double)sec1};
-      hn_geom->Fill(fill_hn_geom, weight_pythia);
+      /* Get particle code */
+      int id = abs(particle->GetKF());
+      int pid = parent ? abs(parent->GetKF()) : -1;
 
-      /* Eta and phi distribution and acceptance for isolated prompt photons */
-      int part = -1;
-      if(sec1 < 0) part = -1;
-      else if(sec1 < 4) part = 0;
-      else if(sec1 < 6) part = 1;
-      else if(sec1 < 8) part = 2;
+      /* Put particle's momentum and energy into TLorentzVector */
+      TLorentzVector pE_part(particle->GetPx(), particle->GetPy(), particle->GetPz(), particle->GetEnergy());
+      double pt = pE_part.Pt();
+      double eta = fabs(pE_part.Eta());
+      double ppt = parent ? TVector2(parent->GetPx(),parent->GetPy()).Mod() : 0.;
 
-      double eta = pE_reco.Eta();
-      double phi = pE_reco.Phi();
-      if(sec1 >= 4)
+      /* Consider high-pT stable photon */
+      if( (pt > 2. || ppt > 2.) &&
+          id == PY_GAMMA &&
+          particle->GetKS() == 1 )
       {
-        pE_reco.RotateZ(-PI);
-        phi = pE_reco.Phi() + PI;
-      }
+        /* Fill Vpart[], itwr_part[] and sec_part[]
+         * and set NPart and NPeak */
+        photon_sim(pE_part);
 
-      for(int ival=0; ival<3; ival++)
-        if( econe_acc[ival] < eratio * pE_part.P() &&
-            pE_reco.P() > eMin )
+        /* Copy parameters for reconstructed photon */
+        bool InAcc = emcwarnmap->InFiducial(itw_part[0]);
+        int sector = sec_part[0];
+        TLorentzVector pE_reco(Vpart[0]);
+
+        /* Get isolation cone energy */
+        double econe_all, econe_acc[3];
+        SumETruth(particle, InAcc, econe_all, econe_acc);
+
+        /* Photons from different hadrons
+         * fill_hn_hadron[2] = 0(prompt photon), 1(isolated prompt photon),
+         *                     2(pi0), 3(eta), 4(omega), 5(eta prime) */
+        double fill_hn_hadron[] = {ppt, eta, -10.};
+
+        if( pid < 100 )  // prompt photon
         {
-          if( part >= 0 && ptsim > 5. && ptsim < 10. )
+          fill_hn_hadron[0] = pt;
+          fill_hn_hadron[2] = 0.;
+          if( econe_all < eratio * pE_part.E() )
+            fill_hn_hadron[2] = 1.;
+        }
+        else if( pid == PY_PIZERO )
+          fill_hn_hadron[2] = 2.;
+        else if( pid == PY_ETA )
+          fill_hn_hadron[2] = 3.;
+        else if( pid == 223 )  // omega
+          fill_hn_hadron[2] = 4.;
+        else if( pid == 331 )  // eta prime
+          fill_hn_hadron[2] = 5.;
+
+        /* Fill histogram for photons from intrested hadrons */
+        if( isys == 0 && fill_hn_hadron[2] > -1. )
+          hn_hadron->Fill(fill_hn_hadron, weight_pythia);
+
+        /* Fill histogram for photons in accpetance */
+        if( InAcc )
+        {
+          /* Parameters for photons */
+          double ptsim = pE_reco.Pt();
+
+          int part = -1;
+          if(sector < 0) part = -1;
+          else if(sector < 4) part = 0;
+          else if(sector < 6) part = 1;
+          else if(sector < 8) part = 2;
+
+          double eta = pE_reco.Eta();
+          double phi = pE_reco.Phi();
+          if(sector >= 4)
           {
-            int ih = part + 3*ival;
-            h2_photon_eta_phi[ih]->Fill(-eta, phi, weight_pythia);
+            pE_reco.RotateZ(-PI);
+            phi = pE_reco.Phi() + PI;
           }
 
-          double fill_hn_isolated[] = {pt, ptsim, (double)sec1, (double)ival};
-          hn_isolated->Fill(fill_hn_isolated, weight_pythia);
-        } // Iso & e1
-    } // InFiducial
-  } // ipart
+          if( isys == 0 && pid < 100 )
+          {
+            /* All prompt photons in acceptance */
+            double fill_hn_geom[] = {pt, ptsim, (double)sector};
+            hn_geom->Fill(fill_hn_geom, weight_pythia);
+          }
+
+          if( pE_reco.P() > eMin )
+            for(int ival=0; ival<3; ival++)
+            {
+              int isolated = 0;
+              if( econe_acc[ival] < eratio * pE_part.P() )
+                isolated = 1;
+
+              if( isys == 0 && part >= 0 &&
+                  pid < 100 && isolated &&
+                  ptsim > 5. && ptsim < 10. )
+              {
+                /* Eta and phi distribution and acceptance for isolated prompt photons */
+                int ih = part + 3*ival;
+                h2_photon_eta_phi[ih]->Fill(-eta, phi, weight_pythia);
+              }
+
+              double fill_hn_photon[] = {pt, ptsim, (double)sector, (double)isolated, (double)ival, (double)isys};
+              hn_photon->Fill(fill_hn_photon, weight_pythia);
+
+              /* Consider systematic errors for partner photon from pi0 */
+              if( calcsys && pid == PY_PIZERO &&
+                  phpythia->getChildNumber(parent) == 2 )
+              {
+                TMCParticle *partner = phpythia->getChild(parent,0);
+                if( partner == particle )
+                  partner = phpythia->getChild(parent,1);
+
+                /* Put partner's momentum and energy into TLorentzVector */
+                TLorentzVector pE_partner(partner->GetPx(), partner->GetPy(), partner->GetPz(), partner->GetEnergy());
+
+                /* Fill Vpart[], itwr_part[] and sec_part[]
+                 * and set NPart and NPeak */
+                photon_sim(pE_partner);
+
+                /* Copy parameters for reconstructed photon */
+                bool InAcc2 = emcwarnmap->IsGoodTower(itw_part[0]);
+                TLorentzVector pE_reco2(Vpart[0]);
+
+                /* Partner should be stable photon and in acceptance */
+                if( partner->GetKF() == PY_GAMMA &&
+                    partner->GetKS() == 1 &&
+                    InAcc2 &&
+                    pE_reco2.P() > eMin )
+                {
+                  TLorentzVector pPi0 = pE_reco + pE_reco2;
+                  double ptPi0 = pPi0.Pt();
+                  double minv = pPi0.M()*mcorr;
+
+                  /* Check if partner within cone */
+                  double econe_pair = econe_acc[ival];
+                  TVector2 v2_particle = pE_part.EtaPhiVector();
+                  TVector2 v2_partner = pE_partner.EtaPhiVector();
+                  TVector2 v2_diff(v2_partner - v2_particle);
+                  if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+                  else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+                  if( v2_diff.Mod() < cone_angle )
+                    econe_pair -= pE_partner.P();
+
+                  int isopair = 0;
+                  if( econe_pair < eratio * pE_part.P() )
+                    isopair = 1;
+
+                  double fill_hn_pion[] = {ptsim, ptPi0, minv, (double)sector,
+                    (double)isolated, (double)isopair, (double)ival, (double)isys};
+                  hn_pion->Fill(fill_hn_pion, weight_pythia);
+                } // partner is photon
+              } // pi0 has two daughters
+            } // ival
+        } // InFiducial
+      } // high-pt stable photon
+    } // ipart
+  } // isys
 
   return;
 }
@@ -716,16 +783,6 @@ void AnaFastMC::BookHistograms()
     hm->registerHisto(h2_photon_eta_phi[ih]);
   }
 
-  const int nbins_hn_photon[] = {npT, npT, 8};
-  const double xmin_hn_photon[] = {0., 0., -0.5};
-  const double xmax_hn_photon[] = {0., 0., 7.5};
-  hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;",
-      3, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
-  hn_photon->SetBinEdges(0, pTbin);
-  hn_photon->SetBinEdges(1, pTbin);
-  hn_photon->Sumw2();
-  hm->registerHisto(hn_photon);
-
   /* Use FastMC input */
   if( mcmethod == FastMC )
   {
@@ -773,12 +830,28 @@ void AnaFastMC::BookHistograms()
     hn_missing_eta->SetTitle("#eta missing ratio;p^{#eta}_{T} [GeV];p^{#gamma}_{T};sector;NPart;NPeak;");
     hn_missing_eta->Sumw2();
     hm->registerHisto(hn_missing_eta);
+
+    const int nbins_hn_photon[] = {npT, npT, 8};
+    const double xmin_hn_photon[] = {0., 0., -0.5};
+    const double xmax_hn_photon[] = {0., 0., 7.5};
+    hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;",
+        3, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
+    hn_photon->SetBinEdges(0, pTbin);
+    hn_photon->SetBinEdges(1, pTbin);
+    hn_photon->Sumw2();
+    hm->registerHisto(hn_photon);
   }
 
   /* Use PHParticleGen input */
   if( mcmethod == PHParticleGen )
   {
-    hn_geom = (THnSparse*)hn_photon->Clone("hn_geom");
+    const int nbins_hn_geom[] = {npT, npT, 8};
+    const double xmin_hn_geom[] = {0., 0., -0.5};
+    const double xmax_hn_geom[] = {0., 0., 7.5};
+    hn_geom = new THnSparseF("hn_geom", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;",
+        3, nbins_hn_geom, xmin_hn_geom, xmax_hn_geom);
+    hn_geom->SetBinEdges(0, pTbin);
+    hn_geom->SetBinEdges(1, pTbin);
     hn_geom->Sumw2();
     hm->registerHisto(hn_geom);
 
@@ -791,15 +864,25 @@ void AnaFastMC::BookHistograms()
     hn_hadron->Sumw2();
     hm->registerHisto(hn_hadron);
 
-    const int nbins_hn_isolated[] = {npT, npT, 8, 3};
-    const double xmin_hn_isolated[] = {0., 0., -0.5, -0.5};
-    const double xmax_hn_isolated[] = {0., 0., 7.5, 2.5};
-    hn_isolated = new THnSparseF("hn_isolated", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;ival;",
-        4, nbins_hn_isolated, xmin_hn_isolated, xmax_hn_isolated);
-    hn_isolated->SetBinEdges(0, pTbin);
-    hn_isolated->SetBinEdges(1, pTbin);
-    hn_isolated->Sumw2();
-    hm->registerHisto(hn_isolated);
+    const int nbins_hn_photon[] = {npT, npT, 8, 2, 3, 3};
+    const double xmin_hn_photon[] = {0., 0., -0.5, -0.5, -0.5, -0.5};
+    const double xmax_hn_photon[] = {0., 0., 7.5, 1.5, 2.5, 2.5};
+    hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;isolated;ival;isys;",
+        6, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
+    hn_photon->SetBinEdges(0, pTbin);
+    hn_photon->SetBinEdges(1, pTbin);
+    hn_photon->Sumw2();
+    hm->registerHisto(hn_photon);
+
+    const int nbins_hn_pion[] = {npT, npT, 300, 8, 2, 2, 3, 3};
+    const double xmin_hn_pion[] = {0., 0., 0., -0.5, -0.5, -0.5, -0.5, -0.5};
+    const double xmax_hn_pion[] = {0., 0., 0.3, 7.5, 1.5, 1.5, 2.5, 2.5};
+    hn_pion = new THnSparseF("hn_pion", "EMCal pion count;p_{T} photon [GeV];p_{T} pi0 [GeV];m_{inv} [GeV];sector;isolated;isopair;ival;isys;",
+        8, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
+    hn_pion->SetBinEdges(0, pTbin);
+    hn_pion->SetBinEdges(1, pTbin);
+    hn_pion->Sumw2();
+    hm->registerHisto(hn_pion);
   }
 
   return;
@@ -1225,9 +1308,12 @@ bool AnaFastMC::GetImpactSectorTower(double px, double py, double pz,
 
   //  printf("E=%f: (%f,%f)  (%f,%f)\n",vv.Mag(),zsec,ysec,dz,dy);
 
-  // Systematics in position measurements
-  //  ysec *= 1.01;
-  //  zsec *= 1.01;
+  if(sysgeom)
+  {
+    // Systematics in position measurements
+    ysec *= 1.01;
+    zsec *= 1.01;
+  }
 
   if( zsec <= zsec_min || ysec <= ysec_min ) {
     sec = -1;
@@ -1368,7 +1454,8 @@ bool AnaFastMC::GetShower(double px, double py, double pz, double& eout, int& it
     }
   }
   eout = ecore*en/esum; // normalization to real shower energy
-  eout /= corr; // tune to data global calibration
+  if(!sysengl)
+    eout /= corr; // tune to data global calibration
 
   for( int iy=-2; iy<=2; iy++ ) {
     for( int iz=-2; iz<=2; iz++ ) {
@@ -1387,21 +1474,21 @@ bool AnaFastMC::Gamma_En(double px, double py, double pz, double& eout, int& itw
   // PbSc
   static double a_sc = 0.078; // official
   //  const double b_sc = 0.030; // sigma/E = a/sqrt(E) + b, official
-  //  static double b_sc = 0.055; // sigma/E = a/sqrt(E) + b
-  static double b_sc = 0.040; // sigma/E = a/sqrt(E) + b, for eta
+  static double b_sc = 0.055; // sigma/E = a/sqrt(E) + b
+  //  static double b_sc = 0.040; // sigma/E = a/sqrt(E) + b, for eta
   static double bc_sc = 0.012; // this is artificial const. term introduced by ecore calculations in GetShower(...); should be subtracted when GetShower(...) used
   static double cnoise_sc = 0.015; // Noise term
-  //  static double corr_sc = 1.000; // For Gamma
-  static double corr_sc = 1.011; // for MB
+  static double corr_sc = 1.000; // For Gamma
+  //  static double corr_sc = 1.011; // for MB
 
   // PbGl
   static double a_gl = 0.085;
-  //  static double b_gl = 0.065; // for pi0
-  static double b_gl = 0.037; // for eta
+  static double b_gl = 0.065; // for pi0
+  //  static double b_gl = 0.037; // for eta
   static double bc_gl = 0.;
   static double cnoise_gl = 0.030; // Noise term
-  //  static double corr_gl = 1.007;
-  static double corr_gl = 1.009;
+  static double corr_gl = 1.007;
+  //  static double corr_gl = 1.009;
 
   double a, b, bc, corr, cnoise;
 
@@ -1438,7 +1525,7 @@ bool AnaFastMC::Gamma_En(double px, double py, double pz, double& eout, int& itw
   }
 
   if(cnoise);
-  //  double res = sqrt(a*a*ein + b*b*ein*ein + cnoise*cnoise);
+  //double res = sqrt(a*a*ein + b*b*ein*ein + cnoise*cnoise);
   //  double res = sqrt(a*a*ein + b*b*ein*ein + 0.03*0.03);
   double res = sqrt(a*a*ein + b*b*ein*ein - bc*bc*ein*ein);
   //    res = sqrt(a*a*ein + b*b*ein*ein - bc*bc*ein*ein + 0.03*0.03);
@@ -1459,17 +1546,20 @@ bool AnaFastMC::Gamma_En(double px, double py, double pz, double& eout, int& itw
     return false;
   }
 
-  //  if(sec>5) et1 *= (1-0.135644*exp(-1.10904*et1)); // Add'l attenuation for PbGl
-  //  if(sec>5) et1 *= 1.; // Add'l attenuation for PbGl
-  //  if(sec>5) et1 *= pow(et1/2,+2./500.); // Add'l attenuation for PbGl
-  //  if(sec>5) et1 *= pow(et1/2,+2./150.); // Add'l attenuation for PbGl
-  if(sec>5) et1 *= pow(et1/2,+2./120.); // Add'l attenuation for PbGl
-  else et1 *= pow(et1,-2./800.); // Add'l attenuation for PbSc
-  //  else et1 *= pow(et1/2,+2./9999999.); // Add'l attenuation for PbSc; normalization for 2 GeV
+  if(!sysenlin)
+  {
+    //  if(sec>5) et1 *= (1-0.135644*exp(-1.10904*et1)); // Add'l attenuation for PbGl
+    //  if(sec>5) et1 *= 1.; // Add'l attenuation for PbGl
+    //  if(sec>5) et1 *= pow(et1/2,+2./500.); // Add'l attenuation for PbGl
+    //  if(sec>5) et1 *= pow(et1/2,+2./150.); // Add'l attenuation for PbGl
+    if(sec>5) et1 *= pow(et1/2,+2./120.); // Add'l attenuation for PbGl
+    else et1 *= pow(et1,-2./800.); // Add'l attenuation for PbSc
+    //  else et1 *= pow(et1/2,+2./9999999.); // Add'l attenuation for PbSc; normalization for 2 GeV
 
-  // Non-linearity near pedestal/threshold (data is undercorrected for it)
-  if( sec<=5 ) et1 *= (1-0.003/et1/et1); 
-  else         et1 *= (1-0.005/et1/et1);
+    // Non-linearity near pedestal/threshold (data is undercorrected for it)
+    if( sec<=5 ) et1 *= (1-0.003/et1/et1); 
+    else         et1 *= (1-0.005/et1/et1);
+  }
 
   // Shower overlap effect
   /*

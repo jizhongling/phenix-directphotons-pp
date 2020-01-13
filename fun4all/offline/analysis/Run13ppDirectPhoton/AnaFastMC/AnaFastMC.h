@@ -41,6 +41,7 @@ class AnaFastMC: public SubsysReco
     void SetWeightPythia(double weight) { weight_pythia = weight; }
     void set_outfile(std::string filename) { outFileName = filename; }
     void set_mcmethod(MCMethod method) { mcmethod = method; }
+    void enable_calcsys(bool calc = true) { calcsys = calc; }
 
   protected:
     static const int MAXPEAK = 2;
@@ -88,6 +89,11 @@ class AnaFastMC: public SubsysReco
     std::string outFileName;
     MCMethod mcmethod;
 
+    bool calcsys;
+    bool sysengl;
+    bool sysenlin;
+    bool sysgeom;
+
     /* Tower status for sim warnmap */
     int tower_status_sim[NSEC][NY][NZ];
 
@@ -120,10 +126,9 @@ class AnaFastMC: public SubsysReco
     THnSparse* hn_pion;
     THnSparse* hn_missing;
     THnSparse* hn_missing_eta;
-    THnSparse *hn_hadron;
     THnSparse *hn_photon;
+    THnSparse *hn_hadron;
     THnSparse *hn_geom;
-    THnSparse *hn_isolated;
 };
 
 #endif	/* __ANAFASTMC_H__ */

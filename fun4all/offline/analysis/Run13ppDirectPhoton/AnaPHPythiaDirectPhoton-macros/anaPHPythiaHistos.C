@@ -24,7 +24,7 @@ void anaPHPythiaHistos(const int process = 0)
   se->registerSubsystem(sync);
 
   PHPythia *phpythia = new PHPythia();
-  phpythia->SetConfigFile("pythia_purehard.cfg");
+  //phpythia->SetConfigFile("pythia_purehard.cfg");
   
   // Set your own seed, otherwise, seeds from /dev/random
   //phpythia->SetSeed(1999);			
