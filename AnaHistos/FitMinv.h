@@ -20,6 +20,22 @@ bool FitMinv(TH1 *h_minv, double &npion, double &enpion,
   if( max <= 0. )
     return false;
 
+  double nsig = 0.;
+  double e2nsig = 0.;
+  for(int ib=binC1; ib<binC2; ib++)
+  {
+    nsig += h_minv->GetBinContent(ib);
+    double ensig = h_minv->GetBinError(ib);
+    e2nsig += ensig*ensig;
+  }
+
+  if(!bsub)
+  {
+    npion = nsig;
+    enpion = sqrt(e2nsig);
+    return true;
+  }
+
   aset(h_minv, "m_{inv} [GeV]","", 0.,0.3, 0.,1.1*max);
 
   TF1 *fn_fit = new TF1("fn_fit", "gaus(0) + pol2(3)", l1, r2);
@@ -39,32 +55,19 @@ bool FitMinv(TH1 *h_minv, double &npion, double &enpion,
   fn_fit->DrawCopy("SAME");
   fn_bg->DrawCopy("SAME");
 
-  double nsig = 0.;
-  double e2nsig = 0.;
   double nbg = 0.;
   double e2nbg = 0.;
   for(int ib=binC1; ib<binC2; ib++)
   {
-    nsig += h_minv->GetBinContent(ib);
-    double ensig = h_minv->GetBinError(ib);
-    e2nsig += ensig*ensig;
     double bincenter = h_minv->GetXaxis()->GetBinCenter(ib);
     nbg += fn_bg->Eval(bincenter);
     if(nsig > 0.)
       e2nbg += nbg*e2nsig/nsig;
   }
 
-  if(bsub)
-  {
-    double rbg = nbg/nsig;
-    npion = nsig*(1-rbg);
-    enpion = sqrt(e2nsig*(1-rbg)*(1-rbg) + e2nbg);
-  }
-  else
-  {
-    npion = nsig;
-    enpion = sqrt(e2nsig);
-  }
+  double rbg = nbg/nsig;
+  npion = nsig*(1-rbg);
+  enpion = sqrt(e2nsig*(1-rbg)*(1-rbg) + e2nbg);
 
   delete fn_fit;
   delete fn_bg;

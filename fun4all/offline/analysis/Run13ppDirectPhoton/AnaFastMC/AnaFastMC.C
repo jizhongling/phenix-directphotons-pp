@@ -576,7 +576,6 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
                     pE_reco2.P() > eMin )
                 {
                   TLorentzVector pPi0 = pE_reco + pE_reco2;
-                  double ptPi0 = pPi0.Pt();
                   double minv = pPi0.M()*mcorr;
 
                   /* Check if partner within cone */
@@ -593,7 +592,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
                   if( econe_pair < eratio * pE_part.P() )
                     isopair = 1;
 
-                  double fill_hn_pion[] = {ptsim, ptPi0, minv, (double)sector,
+                  double fill_hn_pion[] = {pt, ptsim, minv, (double)sector,
                     (double)isolated, (double)isopair, (double)ival, (double)isys};
                   hn_pion->Fill(fill_hn_pion, weight_pythia);
                 } // partner is photon
@@ -878,7 +877,7 @@ void AnaFastMC::BookHistograms()
     const int nbins_hn_pion[] = {npT, npT, 300, 8, 2, 2, 3, 3};
     const double xmin_hn_pion[] = {0., 0., 0., -0.5, -0.5, -0.5, -0.5, -0.5};
     const double xmax_hn_pion[] = {0., 0., 0.3, 7.5, 1.5, 1.5, 2.5, 2.5};
-    hn_pion = new THnSparseF("hn_pion", "EMCal pion count;p_{T} photon [GeV];p_{T} pi0 [GeV];m_{inv} [GeV];sector;isolated;isopair;ival;isys;",
+    hn_pion = new THnSparseF("hn_pion", "EMCal pion count;p_{T} truth [GeV];p_{T} reco [GeV];m_{inv} [GeV];sector;isolated;isopair;ival;isys;",
         8, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
     hn_pion->SetBinEdges(0, pTbin);
     hn_pion->SetBinEdges(1, pTbin);

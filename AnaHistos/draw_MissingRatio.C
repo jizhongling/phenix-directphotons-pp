@@ -3,9 +3,9 @@
 
 void draw_MissingRatio()
 {
-  const int secl[4] = {1, 5, 7, 1};
-  const int sech[4] = {4, 6, 8, 8};
-  const char *pname[4] = {"PbSc west", "PbSc east", "PbGl", "Combined"};
+  const int secl[5] = {1, 5, 7, 1, 1};
+  const int sech[5] = {4, 6, 8, 8, 8};
+  const char *pname[5] = {"PbSc west", "PbSc east", "PbGl", "Combined", "Combined"};
 
   QueryTree *qt_miss = new QueryTree("data/MissingRatio.root", "RECREATE");
   QueryTree *qt_miss_eta = new QueryTree("data/MissingRatio-eta.root", "RECREATE");
@@ -22,10 +22,10 @@ void draw_MissingRatio()
   mc(1, 2,1);
   legi(1, 0.2,0.7,0.4,0.9);
 
-  for(int part=0; part<4; part++)
+  for(int part=0; part<5; part++)
   {
-    int npT_rebin = part<3 ? npT : npT_pol;
-    double *pTrebin = part<3 ? pTbin : pTbin_pol;
+    int npT_rebin = part<4 ? npT : npT_pol;
+    double *pTrebin = part<4 ? pTbin : pTbin_pol;
 
     mcd(0, 1);
 

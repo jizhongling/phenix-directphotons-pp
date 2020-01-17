@@ -104,11 +104,11 @@ void draw_BgRatio_IsoPhoton()
         } // isotype
 
         double Miss, eMiss, MissEta, eMissEta, Merge1, eMerge1, Merge2, eMerge2, BadPass, eBadPass, Veto, eVeto;
-        qt_miss->Query(ipt, 3, xpt, Miss, eMiss);
-        qt_miss_eta->Query(ipt, 3, xpt, MissEta, eMissEta);
-        qt_merge1->Query(ipt, 3, xpt, Merge1, eMerge1);
-        qt_merge2->Query(ipt, 3, xpt, Merge2, eMerge2);
-        qt_badpass->Query(ipt, 2, xpt, BadPass, eBadPass);
+        qt_miss->Query(ipt, 4, xpt, Miss, eMiss);
+        qt_miss_eta->Query(ipt, 4, xpt, MissEta, eMissEta);
+        qt_merge1->Query(ipt, 4, xpt, Merge1, eMerge1);
+        qt_merge2->Query(ipt, 4, xpt, Merge2, eMerge2);
+        qt_badpass->Query(ipt, 3, xpt, BadPass, eBadPass);
         qt_veto->Query(ipt, 3, xpt, Veto, eVeto);
         if(xpt < 12.)
         {
