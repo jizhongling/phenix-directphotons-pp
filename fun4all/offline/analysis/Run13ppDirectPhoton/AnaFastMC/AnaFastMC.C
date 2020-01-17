@@ -521,6 +521,7 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
           {
             pE_reco.RotateZ(-PI);
             phi = pE_reco.Phi() + PI;
+            pE_reco.RotateZ(PI);
           }
 
           if( isys == 0 && pid < 100 )
@@ -1474,21 +1475,21 @@ bool AnaFastMC::Gamma_En(double px, double py, double pz, double& eout, int& itw
   // PbSc
   static double a_sc = 0.078; // official
   //  const double b_sc = 0.030; // sigma/E = a/sqrt(E) + b, official
-  static double b_sc = 0.055; // sigma/E = a/sqrt(E) + b
-  //  static double b_sc = 0.040; // sigma/E = a/sqrt(E) + b, for eta
+  //  static double b_sc = 0.055; // sigma/E = a/sqrt(E) + b
+  static double b_sc = 0.040; // sigma/E = a/sqrt(E) + b, for eta
   static double bc_sc = 0.012; // this is artificial const. term introduced by ecore calculations in GetShower(...); should be subtracted when GetShower(...) used
   static double cnoise_sc = 0.015; // Noise term
-  static double corr_sc = 1.000; // For Gamma
-  //  static double corr_sc = 1.011; // for MB
+  //  static double corr_sc = 1.000; // For Gamma
+  static double corr_sc = 1.011; // for MB
 
   // PbGl
   static double a_gl = 0.085;
-  static double b_gl = 0.065; // for pi0
-  //  static double b_gl = 0.037; // for eta
+  //  static double b_gl = 0.065; // for pi0
+  static double b_gl = 0.037; // for eta
   static double bc_gl = 0.;
   static double cnoise_gl = 0.030; // Noise term
-  static double corr_gl = 1.007;
-  //  static double corr_gl = 1.009;
+  //  static double corr_gl = 1.007;
+  static double corr_gl = 1.009;
 
   double a, b, bc, corr, cnoise;
 
@@ -1525,7 +1526,7 @@ bool AnaFastMC::Gamma_En(double px, double py, double pz, double& eout, int& itw
   }
 
   if(cnoise);
-  //double res = sqrt(a*a*ein + b*b*ein*ein + cnoise*cnoise);
+  //  double res = sqrt(a*a*ein + b*b*ein*ein + cnoise*cnoise);
   //  double res = sqrt(a*a*ein + b*b*ein*ein + 0.03*0.03);
   double res = sqrt(a*a*ein + b*b*ein*ein - bc*bc*ein*ein);
   //    res = sqrt(a*a*ein + b*b*ein*ein - bc*bc*ein*ein + 0.03*0.03);

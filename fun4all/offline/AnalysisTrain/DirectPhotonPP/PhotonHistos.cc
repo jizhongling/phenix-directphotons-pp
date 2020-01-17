@@ -911,6 +911,7 @@ int PhotonHistos::FillPhotonSpectrum(const int ical, const emcClusterContainer *
               {
                 pE.RotateZ(-PI);
                 phi = pE.Phi() + PI;
+                pE.RotateZ(PI);
               }
 
               int ih = part + 3*checkmap + 3*2*isolated[ival] + 3*2*2*ival;

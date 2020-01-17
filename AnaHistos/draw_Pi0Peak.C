@@ -23,7 +23,7 @@ void draw_Pi0Peak()
   SetWeight();
 
   TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
-  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-histo.root");
+  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-syserr.root");
 
   TH2 *h2_pion_data[2][3];
 
@@ -33,48 +33,50 @@ void draw_Pi0Peak()
   int checkmap = 1;
   int ival = 1;
 
-  //TH2 *h2_2photon_t = (TH2*)f_data->Get("h2_2photon_0");
-  //h2_2photon_t = (TH2*)h2_2photon_t->Clone();
-  //h2_2photon_t->Reset();
+  TH2 *h2_2photon_t = (TH2*)f_data->Get("h2_2photon_0");
+  h2_2photon_t = (TH2*)h2_2photon_t->Clone();
+  h2_2photon_t->Reset();
 
-  //for(int pttype=0; pttype<2; pttype++)
-  //{
-  //  for(int part=0; part<3; part++)
-  //  {
-  //    const char *ptname = pttype ? "2pt" : "";
-  //    h2_pion_data[pttype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_pion_data_type%d_part%d",pttype,part));
-
-  //    for(int isoboth=0; isoboth<2; isoboth++)
-  //      for(int isopair=0; isopair<2; isopair++)
-  //      {
-  //        int ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isoboth + 3*3*2*2*isopair + 3*3*2*2*2*ival;
-  //        TH2 *h2_tmp = (TH2*)f_data->Get(Form("h2_2photon%s_%d",ptname,ih));
-  //        h2_pion_data[pttype][part]->Add(h2_tmp);
-  //      } // isoboth, isopair
-  //  }
-  //  h2_pion_data[pttype][0]->Add(h2_pion_data[pttype][1]);
-  //  h2_pion_data[pttype][1] = h2_pion_data[pttype][2];
-  //}
-
-  TH2 *h2_pion_t = (TH2*)f_data->Get("h2_pion_0");
-  h2_pion_t = (TH2*)h2_pion_t->Clone();
-  h2_pion_t->Reset();
-
-  for(int part=0; part<3; part++)
+  for(int pttype=0; pttype<2; pttype++)
   {
-    h2_pion_data[1][part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_data_part%d",part));
-
-    for(int isolated=0; isolated<2; isolated++)
+    for(int part=0; part<3; part++)
     {
-      int ih = part + 3*evtype + 3*3*tof + 3*3*2*prob + 3*3*2*2*checkmap + 3*3*2*2*2*isolated + 3*3*2*2*2*2*ival;
-      TH2 *h2_tmp = (TH2*)f_data->Get(Form("h2_pion_%d",ih));
-      h2_pion_data[1][part]->Add(h2_tmp);
-    } // isolated
+      const char *ptname = pttype ? "2pt" : "";
+      h2_pion_data[pttype][part] = (TH2*)h2_2photon_t->Clone(Form("h2_pion_data_type%d_part%d",pttype,part));
+
+      for(int isoboth=0; isoboth<2; isoboth++)
+        for(int isopair=0; isopair<2; isopair++)
+        {
+          int ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isoboth + 3*3*2*2*isopair + 3*3*2*2*2*ival;
+          TH2 *h2_tmp = (TH2*)f_data->Get(Form("h2_2photon%s_%d",ptname,ih));
+          h2_pion_data[pttype][part]->Add(h2_tmp);
+        } // isoboth, isopair
+    }
+    h2_pion_data[pttype][0]->Add(h2_pion_data[pttype][1]);
+    h2_pion_data[pttype][1] = h2_pion_data[pttype][2];
   }
-  h2_pion_data[1][0]->Add(h2_pion_data[1][1]);
-  h2_pion_data[1][1] = h2_pion_data[1][2];
+
+  //TH2 *h2_pion_t = (TH2*)f_data->Get("h2_pion_0");
+  //h2_pion_t = (TH2*)h2_pion_t->Clone();
+  //h2_pion_t->Reset();
+
+  //for(int part=0; part<3; part++)
+  //{
+  //  h2_pion_data[1][part] = (TH2*)h2_pion_t->Clone(Form("h2_pion_data_part%d",part));
+
+  //  for(int isolated=0; isolated<2; isolated++)
+  //  {
+  //    int ih = part + 3*evtype + 3*3*tof + 3*3*2*prob + 3*3*2*2*checkmap + 3*3*2*2*2*isolated + 3*3*2*2*2*2*ival;
+  //    TH2 *h2_tmp = (TH2*)f_data->Get(Form("h2_pion_%d",ih));
+  //    h2_pion_data[1][part]->Add(h2_tmp);
+  //  } // isolated
+  //}
+  //h2_pion_data[1][0]->Add(h2_pion_data[1][1]);
+  //h2_pion_data[1][1] = h2_pion_data[1][2];
 
   THnSparse *hn_sim = (THnSparse*)f_sim->Get("hn_pion");
+  hn_sim->GetAxis(7)->SetRange(1,1); // isys
+  hn_sim->GetAxis(6)->SetRange(3,3); // econe_trk[ival]: EMCal, nomap, withmap
 
   mc(4, 2,2);
 

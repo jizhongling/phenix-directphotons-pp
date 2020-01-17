@@ -40,27 +40,30 @@ bool FitMinv(TH1 *h_minv, double &npion, double &enpion,
   fn_bg->DrawCopy("SAME");
 
   double nsig = 0.;
+  double e2nsig = 0.;
   double nbg = 0.;
+  double e2nbg = 0.;
   for(int ib=binC1; ib<binC2; ib++)
   {
     nsig += h_minv->GetBinContent(ib);
+    double ensig = h_minv->GetBinError(ib);
+    e2nsig += ensig*ensig;
     double bincenter = h_minv->GetXaxis()->GetBinCenter(ib);
     nbg += fn_bg->Eval(bincenter);
+    if(nsig > 0.)
+      e2nbg += nbg*e2nsig/nsig;
   }
-
-  double ensig = sqrt(nsig);
-  double rbg = nbg / nsig;
-  double erbg = sqrt(nbg) / nsig;
 
   if(bsub)
   {
-    npion = nsig * (1-rbg);
-    enpion = sqrt( pow(ensig*(1-rbg),2.) + pow(nsig*erbg,2.) );
+    double rbg = nbg/nsig;
+    npion = nsig*(1-rbg);
+    enpion = sqrt(e2nsig*(1-rbg)*(1-rbg) + e2nbg);
   }
   else
   {
     npion = nsig;
-    enpion = ensig;
+    enpion = sqrt(e2nsig);
   }
 
   delete fn_fit;

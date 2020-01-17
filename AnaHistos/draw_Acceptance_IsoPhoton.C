@@ -35,8 +35,6 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
   for(int id=0; id<1; id++)
   {
     TFile *f_pythia = new TFile( Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-%s.root",fname[id]) );
-    //TH1 *h_photon_tmp = (TH1*)f_pythia->Get("h_photon_eta025");
-    //TH1 *h_isolated_tmp = (TH1*)f_pythia->Get("h_isophoton_eta025");
     THnSparse *hn_hadron = (THnSparse*)f_pythia->Get("hn_hadron");
     hn_hadron->GetAxis(2)->SetRange(1,1);  // prompt photons
     hn_hadron->GetAxis(1)->SetRange(1,1);  // |eta| < 0.25
@@ -73,7 +71,9 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
     }
   }
 
+  //hn_isolated->GetAxis(5)->SetRange(1,1);  // isys
   hn_isolated->GetAxis(3)->SetRange(3,3);  // econe_trk[ival]: EMCal, nomap, withmap
+  //hn_isolated->GetAxis(3)->SetRange(2,2);  // isolated
   hn_1photon->GetAxis(2)->SetRange(2,2);  // isolated
   hn_1photon->GetAxis(4)->SetRange(1,2);  // trig
   hn_2photon->GetAxis(7)->SetRange(1,2);  // trig
