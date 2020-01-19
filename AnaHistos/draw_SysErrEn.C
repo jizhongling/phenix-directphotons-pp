@@ -4,7 +4,7 @@
 
 void draw_SysErrEn()
 {
-  const double corr[4] = {1., 0.993, 1., 1.};
+  const char *sysname[3] = {"Global scale", "Non-lin", "Geom"};
   const double A = 0.35;
 
   QueryTree *qt_sys = new QueryTree("data/syserr-en.root", "RECREATE");
@@ -48,7 +48,8 @@ void draw_SysErrEn()
             hn_pion->GetAxis(5)->SetRange(isopair+1,2);  // isopair
             hn_pion->GetAxis(0)->SetRange(ipt+1,ipt+1);  // pt_truth
             h_minv = (TH1*)hn_pion->Projection(2);  // minv
-            FitMinv(h_minv, npion[isoboth][isopair], enpion[isoboth][isopair], false, 0.11*corr[isys],0.16*corr[isys]);
+            double hpt = ipt<20 ? 0. : 0.01;
+            FitMinv(h_minv, npion[isoboth][isopair], enpion[isoboth][isopair], false, 0.11-hpt,0.16+hpt);
             delete h_minv;
           }
 
@@ -70,5 +71,26 @@ void draw_SysErrEn()
     } // isys
   } // ipt
 
-  qt_sys->Save();
+  legi(0, 0.2,0.8,0.9,0.9);
+  leg0->SetNColumns(3);
+  qt_sys->Write();
+  for(int isolated=0; isolated<2; isolated++)
+  {
+    mc(isolated);
+    mcd(isolated);
+    for(int isys=0; isys<3; isys++)
+    {
+      int index = isolated + 2*isys;
+      TGraphErrors *gr = qt_sys->Graph(index);
+      aset(gr, "p_{T} [GeV]","SysErr", 5.,30., 0.5,2.);
+      style(gr, 20+isys, 1+isys);
+      char *opt = isys ? "P" : "AP";
+      gr->Draw(opt);
+      if(isolated == 0)
+        leg0->AddEntry(gr, sysname[isys], "P");
+    }
+    leg0->Draw();
+    mcw( isolated, Form("sysen-iso%d",isolated) );
+  }
+  qt_sys->Close();
 }
