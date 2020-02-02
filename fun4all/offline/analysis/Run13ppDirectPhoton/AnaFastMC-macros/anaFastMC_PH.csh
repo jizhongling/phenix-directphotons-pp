@@ -9,7 +9,7 @@ end
 source $HOME/.login
 
 set config = "pythia.cfg"
-set nProcess = 1200
+set nProcess = 12000
 set scale = `echo "$nProcess/300" | bc`
 
 cd $1/histos

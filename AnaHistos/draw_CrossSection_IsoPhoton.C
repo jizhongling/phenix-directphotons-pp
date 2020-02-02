@@ -233,7 +233,7 @@ void draw_CrossSection_IsoPhoton()
             + pow(ePile/Pile[part],2)
             //+ pow(eTrigBBC/TrigBBC,2) + pow(eXBBC/XBBC,2)
             );
-        if(isys > 0)
+        if(isys)
         {
           double rsys = yy[isys][part]/yy[0][part];
           double ersys = 1e-9*rsys;
@@ -292,12 +292,12 @@ void draw_CrossSection_IsoPhoton()
   legi(1, 0.2,0.8,0.9,0.9);
   leg1->SetNColumns(3);
 
-  for(int part=0; part<3; part++)
+  for(int part=2; part>=0; part--)
   {
     TGraphErrors *gr = qt_cross->Graph(4+part);
-    aset(gr, "p_{T} [GeV]", "SysErr", 6.,30., 0.99,1.01);
+    aset(gr, "p_{T} [GeV]", "SysErr", 6.,30., 0.,1.2);
     style(gr, part+20, part+1);
-    char *opt = part ? "P" : "AP";
+    char *opt = part==2 ? "AP" : "P";
     gr->Draw(opt);
     leg1->AddEntry(gr, pname[part], "P");
   }

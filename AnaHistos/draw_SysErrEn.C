@@ -5,11 +5,11 @@
 void draw_SysErrEn()
 {
   const char *sysname[3] = {"Global scale", "Non-lin", "Geom"};
-  const double A = 0.35;
 
   QueryTree *qt_sys = new QueryTree("data/syserr-en.root", "RECREATE");
 
   QueryTree *qt_miss = new QueryTree("data/MissingRatio.root");
+  QueryTree *qt_A = new QueryTree("data/GammaRatio.root");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-syserr.root");
   THnSparse *hn_photon = (THnSparse*)f->Get("hn_photon");
@@ -20,8 +20,9 @@ void draw_SysErrEn()
   for(int ipt=10; ipt<npT; ipt++)
   {
     double ndir[2][4], endir[2][4];  // isolated, isys
-    double xpt, Miss, eMiss;
+    double xpt, Miss, eMiss, A, eA;
     qt_miss->Query(ipt, 3, xpt, Miss, eMiss);
+    qt_A->Query(ipt, 0, xpt, A, eA);
 
     for(int isys=0; isys<4; isys++)
     {
@@ -59,7 +60,7 @@ void draw_SysErrEn()
       ndir[1][isys] = nphoton[1] - npion[1][0] - Miss*(1 + A)*npion[0][1];
       endir[1][isys] = sqrt(pow(enphoton[1],2) + pow(enpion[1][0],2) + pow(Miss*(1 + A)*enpion[0][1],2));
 
-      if(isys > 0)
+      if(isys)
         for(int isolated=0; isolated<2; isolated++)
         {
           int index = isolated + 2*(isys-1);
@@ -70,6 +71,10 @@ void draw_SysErrEn()
         } // isolated
     } // isys
   } // ipt
+
+  const double xmin = 5.;
+  const double xmax = 30.;
+  TF1 *fn_engl = new TF1("fn_engl", "1+[0]-[1]/([2]+x*x)", xmin,xmax);
 
   legi(0, 0.2,0.8,0.9,0.9);
   leg0->SetNColumns(3);
@@ -86,11 +91,15 @@ void draw_SysErrEn()
       style(gr, 20+isys, 1+isys);
       char *opt = isys ? "P" : "AP";
       gr->Draw(opt);
+      if(isys == 0)
+        gr->Fit(fn_engl, "RQ");
       if(isolated == 0)
         leg0->AddEntry(gr, sysname[isys], "P");
     }
     leg0->Draw();
     mcw( isolated, Form("sysen-iso%d",isolated) );
+    char *type = isolated ? "iso" : "inc";
+    c0->Print(Form("plots/SysErrEn-%sphoton.pdf",type));
   }
   qt_sys->Close();
 }

@@ -185,7 +185,7 @@ void draw_CrossSection_Photon()
         double Eff = Conv[part] * Prob * ToF[part];
         double ASee = A * (1+MissEta)/(1+2.*MissEta) * (1+2.*Miss+Merge1);
         double eASee = sqrt((pow(A,2)*pow(eMerge1,2)*pow(1 + MissEta,2))/pow(1 + 2.*MissEta,2) + (4.*pow(A,2)*pow(eMiss,2)*pow(1 + MissEta,2))/pow(1 + 2.*MissEta,2) + (pow(eA,2)*pow(1 + Merge1 + 2.*Miss,2)*pow(1 + MissEta,2))/pow(1 + 2.*MissEta,2) + pow(eMissEta,2)*pow((-2.*A*(1 + Merge1 + 2.*Miss)*(1 + MissEta))/pow(1 + 2.*MissEta,2) + (A*(1 + Merge1 + 2.*Miss))/(1 + 2.*MissEta),2));
-        if(isys == 0)
+        if(!isys)
           qt_asee->Fill(ipt, part, xpt, ASee, eASee);
 
         double ndir = nphoton/Eff - (1 + Miss + Merge1*Conv[part]*(1-Conv[part]) + ASee) * n2photon/Eff/Eff - Merge2/2.*BadPass * n2photon2pt/Eff/Eff;
@@ -205,7 +205,7 @@ void draw_CrossSection_Photon()
             + pow(ePile/Pile[part],2)
             //+ pow(eTrigBBC/TrigBBC,2) + pow(eXBBC/XBBC,2)
             );
-        if(isys > 0)
+        if(isys)
         {
           double rsys = yy[isys][part]/yy[0][part];
           double ersys = 1e-9*rsys;
@@ -255,12 +255,12 @@ void draw_CrossSection_Photon()
   legi(1, 0.2,0.8,0.9,0.9);
   leg1->SetNColumns(3);
 
-  for(int part=0; part<3; part++)
+  for(int part=2; part>=0; part--)
   {
     TGraphErrors *gr = qt_cross->Graph(4+part);
-    aset(gr, "p_{T} [GeV]", "SysErr", 6.,30., 0.93,1.03);
+    aset(gr, "p_{T} [GeV]", "SysErr", 6.,30., 0.,1.2);
     style(gr, part+20, part+1);
-    char *opt = part ? "P" : "AP";
+    char *opt = part==2 ? "AP" : "P";
     gr->Draw(opt);
     leg1->AddEntry(gr, pname[part], "P");
   }

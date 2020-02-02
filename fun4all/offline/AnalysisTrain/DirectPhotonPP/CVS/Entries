@@ -25,7 +25,6 @@
 /DCDeadmapChecker.cc/1.5/Thu Sep  5 16:06:05 2019//
 /DCDeadmapChecker.h/1.3/Thu Sep  5 16:18:48 2019//
 /DirectPhotonPPLinkDef.h/1.11/Sun Sep  8 19:33:12 2019//
-/EMCWarnmapChecker.cc/1.2/Wed Oct 23 15:17:04 2019//
 /EMCWarnmapChecker.h/1.2/Wed Oct 23 15:12:15 2019//
 /EmcLocalRecalibrator.cc/1.6/Wed Oct 23 16:03:47 2019//
 /EmcLocalRecalibrator.h/1.5/Wed Oct 23 16:01:00 2019//
@@ -37,4 +36,5 @@
 /Run13pp510_WarnMap_05.root/1.1/Mon Jun 15 06:20:37 2015//
 /PhotonHistos.cc/1.68/Fri Dec 20 23:11:25 2019//
 /PhotonHistos.h/1.35/Fri Dec 20 23:11:22 2019//
+/EMCWarnmapChecker.cc/1.2/Sun Nov 24 03:03:34 2019//
 D

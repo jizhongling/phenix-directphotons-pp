@@ -7,10 +7,22 @@ void calcSysMerge()
 
   QueryTree *qt_syserr = new QueryTree("data/syserr-merge.root", "RECREATE");
 
+  QueryTree *qt_merge = new QueryTree("data/Merge.root");
+
   double xpt[9], syspi0[2][9];
   int i = 0;
   ifstream fin("data/syserr-merge.txt");
-  while(fin >> xpt[i] >> syspi0[0][i] >> syspi0[1][i] && ++i < 9);
+  while(fin >> xpt[i] >> syspi0[0][i] >> syspi0[1][i])
+  {
+    for(int part=0; part<2; part++)
+    {
+      double Merge, eMerge;
+      qt_merge->Query(i+21, part, xpt[i], Merge, eMerge);
+      syspi0[part][i] /= Merge*Merge;
+    }
+    i++;
+    if(i >= 9) break;
+  }
 
   for(int i=0; i<9; i++)
   {
