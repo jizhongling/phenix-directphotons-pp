@@ -15,6 +15,7 @@ void anaFastMC_Fast(const int process = 0)
   AnaFastMC *my1 = new AnaFastMC("AnaFastMC");
   my1->set_outfile( Form("histos/AnaFastMC-Fast-histo%d.root",process) );
   my1->set_mcmethod(FastMC);
+  my1->enable_calcsys();
   se->registerSubsystem(my1);
 
   // A dummy (null) input is needed for the Fun4All framework

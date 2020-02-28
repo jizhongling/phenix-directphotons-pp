@@ -14,6 +14,7 @@ void draw_IsoPhotonALL()
   QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root", "RECREATE");
 
   QueryTree *qt_asym = new QueryTree("data/isophoton-asym.root");
+  //QueryTree *qt_asym = new QueryTree("data/isophoton-test.root");
   qt_asym->SetQuiet();
   int imul = 1;
 
@@ -24,7 +25,7 @@ void draw_IsoPhotonALL()
   vector<double> *vp_eALL = new vector<double>[8];
 
   cout.precision(4);
-  for(int beam=0; beam<3; beam++)
+  for(int beam=3; beam<3; beam++)
   {
     cout << "beam " << beam << endl;
 

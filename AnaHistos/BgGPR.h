@@ -1,12 +1,10 @@
 void BgGPR(vector<double> &x, vector<double> &y, vector<double> &sigma_y,
-    double &Integral, double &dIntegral)
+    double &Integral, double &dIntegral,
+    const double xmin, const double xmax, const int nPredictions,
+    const double xint1, const double xint2)
 {
   const int verbosity = 0;
   const char *outfile = "BgGPR.root";
-
-  const double xmin = 0.047;
-  const double xmax = 0.227;
-  const int nPredictions = 180;
 
   GausProc a(x, y, sigma_y, xmin, xmax, nPredictions, outfile);
   //gSystem->Exec(Form("rm -f %s",outfile));
@@ -27,7 +25,7 @@ void BgGPR(vector<double> &x, vector<double> &y, vector<double> &sigma_y,
   //d.unwarp(0);  //see comment above
   //d.Write(-1, "_unwarp");
 
-  d.Integral(0.112, 0.162, Integral, dIntegral);
+  d.Integral(xint1, xint2, Integral, dIntegral);
 
   return;
 }

@@ -224,6 +224,7 @@ int main()
 {
   int runnumber, fillnumber;
   int spin_pattern = 0;
+  unsigned long long runevents, fillevents;
 
   TFile *f_rlum = new TFile("data/RelLum.root", "RECREATE");
 
@@ -233,6 +234,8 @@ int main()
   t_rlum->Branch("Runnumber", &runnumber, "Runnumber/I");
   t_rlum->Branch("Fillnumber", &fillnumber, "Fillnumber/I");
   t_rlum->Branch("SpinPattern", &spin_pattern, "SpinPattern/I");
+  t_rlum->Branch("RunEvents", &runevents, "RunEvents/l");
+  t_rlum->Branch("FillEvents", &fillevents, "FillEvents/l");
   t_rlum->Branch("Pol", pol, "Pol[2]/D");
   t_rlum->Branch("ePol", epol, "ePol[2]/D");
   t_rlum->Branch("YellowRelLum", rlum[0], "YellowRelLum[2]/D");
@@ -293,24 +296,71 @@ int main()
   t_bbc->SetBranchAddress("BBC_30cm", bbc30);
   t_bbc->SetBranchAddress("BBCnovtx", bbcnovtx);
 
+  typedef map<int,unsigned long long> map_ulong_t;
+  map_ulong_t daq_events, daq_runevents, daq_fillevents;  // <runnumber, nevents>
+  TFile *f_daq = new TFile("data/clock-counts.root");
+  TTree *t_daq = (TTree*)f_daq->Get("t1");
+  unsigned long long runnoDaq, bbcnarrow;
+  t_daq->SetBranchAddress("runnumber", &runnoDaq);
+  t_daq->SetBranchAddress("bbcnarrow_live", &bbcnarrow);
+  vector<int> runlistDaq;
+  for(int ien=0; ien<t_daq->GetEntries(); ien++)
+  {
+    t_daq->GetEntry(ien);
+    runnumber = (int)runnoDaq;
+    daq_events.insert( make_pair(runnumber, bbcnarrow) );
+    runlistDaq.push_back(runnumber);
+  }
+  sort(runlistDaq.begin(), runlistDaq.end());
+  int lastfill = 0;
+  vector<int> unfilledrun;
+  BOOST_FOREACH(const int &runnumber, runlistDaq)
+  {
+    /* Retrieve entry from Spin DB and get fill number */
+    int qa_level = spin_out.GetDefaultQA(runnumber);
+    spin_out.StoreDBContent(runnumber, runnumber, qa_level);
+    spin_out.GetDBContentStore(spin_cont, runnumber);
+    fillnumber = spin_cont.GetFillNumber();
+
+    map_ulong_t::iterator it_run = daq_events.find(runnumber);
+    runevents = it_run != daq_events.end() ? it_run->second : 0;
+    if(fillnumber != lastfill)
+    {
+      BOOST_FOREACH(const int &unfill, unfilledrun)
+        daq_fillevents.insert( make_pair(unfill, fillevents) );
+      unfilledrun.clear();
+      fillevents = runevents;
+    }
+    else
+      fillevents += runevents;
+
+    daq_runevents.insert( make_pair(runnumber, fillevents) );
+    unfilledrun.push_back(runnumber);
+    lastfill = fillnumber;
+  }
+  BOOST_FOREACH(const int &unfill, unfilledrun)
+    daq_fillevents.insert( make_pair(unfill, fillevents) );
+
   double KFactor[2] = {0.2278, 0.2278};
   double KFactorInseok[5][2];
   ReadKFactor(KFactorInseok);
 
-  vector<int> runnoDone(1000);
+  vector<int> runnoDone;
 
   for(int ien=0; ien<t_bbc->GetEntries(); ien++)
   {
     t_bbc->GetEntry(ien);
 
     map_int_t::iterator it_Inseok = runnoInseok.find(runnumber);
-    if( it_Inseok != runnoInseok.end() )
-      spin_pattern = it_Inseok->second;
-    else
-      spin_pattern = 4;
+    spin_pattern = it_Inseok != runnoInseok.end() ? it_Inseok->second : 4;
 
     get_gl1p(spin_out, spin_cont, runnumber, fillnumber,
         pol, epol, gl1p, egl1p, spin_pol, rate_bunch, erate_bunch);
+
+    map_ulong_t::iterator it_run = daq_runevents.find(runnumber);
+    map_ulong_t::iterator it_fill = daq_fillevents.find(runnumber);
+    runevents = it_run != daq_runevents.end() ? it_run->second : 0;
+    fillevents = it_fill != daq_fillevents.end() ? it_fill->second : 0;
 
     double rate_raw[2][2] = {};
     double e2rate_raw[2][2] = {};
@@ -428,6 +478,11 @@ int main()
 
       get_gl1p(spin_out, spin_cont, runnumber, fillnumber,
           pol, epol, rlum, erlum, spin_pol, rate_bunch, erate_bunch);
+
+      map_ulong_t::iterator it_run = daq_runevents.find(runnumber);
+      map_ulong_t::iterator it_fill = daq_fillevents.find(runnumber);
+      runevents = it_run != daq_runevents.end() ? it_run->second : 0;
+      fillevents = it_fill != daq_fillevents.end() ? it_fill->second : 0;
 
       t_rlum->Fill();
     }

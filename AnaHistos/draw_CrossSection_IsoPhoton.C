@@ -46,7 +46,7 @@ void draw_CrossSection_IsoPhoton()
   QueryTree *qt_merge2 = new QueryTree("data/Merge-2photon.root");
   QueryTree *qt_badpass = new QueryTree("data/MergePassRate.root");
   QueryTree *qt_veto = new QueryTree("data/SelfVeto.root");
-  QueryTree *qt_sysmerge = new QueryTree("data/syserr-merge.root");
+  QueryTree *qt_sys = new QueryTree("data/syserr-en-fast.root");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
@@ -109,7 +109,11 @@ void draw_CrossSection_IsoPhoton()
 
   for(int ipt=2; ipt<npT; ipt++)
   {
-    double xpt, yy[2][3], eyy[2][3];
+    double xpt, yy[3][3], eyy[3][3];  // isys, part
+
+    double SysPhoton, SysPion, dummy;
+    qt_sys->Query(ipt, 0, xpt, SysPhoton, dummy);
+    qt_sys->Query(ipt, 1, xpt, SysPion, dummy);
 
     for(int part=0; part<3; part++)
     {
@@ -118,6 +122,41 @@ void draw_CrossSection_IsoPhoton()
         evtype = 2;
       else  // >14GeV use ERT_4x4b
         evtype = 1;
+
+      double xpt, Acc, eAcc, TrigERT, eTrigERT, Miss, eMiss, MissEta, eMissEta,
+             Merge1, eMerge1, Merge2, eMerge2, BadPass, eBadPass, Veto, eVeto;
+      qt_acc->Query(ipt, part, xpt, Acc, eAcc);
+      qt_ert->Query(ipt, part, xpt, TrigERT, eTrigERT);
+      qt_miss->Query(ipt, part, xpt, Miss, eMiss);
+      qt_miss_eta->Query(ipt, part, xpt, MissEta, eMissEta);
+      qt_veto->Query(ipt, part, xpt, Veto, eVeto);
+      if(xpt > 12.)
+      {
+        qt_merge1->Query(ipt, part, xpt, Merge1, eMerge1);
+        qt_merge2->Query(ipt, part, xpt, Merge2, eMerge2);
+        qt_badpass->Query(ipt, part/2, xpt, BadPass, eBadPass);
+      }
+      else
+        Merge1 = eMerge1 = Merge2 = eMerge2 = BadPass = eBadPass = 0.;
+
+      if(ipt >= 20)
+      {
+        if(part == 0)
+        {
+          TrigERT = 0.971;
+          eTrigERT = 0.003;
+        }
+        else if(part == 1)
+        {
+          TrigERT = 0.950;
+          eTrigERT = 0.004;
+        }
+        else
+        {
+          TrigERT = 0.693;
+          eTrigERT = 0.006;
+        }
+      }
 
       double nphoton = h_1photon[evtype][part]->GetBinContent(ipt+1);
       double enphoton = sqrt(nphoton);
@@ -166,57 +205,17 @@ void draw_CrossSection_IsoPhoton()
       nisopair2pt /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
-      double xpt, Acc, eAcc, TrigERT, eTrigERT, Miss, eMiss, MissEta, eMissEta,
-             Merge1, eMerge1, Merge2, eMerge2, BadPass, eBadPass, Veto, eVeto,
-             sysMerge1, sysMerge2, dummy;
-      qt_acc->Query(ipt, part, xpt, Acc, eAcc);
-      qt_ert->Query(ipt, part, xpt, TrigERT, eTrigERT);
-      qt_miss->Query(ipt, part, xpt, Miss, eMiss);
-      qt_miss_eta->Query(ipt, part, xpt, MissEta, eMissEta);
-      qt_veto->Query(ipt, part, xpt, Veto, eVeto);
-      if(xpt > 12.)
-      {
-        qt_merge1->Query(ipt, part, xpt, Merge1, eMerge1);
-        qt_merge2->Query(ipt, part, xpt, Merge2, eMerge2);
-        qt_badpass->Query(ipt, part/2, xpt, BadPass, eBadPass);
-        qt_sysmerge->Query(ipt, part/2+2, xpt, sysMerge1, dummy);
-        qt_sysmerge->Query(ipt, part/2, xpt, sysMerge2, dummy);
-      }
-      else
-      {
-        Merge1 = eMerge1 = Merge2 = eMerge2 = sysMerge1 = sysMerge2 = BadPass = eBadPass = 0.;
-      }
+      double Eff = Conv[part] * Prob * ToF[part];
+      double AIso = A * (Veto+MissEta)/(1+2.*MissEta) * (1+2.*Miss+Merge1);
+      double nbg = (1 + Merge1*Conv[part]*(1-Conv[part])) * nisoboth/Eff/Eff + Miss * nisopair/Eff/Eff + Merge2/2.*BadPass * nisopair2pt/Eff/Eff + AIso * nisopair/Eff/Eff;
 
-      if(ipt >= 20)
+      for(int isys=0; isys<3; isys++)
       {
-        if(part == 0)
-        {
-          TrigERT = 0.971;
-          eTrigERT = 0.003;
-        }
-        else if(part == 1)
-        {
-          TrigERT = 0.950;
-          eTrigERT = 0.004;
-        }
+        double ndir;
+        if(isys < 2)
+          ndir = nphoton/Eff - nbg*(1 + 0.04*isys);
         else
-        {
-          TrigERT = 0.693;
-          eTrigERT = 0.006;
-        }
-      }
-
-      for(int isys=0; isys<2; isys++)
-      {
-        if(isys)
-        {
-          Merge1 += sysMerge1;
-          Merge2 += sysMerge2;
-        }
-        double Eff = Conv[part] * Prob * ToF[part];
-        double AIso = A * (Veto+MissEta)/(1+2.*MissEta) * (1+2.*Miss+Merge1);
-
-        double ndir = nphoton/Eff - (1 + Merge1*Conv[part]*(1-Conv[part])) * nisoboth/Eff/Eff - Miss * nisopair/Eff/Eff - Merge2/2.*BadPass * nisopair2pt/Eff/Eff - AIso * nisopair/Eff/Eff;
+          ndir = nphoton/Eff*(1 - SysPhoton) - nbg*(1 - SysPion);
         double endir = sqrt((pow(enisoboth,2)*pow(1 + (1 - Conv[part])*Conv[part]*Merge1,2))/(pow(Conv[part],4)*pow(Prob,4)*pow(ToF[part],4)) + (0.25*pow(BadPass,2)*pow(enisopair2pt,2)*pow(Merge2,2))/(pow(Conv[part],4)*pow(Prob,4)*pow(ToF[part],4)) + (pow(A,2)*pow(eVeto,2)*pow(1 + Merge1 + 2.*Miss,2)*pow(nisopair,2))/(pow(Conv[part],4)*pow(1 + 2.*MissEta,2)*pow(Prob,4)*pow(ToF[part],4)) + (0.25*pow(BadPass,2)*pow(eMerge2,2)*pow(nisopair2pt,2))/(pow(Conv[part],4)*pow(Prob,4)*pow(ToF[part],4)) + (0.25*pow(eBadPass,2)*pow(Merge2,2)*pow(nisopair2pt,2))/(pow(Conv[part],4)*pow(Prob,4)*pow(ToF[part],4)) + pow(enphoton,2)/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],2)) + (pow(eA,2)*pow(1 + Merge1 + 2.*Miss,2)*pow(nisopair,2)*pow(MissEta + Veto,2))/(pow(Conv[part],4)*pow(1 + 2.*MissEta,2)*pow(Prob,4)*pow(ToF[part],4)) + pow(eToF[part],2)*pow((2*(1 + (1 - Conv[part])*Conv[part]*Merge1)*nisoboth)/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],3)) + (2*Miss*nisopair)/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],3)) + (1.*BadPass*Merge2*nisopair2pt)/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],3)) - nphoton/(Conv[part]*Prob*pow(ToF[part],2)) + (2*A*(1 + Merge1 + 2.*Miss)*nisopair*(MissEta + Veto))/(pow(Conv[part],2)*(1 + 2.*MissEta)*pow(Prob,2)*pow(ToF[part],3)),2) + pow(eProb,2)*pow((2*(1 + (1 - Conv[part])*Conv[part]*Merge1)*nisoboth)/(pow(Conv[part],2)*pow(Prob,3)*pow(ToF[part],2)) + (2*Miss*nisopair)/(pow(Conv[part],2)*pow(Prob,3)*pow(ToF[part],2)) + (1.*BadPass*Merge2*nisopair2pt)/(pow(Conv[part],2)*pow(Prob,3)*pow(ToF[part],2)) - nphoton/(Conv[part]*pow(Prob,2)*ToF[part]) + (2*A*(1 + Merge1 + 2.*Miss)*nisopair*(MissEta + Veto))/(pow(Conv[part],2)*(1 + 2.*MissEta)*pow(Prob,3)*pow(ToF[part],2)),2) + pow(enisopair,2)*pow(-(Miss/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],2))) - (A*(1 + Merge1 + 2.*Miss)*(MissEta + Veto))/(pow(Conv[part],2)*(1 + 2.*MissEta)*pow(Prob,2)*pow(ToF[part],2)),2) + pow(eMissEta,2)*pow(-((A*(1 + Merge1 + 2.*Miss)*nisopair)/(pow(Conv[part],2)*(1 + 2.*MissEta)*pow(Prob,2)*pow(ToF[part],2))) + (2.*A*(1 + Merge1 + 2.*Miss)*nisopair*(MissEta + Veto))/(pow(Conv[part],2)*pow(1 + 2.*MissEta,2)*pow(Prob,2)*pow(ToF[part],2)),2) + pow(eMiss,2)*pow(-(nisopair/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],2))) - (2.*A*nisopair*(MissEta + Veto))/(pow(Conv[part],2)*(1 + 2.*MissEta)*pow(Prob,2)*pow(ToF[part],2)),2) + pow(eMerge1,2)*pow(-(((1 - Conv[part])*nisoboth)/(Conv[part]*pow(Prob,2)*pow(ToF[part],2))) - (A*nisopair*(MissEta + Veto))/(pow(Conv[part],2)*(1 + 2.*MissEta)*pow(Prob,2)*pow(ToF[part],2)),2) + pow(eConv[part],2)*pow(-((((1 - Conv[part])*Merge1 - Conv[part]*Merge1)*nisoboth)/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],2))) + (2*(1 + (1 - Conv[part])*Conv[part]*Merge1)*nisoboth)/(pow(Conv[part],3)*pow(Prob,2)*pow(ToF[part],2)) + (2*Miss*nisopair)/(pow(Conv[part],3)*pow(Prob,2)*pow(ToF[part],2)) + (1.*BadPass*Merge2*nisopair2pt)/(pow(Conv[part],3)*pow(Prob,2)*pow(ToF[part],2)) - nphoton/(pow(Conv[part],2)*Prob*ToF[part]) + (2*A*(1 + Merge1 + 2.*Miss)*nisopair*(MissEta + Veto))/(pow(Conv[part],3)*(1 + 2.*MissEta)*pow(Prob,2)*pow(ToF[part],2)),2));
 
         if(ipt >= 22)  // >14GeV use ERT_4x4b
@@ -238,7 +237,7 @@ void draw_CrossSection_IsoPhoton()
           double rsys = yy[isys][part]/yy[0][part];
           double ersys = 1e-9*rsys;
           if( TMath::Finite(rsys) )
-            qt_cross->Fill(ipt, 4+part, xpt, rsys, ersys);
+            qt_cross->Fill(ipt, 1+part+3*isys, xpt, fabs(rsys-1), ersys);
         }
       } // isys
       if( TMath::Finite(yy[0][part]+eyy[0][part]) )
@@ -269,7 +268,7 @@ void draw_CrossSection_IsoPhoton()
       gr->SetTitle("Separated");
     else if(part == 3)
       gr->SetTitle("Combined");
-    aset(gr, "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 6.,30., 1e-1, 1e4);
+    aset(gr, "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 6.1,30., 1e-1, 1e4);
     style(gr, part+20, part+1);
     if(part%3==0)
     {
@@ -292,17 +291,22 @@ void draw_CrossSection_IsoPhoton()
   legi(1, 0.2,0.8,0.9,0.9);
   leg1->SetNColumns(3);
 
-  for(int part=2; part>=0; part--)
+  for(int isys=1; isys<3; isys++)
   {
-    TGraphErrors *gr = qt_cross->Graph(4+part);
-    aset(gr, "p_{T} [GeV]", "SysErr", 6.,30., 0.,1.2);
-    style(gr, part+20, part+1);
-    char *opt = part==2 ? "AP" : "P";
-    gr->Draw(opt);
-    leg1->AddEntry(gr, pname[part], "P");
+    for(int part=0; part<3; part++)
+    {
+      TGraphErrors *gr = qt_cross->Graph(1+part+3*isys);
+      aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.05);
+      style(gr, part+20, part+1);
+      char *opt = part==0 ? "AP" : "P";
+      gr->Draw(opt);
+      if(isys == 1)
+        leg1->AddEntry(gr, pname[part], "P");
+    }
+    leg1->Draw();
+    char *type = isys==1 ? "Fit" : "EnFast";
+    c10->Print(Form("plots/SysErr%s-isophoton.pdf",type));
   }
-  leg1->Draw();
-  c10->Print("plots/SysErrMerge-isophoton.pdf");
 
   qt_cross->Write();
   for(int part=0; part<3; part++)

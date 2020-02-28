@@ -1,6 +1,6 @@
 #include "GlobalVars.h"
 #include "QueryTree.h"
-#include "BgGPR.h"
+#include "FitMinv.h"
 
 void draw_BgRatio_IsoPion()
 {
@@ -15,9 +15,6 @@ void draw_BgRatio_IsoPion()
 
   int beam = 2;
   int checkmap = 1;
-
-  const unsigned nData = 45;
-  vector<double> x(nData), y(nData), sigma_y(nData);
 
   for(int pttype=0; pttype<2; pttype++)
     for(int icr=0; icr<2; icr++)
@@ -39,38 +36,13 @@ void draw_BgRatio_IsoPion()
         int ptbin_last = h2_pion->GetXaxis()->FindBin(pTbin_pol[ipt+1]) - 1;
         TH1 *h_minv = h2_pion->ProjectionY("h_minv", ptbin_first,ptbin_last);
 
-        x.clear();
-        y.clear();
-        sigma_y.clear();
+        double nbg, e2nbg, npeak, e2npeak;
+        h_minv->Rebin(10);
+        double minv_shift = ipt<22 ? 0. : 0.01;
+        FitMinv(h_minv, npeak, enpeak, nbg, enbg, true, 0.11-minv_shift,0.16+minv_shift);
 
-        for(int biny=68; biny<=87; biny++)
-        {
-          double xx = h_minv->GetXaxis()->GetBinCenter(biny);
-          double yy = h_minv->GetBinContent(biny);
-          double sigma_yy = h_minv->GetBinError(biny);
-          x.push_back(xx);
-          y.push_back(yy);
-          sigma_y.push_back(sigma_yy);
-        }
-
-        for(int biny=188; biny<=212; biny++)
-        {
-          double xx = h_minv->GetXaxis()->GetBinCenter(biny);
-          double yy = h_minv->GetBinContent(biny);
-          double sigma_yy = h_minv->GetBinError(biny);
-          x.push_back(xx);
-          y.push_back(yy);
-          sigma_y.push_back(sigma_yy);
-        }
-
-        double nbg, dnbg;
-        BgGPR(x, y, sigma_y, nbg, dnbg);
-        nbg /= 0.001;
-        dnbg /= 0.001;
-
-        double npeak = h_minv->Integral(113, 162);
         double rbg = nbg/npeak;
-        double erbg = rbg*sqrt(dnbg*dnbg/nbg/nbg + 1./npeak);
+        double erbg = rbg*sqrt(e2nbg/nbg/nbg + e2npeak/npeak/npeak);
         if( !TMath::Finite(rbg+erbg) || rbg < 0. || erbg > 1. )
         {
           rbg = 0.;

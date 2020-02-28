@@ -22,7 +22,7 @@ void draw_IsoPionALL()
   vector<double> *vp_eALL = new vector<double>[8];
 
   cout.precision(4);
-  for(int beam=0; beam<3; beam++)
+  for(int beam=3; beam<3; beam++)
     for(int pttype=0; pttype<2; pttype++)
       for(int ibg=0; ibg<2; ibg++)
       {
@@ -99,6 +99,8 @@ void draw_IsoPionALL()
                 qt_all->Fill(ipt, igr, xpt, mean[ibg], emean[ibg]);
             } // ibg
 
+            rbg = 0.08;
+            erbg = 0.;
             int ipat = icr + 2*pattern;
             sig[ipat] = (mean[0] - rbg*mean[1])/(1 - rbg);
             esig[ipat] = sqrt(pow(emean[0],2)/pow(1 - rbg,2) + (pow(emean[1],2)*pow(rbg,2))/pow(1 - rbg,2) + pow(erbg,2)*pow(-(mean[1]/(1 - rbg)) + (mean[0] - mean[1]*rbg)/pow(1 - rbg,2),2));

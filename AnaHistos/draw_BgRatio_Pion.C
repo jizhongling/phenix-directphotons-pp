@@ -1,6 +1,7 @@
 #include "GlobalVars.h"
 #include "QueryTree.h"
-#include "BgGPR.h"
+#include "FitMinv.h"
+#include "BgGPRMinv.h"
 
 void draw_BgRatio_Pion()
 {
@@ -9,9 +10,6 @@ void draw_BgRatio_Pion()
   QueryTree *qt_rbg = new QueryTree("data/BgRatio-pion.root", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
-
-  const unsigned nData = 45;
-  vector<double> x(nData), y(nData), sigma_y(nData);
 
   for(int icr=0; icr<2; icr++)
   {
@@ -25,38 +23,11 @@ void draw_BgRatio_Pion()
       int ptbin_last = h2_pion->GetXaxis()->FindBin(pTbin_pol[ipt+1]) - 1;
       TH1 *h_minv = h2_pion->ProjectionY("h_minv", ptbin_first,ptbin_last);
 
-      x.clear();
-      y.clear();
-      sigma_y.clear();
+      double npeak, enpeak, nbg, enbg;
+      BgGPRMinv(h_minv, npeak, enpeak, nbg, enbg);
 
-      for(int biny=68; biny<=87; biny++)
-      {
-        double xx = h_minv->GetXaxis()->GetBinCenter(biny);
-        double yy = h_minv->GetBinContent(biny);
-        double sigma_yy = h_minv->GetBinError(biny);
-        x.push_back(xx);
-        y.push_back(yy);
-        sigma_y.push_back(sigma_yy);
-      }
-
-      for(int biny=188; biny<=212; biny++)
-      {
-        double xx = h_minv->GetXaxis()->GetBinCenter(biny);
-        double yy = h_minv->GetBinContent(biny);
-        double sigma_yy = h_minv->GetBinError(biny);
-        x.push_back(xx);
-        y.push_back(yy);
-        sigma_y.push_back(sigma_yy);
-      }
-
-      double nbg, dnbg;
-      BgGPR(x, y, sigma_y, nbg, dnbg);
-      nbg /= 0.001;
-      dnbg /= 0.001;
-
-      double npeak = h_minv->Integral(113, 162);
       double rbg = nbg/npeak;
-      double erbg = rbg*sqrt(dnbg*dnbg/nbg/nbg + 1./npeak);
+      double erbg = rbg*sqrt(enpeak*enpeak/npeak/npeak + enbg*enbg/nbg/nbg);
 
       double xpt = (pTbin_pol[ipt] + pTbin_pol[ipt+1]) / 2.;
       qt_rbg->Fill(ipt, icr, xpt, rbg, erbg);
