@@ -1,4 +1,5 @@
 #include "GlobalVars.h"
+#include "QueryTree.h"
 
 void draw_Jetphox()
 {
@@ -6,6 +7,8 @@ void draw_Jetphox()
   const char *jetphox_fname[3] = {"halfpt", "onept", "twopt"};
   const char *jetphox_setnum[1] = {"isoprompt"};
   const char *jetphox_setden[1] = {"incprompt"};
+
+  QueryTree *qt_ratio = new QueryTree("data/JetphoxRatio.root", "RECREATE");
 
   mc(0);
   legi(0, 0.2,0.8,0.9,0.9);
@@ -16,7 +19,6 @@ void draw_Jetphox()
     mcd(0, iset+1);
     for(int imu=0; imu<3; imu++)
     {
-      TGraphErrors *gr_ratio = new TGraphErrors(npT);
       TFile *f_num = new TFile( Form("data/%s-x400-ct14-%s.root",jetphox_setnum[iset],jetphox_fname[imu]) );
       TFile *f_den = new TFile( Form("data/%s-x400-ct14-%s.root",jetphox_setden[iset],jetphox_fname[imu]) );
       TH1 *h_num = (TH1*)f_num->Get("hp41");
@@ -24,23 +26,17 @@ void draw_Jetphox()
       h_num->Scale(jetphox_scale);
       h_den->Scale(jetphox_scale);
 
-      int igp = 0;
       for(int ipt=10; ipt<npT; ipt++)
       {
         double xpt = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
         int bin_th = h_num->GetXaxis()->FindBin(xpt);
         double ratio = h_num->GetBinContent(bin_th) / h_den->GetBinContent(bin_th);
         double eratio = ratio * sqrt( pow(h_num->GetBinError(bin_th)/h_num->GetBinContent(bin_th),2) + pow(h_den->GetBinError(bin_th)/h_den->GetBinContent(bin_th),2) );
-
         if( TMath::Finite(ratio+eratio) )
-        {
-          gr_ratio->SetPoint(igp, xpt, ratio);
-          gr_ratio->SetPointError(igp, 0., eratio);
-          igp++;
-        }
+          qt_ratio->Fill(ipt, imu, xpt, ratio, eratio);
       }
 
-      gr_ratio->Set(igp);
+      TGraphErrors *gr_ratio = qt_ratio->Graph(imu);
       gr_ratio->SetTitle( Form("%s/%s;p_{T} [GeV];#frac{%s}{%s}",jetphox_setnum[iset],jetphox_setden[iset],jetphox_setnum[iset],jetphox_setden[iset]) );
       if(iset < 2)
       {
@@ -68,5 +64,6 @@ void draw_Jetphox()
   }
   leg0->Draw();
 
-  c0->Print("plots/JetphoxRatio.pdf");
+  //c0->Print("plots/JetphoxRatio.pdf");
+  qt_ratio->Save();
 }

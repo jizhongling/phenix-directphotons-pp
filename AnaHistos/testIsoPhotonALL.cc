@@ -18,19 +18,8 @@ bool valid_bunch(int bunch, int spin_pol[])
   return true;
 }
 
-int main(int argc, char *argv[])
+int main()
 {
-  if(argc != 2)
-  {
-    cout << "Usage: " << argv[0] << " <starting bunch>" << endl;
-    return 1;
-  }
-
-  int ib_start;
-  stringstream ss;
-  ss << argv[1];
-  ss >> ib_start;
-
   const int taxi = 15811;
   const int npT_pol = 15;
 
@@ -84,16 +73,16 @@ int main(int argc, char *argv[])
   for(int ien=0; ien<nruns; ien++)
   {
     t_rlum->GetEntry(ien);
-    //if( runevents > fillevents/3 )
-    //  continue;
+    if( runevents < fillevents/3*2 )
+      continue;
 
     runno = (double)runnumber;
 
     /* Calculate relative luminosities under this random spin patterns */
     double rate[2][2] = {}, e2rate[2][2] = {};  // icr, ipol
-    for(int ib=ib_start; ib<120; ib++)
-      if(abs(spin_pol[ib]) == 1)
-      //if(valid_bunch(ib,spin_pol))
+    for(int ib=0; ib<120; ib++)
+      //if(abs(spin_pol[ib]) == 1)
+      if(valid_bunch(ib,spin_pol))
       {
         int ipol = spin_pol[ib] > 0 ? 1 : 0;
         rate[ib%2][ipol] += rate_bunch[ib];
@@ -122,9 +111,9 @@ int main(int argc, char *argv[])
     double nphoton[6][2][2][npT_pol] = {};  // imul, icr, ipol, ipt
     for(int imul=0; imul<6; imul++)
       for(int icr=0; icr<2; icr++)
-        for(int ib=ib_start/2; ib<60; ib++)
-          if(abs(spin_pol[icr + 2*ib]) == 1)
-          //if(valid_bunch(icr + 2*ib,spin_pol))
+        for(int ib=0; ib<60; ib++)
+          //if(abs(spin_pol[icr + 2*ib]) == 1)
+          if(valid_bunch(icr + 2*ib,spin_pol))
           {
             int ipol = spin_pol[icr + 2*ib] > 0 ? 1 : 0;
             int ih = imul + 6*icr + 6*2*ib + 6*2*60*checkmap + 6*2*60*2*ical;

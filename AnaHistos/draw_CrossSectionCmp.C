@@ -90,7 +90,7 @@ void draw_CrossSectionCmp(const int nameid)
     if(part < 3)
     {
       gr_parts[part]->SetTitle("Diff in parts;p_{T} [GeV];Diff;");
-      aset(gr_parts[part], "","", 0.,30., -0.5,0.5);
+      aset(gr_parts[part], "","", 6.1,30., -0.5,0.5);
       leg0->AddEntry(gr_parts[part], Form("%s",pname[part]), "P");
     }
     else
@@ -126,6 +126,8 @@ void draw_CrossSectionCmp(const int nameid)
   if( !name.EqualTo("isophoton") )
     return;
 
+  QueryTree *qt_sys = new QueryTree("data/CrossSection-isophoton-syserr.root");
+
   mc(2);
   mcd(2);
   legi(1, 0.2,0.8,0.9,0.9);
@@ -139,6 +141,7 @@ void draw_CrossSectionCmp(const int nameid)
   for(int imu=0; imu<3; imu++)
   {
     TGraphErrors *gr_nlo = new TGraphErrors(npT);
+    TGraphAsymmErrors *gr_sys = new TGraphAsymmErrors(npT);
     TFile *f_nlo = new TFile( Form("data/isoprompt-x400-ct14-%s.root",jetphox_fname[imu]) );
     TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
     h_nlo->Scale(jetphox_scale);
@@ -146,7 +149,7 @@ void draw_CrossSectionCmp(const int nameid)
     int igp = 0;
     for(int ipt=12; ipt<npT; ipt++)
     {
-      double xpt, Combine, eCombine;
+      double xpt, Combine, eCombine, sysCombine;
       if( !qt_cross->Query(ipt, 3, xpt, Combine, eCombine) )
         continue;
 
@@ -161,19 +164,27 @@ void draw_CrossSectionCmp(const int nameid)
       {
         gr_nlo->SetPoint(igp, xpt, yy);
         gr_nlo->SetPointError(igp, 0., eyy);
+        qt_sys->Query(ipt, 0, xpt, Combine, sysCombine);
+        double sys_low = (Combine - sysCombine) / sigma_nlo;
+        double sys_high = (Combine + sysCombine) / sigma_nlo;
+        gr_sys->SetPoint(igp, xpt, yy);
+        gr_sys->SetPointError(igp, 0., 0., sys_low, sys_high);
         igp++;
       }
     }
 
     gr_nlo->Set(igp);
+    gr_sys->Set(igp);
     gr_nlo->SetTitle("data/theory;p_{T} [GeV];#frac{data}{theory}");
-    aset(gr_nlo, "","", 6.1,30., 0.5,2);
+    aset(gr_nlo, "","", 6.1,30., 0.5,2.);
     leg1->AddEntry(gr_nlo, Form("%s",jetphox_fname[imu]), "L");
     style(gr_nlo, imu+20, imu+1);
     if(imu == 0)
       gr_nlo->Draw("ALE");
     else
       gr_nlo->Draw("LE");
+    if(imu == 0)
+      gr_sys->Draw("[]");
     line->DrawLine(6.1, 1., 30., 1.);
 
     delete h_nlo;

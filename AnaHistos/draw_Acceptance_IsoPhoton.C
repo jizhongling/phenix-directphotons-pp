@@ -104,7 +104,7 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
 
   for(int ic=0; ic<3; ic++)
     mc(ic);
-  mc(3, 2,1);
+  mc(3, 1,1);
   legi(0, 0.2,0.8,0.9,0.9);
   leg0->SetNColumns(3);
 
@@ -250,18 +250,18 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
         cout << xpt << ": Wrong!!! Not Finite!!!" << endl;
     } // ipt
 
-    for(int pisa=0; pisa<2; pisa++)
+    for(int pisa=0; pisa<1; pisa++)
     {
       mcd(3, pisa+1);
       TGraphErrors *gr_acc = qt_acc->Graph(part+3*pisa);
       gr_acc->SetTitle( Form("Combined acceptance in %s",simname[pisa]) );
       aset(gr_acc, "p_{T} [GeV]","Acceptance", 4.,30., 0.,0.4);
-      style(gr_acc, part+24, part+1);
+      style(gr_acc, part+20, part+1);
       if(part==0)
         gr_acc->Draw("AP");
       else
         gr_acc->Draw("P");
-      if(pisa==1)
+      if(pisa==0)
         leg0->AddEntry(gr_acc, pname[part], "P");
     } // pisa
   } // part

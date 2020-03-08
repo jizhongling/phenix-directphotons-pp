@@ -40,16 +40,19 @@ void draw_MissingRatio()
     h_1photon = h_1photon->Rebin(npT_rebin, "h_1photon", pTrebin);
 
     qt_miss->Fill(h_1photon, h_2photon, part);
-    TGraphErrors *gr_miss = qt_miss->Graph(part);
-    gr_miss->SetNameTitle(Form("gr_%d",part), "Missing Ratio");
-    aset(gr_miss, "p_{T}^{1#gamma} [GeV]","R", 5.,30., 0.,1.5);
-    style(gr_miss, 20+part, 1+part);
-    if(part==0)
-      gr_miss->Draw("AP");
-    else
-      gr_miss->Draw("P");
-    leg0->AddEntry(gr_miss, pname[part], "P");
-    leg0->Draw();
+    if(part < 3)
+    {
+      TGraphErrors *gr_miss = qt_miss->Graph(part);
+      gr_miss->SetNameTitle(Form("gr_%d",part), "Missing Ratio for #pi^{0}");
+      aset(gr_miss, "p_{T}^{1#gamma} [GeV]","R", 5.,30., 0.,1.5);
+      style(gr_miss, 20+part, 1+part);
+      if(part == 0)
+        gr_miss->Draw("AP");
+      else
+        gr_miss->Draw("P");
+      leg0->AddEntry(gr_miss, pname[part], "P");
+      leg0->Draw();
+    }
 
     delete h_2photon;
     delete h_1photon;
@@ -67,14 +70,17 @@ void draw_MissingRatio()
     h_1photon = h_1photon->Rebin(npT_rebin, "h_1photon", pTrebin);
 
     qt_miss_eta->Fill(h_1photon, h_2photon, part);
-    TGraphErrors *gr_miss_eta = qt_miss_eta->Graph(part);
-    gr_miss_eta->SetNameTitle(Form("gr_%d",part), "Missing Ratio for #eta");
-    aset(gr_miss_eta, "p_{T}^{1#gamma} [GeV]","R", 5.,30., 0.,1.5);
-    style(gr_miss_eta, 20+part, 1+part);
-    if(part==0)
-      gr_miss_eta->Draw("AP");
-    else
-      gr_miss_eta->Draw("P");
+    if(part < 3)
+    {
+      TGraphErrors *gr_miss_eta = qt_miss_eta->Graph(part);
+      gr_miss_eta->SetNameTitle(Form("gr_%d",part), "Missing Ratio for #eta");
+      aset(gr_miss_eta, "p_{T}^{1#gamma} [GeV]","R", 5.,30., 0.,1.5);
+      style(gr_miss_eta, 20+part, 1+part);
+      if(part == 0)
+        gr_miss_eta->Draw("AP");
+      else
+        gr_miss_eta->Draw("P");
+    }
 
     mcd(1, 1);
     gPad->SetLogy();
@@ -89,16 +95,19 @@ void draw_MissingRatio()
     h_merged = h_merged->Rebin(npT_rebin, "h_merged", pTrebin);
 
     qt_merge1->Fill(h_merged, h_separated, part);
-    TGraphErrors *gr_merge1 = qt_merge1->Graph(part);
-    gr_merge1->SetNameTitle(Form("gr_%d",part+3), "Converted Merging Ratio");
-    aset(gr_merge1, "p_{T}^{1#gamma} [GeV]","Converted merging ratio", 5.,30., 1e-4,10.);
-    style(gr_merge1, 20+part, 1+part);
-    if(part==0)
-      gr_merge1->Draw("AP");
-    else
-      gr_merge1->Draw("P");
-    leg1->AddEntry(gr_merge1, pname[part], "P");
-    leg1->Draw();
+    if(part < 3)
+    {
+      TGraphErrors *gr_merge1 = qt_merge1->Graph(part);
+      gr_merge1->SetNameTitle(Form("gr_%d",part+3), "Merging Ratio for one photon p_{T}");
+      aset(gr_merge1, "p_{T}^{1#gamma} [GeV]","Merging ratio", 5.,30., 1e-4,10.);
+      style(gr_merge1, 20+part, 1+part);
+      if(part == 0)
+        gr_merge1->Draw("AP");
+      else
+        gr_merge1->Draw("P");
+      leg1->AddEntry(gr_merge1, pname[part], "P");
+      leg1->Draw();
+    }
 
     delete h_separated;
     delete h_merged;
@@ -116,14 +125,17 @@ void draw_MissingRatio()
     h_merged = h_merged->Rebin(npT_rebin, "h_merged", pTrebin);
 
     qt_merge2->Fill(h_merged, h_separated, part);
-    TGraphErrors *gr_merge2 = qt_merge2->Graph(part);
-    gr_merge2->SetNameTitle(Form("gr_%d",part), "Merging Ratio");
-    aset(gr_merge2, "p_{T}^{2#gamma} [GeV]","Merging ratio", 5.,30., 1e-4,20.);
-    style(gr_merge2, 20+part, 1+part);
-    if(part==0)
-      gr_merge2->Draw("AP");
-    else
-      gr_merge2->Draw("P");
+    if(part < 3)
+    {
+      TGraphErrors *gr_merge2 = qt_merge2->Graph(part);
+      gr_merge2->SetNameTitle(Form("gr_%d",part), "Merging Ratio for two photon p_{T}");
+      aset(gr_merge2, "p_{T}^{2#gamma} [GeV]","Merging ratio", 5.,30., 1e-4,20.);
+      style(gr_merge2, 20+part, 1+part);
+      if(part == 0)
+        gr_merge2->Draw("AP");
+      else
+        gr_merge2->Draw("P");
+    }
 
     delete h_separated;
     delete h_merged;

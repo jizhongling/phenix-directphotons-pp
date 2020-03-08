@@ -39,14 +39,17 @@ void draw_MergePassRate()
       if(ieta==7)
         qt_badpass->Fill(h_passed, h_total, part);
       TGraphAsymmErrors *gr = new TGraphAsymmErrors(h_passed, h_total);
-      gr->SetTitle( Form("|#eta|: %.2f - %.2f",(ieta-ieta/7*7)*0.05,(ieta+1-ieta/7*3)*0.05) );
-      aset(gr, "p_{T} [GeV]","Bad Pass", 16.,30., 0.,0.3);
-      style(gr, part+20, part+1);
-      if(part==0)
-        gr->Draw("AP");
-      else
-        gr->Draw("P");
-      leg0->AddEntry(gr, pname[part], "P");
+      if(part < 2)
+      {
+        gr->SetTitle( Form("|#eta|: %.2f - %.2f",(ieta-ieta/7*7)*0.05,(ieta+1-ieta/7*3)*0.05) );
+        aset(gr, "p_{T} [GeV]","Bad Pass", 16.,30., 0.,0.3);
+        style(gr, part+20, part+1);
+        if(part==0)
+          gr->Draw("AP");
+        else
+          gr->Draw("P");
+        leg0->AddEntry(gr, pname[part], "P");
+      }
 
       delete h_total;
       delete h_passed;

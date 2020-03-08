@@ -11,10 +11,10 @@ void draw_IsoPhotonALL()
   const char *crossing_list[2] = {"Even", "Odd"};
   const char *pattern_list[4] = {"SOOSSOO", "OSSOOSS", "SSOO", "OOSS"};
 
-  QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root", "RECREATE");
+  QueryTree *qt_all = new QueryTree("data/IsoPhotonALL-last3rd.root", "RECREATE");
 
-  QueryTree *qt_asym = new QueryTree("data/isophoton-asym.root");
-  //QueryTree *qt_asym = new QueryTree("data/isophoton-test.root");
+  //QueryTree *qt_asym = new QueryTree("data/isophoton-asym.root");
+  QueryTree *qt_asym = new QueryTree("data/isophoton-test.root");
   qt_asym->SetQuiet();
   int imul = 1;
 
@@ -25,7 +25,7 @@ void draw_IsoPhotonALL()
   vector<double> *vp_eALL = new vector<double>[8];
 
   cout.precision(4);
-  for(int beam=3; beam<3; beam++)
+  for(int beam=2; beam<3; beam++)
   {
     cout << "beam " << beam << endl;
 
@@ -63,7 +63,7 @@ void draw_IsoPhotonALL()
 
   TF1 *fn_mean = new TF1("fn_mean", "pol0");
 
-  for(int beam=0; beam<3; beam++)
+  for(int beam=2; beam<3; beam++)
     for(int ipt=0; ipt<npT_pol; ipt++)
     {
       double sig[8] = {};
@@ -126,7 +126,7 @@ void draw_IsoPhotonALL()
       }
     } // beam, ipt
 
-  for(int beam=0; beam<3; beam++)
+  for(int beam=2; beam<3; beam++)
   {
     int ic = beam + ngr_photon;
     mc(ic, 2,2);
