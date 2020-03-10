@@ -11,10 +11,9 @@ void draw_IsoPhotonALL()
   const char *crossing_list[2] = {"Even", "Odd"};
   const char *pattern_list[4] = {"SOOSSOO", "OSSOOSS", "SSOO", "OOSS"};
 
-  QueryTree *qt_all = new QueryTree("data/IsoPhotonALL-last3rd.root", "RECREATE");
+  QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root", "RECREATE");
 
-  //QueryTree *qt_asym = new QueryTree("data/isophoton-asym.root");
-  QueryTree *qt_asym = new QueryTree("data/isophoton-test.root");
+  QueryTree *qt_asym = new QueryTree("data/isophoton-asym.root");
   qt_asym->SetQuiet();
   int imul = 1;
 
@@ -25,7 +24,7 @@ void draw_IsoPhotonALL()
   vector<double> *vp_eALL = new vector<double>[8];
 
   cout.precision(4);
-  for(int beam=2; beam<3; beam++)
+  for(int beam=3; beam<3; beam++)
   {
     cout << "beam " << beam << endl;
 
@@ -63,11 +62,11 @@ void draw_IsoPhotonALL()
 
   TF1 *fn_mean = new TF1("fn_mean", "pol0");
 
-  for(int beam=2; beam<3; beam++)
+  for(int beam=0; beam<3; beam++)
     for(int ipt=0; ipt<npT_pol; ipt++)
     {
-      double sig[8] = {};
-      double esig[8] = {};
+      double sig[2][8] = {};
+      double esig[2][8] = {};
       for(int icr=0; icr<2; icr++)
         for(int pattern=0; pattern<4; pattern++)
         {
@@ -109,24 +108,32 @@ void draw_IsoPhotonALL()
           if( TMath::Finite(mean+emean) )
             qt_all->Fill(ipt, igr, xpt, mean, emean);
 
-          int ipat = icr + 2*pattern;
-          sig[ipat] = (mean - rbg[0]*allpion[0] - rbg[1]*allpion[1])/(1 - rbg[0] - rbg[1] - rbg[2]);
-          esig[ipat] = sqrt(pow(erbg[0],2)*pow((mean - allpion[0]*rbg[0] - allpion[1]*rbg[1])/pow(1 - rbg[0] - rbg[1] - rbg[2],2) - allpion[0]/(1 - rbg[0] - rbg[1] - rbg[2]),2) + pow(erbg[1],2)*pow((mean - allpion[0]*rbg[0] - allpion[1]*rbg[1])/pow(1 - rbg[0] - rbg[1] - rbg[2],2) - allpion[1]/(1 - rbg[0] - rbg[1] - rbg[2]),2) + (pow(erbg[2],2)*pow(mean - allpion[0]*rbg[0] - allpion[1]*rbg[1],2))/pow(1 - rbg[0] - rbg[1] - rbg[2],4) + pow(emean,2)/pow(1 - rbg[0] - rbg[1] - rbg[2],2) + (pow(eallpion[0],2)*pow(rbg[0],2))/pow(1 - rbg[0] - rbg[1] - rbg[2],2) + (pow(eallpion[1],2)*pow(rbg[1],2))/pow(1 - rbg[0] - rbg[1] - rbg[2],2));
+          for(int isys=0; isys<2; isys++)
+          {
+            int ipat = icr + 2*pattern;
+            for(int ibg=0; ibg<3; ibg++)
+              rbg[ibg] *= (1 + 0.04*isys);
+            sig[isys][ipat] = (mean - rbg[0]*allpion[0] - rbg[1]*allpion[1])/(1 - rbg[0] - rbg[1] - rbg[2]);
+            esig[isys][ipat] = sqrt(pow(erbg[0],2)*pow((mean - allpion[0]*rbg[0] - allpion[1]*rbg[1])/pow(1 - rbg[0] - rbg[1] - rbg[2],2) - allpion[0]/(1 - rbg[0] - rbg[1] - rbg[2]),2) + pow(erbg[1],2)*pow((mean - allpion[0]*rbg[0] - allpion[1]*rbg[1])/pow(1 - rbg[0] - rbg[1] - rbg[2],2) - allpion[1]/(1 - rbg[0] - rbg[1] - rbg[2]),2) + (pow(erbg[2],2)*pow(mean - allpion[0]*rbg[0] - allpion[1]*rbg[1],2))/pow(1 - rbg[0] - rbg[1] - rbg[2],4) + pow(emean,2)/pow(1 - rbg[0] - rbg[1] - rbg[2],2) + (pow(eallpion[0],2)*pow(rbg[0],2))/pow(1 - rbg[0] - rbg[1] - rbg[2],2) + (pow(eallpion[1],2)*pow(rbg[1],2))/pow(1 - rbg[0] - rbg[1] - rbg[2],2));
 
-          int igr = beam + 3*icr + 3*2*pattern + ngr_photon;
-          qt_all->Fill(ipt, igr, xpt, sig[ipat], esig[ipat]);
+            int igr = beam + 3*icr + 3*2*pattern + ngr_photon + ngr_photon*3*isys;
+            qt_all->Fill(ipt, igr, xpt, sig[isys][ipat], esig[isys][ipat]);
+          } // isys
         } // icr, pattern
 
-      double comb, ecomb;
-      Chi2Fit(8, sig, esig, comb, ecomb);
-      if( TMath::Finite(comb+ecomb) )
+      for(int isys=0; isys<2; isys++)
       {
-        int igr = beam + ngr_photon*2;
-        qt_all->Fill(ipt, igr, xpt, comb, ecomb);
-      }
+        double comb, ecomb;
+        Chi2Fit(8, sig[isys], esig[isys], comb, ecomb);
+        if( TMath::Finite(comb+ecomb) )
+        {
+          int igr = beam + ngr_photon*2 + ngr_photon*3*isys;
+          qt_all->Fill(ipt, igr, xpt, comb, ecomb);
+        }
+      } // isys
     } // beam, ipt
 
-  for(int beam=2; beam<3; beam++)
+  for(int beam=0; beam<3; beam++)
   {
     int ic = beam + ngr_photon;
     mc(ic, 2,2);
