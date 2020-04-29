@@ -303,7 +303,7 @@ void draw_CrossSection_IsoPhoton()
     for(int part=0; part<3; part++)
     {
       TGraphErrors *gr = qt_cross->Graph(1+part+3*isys);
-      aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.05);
+      aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.1);
       style(gr, part+20, part+1);
       char *opt = part==0 ? "AP" : "P";
       gr->Draw(opt);

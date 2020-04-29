@@ -9,6 +9,10 @@ void draw_SysErrALL()
   QueryTree *qt_sys = new QueryTree("data/IsoPhotonALL-syserr.root", "RECREATE");
   QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root");
 
+  TBox *box = new TBox();
+  box->SetLineColor(2);
+  box->SetFillStyle(0);
+
   mc();
   mcd();
   double estat, dummy;
@@ -35,8 +39,16 @@ void draw_SysErrALL()
     aset(gr_all, "p_{T} [GeV]",beam_list[beam], 0.,20., -0.06,0.05);
     style(gr_all, 1, 1);
     style(gr_sys, 1, 1);
+    gr_sys->SetLineWidth(2);
     gr_all->Draw("AP");
-    gr_sys->Draw("[]");
+    //gr_sys->Draw("[]");
+    for(int i=0; i<gr_sys->GetN(); i++)
+    {
+      double xx, yy;
+      gr_sys->GetPoint(i, xx, yy);
+      double eyy = gr_sys->GetErrorY(i);
+      box->DrawBox(xx-0.2,yy-eyy,xx+0.2,yy+eyy);
+    }
     c0->Print(Form("plots/IsoPhotonALL-beam%d-syserr.pdf",beam));
     c0->Clear("D");
   } // beam

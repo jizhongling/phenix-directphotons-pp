@@ -237,40 +237,139 @@ void AnaFastMC::FastMCInput()
         *sys[jsys] = false;
     } // jsys
 
-    /* Code for pi0 acceptance and merging rate */
-
-    /* Fill Vpart[], itwr_part[] and sec_part[]
-     * and set NPart and NPeak */
-    pi0_sim(beam_pi0);
-
-    /* Get event weight for pi0 */
-    if(pt > 1.)
-      weight_pi0 = ptweights->EvalPi0(pt);
-    else
-      weight_pi0 = ptweights->EvalPi0(1.);
-
-    /* Fill histogram for all generated pi0 */
-    h_pion->Fill(pt, weight_pi0);
-
-    /* Two photons are in acceptance */
-    if(NPart == 2)
+    for(sysX=300; sysX<700; sysX+=20)
     {
-      /* Parameters for two clusters from pi0 decay photons */
-      int sec1 = sec_part[0];
-      int sec2 = sec_part[1];
-      double e1 = Vpart[0].E();
-      double e2 = Vpart[1].E();
+      int sysCond = isys + (sysX - 300) / 20;
+      if(!sysenlin)
+        sysX = 1e9;
+      else
+        sysCond += 2;
 
-      /* Check warnmap, in the same detector part
-       * and pass the energy and asymmetry cuts */
-      if( !CheckWarnMap(itw_part[0]) &&
-          !CheckWarnMap(itw_part[1]) &&
-          anatools::SectorCheck(sec1,sec2) &&
-          e1 > eMin && e2 > eMin &&
-          fabs(e1-e2)/(e1+e2) < AsymCut )
+      /* Code for pi0 acceptance and merging rate */
+
+      /* Fill Vpart[], itwr_part[] and sec_part[]
+       * and set NPart and NPeak */
+      pi0_sim(beam_pi0);
+
+      /* Get event weight for pi0 */
+      if(pt > 1.)
+        weight_pi0 = ptweights->EvalPi0(pt);
+      else
+        weight_pi0 = ptweights->EvalPi0(1.);
+
+      /* Fill histogram for all generated pi0 */
+      h_pion->Fill(pt, weight_pi0);
+
+      /* Two photons are in acceptance */
+      if(NPart == 2)
       {
-        /* Fill eta and phi distribution */
-        for(int iph=0; iph<2; iph++)
+        /* Parameters for two clusters from pi0 decay photons */
+        int sec1 = sec_part[0];
+        int sec2 = sec_part[1];
+        double e1 = Vpart[0].E();
+        double e2 = Vpart[1].E();
+
+        /* Check warnmap, in the same detector part
+         * and pass the energy and asymmetry cuts */
+        if( !CheckWarnMap(itw_part[0]) &&
+            !CheckWarnMap(itw_part[1]) &&
+            anatools::SectorCheck(sec1,sec2) &&
+            e1 > eMin && e2 > eMin &&
+            fabs(e1-e2)/(e1+e2) < AsymCut )
+        {
+          /* Fill eta and phi distribution */
+          for(int iph=0; iph<2; iph++)
+          {
+            int part = -1;
+            if(sec1 < 0) part = -1;
+            else if(sec1 < 4) part = 0;
+            else if(sec1 < 6) part = 1;
+            else if(sec1 < 8) part = 2;
+
+            double pt_reco = Vpart[iph].Pt();
+            double eta = Vpart[iph].Eta();
+            double phi = Vpart[iph].Phi();
+            if(sec1 >= 4)
+            {
+              Vpart[iph].RotateZ(-PI);
+              phi = Vpart[iph].Phi() + PI;
+            }
+
+            if( isys == 0 && part >= 0 &&
+                pt_reco > 5. && pt_reco < 10. )
+              h2_pion_eta_phi[part]->Fill(-eta, phi, weight_ph);
+          } // iph
+
+          /* Fill pi0 histogram
+           * NPeak=2: No merging for two photons
+           * NPeak=1: Merging for two photons */
+          TLorentzVector pPi0 = Vpart[0] + Vpart[1];
+          double ptsim = pPi0.Pt();
+          double minv = pPi0.M()*mcorr;
+          double fill_hn_pion[] = {pt, ptsim, minv, (double)sec1, (double)NPeak, (double)sysCond};
+          hn_pion->Fill(fill_hn_pion, weight_pi0);
+        } // !CheckWarnMap
+      } // NPart
+
+      /* Code for pi0 missing ratio and self veto power */
+
+      for(int iph=0; iph<2; iph++)
+        if( isys == 0 &&
+            emcwarnmap->InFiducial(itw_part[iph]) &&
+            Vpart[iph].E() > eMin )
+        {
+          int npart = 1;
+          int npeak = 1;
+          if( emcwarnmap->IsGoodTower(itw_part[1-iph]) &&
+              Vpart[1-iph].E() > eMin )
+          {
+            npart = NPart;
+            npeak = NPeak;
+          }
+
+          double ptsim = pt;
+          if(NPart == 2)
+            ptsim = (Vpart[0] + Vpart[1]).Pt();
+
+          double fill_hn_missing[] = {Vpart[iph].Pt(), ptsim, (double)sec_part[iph], (double)npart, (double)npeak};
+          hn_missing->Fill(fill_hn_missing, weight_pi0);
+
+          if( npart == 2 && npeak == 2 )
+          {
+            int isolated = 0;
+            double angle = Vpart[0].Angle( Vpart[1].Vect() );
+            double econe = angle < cone_angle ? Vpart[1].E() : 0.;
+            if( econe < eratio * Vpart[0].E() )
+              isolated = 1;
+            h3_isopi0->Fill(Vpart[iph].Pt(), (double)sec_part[iph], (double)isolated);
+          } // npart and npeak
+        } // iph
+
+      /* Code for direct photon acceptance */
+
+      /* Fill Vpart[], itwr_part[] and sec_part[]
+       * and set NPart and NPeak */
+      photon_sim(beam_ph);
+
+      /* Get event weight for direct photon */
+      if(pt > 1.)
+        weight_ph = ptweights->EvalPhoton(pt);
+      else
+        weight_ph = ptweights->EvalPhoton(1.);
+
+      /* Fill histogram for all generated direct photons */
+      h_photon->Fill(pt, weight_ph);
+
+      /* Direct photon is in fiducial */
+      if( emcwarnmap->InFiducial(itw_part[0]) )
+      {
+        /* Parameters for direct photon */
+        int sec1 = sec_part[0];
+        double e1 = Vpart[0].E();
+        double ptsim = Vpart[0].Pt();
+
+        /* For eta and phi distribution and acceptance */
+        if(e1 > eMin)
         {
           int part = -1;
           if(sec1 < 0) part = -1;
@@ -278,113 +377,25 @@ void AnaFastMC::FastMCInput()
           else if(sec1 < 6) part = 1;
           else if(sec1 < 8) part = 2;
 
-          double pt_reco = Vpart[iph].Pt();
-          double eta = Vpart[iph].Eta();
-          double phi = Vpart[iph].Phi();
+          double eta = Vpart[0].Eta();
+          double phi = Vpart[0].Phi();
           if(sec1 >= 4)
           {
-            Vpart[iph].RotateZ(-PI);
-            phi = Vpart[iph].Phi() + PI;
+            Vpart[0].RotateZ(-PI);
+            phi = Vpart[0].Phi() + PI;
           }
 
           if( isys == 0 && part >= 0 &&
-              pt_reco > 5. && pt_reco < 10. )
-            h2_pion_eta_phi[part]->Fill(-eta, phi, weight_ph);
-        } // iph
+              ptsim > 5. && ptsim < 10. )
+            h2_photon_eta_phi[part]->Fill(-eta, phi, weight_ph);
 
-        /* Fill pi0 histogram
-         * NPeak=2: No merging for two photons
-         * NPeak=1: Merging for two photons */
-        TLorentzVector pPi0 = Vpart[0] + Vpart[1];
-        double ptsim = pPi0.Pt();
-        double minv = pPi0.M()*mcorr;
-        double fill_hn_pion[] = {pt, ptsim, minv, (double)sec1, (double)NPeak, (double)isys};
-        hn_pion->Fill(fill_hn_pion, weight_pi0);
-      } // !CheckWarnMap
-    } // NPart
-
-    /* Code for pi0 missing ratio and self veto power */
-
-    for(int iph=0; iph<2; iph++)
-      if( isys == 0 &&
-          emcwarnmap->InFiducial(itw_part[iph]) &&
-          Vpart[iph].E() > eMin )
-      {
-        int npart = 1;
-        int npeak = 1;
-        if( emcwarnmap->IsGoodTower(itw_part[1-iph]) &&
-            Vpart[1-iph].E() > eMin )
-        {
-          npart = NPart;
-          npeak = NPeak;
-        }
-
-        double ptsim = pt;
-        if(NPart == 2)
-          ptsim = (Vpart[0] + Vpart[1]).Pt();
-
-        double fill_hn_missing[] = {Vpart[iph].Pt(), ptsim, (double)sec_part[iph], (double)npart, (double)npeak};
-        hn_missing->Fill(fill_hn_missing, weight_pi0);
-
-        if( npart == 2 && npeak == 2 )
-        {
-          int isolated = 0;
-          double angle = Vpart[0].Angle( Vpart[1].Vect() );
-          double econe = angle < cone_angle ? Vpart[1].E() : 0.;
-          if( econe < eratio * Vpart[0].E() )
-            isolated = 1;
-          h3_isopi0->Fill(Vpart[iph].Pt(), (double)sec_part[iph], (double)isolated);
-        } // npart and npeak
-      } // iph
-
-    /* Code for direct photon acceptance */
-
-    /* Fill Vpart[], itwr_part[] and sec_part[]
-     * and set NPart and NPeak */
-    photon_sim(beam_ph);
-
-    /* Get event weight for direct photon */
-    if(pt > 1.)
-      weight_ph = ptweights->EvalPhoton(pt);
-    else
-      weight_ph = ptweights->EvalPhoton(1.);
-
-    /* Fill histogram for all generated direct photons */
-    h_photon->Fill(pt, weight_ph);
-
-    /* Direct photon is in fiducial */
-    if( emcwarnmap->InFiducial(itw_part[0]) )
-    {
-      /* Parameters for direct photon */
-      int sec1 = sec_part[0];
-      double e1 = Vpart[0].E();
-      double ptsim = Vpart[0].Pt();
-
-      /* For eta and phi distribution and acceptance */
-      if(e1 > eMin)
-      {
-        int part = -1;
-        if(sec1 < 0) part = -1;
-        else if(sec1 < 4) part = 0;
-        else if(sec1 < 6) part = 1;
-        else if(sec1 < 8) part = 2;
-
-        double eta = Vpart[0].Eta();
-        double phi = Vpart[0].Phi();
-        if(sec1 >= 4)
-        {
-          Vpart[0].RotateZ(-PI);
-          phi = Vpart[0].Phi() + PI;
-        }
-
-        if( isys == 0 && part >= 0 &&
-            ptsim > 5. && ptsim < 10. )
-          h2_photon_eta_phi[part]->Fill(-eta, phi, weight_ph);
-
-        double fill_hn_photon[] = {pt, ptsim, (double)sec1, (double)isys};
-        hn_photon->Fill(fill_hn_photon, weight_ph);
-      } // e1
-    } // InFiducial
+          double fill_hn_photon[] = {pt, ptsim, (double)sec1, (double)sysCond};
+          hn_photon->Fill(fill_hn_photon, weight_ph);
+        } // e1
+      } // InFiducial
+      if(!sysenlin)
+        break;
+    } // sysX
   } // isys
 
   /* Code for eta self veto power */
@@ -825,9 +836,9 @@ void AnaFastMC::BookHistograms()
     h3_isoeta->SetTitle("Self veto for #eta");
     hm->registerHisto(h3_isoeta);
 
-    const int nbins_hn_pion[] = {npT, npT, 300, 8, 3, 4};
+    const int nbins_hn_pion[] = {npT, npT, 300, 8, 3, 25};
     const double xmin_hn_pion[] = {0., 0., 0., -0.5, -0.5, -0.5};
-    const double xmax_hn_pion[] = {0., 0., 0.3, 7.5, 2.5, 3.5};
+    const double xmax_hn_pion[] = {0., 0., 0.3, 7.5, 2.5, 24.5};
     hn_pion = new THnSparseF("hn_pion", "EMCal pion count;p_{T} truth [GeV];p_{T} reco [GeV];m_{inv} [GeV];sector;NPeak;isys;",
         6, nbins_hn_pion, xmin_hn_pion, xmax_hn_pion);
     hn_pion->SetBinEdges(0, pTbin);
@@ -850,9 +861,9 @@ void AnaFastMC::BookHistograms()
     hn_missing_eta->Sumw2();
     hm->registerHisto(hn_missing_eta);
 
-    const int nbins_hn_photon[] = {npT, npT, 8, 4};
+    const int nbins_hn_photon[] = {npT, npT, 8, 25};
     const double xmin_hn_photon[] = {0., 0., -0.5, -0.5};
-    const double xmax_hn_photon[] = {0., 0., 7.5, 3.5};
+    const double xmax_hn_photon[] = {0., 0., 7.5, 24.5};
     hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;isys;",
         4, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
     hn_photon->SetBinEdges(0, pTbin);
@@ -1473,8 +1484,7 @@ bool AnaFastMC::GetShower(double px, double py, double pz, double& eout, int& it
     }
   }
   eout = ecore*en/esum; // normalization to real shower energy
-  if(!sysengl)
-    eout /= corr; // tune to data global calibration
+  eout /= corr; // tune to data global calibration
 
   for( int iy=-2; iy<=2; iy++ ) {
     for( int iz=-2; iz<=2; iz++ ) {
@@ -1565,20 +1575,17 @@ bool AnaFastMC::Gamma_En(double px, double py, double pz, double& eout, int& itw
     return false;
   }
 
-  if(!sysenlin)
-  {
-    //  if(sec>5) et1 *= (1-0.135644*exp(-1.10904*et1)); // Add'l attenuation for PbGl
-    //  if(sec>5) et1 *= 1.; // Add'l attenuation for PbGl
-    //  if(sec>5) et1 *= pow(et1/2,+2./500.); // Add'l attenuation for PbGl
-    //  if(sec>5) et1 *= pow(et1/2,+2./150.); // Add'l attenuation for PbGl
-    if(sec>5) et1 *= pow(et1/2,+2./120.); // Add'l attenuation for PbGl
-    else et1 *= pow(et1,-2./800.); // Add'l attenuation for PbSc
-    //  else et1 *= pow(et1/2,+2./9999999.); // Add'l attenuation for PbSc; normalization for 2 GeV
+  //  if(sec>5) et1 *= (1-0.135644*exp(-1.10904*et1)); // Add'l attenuation for PbGl
+  //  if(sec>5) et1 *= 1.; // Add'l attenuation for PbGl
+  //  if(sec>5) et1 *= pow(et1/2,+2./500.); // Add'l attenuation for PbGl
+  //  if(sec>5) et1 *= pow(et1/2,+2./150.); // Add'l attenuation for PbGl
+  if(sec>5) et1 *= pow(et1/2,+2./120.+1./sysX); // Add'l attenuation for PbGl
+  else et1 *= pow(et1,-2./800.+1./sysX); // Add'l attenuation for PbSc
+  //  else et1 *= pow(et1/2,+2./9999999.); // Add'l attenuation for PbSc; normalization for 2 GeV
 
-    // Non-linearity near pedestal/threshold (data is undercorrected for it)
-    if( sec<=5 ) et1 *= (1-0.003/et1/et1); 
-    else         et1 *= (1-0.005/et1/et1);
-  }
+  // Non-linearity near pedestal/threshold (data is undercorrected for it)
+  if( sec<=5 ) et1 *= (1-0.003/et1/et1); 
+  else         et1 *= (1-0.005/et1/et1);
 
   // Shower overlap effect
   /*
@@ -1597,6 +1604,11 @@ bool AnaFastMC::Gamma_En(double px, double py, double pz, double& eout, int& itw
   eout = et1*corr;
   //  eout = et; 
   //  eout = ein;
+
+  // Systematics for global energy scale
+  if(sysengl)
+    eout *= mcorr;
+
   return true;
 }
 

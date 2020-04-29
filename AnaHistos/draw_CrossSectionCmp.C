@@ -123,74 +123,82 @@ void draw_CrossSectionCmp(const int nameid)
   fname += name + ".pdf";
   c1->Print(fname);
 
-  if( !name.EqualTo("isophoton") )
-    return;
-
-  QueryTree *qt_sys = new QueryTree("data/CrossSection-isophoton-syserr.root");
-
-  mc(2);
-  mcd(2);
-  legi(1, 0.2,0.8,0.9,0.9);
-  leg1->SetNColumns(3);
-
-  TLine *line = new TLine();
-  line->SetLineColor(kRed);
-  line->SetLineWidth(5);
-  line->SetLineStyle(2);
-
-  for(int imu=0; imu<3; imu++)
+  for(int iso=0; iso<2; iso++)
   {
-    TGraphErrors *gr_nlo = new TGraphErrors(npT);
-    TGraphErrors *gr_sys = new TGraphErrors(npT);
-    TFile *f_nlo = new TFile( Form("data/isoprompt-x400-ct14-%s.root",jetphox_fname[imu]) );
-    TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
-    h_nlo->Scale(jetphox_scale);
+    char *type = iso ? "iso" : "";
+    if( !name.EqualTo(Form("%sphoton",type)) )
+      continue;
 
-    int igp = 0;
-    for(int ipt=12; ipt<npT; ipt++)
+    QueryTree *qt_sys = new QueryTree("data/CrossSection-syserr.root");
+
+    mc(2);
+    mcd(2);
+    legi(1, 0.2,0.8,0.9,0.9);
+    leg1->SetNColumns(3);
+
+    TLine *line = new TLine();
+    line->SetLineColor(kRed);
+    line->SetLineWidth(5);
+    line->SetLineStyle(2);
+
+    for(int imu=0; imu<3; imu++)
     {
-      double xpt, Combine, eCombine, sysCombine;
-      if( !qt_cross->Query(ipt, 3, xpt, Combine, eCombine) )
-        continue;
+      TGraphErrors *gr_nlo = new TGraphErrors(npT);
+      TGraphErrors *gr_sys = new TGraphErrors(npT);
+      type = iso ? "iso" : "inc";
+      TFile *f_nlo = new TFile( Form("data/%sprompt-x400-ct14-%s.root",type,jetphox_fname[imu]) );
+      TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
+      h_nlo->Scale(jetphox_scale);
 
-      double factor = 1. / (2*PI*xpt*DeltaEta);
-      int bin_th = h_nlo->GetXaxis()->FindBin(xpt);
-      double sigma_nlo = factor * h_nlo->GetBinContent(bin_th);
-      double esigma_nlo = factor * h_nlo->GetBinError(bin_th);
-
-      double yy = Combine / sigma_nlo;
-      double eyy = yy * sqrt( pow(eCombine/Combine,2) + pow(esigma_nlo/sigma_nlo,2) );
-      if( TMath::Finite(yy+eyy) )
+      int igp = 0;
+      for(int ipt=12; ipt<npT; ipt++)
       {
-        gr_nlo->SetPoint(igp, xpt, yy);
-        gr_nlo->SetPointError(igp, 0., eyy);
-        qt_sys->Query(ipt, 0, xpt, Combine, sysCombine);
+        double xpt, Combine, eCombine, sysCombine;
+        if( !qt_cross->Query(ipt, 3, xpt, Combine, eCombine) )
+          continue;
+
+        double factor = 1. / (2*PI*xpt*DeltaEta);
+        int bin_th = h_nlo->GetXaxis()->FindBin(xpt);
+        double sigma_nlo = factor * h_nlo->GetBinContent(bin_th);
+        double esigma_nlo = factor * h_nlo->GetBinError(bin_th);
+
         double yy = Combine / sigma_nlo;
-        double eyy = sysCombine / sigma_nlo;
-        gr_sys->SetPoint(igp, xpt, yy);
-        gr_sys->SetPointError(igp, 0., eyy);
-        igp++;
+        double eyy = yy * sqrt( pow(eCombine/Combine,2) + pow(esigma_nlo/sigma_nlo,2) );
+        if( TMath::Finite(yy+eyy) )
+        {
+          gr_nlo->SetPoint(igp, xpt, yy);
+          gr_nlo->SetPointError(igp, 0., eyy);
+          qt_sys->Query(ipt, iso, xpt, Combine, sysCombine);
+          double yy = Combine / sigma_nlo;
+          double eyy = sqrt(pow(sysCombine,2) + pow(0.05*Combine,2)) / sigma_nlo;
+          gr_sys->SetPoint(igp, xpt, yy);
+          gr_sys->SetPointError(igp, 0., eyy);
+          igp++;
+        }
       }
+
+      gr_nlo->Set(igp);
+      gr_sys->Set(igp);
+      gr_nlo->SetTitle("data/theory;p_{T} [GeV];#frac{data}{theory}");
+      aset(gr_nlo, "","", 6.1,30., 0.3+0.2*iso,3.-iso);
+      leg1->AddEntry(gr_nlo, Form("%s",jetphox_fname[imu]), imu==0?"P":"L");
+      style(gr_nlo, 20, imu+1, 0.7);
+      style(gr_sys, 1, imu+1);
+      if(imu == 0)
+      {
+        gr_nlo->Draw("APE");
+        gr_sys->Draw("[]");
+      }
+      else
+        gr_nlo->Draw("LX");
+      line->DrawLine(6.1, 1., 30., 1.);
+
+      delete h_nlo;
+      delete f_nlo;
     }
+    leg1->Draw();
 
-    gr_nlo->Set(igp);
-    gr_sys->Set(igp);
-    gr_nlo->SetTitle("data/theory;p_{T} [GeV];#frac{data}{theory}");
-    aset(gr_nlo, "","", 6.1,30., 0.5,2.);
-    leg1->AddEntry(gr_nlo, Form("%s",jetphox_fname[imu]), "L");
-    style(gr_nlo, 1, imu+1);
-    style(gr_sys, 1, imu+1);
-    if(imu == 0)
-      gr_nlo->Draw("ALE");
-    else
-      gr_nlo->Draw("LE");
-    gr_sys->Draw("[]");
-    line->DrawLine(6.1, 1., 30., 1.);
-
-    delete h_nlo;
-    delete f_nlo;
+    type = iso ? "iso" : "inc";
+    c2->Print(Form("plots/CrossSectionCmp2Jetphox-%sphoton.pdf",type));
   }
-  leg1->Draw();
-
-  c2->Print("plots/CrossSectionCmp2Jetphox-isophoton.pdf");
 }

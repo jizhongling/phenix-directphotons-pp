@@ -13,7 +13,9 @@ void draw_SysErrEn()
   THnSparse *hn_photon = (THnSparse*)f->Get("hn_photon");
   THnSparse *hn_pion = (THnSparse*)f->Get("hn_pion");
 
-  for(int ipt=10; ipt<npT; ipt++)
+  const int s1 = 8;
+  const int s2 = 2;
+  for(int ipt=4; ipt<npT;ipt+=(ipt<20?s1:s2))
   {
     double ndir[2][4], endir[2][4];  // photon|pion, isys
     double rsys[2][3], ersys[2][3];  // photon|pion, isys-1
@@ -21,14 +23,13 @@ void draw_SysErrEn()
     for(int isys=0; isys<4; isys++)
     {
       hn_photon->GetAxis(3)->SetRange(isys+1,isys+1);
-      TH1 *h_pt = hn_photon->Projection(0);  // pt_truth
-      ndir[0][isys] = h_pt->GetBinContent(ipt+1);
-      endir[0][isys] = h_pt->GetBinError(ipt+1);
+      TH1 *h_pt = hn_photon->Projection(1);  // pt_reco
+      ndir[0][isys] = h_pt->IntegralAndError(ipt+1,ipt+(ipt<20?s1:s2), endir[0][isys]);
       delete h_pt;
 
       TH1 *h_minv;
       hn_pion->GetAxis(5)->SetRange(isys+1,isys+1);
-      hn_pion->GetAxis(0)->SetRange(ipt+1,ipt+1);  // pt_truth
+      hn_pion->GetAxis(1)->SetRange(ipt+1,ipt+(ipt<20?s1:s2));  // pt_reco
       h_minv = (TH1*)hn_pion->Projection(2);  // minv
       double hpt = ipt<20 ? 0. : 0.01;
       FitMinv(h_minv, ndir[1][isys], endir[1][isys], false, 0.11-hpt,0.16+hpt);
@@ -67,7 +68,7 @@ void draw_SysErrEn()
     {
       int index = itype + 2*isys;
       TGraphErrors *gr = qt_sys->Graph(index);
-      aset(gr, "p_{T} [GeV]","SysErr", 5.,30., 0.,0.06);
+      aset(gr, "p_{T} [GeV]","SysErr", 5.,30., 0.,0.1);
       style(gr, 20+isys, 1+isys);
       char *opt = isys ? "P" : "AL";
       gr->Draw(opt);

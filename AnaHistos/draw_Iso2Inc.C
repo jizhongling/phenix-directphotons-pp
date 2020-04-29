@@ -11,6 +11,7 @@ void draw_Iso2Inc()
   QueryTree *qt_photon = new QueryTree("data/CrossSection-photon.root");
   QueryTree *qt_isophoton = new QueryTree("data/CrossSection-isophoton.root");
   QueryTree *qt_jetphox = new QueryTree("data/JetphoxRatio.root");
+  QueryTree *qt_sys = new QueryTree("data/CrossSection-syserr.root");
 
   TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-photon.root");
   THnSparse *hn_hadron = (THnSparse*)f_pythia->Get("hn_hadron");
@@ -27,6 +28,7 @@ void draw_Iso2Inc()
   int igp[2] = {};
   for(int iph=0; iph<2; iph++)
     gr[iph] = new TGraphErrors(npT);
+  TGraphErrors *gr_sys = new TGraphErrors(npT);
 
   for(int ipt=0; ipt<npT; ipt++)
   {
@@ -54,6 +56,13 @@ void draw_Iso2Inc()
       {
         gr[1]->SetPoint(igp[1], xpt, yy);
         gr[1]->SetPointError(igp[1], 0., eyy);
+        double xsec[2], sys[2];
+        for(int i=0; i<2; i++)
+          qt_sys->Query(ipt, i, xpt, xsec[i], sys[i]);
+        double yy = xsec[1] / xsec[0];
+        double eyy = yy * sqrt( pow(sys[0]/xsec[0],2) + pow(sys[1]/xsec[1],2) );
+        gr_sys->SetPoint(igp[1], xpt, yy);
+        gr_sys->SetPointError(igp[1], 0., eyy);
         igp[1]++;
       }
     }
@@ -66,7 +75,7 @@ void draw_Iso2Inc()
   for(int iph=0; iph<2; iph++)
   {
     gr[iph]->Set(igp[iph]);
-    aset(gr[iph], "p_{T} [GeV]", "Iso/Inc", 6.,30., 0.,1.4);
+    aset(gr[iph], "p_{T} [GeV]", "Iso/Inc", 6.,30., 0.,2.4);
     style(gr[iph], iph+20, iph+1);
     if(iph==0)
     {
@@ -74,7 +83,12 @@ void draw_Iso2Inc()
       gr[iph]->Draw("AP");
     }
     else
+    {
       gr[iph]->Draw("P");
+      style(gr_sys, 1, iph+1);
+      gr_sys->SetLineWidth(2);
+      gr_sys->Draw("[]");
+    }
   }
   TGraphErrors *gr_pythia = DivideHisto(h_isophoton, h_photon);
   style(gr_pythia, 25, 2);

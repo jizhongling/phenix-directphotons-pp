@@ -7,6 +7,9 @@ void draw_BgRatio()
 {
   gSystem->Load("libGausProc.so");
 
+  const char *method[2] = {"gaus+pol3", "GPR"};
+  const char *pname[2] = {"PbSc", "PbGl"};
+
   QueryTree *qt_rbg = new QueryTree("data/BgRatio.root", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
@@ -40,6 +43,8 @@ void draw_BgRatio()
   }
 
   mc(3);
+  legi(0, 0.2,0.8,0.9,0.9);
+  leg0->SetNColumns(2);
   for(int part=0; part<2; part++)
   {
     mc(part, 6,5);
@@ -83,8 +88,10 @@ void draw_BgRatio()
       gr->Fit("pol0","N","", 6.,14.);
       cout << "im " << im << ", part " << part << ", high pT >>>>>>>>>>>>>>>>>>>>>>>>" << endl;
       gr->Fit("pol0","N","", 14.,30.);
+      leg0->AddEntry(gr, Form("%s %s",method[im],pname[part]), "P");
     }
   }
+  leg0->Draw();
   c3->Print("plots/BgRatio.pdf");
 
   qt_rbg->Write();
