@@ -1,7 +1,8 @@
 #include "BgGPR.h"
 
 void BgGPRMinv(TH1 *h_minv, double &npeak, double &enpeak,
-    double &nbg, double &enbg)
+    double &nbg, double &enbg,
+    const char *outfile = "default.root", const int index = 0)
 {
   const int binL1 = h_minv->GetXaxis()->FindBin(0.067);
   const int binL2 = h_minv->GetXaxis()->FindBin(0.087);
@@ -30,17 +31,18 @@ void BgGPRMinv(TH1 *h_minv, double &npeak, double &enpeak,
       sigma_y.push_back(sigma_yy);
     }
 
-  BgGPR(x,y,sigma_y, nbg,enbg, 0.047,0.227,180, 0.112,0.162);
+  BgGPR(x,y,sigma_y, nbg,enbg, 0.047,0.227,180, 0.112,0.162, outfile,index);
   nbg /= binW;
   enbg /= binW;
 
   return;
 }
 
-void BgGPRMinv(TH1 *h_minv, double &npion, double &enpion)
+void BgGPRMinv(TH1 *h_minv, double &npion, double &enpion,
+    const char *outfile = "default.root", const int index = 0)
 {
   double npeak, enpeak, nbg, enbg;
-  BgGPRMinv(h_minv, npeak, enpeak, nbg, enbg);
+  BgGPRMinv(h_minv, npeak, enpeak, nbg, enbg, outfile,index);
 
   npion = npeak - nbg;
   enpion = sqrt(enpeak*enpeak + enbg*enbg);

@@ -7,9 +7,11 @@ void draw_BgRatio()
 {
   gSystem->Load("libGausProc.so");
 
+  const char *GPR_outfile = "data/BgGPR.root";
   const char *method[2] = {"gaus+pol3", "GPR"};
   const char *pname[2] = {"PbSc", "PbGl"};
 
+  gSystem->Exec(Form("rm -f %s",GPR_outfile));
   QueryTree *qt_rbg = new QueryTree("data/BgRatio.root", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
@@ -47,24 +49,24 @@ void draw_BgRatio()
   leg0->SetNColumns(2);
   for(int part=0; part<2; part++)
   {
-    mc(part, 6,5);
+    mc(part, 4,4);
 
     for(int ipt=0; ipt<npT; ipt+=2)
     {
       int evtype = ipt<22 ? 2 : 1;
 
       TH1 *h_minv;
-      mcd(part, ipt+1);
+      mcd(part, ipt/2+1);
       double npeak = 1., enpeak = 1., nbg = 1., enbg = 1.;
       h_minv = (TH1*)h2_pion[evtype][part]->ProjectionY("h_py", ipt+1,ipt+2)->Clone("h_minv");
 
-      BgGPRMinv(h_minv, npeak, enpeak, nbg, enbg);
+      BgGPRMinv(h_minv, npeak, enpeak, nbg, enbg, GPR_outfile, part+ipt);
       double xpt = (pTbin[ipt] + pTbin[ipt+2]) / 2.;
       double rbg = nbg/npeak;
       double erbg = rbg*sqrt(enpeak*enpeak/npeak/npeak + enbg*enbg/nbg/nbg);
       qt_rbg->Fill(ipt, part+2, xpt, 1-rbg, erbg);
 
-      h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+1]) );
+      h_minv->SetTitle( Form("p_{T}: %3.1f-%3.1f GeV", pTbin[ipt], pTbin[ipt+2]) );
       h_minv->Rebin(10);
       double minv_shift = ipt<22 ? 0. : 0.01;
       FitMinv(h_minv, npeak, enpeak, nbg, enbg, true, 0.11-minv_shift,0.16+minv_shift);
@@ -72,6 +74,12 @@ void draw_BgRatio()
       rbg = nbg/npeak;
       erbg = rbg*sqrt(enpeak*enpeak/npeak/npeak + enbg*enbg/nbg/nbg);
       qt_rbg->Fill(ipt, part, xpt, 1-rbg, erbg);
+
+      TFile *f_gpr = new TFile(GPR_outfile);
+      TH1 *ho = (TH1*)f_gpr->Get(Form("ho_%d",part+ipt));
+      ho->Scale(10.);
+      ho->DrawCopy("SAME");
+      f_gpr->Close();
 
       delete h_minv;
     }

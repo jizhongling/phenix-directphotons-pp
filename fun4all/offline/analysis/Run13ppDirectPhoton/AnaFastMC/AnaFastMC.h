@@ -93,7 +93,6 @@ class AnaFastMC: public SubsysReco
     bool sysengl;
     bool sysenlin;
     bool sysgeom;
-    double sysX;
 
     /* Tower status for sim warnmap */
     int tower_status_sim[NSEC][NY][NZ];

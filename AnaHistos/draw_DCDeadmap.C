@@ -20,20 +20,24 @@ void draw_DCDeadmap(int runnumber)
   line->SetLineWidth(5);
   line->SetLineStyle(2);
 
+  mc(0, 2,2);
   for(int ns=0; ns<2; ns++)
     for(int we=0; we<2; we++)
     {
-      mc(ns*2+we);
-      mcd(ns*2+we);
       TString NS = ns ? "S" : "N";
       TString WE = we ? "E" : "W";
       TH2 *h2_board_run = (TH2*)f_dc->Get( Form("h2_board_ns%d_we%d_%d",ns,we,runnumber) );
       if(!h2_board_run) continue;
       h2_board_run->SetTitle( Form("%d, %s",runnumber,(NS+WE).Data()) );
+      mcd(0, ns*2+we+1);
+      h2_board_run->DrawCopy("COLZ");
+      mc(ns*2+we+1);
+      mcd(ns*2+we+1);
       h2_board_run->DrawCopy("COLZ");
       line->DrawLine(40., -0.5, 40., 0.5);
       delete h2_board_run;
     }
+  c0->Print("plots/DCAlphaBoard.jpg");
 }
 
 // par[4]: x1, y1, x2, y2

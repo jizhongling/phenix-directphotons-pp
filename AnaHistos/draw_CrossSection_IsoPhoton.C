@@ -112,8 +112,8 @@ void draw_CrossSection_IsoPhoton()
     double xpt, yy[3][3], eyy[3][3];  // isys, part
 
     double SysPhoton, eSysPhoton, SysPion, eSysPion;
-    qt_sys->Query(ipt, 0, xpt, SysPhoton, eSysPhoton);
-    qt_sys->Query(ipt, 1, xpt, SysPion, eSysPion);
+    qt_sys->Query(ipt<20?ipt/4*4:ipt, 0, xpt, SysPhoton, eSysPhoton);
+    qt_sys->Query(ipt<20?ipt/4*4:ipt, 1, xpt, SysPion, eSysPion);
 
     for(int part=0; part<3; part++)
     {
@@ -219,7 +219,7 @@ void draw_CrossSection_IsoPhoton()
         }
         else
         {
-          ndir = nphoton/Eff*(1 - SysPhoton) - nbg*(1 - SysPion);
+          ndir = nphoton/Eff*(1 - SysPhoton) - nbg*(1 + SysPion);
           erel = sqrt(pow(nphoton/Eff*eSysPhoton,2) + pow(nbg*eSysPion,2));
           erel /= ndir;
         }
@@ -303,7 +303,7 @@ void draw_CrossSection_IsoPhoton()
     for(int part=0; part<3; part++)
     {
       TGraphErrors *gr = qt_cross->Graph(1+part+3*isys);
-      aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.1);
+      aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.3);
       style(gr, part+20, part+1);
       char *opt = part==0 ? "AP" : "P";
       gr->Draw(opt);
@@ -311,7 +311,7 @@ void draw_CrossSection_IsoPhoton()
         leg1->AddEntry(gr, pname[part], "P");
     }
     leg1->Draw();
-    char *type = isys==1 ? "Fit" : "EnFast";
+    char *type = isys==1 ? "Fit" : "En";
     c10->Print(Form("plots/SysErr%s-isophoton.pdf",type));
   }
 
