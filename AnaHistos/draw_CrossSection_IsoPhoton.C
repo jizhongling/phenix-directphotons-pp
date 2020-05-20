@@ -228,7 +228,7 @@ void draw_CrossSection_IsoPhoton()
         }
         else
         {
-          ndir = nphoton/Eff*(1 - SysPhoton) - nbg*(1 + SysPion);
+          ndir = nphoton/Eff*(1 + SysPhoton) - nbg*(1 + (ipt>8?1:-1)*SysPion);
           erel = sqrt(pow(nphoton/Eff*eSysPhoton,2) + pow(nbg*eSysPion,2));
           erel /= ndir;
         }
@@ -314,7 +314,7 @@ void draw_CrossSection_IsoPhoton()
     for(int part=0; part<3; part++)
     {
       TGraphErrors *gr = qt_cross->Graph(1+part+3*isys);
-      aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.06);
+      aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.06+0.14*(isys-1));
       style(gr, part+20, part+1);
       char *opt = part==0 ? "AP" : "P";
       gr->Draw(opt);
