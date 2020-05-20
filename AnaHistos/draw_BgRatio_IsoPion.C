@@ -36,13 +36,13 @@ void draw_BgRatio_IsoPion()
         int ptbin_last = h2_pion->GetXaxis()->FindBin(pTbin_pol[ipt+1]) - 1;
         TH1 *h_minv = h2_pion->ProjectionY("h_minv", ptbin_first,ptbin_last);
 
-        double nbg, e2nbg, npeak, e2npeak;
+        double nbg, enbg, npeak, enpeak;
         h_minv->Rebin(10);
         double minv_shift = ipt<22 ? 0. : 0.01;
         FitMinv(h_minv, npeak, enpeak, nbg, enbg, true, 0.11-minv_shift,0.16+minv_shift);
 
         double rbg = nbg/npeak;
-        double erbg = rbg*sqrt(e2nbg/nbg/nbg + e2npeak/npeak/npeak);
+        double erbg = rbg*sqrt(pow(enbg/nbg,2) + pow(enpeak/npeak,2));
         if( !TMath::Finite(rbg+erbg) || rbg < 0. || erbg > 1. )
         {
           rbg = 0.;

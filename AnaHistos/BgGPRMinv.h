@@ -31,7 +31,7 @@ void BgGPRMinv(TH1 *h_minv, double &npeak, double &enpeak,
       sigma_y.push_back(sigma_yy);
     }
 
-  BgGPR(x,y,sigma_y, nbg,enbg, 0.047,0.227,180, 0.112,0.162, outfile,index);
+  BgGPR(x,y,sigma_y, nbg,enbg, 0.0475,0.2275,180, 0.112,0.162, outfile,index);
   nbg /= binW;
   enbg /= binW;
 

@@ -47,6 +47,7 @@ void draw_CrossSection_IsoPhoton()
   QueryTree *qt_badpass = new QueryTree("data/MergePassRate.root");
   QueryTree *qt_veto = new QueryTree("data/SelfVeto.root");
   QueryTree *qt_sys = new QueryTree("data/syserr-en-fast.root");
+  QueryTree *qt_rbg = new QueryTree("data/BgRatio.root");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
@@ -124,7 +125,8 @@ void draw_CrossSection_IsoPhoton()
         evtype = 1;
 
       double xpt, Acc, eAcc, TrigERT, eTrigERT, Miss, eMiss, MissEta, eMissEta,
-             Merge1, eMerge1, Merge2, eMerge2, BadPass, eBadPass, Veto, eVeto;
+             Merge1, eMerge1, Merge2, eMerge2, BadPass, eBadPass, Veto, eVeto, rbg, erbg;
+      qt_rbg->Query(ipt, part/2, xpt, rbg, erbg);
       qt_acc->Query(ipt, part, xpt, Acc, eAcc);
       qt_ert->Query(ipt, part, xpt, TrigERT, eTrigERT);
       qt_miss->Query(ipt, part, xpt, Miss, eMiss);
@@ -137,7 +139,13 @@ void draw_CrossSection_IsoPhoton()
         qt_badpass->Query(ipt, part/2, xpt, BadPass, eBadPass);
       }
       else
+      {
         Merge1 = eMerge1 = Merge2 = eMerge2 = BadPass = eBadPass = 0.;
+      }
+      if(!TMath::Finite(rbg+erbg) || xpt > 16.)
+      {
+        rbg = erbg = 0.1;
+      }
 
       if(ipt >= 20)
       {
@@ -214,7 +222,7 @@ void draw_CrossSection_IsoPhoton()
         double ndir, erel;
         if(isys < 2)
         {
-          ndir = nphoton/Eff - nbg*(1 + 0.04*isys);
+          ndir = nphoton/Eff - nbg*(1 + rbg*isys);
           erel = 1e-9;
         }
         else
@@ -303,7 +311,7 @@ void draw_CrossSection_IsoPhoton()
     for(int part=0; part<3; part++)
     {
       TGraphErrors *gr = qt_cross->Graph(1+part+3*isys);
-      aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.3);
+      aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.06);
       style(gr, part+20, part+1);
       char *opt = part==0 ? "AP" : "P";
       gr->Draw(opt);

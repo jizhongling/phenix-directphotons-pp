@@ -12,7 +12,7 @@ void BgGPR(vector<double> &x, vector<double> &y, vector<double> &sigma_y,
   a.SetKernel(GausProc::RBF);
   //a.warp(0);  //should be used only if you have data spanning several orders of magnitude
 
-  GPOptimizer c(&a, 2., 10.);
+  GPOptimizer c(&a, 10., 0.003);
   c.GPoptimize(2,0);
 
   GausProc d(x, y, sigma_y, xmin, xmax, nPredictions, outfile);
