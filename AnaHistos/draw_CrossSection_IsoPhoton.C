@@ -48,6 +48,7 @@ void draw_CrossSection_IsoPhoton()
   QueryTree *qt_veto = new QueryTree("data/SelfVeto.root");
   QueryTree *qt_sys = new QueryTree("data/syserr-en-fast.root");
   QueryTree *qt_rbg = new QueryTree("data/BgRatio.root");
+  QueryTree *qt_pt = new QueryTree("data/PtShift.root");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
 
@@ -239,6 +240,8 @@ void draw_CrossSection_IsoPhoton()
           endir *= Norm[part];
         }
 
+        double dummy;
+        qt_pt->Query(ipt, 0, dummy, xpt, dummy);
         yy[isys][part] = (XBBC/NBBC) / (2*PI*xpt) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
           * ndir / Acc / TrigERT / TrigBBC * Pile[part];
         eyy[isys][part] = yy[isys][part] * sqrt( pow(endir/ndir,2)

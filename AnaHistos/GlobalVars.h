@@ -22,6 +22,17 @@ int Get_ipt(double *gx, double xpt)
   return 0;
 }
 
+/* Get ipt_pol for given xpt */
+int Get_ipt_pol(double xpt)
+{
+  for(int ipt=0; ipt<npT_pol; ipt++)
+    if( xpt > pTbin_pol[ipt]-0.01 && xpt < pTbin_pol[ipt+1]+0.01 )
+      return ipt;
+
+  cout << "Warning: No matching for pT = " << xpt << ", 0 returned!" << endl;
+  return 0;
+}
+
 TF1 *cross_pi0;
 TF1 *cross_ph;
 void SetWeight()
