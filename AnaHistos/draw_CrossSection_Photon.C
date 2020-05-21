@@ -158,9 +158,9 @@ void draw_CrossSection_Photon()
       {
         Merge1 = eMerge1 = Merge2 = eMerge2 = BadPass = eBadPass = 0.;
       }
-      if(!TMath::Finite(rbg+erbg) || xpt > 16.)
+      if(!TMath::Finite(rbg+erbg) || xpt > 10.)
       {
-        rbg = erbg = 0.1;
+        rbg = erbg = 0.05;
       }
 
       if(ipt >= 20)
