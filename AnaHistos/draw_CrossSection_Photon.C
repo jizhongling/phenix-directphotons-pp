@@ -250,7 +250,7 @@ void draw_CrossSection_Photon()
       gr->SetTitle("Separated");
     else if(part == 3)
       gr->SetTitle("Combined");
-    aset(gr, "p_{T} [GeV]","Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 6.1,30., 1e-1,5e3);
+    aset(gr, "p_{T} [GeV]","Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 6.1,30., 1e-1,5e3);
     style(gr, part+20, part+1);
     if(part%3==0)
       gr->Draw("AP");

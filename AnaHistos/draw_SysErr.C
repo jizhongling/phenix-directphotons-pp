@@ -110,9 +110,10 @@ void draw_SysErr()
         TGraphErrors *gr_cross = qt_cross->Graph(3);
         TGraphErrors *gr_cross_sys = qt_sys->Graph(iso);
         gr_cross->SetTitle("");
-        aset(gr_cross, "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{-3}]", 5.9,30.1, 0.5e-1, 2e3);
-        style(gr_cross, 20, 1, 0.7);
-        style(gr_cross_sys, 1, 1);
+        aset(gr_cross, "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 5.9,30.1, 0.5e-1, 2e3);
+        style(gr_cross, 20, 1, 2.);
+        style(gr_cross_sys, 1, 1, 2.);
+        gr_cross->SetMarkerSize(0.5);
         gr_cross->Draw("AP");
         gr_cross_sys->Draw("[]");
         gr_nlo->Draw("LX");
@@ -122,7 +123,7 @@ void draw_SysErr()
         latex->DrawLatexNDC(0.25,0.3, "CT14 PDF");
 
         pad2->cd();
-        gr_ratio->SetTitle(";p_{T} [GeV/c^{2}];#frac{data}{theory}");
+        gr_ratio->SetTitle(";p_{T} [GeV/c];#frac{data}{theory}");
         aset(gr_ratio, "","", 5.9,30.1, 0.22+0.2*iso,3.58-1.5*iso, 1.,0.6,0.1,0.12);
         style(gr_ratio_sys, 1, imu+1, 2.);
         gr_ratio->GetXaxis()->SetLabelSize(0.08);
