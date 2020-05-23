@@ -17,19 +17,15 @@ void draw_SysErr()
     char *type = iso ? "iso" : "";
     QueryTree *qt_cross = new QueryTree(Form("data/CrossSection-%sphoton.root",type));
 
+    cout.precision(4);
     for(int ipt=0; ipt<npT; ipt++)
     {
-      double xpt, xsec, exsec, rsys[2], ersys[2], rfit[3], erfit[3], ren[3], eren[3];
+      double xpt, xsec, exsec, rsys, ersys;
       qt_cross->Query(ipt, 3, xpt, xsec, exsec);
-      for(int part=0; part<3; part++)
-      {
-        qt_cross->Query(ipt, 1+part+3*1, xpt, rfit[part], erfit[part]);
-        qt_cross->Query(ipt, 1+part+3*2, xpt, ren[part], eren[part]);
-      }
-      rsys[0] = TMath::MaxElement(3, rfit);
-      Chi2Fit(3, ren, eren, rsys[1], ersys[1]);
-      double sys = xsec*sqrt(rsys[0]*rsys[0] + rsys[1]*rsys[1] + 0.05*0.05);
+      qt_cross->Query(ipt, 4, xpt, rsys, ersys);
+      double sys = xsec*sqrt(rsys*rsys + 0.05*0.05);
       qt_sys->Fill(ipt, iso, xpt, xsec, sys);
+      cout << xpt << " & " << xsec << " & " << exsec << " & " << sys << " \\\\" << endl;
     }
 
     TCanvas *c0 = new TCanvas("c0", "c0", 200,200,600,800);

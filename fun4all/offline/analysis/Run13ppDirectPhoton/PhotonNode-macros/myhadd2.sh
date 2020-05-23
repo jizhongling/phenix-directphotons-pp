@@ -37,5 +37,5 @@ if [[ -n "${files}" ]] ; then
 fi
 
 #mv total.root "../${prename}Sasha.root"
-mv total.root "../${prename}DC3sigma.root"
-#mv total.root "../${prename}Inseok.root"
+#mv total.root "../${prename}DC3sigma.root"
+mv total.root "../${prename}Inseok.root"

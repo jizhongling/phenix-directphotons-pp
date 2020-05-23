@@ -5,6 +5,7 @@
 
 void draw_CrossSection_IsoPhoton()
 {
+  const char *sysname[5] = {"Sum", "Fit", "En", "Hadron", "Conv"};
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
@@ -24,11 +25,13 @@ void draw_CrossSection_IsoPhoton()
   const double ToF[3] = {0.992, 0.992, 0.997};
   const double eToF[3] = {0.002, 0.002, 0.002};
   const double Conv[3] = {0.849, 0.971, 0.959};
-  const double eConv[3] = {0.027, 0.023, 0.029};
+  const double eConv[3] = {0., 0., 0.};
+  const double SysConv[3] = {0.027, 0.023, 0.029};
   const double Norm[3] = {0.320, 0.321, 0.250};
   const double eNorm[3] = {0.005, 0.007, 0.005};
   const double A = 0.28;
-  const double eA = 0.05;
+  const double eA = 0.;
+  const double SysA = 0.05;
 
   // function for pT weight for direct photon
   cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]*[4]", 0, 30);
@@ -111,7 +114,8 @@ void draw_CrossSection_IsoPhoton()
 
   for(int ipt=2; ipt<npT; ipt++)
   {
-    double xpt, yy[3][3], eyy[3][3];  // isys, part
+    double xpt, xsec[3], exsec[3];  // part
+    double rsys[4][3], ersys[4][3];  // isys-1, part
 
     double SysPhoton, eSysPhoton, SysPion, eSysPion;
     qt_sys->Query(ipt<20?ipt/4*4:ipt, 0, xpt, SysPhoton, eSysPhoton);
@@ -214,24 +218,14 @@ void draw_CrossSection_IsoPhoton()
       nisopair2pt /= bck[part/2][ipt] * meff[part/2][ipt];
       delete h_minv;
 
-      double Eff = Conv[part] * Prob * ToF[part];
-      double AIso = A * (Veto+MissEta)/(1+2.*MissEta) * (1+2.*Miss+Merge1);
-      double nbg = (1 + Merge1*Conv[part]*(1-Conv[part])) * nisoboth/Eff/Eff + Miss * nisopair/Eff/Eff + Merge2/2.*BadPass * nisopair2pt/Eff/Eff + AIso * nisopair/Eff/Eff;
-
-      for(int isys=0; isys<3; isys++)
+      for(int isys=0; isys<5; isys++)
       {
-        double ndir, erel;
-        if(isys < 2)
-        {
-          ndir = nphoton/Eff - nbg*(1 + rbg*isys);
-          erel = 1e-9;
-        }
-        else
-        {
-          ndir = nphoton/Eff*(1 + SysPhoton) - nbg*(1 + (ipt>8?1:-1)*SysPion);
-          erel = sqrt(pow(nphoton/Eff*eSysPhoton,2) + pow(nbg*eSysPion,2));
-          erel /= ndir;
-        }
+        double Eff = (Conv[part] + (isys==4?SysConv[part]:0)) * Prob * ToF[part];
+        double AIso = (A + (isys==3?SysA:0)) * (Veto+MissEta)/(1+2.*MissEta) * (1+2.*Miss+Merge1);
+        double nbg = (1 + Merge1*(Conv[part] + (isys==4?SysConv[part]:0))*(1-(Conv[part] + (isys==4?SysConv[part]:0)))) * nisoboth/Eff/Eff + Miss * nisopair/Eff/Eff + Merge2/2.*BadPass * nisopair2pt/Eff/Eff + AIso * nisopair/Eff/Eff;
+
+        double ndir = nphoton/Eff*(1 + (isys==2?SysPhoton:0)) - nbg*(1 + (isys==1?rbg:0))*(1 + (ipt>8?1:-1)*(isys==2?SysPion:0));
+        double erel = isys==2 ? sqrt(pow(nphoton/Eff*eSysPhoton,2) + pow(nbg*eSysPion,2))/ndir : 1e-9;
         double endir = sqrt((pow(enisoboth,2)*pow(1 + (1 - Conv[part])*Conv[part]*Merge1,2))/(pow(Conv[part],4)*pow(Prob,4)*pow(ToF[part],4)) + (0.25*pow(BadPass,2)*pow(enisopair2pt,2)*pow(Merge2,2))/(pow(Conv[part],4)*pow(Prob,4)*pow(ToF[part],4)) + (pow(A,2)*pow(eVeto,2)*pow(1 + Merge1 + 2.*Miss,2)*pow(nisopair,2))/(pow(Conv[part],4)*pow(1 + 2.*MissEta,2)*pow(Prob,4)*pow(ToF[part],4)) + (0.25*pow(BadPass,2)*pow(eMerge2,2)*pow(nisopair2pt,2))/(pow(Conv[part],4)*pow(Prob,4)*pow(ToF[part],4)) + (0.25*pow(eBadPass,2)*pow(Merge2,2)*pow(nisopair2pt,2))/(pow(Conv[part],4)*pow(Prob,4)*pow(ToF[part],4)) + pow(enphoton,2)/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],2)) + (pow(eA,2)*pow(1 + Merge1 + 2.*Miss,2)*pow(nisopair,2)*pow(MissEta + Veto,2))/(pow(Conv[part],4)*pow(1 + 2.*MissEta,2)*pow(Prob,4)*pow(ToF[part],4)) + pow(eToF[part],2)*pow((2*(1 + (1 - Conv[part])*Conv[part]*Merge1)*nisoboth)/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],3)) + (2*Miss*nisopair)/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],3)) + (1.*BadPass*Merge2*nisopair2pt)/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],3)) - nphoton/(Conv[part]*Prob*pow(ToF[part],2)) + (2*A*(1 + Merge1 + 2.*Miss)*nisopair*(MissEta + Veto))/(pow(Conv[part],2)*(1 + 2.*MissEta)*pow(Prob,2)*pow(ToF[part],3)),2) + pow(eProb,2)*pow((2*(1 + (1 - Conv[part])*Conv[part]*Merge1)*nisoboth)/(pow(Conv[part],2)*pow(Prob,3)*pow(ToF[part],2)) + (2*Miss*nisopair)/(pow(Conv[part],2)*pow(Prob,3)*pow(ToF[part],2)) + (1.*BadPass*Merge2*nisopair2pt)/(pow(Conv[part],2)*pow(Prob,3)*pow(ToF[part],2)) - nphoton/(Conv[part]*pow(Prob,2)*ToF[part]) + (2*A*(1 + Merge1 + 2.*Miss)*nisopair*(MissEta + Veto))/(pow(Conv[part],2)*(1 + 2.*MissEta)*pow(Prob,3)*pow(ToF[part],2)),2) + pow(enisopair,2)*pow(-(Miss/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],2))) - (A*(1 + Merge1 + 2.*Miss)*(MissEta + Veto))/(pow(Conv[part],2)*(1 + 2.*MissEta)*pow(Prob,2)*pow(ToF[part],2)),2) + pow(eMissEta,2)*pow(-((A*(1 + Merge1 + 2.*Miss)*nisopair)/(pow(Conv[part],2)*(1 + 2.*MissEta)*pow(Prob,2)*pow(ToF[part],2))) + (2.*A*(1 + Merge1 + 2.*Miss)*nisopair*(MissEta + Veto))/(pow(Conv[part],2)*pow(1 + 2.*MissEta,2)*pow(Prob,2)*pow(ToF[part],2)),2) + pow(eMiss,2)*pow(-(nisopair/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],2))) - (2.*A*nisopair*(MissEta + Veto))/(pow(Conv[part],2)*(1 + 2.*MissEta)*pow(Prob,2)*pow(ToF[part],2)),2) + pow(eMerge1,2)*pow(-(((1 - Conv[part])*nisoboth)/(Conv[part]*pow(Prob,2)*pow(ToF[part],2))) - (A*nisopair*(MissEta + Veto))/(pow(Conv[part],2)*(1 + 2.*MissEta)*pow(Prob,2)*pow(ToF[part],2)),2) + pow(eConv[part],2)*pow(-((((1 - Conv[part])*Merge1 - Conv[part]*Merge1)*nisoboth)/(pow(Conv[part],2)*pow(Prob,2)*pow(ToF[part],2))) + (2*(1 + (1 - Conv[part])*Conv[part]*Merge1)*nisoboth)/(pow(Conv[part],3)*pow(Prob,2)*pow(ToF[part],2)) + (2*Miss*nisopair)/(pow(Conv[part],3)*pow(Prob,2)*pow(ToF[part],2)) + (1.*BadPass*Merge2*nisopair2pt)/(pow(Conv[part],3)*pow(Prob,2)*pow(ToF[part],2)) - nphoton/(pow(Conv[part],2)*Prob*ToF[part]) + (2*A*(1 + Merge1 + 2.*Miss)*nisopair*(MissEta + Veto))/(pow(Conv[part],3)*(1 + 2.*MissEta)*pow(Prob,2)*pow(ToF[part],2)),2));
 
         if(ipt >= 22)  // >14GeV use ERT_4x4b
@@ -242,35 +236,55 @@ void draw_CrossSection_IsoPhoton()
 
         double dummy;
         qt_pt->Query(ipt, 0, dummy, xpt, dummy);
-        yy[isys][part] = (XBBC/NBBC) / (2*PI*xpt) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
+        double yy = (XBBC/NBBC) / (2*PI*xpt) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
           * ndir / Acc / TrigERT / TrigBBC * Pile[part];
-        eyy[isys][part] = yy[isys][part] * sqrt( pow(endir/ndir,2)
+        double eyy = yy * sqrt( pow(endir/ndir,2)
             + pow(eAcc/Acc,2)
             + pow(eTrigERT/TrigERT,2)
-            + pow(ePile/Pile[part],2)
-            //+ pow(eTrigBBC/TrigBBC,2) + pow(eXBBC/XBBC,2)
+            //+ pow(ePile/Pile[part],2) + pow(eTrigBBC/TrigBBC,2) + pow(eXBBC/XBBC,2)
             );
         if(isys)
         {
-          double rsys = yy[isys][part]/yy[0][part];
-          double ersys = rsys*erel;
-          if( TMath::Finite(rsys+ersys) )
-            qt_cross->Fill(ipt, 1+part+3*isys, xpt, fabs(rsys-1), ersys);
+          rsys[isys-1][part] = yy/xsec[part];
+          ersys[isys-1][part] = rsys[isys-1][part]*erel;
+          rsys[isys-1][part] = fabs(rsys[isys-1][part] - 1);
+        }
+        else if( TMath::Finite(yy+eyy) )
+        {
+          xsec[part] = yy;
+          exsec[part] = eyy;
+          qt_cross->Fill(ipt, part, xpt, yy, eyy);
         }
       } // isys
-      if( TMath::Finite(yy[0][part]+eyy[0][part]) )
-        qt_cross->Fill(ipt, part, xpt, yy[0][part], eyy[0][part]);
     } // part
 
-    double ybar, eybar;
-    Chi2Fit(3, yy[0], eyy[0], ybar, eybar);
-    if( TMath::Finite(ybar + eybar) )
-      qt_cross->Fill(ipt, 3, xpt, ybar, eybar);
+    double xbar, exbar;
+    Chi2Fit(3, xsec, exsec, xbar, exbar);
+    if( TMath::Finite(xbar + exbar) )
+      qt_cross->Fill(ipt, 3, xpt, xbar, exbar);
     if( ipt >= 12 )
     {
-      ndata += ybar;
+      ndata += xbar;
       nfit += cross_ph->Eval(xpt);
     }
+
+    double rsum = 0.;
+    double ersum = 0.;
+    for(int isys=1; isys<5; isys++)
+    {
+      double rbar = TMath::MaxElement(3, rsys[isys-1]);
+      double erbar = TMath::MaxElement(3, ersys[isys-1]);
+      if(isys==2)
+        Chi2Fit(3, rsys[isys-1], ersys[isys-1], rbar, erbar);
+      if( TMath::Finite(rbar+erbar) )
+      {
+        qt_cross->Fill(ipt, 4+isys, xpt, rbar, erbar);
+        rsum += rbar*rbar;
+        ersum += erbar*erbar;
+      }
+    } // isys
+    if( TMath::Finite(rsum+ersum) )
+      qt_cross->Fill(ipt, 4, xpt, sqrt(rsum), sqrt(ersum));
   } // ipt
   cross_ph->SetParameter(4, ndata/nfit);
 
@@ -307,24 +321,18 @@ void draw_CrossSection_IsoPhoton()
   mc(10);
   mcd(10);
   legi(1, 0.2,0.8,0.9,0.9);
-  leg1->SetNColumns(3);
-
-  for(int isys=1; isys<3; isys++)
+  leg1->SetNColumns(5);
+  for(int isys=0; isys<5; isys++)
   {
-    for(int part=0; part<3; part++)
-    {
-      TGraphErrors *gr = qt_cross->Graph(1+part+3*isys);
-      aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.06+0.14*(isys-1));
-      style(gr, part+20, part+1);
-      char *opt = part==0 ? "AP" : "P";
-      gr->Draw(opt);
-      if(isys == 1)
-        leg1->AddEntry(gr, pname[part], "P");
-    }
-    leg1->Draw();
-    char *type = isys==1 ? "Fit" : "En";
-    c10->Print(Form("plots/SysErr%s-isophoton.pdf",type));
+    TGraphErrors *gr = qt_cross->Graph(4+isys);
+    aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.2);
+    style(gr, isys+20, isys+1);
+    char *opt = isys==0 ? "AP" : "L";
+    gr->Draw(opt);
+    leg1->AddEntry(gr, sysname[isys], isys==0?"P":"L");
   }
+  leg1->Draw();
+  c10->Print("plots/SysErr-isophoton.pdf");
 
   qt_cross->Write();
   for(int part=0; part<3; part++)
