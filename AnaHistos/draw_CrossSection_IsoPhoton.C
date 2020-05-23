@@ -50,7 +50,7 @@ void draw_CrossSection_IsoPhoton()
   QueryTree *qt_rbg = new QueryTree("data/BgRatio.root");
   QueryTree *qt_pt = new QueryTree("data/PtShift.root");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-DC3sigma.root");
 
   // h[evtype][part]
   TH1 *h_1photon[3][3];

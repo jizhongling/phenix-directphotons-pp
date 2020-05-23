@@ -24,7 +24,7 @@ void draw_BgRatio_IsoPhoton()
   QueryTree *qt_badpass = new QueryTree("data/MergePassRate.root");
   QueryTree *qt_veto = new QueryTree("data/SelfVeto.root");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Inseok.root");
 
   TH1 *h_photon = (TH1*)f->Get("h_1photon_pol_0");
   h_photon = (TH1*)h_photon->Clone();

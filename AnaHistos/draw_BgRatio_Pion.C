@@ -9,7 +9,7 @@ void draw_BgRatio_Pion()
 
   QueryTree *qt_rbg = new QueryTree("data/BgRatio-pion.root", "RECREATE");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Inseok.root");
 
   for(int icr=0; icr<2; icr++)
   {

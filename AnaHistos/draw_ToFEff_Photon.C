@@ -6,7 +6,7 @@ void draw_ToFEff_Photon()
   const int sech[2] = {6, 8};
   const char *name[2] = {"PbSc", "PbGl"};
 
-  TFile *f_twr = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+  TFile *f_twr = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-DC3sigma.root");
   THnSparse *hn_etwr = (THnSparse*)f_twr->Get("hn_etwr");
   hn_etwr->GetAxis(7)->SetRange(1,1);
   hn_etwr->GetAxis(2)->SetRange(4,4);

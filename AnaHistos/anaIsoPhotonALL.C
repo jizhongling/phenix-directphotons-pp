@@ -46,7 +46,7 @@ void anaIsoPhotonALL(const int process = 0)
     double npion[3][2][2][2][2][npT_pol] = {};  // beam, pttype(pt|2pt), ibg, icr, ipol, ipt
 
     int checkmap = 1;
-    int ical = 1;
+    int ical = 0;
 
     for(int beam=0; beam<3; beam++)
       for(int icr=0; icr<2; icr++)

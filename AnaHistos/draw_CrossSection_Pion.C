@@ -35,10 +35,11 @@ void draw_CrossSection_Pion()
   QueryTree *qt_acc = new QueryTree("data/Acceptance-pion.root");
   QueryTree *qt_merge = new QueryTree("data/Merge.root");
   QueryTree *qt_ert = new QueryTree("data/ERTEff-pion.root");
+  QueryTree *qt_pt = new QueryTree("data/PtShift.root");
 
   TGraph *gr_sasha = new TGraph("data/sasha-cross.txt");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Sasha.root");
 
   // h[evtype][part]
   TH2 *h2_pion[3][3];
@@ -155,8 +156,8 @@ void draw_CrossSection_Pion()
           npion = np_22[part][ipt];
       }
 
-      xpt = xpt_shift[ipt];
-
+      double dummy;
+      qt_pt->Query(ipt, 0, dummy, xpt, dummy);
       yy[part] = (XBBC/NBBC) / (2*PI*xpt) / (pTbin[ipt+1]-pTbin[ipt]) / DeltaEta
         * npion / BR / bck[part/2][ipt] / meff[part/2][ipt]
         / Acc / Merge / TrigERT / Prob[part/2][ipt]

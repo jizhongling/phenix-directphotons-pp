@@ -8,7 +8,7 @@ void draw_ERTbRatio_Photon()
 
   QueryTree *qt_ratio = new QueryTree("data/ERTbRatio-photon.root", "RECREATE");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-DC3sigma.root");
 
   // h[evtype][part]
   TH1 *h_1photon[3][3];

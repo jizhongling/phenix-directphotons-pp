@@ -11,7 +11,7 @@ void draw_ERTEff_SM()
   QueryTree *qt_ertsm = new QueryTree("data/ERTEff-SM.root", "RECREATE");
   qt_ertsm->SetQuiet();
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-DC3sigma.root");
 
   for(int sector=0; sector<8; sector++)
     for(int evtype=0; evtype<3; evtype++)

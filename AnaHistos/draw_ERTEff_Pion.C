@@ -11,7 +11,7 @@ void draw_ERTEff_Pion()
 
   QueryTree *qt_ert = new QueryTree("data/ERTEff-pion.root", "RECREATE");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Sasha.root");
 
   // h[part][ert_trig]
   TH2 *h2_ert_pion[2][2];

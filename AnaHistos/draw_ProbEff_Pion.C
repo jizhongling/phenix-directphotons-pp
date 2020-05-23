@@ -10,7 +10,7 @@ void draw_ProbEff_Pion()
 
   QueryTree *qt_prob = new QueryTree("data/ProbEff-pion.root", "RECREATE");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Sasha.root");
 
   // h[icut][part]
   TH2 *h2_pion[2][2];

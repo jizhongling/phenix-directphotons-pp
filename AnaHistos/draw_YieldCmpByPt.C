@@ -11,7 +11,7 @@ void draw_YieldCmpByPt()
   for(int part=0; part<3; part++)
     gr[part] =  new TGraph(25);
 
-  TFile *f_mine = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+  TFile *f_mine = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Sasha.root");
   TFile *f_sasha = new TFile("data/Pi0PP-histo.root");
   //TFile *f_sasha = new TFile("/phenix/spin/phnxsp01/shura/taxi/Run13pp510ERT/5116/data/nt_merged_ert.root");
 

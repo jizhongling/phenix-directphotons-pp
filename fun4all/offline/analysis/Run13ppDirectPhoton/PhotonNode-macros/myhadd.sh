@@ -28,7 +28,7 @@ while read -d " " runnumber ; do
     #fi
     (( ++count ))
 #done < "$PLHF/taxi/Run13pp510MinBias/runlist-Sasha.txt"
-#done < "$PLHF/taxi/Run13pp510MinBias/runlist-DC3sigma.txt"
-done < "$PLHF/taxi/Run13pp510ERT/runlist-Inseok.txt"
+done < "$PLHF/taxi/Run13pp510MinBias/runlist-DC3sigma.txt"
+#done < "$PLHF/taxi/Run13pp510ERT/runlist-Inseok.txt"
 
 hadd -f "${outdir}/${prename}$1.root" ${files}

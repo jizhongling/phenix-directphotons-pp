@@ -7,11 +7,11 @@ void draw_PtShift()
 
   QueryTree *qt_rbg = new QueryTree("data/BgRatio-isophoton.root");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-TAXI/PhotonHistos-total.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-DC3sigma.root");
 
   int beam = 2;
   int checkmap = 1;
-  int ical = 1;
+  int ical = 0;
 
   TH1 *h_1photon[2];  // isolated
   TH1 *h_2photon[2][3];  // pttype, isotype[inclusive|isoboth|isopair]
