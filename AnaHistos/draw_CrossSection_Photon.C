@@ -211,8 +211,7 @@ void draw_CrossSection_Photon()
         double eyy = yy * sqrt( pow(endir/ndir,2)
             + pow(eAcc/Acc,2)
             + pow(eTrigERT/TrigERT,2)
-            + pow(ePile/Pile[part],2)
-            //+ pow(eTrigBBC/TrigBBC,2) + pow(eXBBC/XBBC,2)
+            //+ pow(ePile/Pile[part],2) + pow(eTrigBBC/TrigBBC,2) + pow(eXBBC/XBBC,2)
             );
         if(isys)
         {

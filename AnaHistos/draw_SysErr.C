@@ -28,7 +28,7 @@ void draw_SysErr()
       cout << xpt << " & " << xsec << " & " << exsec << " & " << sys << " \\\\" << endl;
     }
 
-    TCanvas *c0 = new TCanvas("c0", "c0", 200,200,600,800);
+    TCanvas *c0 = new TCanvas("c0", "c0", 600,800);
     TPad *pad1 = new TPad("pad1", "pad1", 0.,0.35,1.,1., -1,0);
     TPad *pad2 = new TPad("pad2", "pad2", 0.,0.,1.,0.35, -1,0);
     pad1->Draw();
