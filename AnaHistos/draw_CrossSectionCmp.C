@@ -47,11 +47,11 @@ void draw_CrossSectionCmp(const int nameid)
     {
       double Cross, eCross;
       qt_cross->Query(ipt, part, xpt, Cross, eCross);
-      double yy = (Cross - Combine) / Combine;
-      double eyy = TMath::Abs(yy+1.) * sqrt( pow(eCross/Cross,2) + pow(eCombine/Combine,2) );
+      double yy = Cross/Combine;
+      double eyy = yy*sqrt(pow(eCross/Cross,2) + pow(eCombine/Combine,2));
       if( TMath::Finite(yy+eyy) )
       {
-        gr_parts[part]->SetPoint(igp_parts[part], xpt, yy);
+        gr_parts[part]->SetPoint(igp_parts[part], xpt, yy-1);
         gr_parts[part]->SetPointError(igp_parts[part], 0., eyy);
         igp_parts[part]++;
       }
@@ -65,13 +65,11 @@ void draw_CrossSectionCmp(const int nameid)
       //return;
     }
 
-    double yy = Combine / sasha;
-    double eyy = eCombine / sasha;
-    if( name.EqualTo("pion") )
-      yy -= 1.;
+    double yy = Combine/sasha;
+    double eyy = eCombine/sasha;
     if( TMath::Finite(yy+eyy) )
     {
-      gr_parts[part]->SetPoint(igp_parts[part], xpt, yy);
+      gr_parts[part]->SetPoint(igp_parts[part], xpt, nameid>0?yy:yy-1);
       gr_parts[part]->SetPointError(igp_parts[part], 0., eyy);
       igp_parts[part]++;
     }
@@ -103,7 +101,7 @@ void draw_CrossSectionCmp(const int nameid)
       else
       {
         gr_parts[part]->SetTitle("#gamma/#pi^{0};p_{T} [GeV];#gamma/#pi^{0};");
-        aset(gr_parts[part], "","", 6.1,30.);
+        aset(gr_parts[part], "","", 6.1,30., 0.,0.5);
       }
     }
     style(gr_parts[part], part+20, part+1);
@@ -162,15 +160,15 @@ void draw_CrossSectionCmp(const int nameid)
         double sigma_nlo = factor * h_nlo->GetBinContent(bin_th);
         double esigma_nlo = factor * h_nlo->GetBinError(bin_th);
 
-        double yy = Combine / sigma_nlo;
-        double eyy = yy * sqrt( pow(eCombine/Combine,2) + pow(esigma_nlo/sigma_nlo,2) );
+        double yy = Combine/sigma_nlo;
+        double eyy = yy*sqrt(pow(eCombine/Combine,2) + pow(esigma_nlo/sigma_nlo,2));
         if( TMath::Finite(yy+eyy) )
         {
           gr_nlo->SetPoint(igp, xpt, yy);
           gr_nlo->SetPointError(igp, 0., eyy);
           qt_sys->Query(ipt, iso, xpt, Combine, sysCombine);
-          double yy = Combine / sigma_nlo;
-          double eyy = sqrt(pow(sysCombine,2) + pow(0.05*Combine,2)) / sigma_nlo;
+          double yy = Combine/sigma_nlo;
+          double eyy = sysCombine/sigma_nlo;
           gr_sys->SetPoint(igp, xpt, yy);
           gr_sys->SetPointError(igp, 0., eyy);
           igp++;
@@ -180,7 +178,7 @@ void draw_CrossSectionCmp(const int nameid)
       gr_nlo->Set(igp);
       gr_sys->Set(igp);
       gr_nlo->SetTitle("data/theory;p_{T} [GeV];#frac{data}{theory}");
-      aset(gr_nlo, "","", 6.1,30., 0.3+0.2*iso,3.-iso);
+      aset(gr_nlo, "","", 6.1,30., iso?0.42:0.22,iso?2.08:3.58);
       leg1->AddEntry(gr_nlo, Form("%s",jetphox_fname[imu]), imu==0?"P":"L");
       style(gr_nlo, 20, imu+1, 0.7);
       style(gr_sys, 1, imu+1);

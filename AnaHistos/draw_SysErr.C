@@ -23,7 +23,7 @@ void draw_SysErr()
       double xpt, xsec, exsec, rsys, ersys;
       qt_cross->Query(ipt, 3, xpt, xsec, exsec);
       qt_cross->Query(ipt, 4, xpt, rsys, ersys);
-      double sys = xsec*sqrt(rsys*rsys + 0.05*0.05);
+      double sys = xsec*rsys;
       qt_sys->Fill(ipt, iso, xpt, xsec, sys);
       if( TMath::Finite(xsec+exsec+sys) && xsec > 0. )
         cout << xpt << " & " << xsec << " & " << exsec << " (" << 100.*exsec/xsec << "\\%) & "
@@ -77,8 +77,8 @@ void draw_SysErr()
         double sigma_nlo = factor * h_nlo->GetBinContent(bin_th);
         double esigma_nlo = factor * h_nlo->GetBinError(bin_th);
 
-        double yy = Combine / sigma_nlo;
-        double eyy = yy * sqrt( pow(eCombine/Combine,2) + pow(esigma_nlo/sigma_nlo,2) );
+        double yy = Combine/sigma_nlo;
+        double eyy = yy*sqrt(pow(eCombine/Combine,2) + pow(esigma_nlo/sigma_nlo,2));
         if( TMath::Finite(yy+eyy) )
         {
           gr_nlo->SetPoint(igp, xpt, sigma_nlo);
@@ -86,8 +86,8 @@ void draw_SysErr()
           gr_ratio->SetPoint(igp, xpt, yy);
           gr_ratio->SetPointError(igp, 0., eyy);
           qt_sys->Query(ipt, iso, xpt, Combine, sysCombine);
-          double yy = Combine / sigma_nlo;
-          double eyy = sqrt(pow(sysCombine,2) + pow(0.05*Combine,2)) / sigma_nlo;
+          double yy = Combine/sigma_nlo;
+          double eyy = sysCombine/sigma_nlo;
           gr_ratio_sys->SetPoint(igp, xpt, yy);
           gr_ratio_sys->SetPointError(igp, 0., eyy);
           igp++;
@@ -122,7 +122,7 @@ void draw_SysErr()
 
         pad2->cd();
         gr_ratio->SetTitle(";p_{T} [GeV/c];#frac{data}{theory}");
-        aset(gr_ratio, "","", 5.9,30.1, 0.22+0.2*iso,3.58-1.5*iso, 1.,0.6,0.1,0.12);
+        aset(gr_ratio, "","", 5.9,30.1, iso?0.42:0.22,iso?2.08:3.58, 1.,0.6,0.1,0.12);
         style(gr_ratio_sys, 1, imu+1, 2.);
         gr_ratio->GetXaxis()->SetLabelSize(0.08);
         gr_ratio->GetYaxis()->SetLabelSize(0.08);
