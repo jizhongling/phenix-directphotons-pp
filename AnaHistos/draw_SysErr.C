@@ -25,7 +25,9 @@ void draw_SysErr()
       qt_cross->Query(ipt, 4, xpt, rsys, ersys);
       double sys = xsec*sqrt(rsys*rsys + 0.05*0.05);
       qt_sys->Fill(ipt, iso, xpt, xsec, sys);
-      cout << xpt << " & " << xsec << " & " << exsec << " & " << sys << " \\\\" << endl;
+      if( TMath::Finite(xsec+exsec+sys) && xsec > 0. )
+        cout << xpt << " & " << xsec << " & " << exsec << " (" << 100.*exsec/xsec << "\\%) & "
+          << sys << " (" << 100.*sys/xsec << "\\%) \\\\" << endl;
     }
 
     TCanvas *c0 = new TCanvas("c0", "c0", 600,800);
