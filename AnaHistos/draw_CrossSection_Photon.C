@@ -22,7 +22,6 @@ void draw_CrossSection_Photon()
   const double eXBBC = 3.24e9;
 
   QueryTree *qt_cross = new QueryTree("data/CrossSection-photon.root", "RECREATE");
-  QueryTree *qt_asee = new QueryTree("data/ASee.root", "RECREATE");
 
   QueryTree *qt_acc = new QueryTree("data/Acceptance-photon.root");
   QueryTree *qt_ert = new QueryTree("data/ERTEff-photon.root");
@@ -255,12 +254,6 @@ void draw_CrossSection_Photon()
 
         double Eff = Conv[part]*Prob*ToF[part];
         double ASee = A*(1 + MissEta)/(1 + 2*MissEta)*(1 + 2*Miss + Merge1);
-        if(isys == 0)
-        {
-          double eASee = sqrt((pow(A,2)*pow(eMerge1,2)*pow(1 + MissEta,2))/pow(1 + 2.*MissEta,2) + (4.*pow(A,2)*pow(eMiss,2)*pow(1 + MissEta,2))/pow(1 + 2.*MissEta,2) + (pow(eA,2)*pow(1 + Merge1 + 2.*Miss,2)*pow(1 + MissEta,2))/pow(1 + 2.*MissEta,2) + pow(eMissEta,2)*pow((-2.*A*(1 + Merge1 + 2.*Miss)*(1 + MissEta))/pow(1 + 2.*MissEta,2) + (A*(1 + Merge1 + 2.*Miss))/(1 + 2.*MissEta),2));
-          qt_asee->Fill(ipt, part, xpt, ASee, eASee);
-        }
-
         double nbg = (1 + Miss + Merge1*Conv[part]*(1 - Conv[part]) + ASee)*n2photon + Merge2/2*BadPass*n2photon2pt;
         double e2nbg = pow((1 + Miss + Merge1*Conv[part]*(1 - Conv[part]) + ASee)*en2photon,2) + pow(Merge2/2*BadPass*en2photon2pt,2);
 
@@ -375,20 +368,4 @@ void draw_CrossSection_Photon()
   for(int part=0; part<3; part++)
     mcw( part, Form("Minv-2photon-part%d",part) );
   qt_cross->Close();
-
-  mc(8);
-  mcd(8);
-  for(int part=0; part<3; part++)
-  {
-    TGraphErrors *gr = qt_asee->Graph(part);
-    aset(gr, "p_{T} [GeV]","A'", 6.1,30.);
-    style(gr, part+20, part+1);
-    if(part==0)
-      gr->Draw("AP");
-    else
-      gr->Draw("P");
-  }
-  leg0->Draw();
-  c8->Print("plots/ASee.pdf");
-  qt_asee->Save();
 }

@@ -290,8 +290,8 @@ void draw_CrossSection_IsoPhoton()
 
         double Eff = Conv[part]*Prob*ToF[part];
         double AIso = A*(Veto + MissEta)/(1 + 2*MissEta)*(1 + 2*Miss + Merge1);
-        double nbg = (1 + Merge1*Conv[part])*(1 - Conv[part])*nisoboth + Miss*nisopair + Merge2/2*BadPass*nisopair2pt + AIso*nisopair;
-        double e2nbg = pow((1 + Merge1*Conv[part])*(1 - Conv[part])*enisoboth,2) + pow(Miss*enisopair,2) + pow(Merge2/2*BadPass*enisopair2pt,2) + pow(AIso*enisopair,2);
+        double nbg = (1 + Merge1*Conv[part]*(1 - Conv[part]))*nisoboth + (Miss + AIso)*nisopair + Merge2/2*BadPass*nisopair2pt;
+        double e2nbg = pow((1 + Merge1*Conv[part]*(1 - Conv[part]))*enisoboth,2) + pow((Miss + AIso)*enisopair,2) + pow(Merge2/2*BadPass*enisopair2pt,2);
 
         double ndir = nphoton/Eff*FactorPhoton - nbg/Eff/Eff*FactorPion;
         double endir = sqrt(enphoton*enphoton + e2nbg/Eff/Eff) / Eff;
