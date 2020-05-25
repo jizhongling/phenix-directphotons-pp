@@ -5,7 +5,7 @@
 
 void draw_CrossSection_Photon()
 {
-  const int nsys = 17;
+  const int nsys = 18;
   const int ngsys = 5;
   const int gsys[ngsys+1] = {1, 3, 4, 5, 7, nsys+1};
   const char *sysname[ngsys+1] = {"Sum", "En", "Fit", "Hadron", "PID", "Misc"};
@@ -16,8 +16,6 @@ void draw_CrossSection_Photon()
 
   const double PI = TMath::Pi();
   const double DeltaEta = 1.0;
-  //const double NBBC =  3.48e11;  // from DAQ
-  const double NBBC =  3.52e11;  // from rejection power
   const double XBBC = 32.51e9;
   const double eXBBC = 3.24e9;
 
@@ -130,9 +128,10 @@ void draw_CrossSection_Photon()
 
       for(int isys=0; isys<=nsys; isys++)
       {
-        double FactorPhoton = 1.;
+        double FactorDir = 1.;
         double FactorPion = 1.;
-        double eFactor = 1e-9;
+        double eFactor = 1e-3;
+        double NBBC =  3.52e11;  // from rejection power
         double Pile[3] = {0.890, 0.890, 0.916};
         double ePile = 0.01;
         double TrigBBC = 0.91;
@@ -188,18 +187,22 @@ void draw_CrossSection_Photon()
         switch(isys)
         {
           case 1:
-            double Eff = Conv[part]*Prob*ToF[part];
             double SysPhoton, eSysPhoton;
             qt_sys->Query(ipt<20?ipt/4*4:ipt, 0, dummy, SysPhoton, eSysPhoton);
-            FactorPhoton += SysPhoton;
-            eFactor = eSysPhoton/Eff;
+            if( TMath::Finite(SysPhoton+eSysPhoton) )
+            {
+              FactorDir += SysPhoton;
+              eFactor = eSysPhoton;
+            }
             break;
           case 2:
-            double Eff = Conv[part]*Prob*ToF[part];
             double SysPion, eSysPion;
             qt_sys->Query(ipt<20?ipt/4*4:ipt, 1, dummy, SysPion, eSysPion);
-            FactorPion += SysPion;
-            eFactor = eSysPion/Eff/Eff;
+            if( TMath::Finite(SysPion+eSysPion) )
+            {
+              FactorPion += SysPion;
+              eFactor = eSysPion;
+            }
             break;
           case 3:
             double rbg, erbg;
@@ -216,6 +219,7 @@ void draw_CrossSection_Photon()
             break;
           case 6:
             ToF[part] += eToF[part];
+            break;
           case 7:
             FactorPion += 0.02;
             break;
@@ -248,6 +252,9 @@ void draw_CrossSection_Photon()
             Norm[part] += eNorm[part];
             break;
           case 17:
+            NBBC =  3.48e11;  // from DAQ
+            break;
+          case 18:
             Pile[part] += ePile;
             break;
         }
@@ -255,16 +262,17 @@ void draw_CrossSection_Photon()
         double Eff = Conv[part]*Prob*ToF[part];
         double ASee = A*(1 + MissEta)/(1 + 2*MissEta)*(1 + 2*Miss + Merge1);
         double nbg = (1 + Miss + Merge1*Conv[part]*(1 - Conv[part]) + ASee)*n2photon + Merge2/2*BadPass*n2photon2pt;
+        nbg *= FactorPion;
         double e2nbg = pow((1 + Miss + Merge1*Conv[part]*(1 - Conv[part]) + ASee)*en2photon,2) + pow(Merge2/2*BadPass*en2photon2pt,2);
 
-        double ndir = nphoton/Eff*FactorPhoton - nbg/Eff/Eff*FactorPion;
+        double ndir = nphoton/Eff - nbg/Eff/Eff;
+        ndir *= FactorDir;
         double endir = sqrt(enphoton*enphoton + e2nbg/Eff/Eff) / Eff;
         if(xpt > 14.)  // >14GeV use ERT_4x4b
         {
           ndir *= Norm[part];
           endir *= Norm[part];
         }
-        eFactor = eFactor/ndir;
 
         double dummy;
         qt_pt->Query(ipt, 0, dummy, xpt, dummy);
@@ -274,7 +282,7 @@ void draw_CrossSection_Photon()
         if(isys)
         {
           rsys[isys-1][part] = yy/xsec[part];
-          ersys[isys-1][part] = rsys[isys-1][part]*eFactor;
+          ersys[isys-1][part] = rsys[isys-1][part]*eFactor*exsec[part]/xsec[part];
           rsys[isys-1][part] = fabs(rsys[isys-1][part] - 1);
         }
         else if( TMath::Finite(yy+eyy) )
@@ -301,12 +309,13 @@ void draw_CrossSection_Photon()
       double ergsys = 0.;
       for(int isys=gsys[igsys-1]; isys<gsys[igsys]; isys++)
       {
-        double rbar = TMath::MaxElement(3, rsys[isys-1]);
-        double erbar = TMath::MaxElement(3, ersys[isys-1]);
-        if(igsys==1)
+        double rbar = rsys[isys-1][2];
+        double erbar = ersys[isys-1][2];
+        if(xpt < 20.)
           Chi2Fit(3, rsys[isys-1], ersys[isys-1], rbar, erbar);
         if( TMath::Finite(rbar+erbar) )
         {
+          qt_cross->Fill(ipt, 4+ngsys+isys, xpt, rbar, erbar);
           rgsys += rbar*rbar;
           ergsys += erbar*erbar;
           rsum += rbar*rbar;
@@ -354,7 +363,7 @@ void draw_CrossSection_Photon()
   for(int igsys=0; igsys<=ngsys; igsys++)
   {
     TGraphErrors *gr = qt_cross->Graph(4+igsys);
-    aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.8);
+    aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.35);
     style(gr, igsys+20, igsys+1);
     gr->SetLineStyle(igsys/3*8+1);
     char *opt = igsys==0 ? "AP" : "L";
