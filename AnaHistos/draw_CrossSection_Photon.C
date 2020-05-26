@@ -281,9 +281,8 @@ void draw_CrossSection_Photon()
         double eyy = yy*endir/ndir;
         if(isys)
         {
-          rsys[isys-1][part] = yy/xsec[part];
+          rsys[isys-1][part] = fabs(yy/xsec[part] - 1);
           ersys[isys-1][part] = rsys[isys-1][part]*eFactor*exsec[part]/xsec[part];
-          rsys[isys-1][part] = fabs(rsys[isys-1][part] - 1);
         }
         else if( TMath::Finite(yy+eyy) )
         {
