@@ -41,7 +41,7 @@ void draw_SysErr()
     gPad->SetTopMargin(0.05);
     gPad->SetBottomMargin(0.);
     gPad->SetLogy();
-    legi(0, 0.25,0.05,0.5,0.3);
+    legi(0, 0.25,0.03,0.50,0.28);
     TLatex *latex = new TLatex();
     latex->SetTextSize(0.04);
 
@@ -115,7 +115,7 @@ void draw_SysErr()
         TGraphErrors *gr_cross = qt_cross->Graph(3);
         TGraphErrors *gr_cross_sys = qt_sys->Graph(iso);
         gr_cross->SetTitle("");
-        aset(gr_cross, "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 5.9,30.1, 0.5e-1, 2e3);
+        aset(gr_cross, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 5.9,30.1, 0.5e-1, 2e3);
         style(gr_cross, 20, 1, 2);
         style(gr_cross_sys, 1, 1, 2);
         gr_cross->SetMarkerSize(0.8);
@@ -126,7 +126,7 @@ void draw_SysErr()
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not included}");
         latex->DrawLatexNDC(0.25,0.36, "#splitline{NLO pQCD}{(by JETPHOX)}");
-        latex->DrawLatexNDC(0.25,0.30, "CT14 PDF");
+        latex->DrawLatexNDC(0.25,0.28, "CT14 PDF & BFGII");
         if(iso)
         {
           latex->DrawLatexNDC(0.45,0.70, "Isolation cut condition");
@@ -135,10 +135,10 @@ void draw_SysErr()
 
         pad2->cd();
         gr_ratio->SetTitle(";p_{T} [GeV/c];#frac{Data-Theory}{Theory}");
-        aset(gr_ratio, "","", 5.9,30.1, iso?-0.23:-0.63,iso?0.63:3.13, 1.,0.6,0.1,0.12);
+        aset(gr_ratio, "","", 5.9,30.1, iso?-0.25:-0.65,iso?0.65:3.15, 1.,0.6,0.1,0.12);
         style(gr_ratio_sys, 1, imu+1, 2);
-        gr_ratio->GetXaxis()->SetLabelSize(0.08);
-        gr_ratio->GetYaxis()->SetLabelSize(0.08);
+        gr_ratio->GetXaxis()->SetLabelSize(0.09);
+        gr_ratio->GetYaxis()->SetLabelSize(0.09);
         gr_ratio->GetXaxis()->SetTickSize(0.08);
         gr_ratio->Draw("APE");
         gr_ratio_sys->Draw("[]");
