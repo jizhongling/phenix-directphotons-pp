@@ -130,7 +130,7 @@ void draw_SysErr()
         if(iso)
         {
           latex->DrawLatexNDC(0.45,0.70, "Isolation cut condition");
-          latex->DrawLatexNDC(0.45,0.60, "#splitline{#sqrt{(#Delta#eta)^{2} + (#Delta#phi)^{2}} < 0.5}{E_{cone} < 0.1E_{#gamma}}");
+          latex->DrawLatexNDC(0.45,0.60, "#splitline{r_{cone} = #sqrt{(#delta#eta)^{2} + (#delta#phi)^{2}} = 0.5}{E_{cone} < 0.1E_{#gamma}}");
         }
 
         pad2->cd();
