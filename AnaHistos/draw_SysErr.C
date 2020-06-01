@@ -7,8 +7,11 @@ void draw_SysErr()
   const double PI = TMath::Pi();
   const double DeltaEta = 0.5;
   const double jetphox_scale = 1./400.;  // combined 400 histograms
-  const char *jetphox_fname[3] = {"onept", "halfpt", "twopt"};
-  const char *mu_name[3] = {"#mu=p_{T}", "#mu=p_{T}/2", "#mu=2p_{T}"};
+  const char *jetphox_fname[2][3] = { {"onept", "halfpt", "twopt"}, {"MMM", "LLL", "HHH"} };
+  const char *mu_name[2][3] = {
+    {"   1           1            1", " 1/2        1/2         1/2", "   2           2            2"},
+    {"0.56         1            1", "0.54       1/2         1/2", "0.58         2            2"}
+  };
 
   QueryTree *qt_sys = new QueryTree("data/CrossSection-syserr.root", "RECREATE");
 
@@ -41,7 +44,8 @@ void draw_SysErr()
     gPad->SetTopMargin(0.05);
     gPad->SetBottomMargin(0.);
     gPad->SetLogy();
-    legi(0, 0.25,0.03,0.50,0.28);
+    legi(0, 0.25,0.03,0.50,0.20);
+    leg0->SetTextSize(0.035);
     TLatex *latex = new TLatex();
     latex->SetTextSize(0.04);
 
@@ -54,13 +58,14 @@ void draw_SysErr()
     line->SetLineWidth(2);
 
     double sigma_onept[npT], esigma_onept[npT];
+    TGraphErrors *gr_central;
     for(int imu=0; imu<3; imu++)
     {
       TGraphErrors *gr_nlo = new TGraphErrors(npT);
       TGraphErrors *gr_ratio = new TGraphErrors(npT);
       TGraphErrors *gr_ratio_sys = new TGraphErrors(npT);
       char *type = iso ? "iso" : "inc";
-      TFile *f_nlo = new TFile( Form("data/%sprompt-x400-ct14-%s%s.root",type,iso?"pmc-":"",jetphox_fname[imu]) );
+      TFile *f_nlo = new TFile( Form("data/%sprompt-x400-ct14-%s.root",type,jetphox_fname[iso][imu]) );
       TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
       h_nlo->Scale(jetphox_scale);
 
@@ -107,7 +112,12 @@ void draw_SysErr()
       style(gr_nlo, 1, imu+1, 2);
       style(gr_ratio, 20, imu+1, 2);
       gr_ratio->SetMarkerSize(0.8);
-      leg0->AddEntry(gr_nlo, Form("%s",mu_name[imu]), "L");
+      if(imu == 0)
+        gr_central == gr_nlo;
+      else
+        leg0->AddEntry(gr_nlo, Form("%s",mu_name[iso][imu]), "L");
+      if(imu == 1)
+        leg0->AddEntry(gr_central, Form("%s",mu_name[iso][0]), "L");
 
       if(imu == 0)
       {
@@ -125,8 +135,9 @@ void draw_SysErr()
         leg0->Draw();
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not included}");
-        latex->DrawLatexNDC(0.25,0.36, "#splitline{NLO pQCD}{(by JETPHOX)}");
-        latex->DrawLatexNDC(0.25,0.28, "CT14 PDF & BFGII");
+        latex->DrawLatexNDC(0.25,0.38, "#splitline{NLO pQCD}{(by JETPHOX)}");
+        latex->DrawLatexNDC(0.25,0.29, "#splitline{CT14 PDF}{BFG II FF}");
+        latex->DrawLatexNDC(0.31,0.22, "#scale[0.8]{#mu_{R}/p_{T}    #mu_{f}/p_{T}    #mu_{F}/p_{T}}");
         if(iso)
         {
           latex->DrawLatexNDC(0.45,0.70, "Isolation cut condition");
