@@ -60,7 +60,7 @@ void draw_SysErr()
       TGraphErrors *gr_ratio = new TGraphErrors(npT);
       TGraphErrors *gr_ratio_sys = new TGraphErrors(npT);
       char *type = iso ? "iso" : "inc";
-      TFile *f_nlo = new TFile( Form("data/%sprompt-x400-ct14-%s.root",type,jetphox_fname[imu]) );
+      TFile *f_nlo = new TFile( Form("data/%sprompt-x400-ct14-%s%s.root",type,iso?"pmc-":"",jetphox_fname[imu]) );
       TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
       h_nlo->Scale(jetphox_scale);
 
@@ -135,7 +135,7 @@ void draw_SysErr()
 
         pad2->cd();
         gr_ratio->SetTitle(";p_{T} [GeV/c];#frac{Data-Theory}{Theory}");
-        aset(gr_ratio, "","", 5.9,30.1, iso?-0.25:-0.65,iso?0.65:3.15, 1.,0.6,0.1,0.12);
+        aset(gr_ratio, "","", 5.9,30.1, iso?-0.25:-0.65,iso?0.45:3.15, 1.,0.6,0.1,0.12);
         style(gr_ratio_sys, 1, imu+1, 2);
         gr_ratio->GetXaxis()->SetLabelSize(0.09);
         gr_ratio->GetYaxis()->SetLabelSize(0.09);
