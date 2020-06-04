@@ -7,10 +7,14 @@ void draw_SysErr()
   const double PI = TMath::Pi();
   const double DeltaEta = 0.5;
   const double jetphox_scale = 1./400.;  // combined 400 histograms
-  const char *jetphox_fname[2][3] = { {"onept", "halfpt", "twopt"}, {"MMM", "LLL", "HHH"} };
+  const int nmu[2] = {3, 7};
+  const char *jetphox_fname[2][nmu[1]] = {
+    {"onept", "halfpt", "twopt"},
+    {"MMM", "LLH", "LHH", "LLL", "HLL", "HHL", "HHH"}
+  };
   const char *mu_name[2][3] = {
     {"   1           1            1", " 1/2        1/2         1/2", "   2           2            2"},
-    {"0.56         1            1", "0.54       1/2         1/2", "0.58         2            2"}
+    {"0.56         1            1", "0.54    1/2 or 2       2", "0.58    1/2 or 2     1/2"}
   };
 
   QueryTree *qt_sys = new QueryTree("data/CrossSection-syserr.root", "RECREATE");
@@ -57,17 +61,30 @@ void draw_SysErr()
     TLine *line = new TLine();
     line->SetLineWidth(2);
 
-    double sigma_onept[npT], esigma_onept[npT];
+    double nlo[npT][nmu[1]], enlo[npT][nmu[1]];
+    for(int imu=0; imu<nmu[iso]; imu++)
+    {
+      char *type = iso ? "iso" : "inc";
+      TFile *f_nlo = new TFile( Form("data/%sprompt-x400-ct14-%s.root",type,jetphox_fname[iso][imu]) );
+      TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
+      h_nlo->Scale(jetphox_scale);
+      for(int ipt=12; ipt<npT; ipt++)
+      {
+        double xpt = (pTbin[ipt] + pTbin[ipt+1]) / 2.;
+        double factor = 1. / (2*PI*xpt*DeltaEta);
+        int bin_th = h_nlo->GetXaxis()->FindBin(xpt);
+        nlo[ipt][imu] = factor * h_nlo->GetBinContent(bin_th);
+        enlo[ipt][imu] = factor * h_nlo->GetBinError(bin_th);
+      }
+      delete f_nlo;
+    } // imu
+
     TGraphErrors *gr_central;
     for(int imu=0; imu<3; imu++)
     {
       TGraphErrors *gr_nlo = new TGraphErrors(npT);
       TGraphErrors *gr_ratio = new TGraphErrors(npT);
       TGraphErrors *gr_ratio_sys = new TGraphErrors(npT);
-      char *type = iso ? "iso" : "inc";
-      TFile *f_nlo = new TFile( Form("data/%sprompt-x400-ct14-%s.root",type,jetphox_fname[iso][imu]) );
-      TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
-      h_nlo->Scale(jetphox_scale);
 
       int igp = 0;
       for(int ipt=12; ipt<npT; ipt++)
@@ -77,18 +94,28 @@ void draw_SysErr()
             !qt_sys->Query(ipt, iso, xpt, Combine, sysCombine) )
           continue;
 
-        double factor = 1. / (2*PI*xpt*DeltaEta);
-        int bin_th = h_nlo->GetXaxis()->FindBin(xpt);
-        double sigma_nlo = factor * h_nlo->GetBinContent(bin_th);
-        double esigma_nlo = factor * h_nlo->GetBinError(bin_th);
+        double sigma_nlo, esigma_nlo;
+        if(imu == 0)
+        {
+          sigma_nlo = nlo[ipt][0];
+          esigma_nlo = enlo[ipt][0];
+        }
+        else if(imu == 1)
+        {
+          sigma_nlo = TMath::MaxElement(nmu[iso], nlo[ipt]);
+          esigma_nlo = TMath::MaxElement(nmu[iso], enlo[ipt]);
+        }
+        else if(imu == 2)
+        {
+          sigma_nlo = TMath::MinElement(nmu[iso], nlo[ipt]);
+          esigma_nlo = TMath::MaxElement(nmu[iso], enlo[ipt]);
+        }
         gr_nlo->SetPoint(igp, xpt, sigma_nlo);
         gr_nlo->SetPointError(igp, 0., esigma_nlo);
 
         double ratio, eratio, sysratio;
         if(imu == 0)
         {
-          sigma_onept[ipt] = sigma_nlo;
-          esigma_onept[ipt] = esigma_nlo;
           ratio = Combine/sigma_nlo;
           eratio = ratio*sqrt(pow(eCombine/Combine,2) + pow(esigma_nlo/sigma_nlo,2));
           sysratio = sysCombine/sigma_nlo; 
@@ -97,8 +124,8 @@ void draw_SysErr()
         }
         else
         {
-          ratio = sigma_nlo/sigma_onept[ipt];
-          eratio = ratio*sqrt(pow(esigma_onept[ipt]/sigma_onept[ipt],2) + pow(esigma_nlo/sigma_nlo,2));
+          ratio = sigma_nlo/nlo[ipt][0];
+          eratio = ratio*sqrt(pow(enlo[ipt][0]/nlo[ipt][0],2) + pow(esigma_nlo/sigma_nlo,2));
         }
         gr_ratio->SetPoint(igp, xpt, ratio-1);
         gr_ratio->SetPointError(igp, 0., eratio);
@@ -115,9 +142,9 @@ void draw_SysErr()
       if(imu == 0)
         gr_central == gr_nlo;
       else
-        leg0->AddEntry(gr_nlo, Form("%s",mu_name[iso][imu]), "L");
+        leg0->AddEntry(gr_nlo, mu_name[iso][imu], "L");
       if(imu == 1)
-        leg0->AddEntry(gr_central, Form("%s",mu_name[iso][0]), "L");
+        leg0->AddEntry(gr_central, mu_name[iso][0], "L");
 
       if(imu == 0)
       {
@@ -163,17 +190,14 @@ void draw_SysErr()
         pad2->cd();
         gr_ratio->Draw("LX");
       }
-
-      delete h_nlo;
-      delete f_nlo;
-    }
+    } // imu
 
     char *type = iso ? "iso" : "";
     c0->Print(Form("plots/CrossSection-%sphoton-syserr.pdf",type));
     const char *cmd = Form("preliminary.pl --input=plots/CrossSection-%sphoton-syserr.pdf --output=plots/CrossSection-%sphoton-prelim.pdf --x=360 --y=420 --scale=0.8", type,type);
     system(cmd);
     delete c0;
-  }
+  } // iso
 
   qt_sys->Save();
 }
