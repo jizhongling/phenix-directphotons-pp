@@ -9,20 +9,19 @@ output_dir="${SPIN}/data/pythiaToHisto"
 logfile="${output_dir}/aa_pythiaToHisto.log"
 goodlist="${output_dir}/aa_goodlist.txt"
 badlist="${output_dir}/aa_badlist.txt"
-#nProcess="12000"
-nProcess="5000"
+nProcess="12000"
+#nProcess="1200"
 scale=`echo "${nProcess}/300" | bc`
-#nevents="10000"
-nevents="5000"
+nevents="10000"
+#nevents="5000"
 maxcheck="4"
-#minsize="5"
 minsize="1"
 
 # PHPythia variables
 pythia_ldir="${PLHF}/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros"
 file_checker="${pythia_ldir}/IsGoodFile"
-#pythia_macro="anaFastMC_GenPH.C"
-pythia_macro="phparticlegen.C"
+pythia_macro="anaFastMC_GenPH.C"
+#pythia_macro="phparticlegen.C"
 pythia_config="pythia.cfg"
 pythia_tree="phpythia${proc}.root"
 pythia_histo="AnaFastMC-GenPH-histo${proc}.root"
@@ -67,9 +66,9 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
     if [[ -f "${pisa_tree}" || -f "${dst_tree}" ]] ; then
         break
     fi
-    #"${file_checker}" "histo" "${pythia_histo}" "${nevents}"
-    #status_histo="${?}"
-    status_histo="0"
+    "${file_checker}" "histo" "${pythia_histo}" "${nevents}"
+    status_histo="${?}"
+    #status_histo="0"
     "${file_checker}" "tree" "${pythia_tree}" "${nevents}"
     status_tree="${?}"
     if [[ "${status_histo}" -ne "0" || "${status_tree}" -ne "0" || $(ls -l --block-size=M "${pythia_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
@@ -80,8 +79,8 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
 	fi
         sleep 10
 	echo -e "Process ${proc}: PHPythia runs ${icheck} times" >> "${logfile}"
-        #root -l -b -q "${pythia_macro}(${proc},${scale},\"${pythia_tree}\",\"${pythia_histo}\")"
-        root -l -b -q "${pythia_macro}(${nevents},\"${pythia_tree}\")"
+        root -l -b -q "${pythia_macro}(${proc},${scale},\"${pythia_tree}\",\"${pythia_histo}\")"
+        #root -l -b -q "${pythia_macro}(${proc},${nevents},\"${pythia_tree}\")"
     else
         rm -f "${output_dir}/${pythia_tree}"
         echo -e "Process ${proc}: PHPythia finished running" >> "${logfile}"

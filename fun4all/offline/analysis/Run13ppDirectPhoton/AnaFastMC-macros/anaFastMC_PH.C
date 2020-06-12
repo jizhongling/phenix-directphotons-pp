@@ -50,7 +50,7 @@ void anaFastMC_PH(const int process = 0, const int scale = 4)
   AnaFastMC *my1 = new AnaFastMC("AnaFastMC");
   my1->set_outfile( Form("../AnaFastMC-PH-histo%d.root",process) );
   my1->set_mcmethod(PHParticleGen);
-  my1->enable_calcsys();
+  //my1->enable_calcsys();
   se->registerSubsystem(my1);
 
   //** A dummy (null) input is needed for the Fun4All framework
@@ -72,7 +72,7 @@ void anaFastMC_PH(const int process = 0, const int scale = 4)
 
   // Run over all events
   double pt_start = 3. + process/scale * 0.1;
-  double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "Photon") / ptweights->Integral(3., 4., "Photon");
+  double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "MinBias") / ptweights->Integral(3., 4., "MinBias");
   my1->SetWeightPythia(weight_pythia);
   se->run(500000);
 

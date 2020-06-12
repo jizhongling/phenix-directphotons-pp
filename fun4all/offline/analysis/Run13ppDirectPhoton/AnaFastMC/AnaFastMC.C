@@ -479,9 +479,9 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
       double eta = fabs(pE_part.Eta());
       double ppt = parent ? TVector2(parent->GetPx(),parent->GetPy()).Mod() : 0.;
 
-      /* Consider high-pT stable photon */
+      /* Consider high-pT stable photon or charged pion */
       if( (pt > 2. || ppt > 2.) &&
-          id == PY_GAMMA &&
+          (id == PY_GAMMA || id == PY_PI) &&
           particle->GetKS() == 1 )
       {
         /* Fill Vpart[], itwr_part[] and sec_part[]
@@ -492,6 +492,10 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
         bool InAcc = emcwarnmap->InFiducial(itw_part[0]);
         int sector = sec_part[0];
         TLorentzVector pE_reco(Vpart[0]);
+        double pt_reco = pE_reco.Pt();
+        double E_reco = GetEMCResponse(id, pE_part.P());
+        if(id == PY_PI)
+          pt_reco = E_reco * pE_part.Pt() / pE_part.P();
 
         /* Get isolation cone energy */
         double econe_all, econe_acc[3];
@@ -500,34 +504,34 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
         /* Photons from different hadrons
          * fill_hn_hadron[2] = 0(prompt photon), 1(isolated prompt photon),
          *                     2(pi0), 3(eta), 4(omega), 5(eta prime) */
-        double fill_hn_hadron[] = {ppt, eta, -10.};
-
-        if( pid < 100 )  // prompt photon
+        if( isys == 0 && id == PY_GAMMA )
         {
-          fill_hn_hadron[0] = pt;
-          fill_hn_hadron[2] = 0.;
-          if( econe_all < eratio * pE_part.E() )
-            fill_hn_hadron[2] = 1.;
-        }
-        else if( pid == PY_PIZERO )
-          fill_hn_hadron[2] = 2.;
-        else if( pid == PY_ETA )
-          fill_hn_hadron[2] = 3.;
-        else if( pid == 223 )  // omega
-          fill_hn_hadron[2] = 4.;
-        else if( pid == 331 )  // eta prime
-          fill_hn_hadron[2] = 5.;
+          double fill_hn_hadron[] = {ppt, eta, -10.};
 
-        /* Fill histogram for photons from intrested hadrons */
-        if( isys == 0 && fill_hn_hadron[2] > -1. )
-          hn_hadron->Fill(fill_hn_hadron, weight_pythia);
+          if( pid < 100 )  // prompt photon
+          {
+            fill_hn_hadron[0] = pt;
+            fill_hn_hadron[2] = 0.;
+            if( econe_all < eratio * pE_part.E() )
+              fill_hn_hadron[2] = 1.;
+          }
+          else if( pid == PY_PIZERO )
+            fill_hn_hadron[2] = 2.;
+          else if( pid == PY_ETA )
+            fill_hn_hadron[2] = 3.;
+          else if( pid == 223 )  // omega
+            fill_hn_hadron[2] = 4.;
+          else if( pid == 331 )  // eta prime
+            fill_hn_hadron[2] = 5.;
+
+          /* Fill histogram for photons from intrested hadrons */
+          if( isys == 0 && fill_hn_hadron[2] > -1. )
+            hn_hadron->Fill(fill_hn_hadron, weight_pythia);
+        }
 
         /* Fill histogram for photons in accpetance */
-        if( InAcc )
+        if( InAcc && id == PY_GAMMA)
         {
-          /* Parameters for photons */
-          double ptsim = pE_reco.Pt();
-
           int part = -1;
           if(sector < 0) part = -1;
           else if(sector < 4) part = 0;
@@ -546,79 +550,105 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
           if( isys == 0 && pid < 100 )
           {
             /* All prompt photons in acceptance */
-            double fill_hn_geom[] = {pt, ptsim, (double)sector};
+            double fill_hn_geom[] = {pt, pt_reco, (double)sector};
             hn_geom->Fill(fill_hn_geom, weight_pythia);
           }
 
-          if( pE_reco.P() > eMin )
+          if( E_reco > eMin )
             for(int ival=0; ival<3; ival++)
             {
               int isolated = 0;
-              if( econe_acc[ival] < eratio * pE_part.P() )
+              if( econe_acc[ival] < eratio * E_reco )
                 isolated = 1;
 
               if( isys == 0 && part >= 0 &&
                   pid < 100 && isolated &&
-                  ptsim > 5. && ptsim < 10. )
+                  pt_reco > 5. && pt_reco < 10. )
               {
                 /* Eta and phi distribution and acceptance for isolated prompt photons */
                 int ih = part + 3*ival;
                 h2_photon_eta_phi[ih]->Fill(-eta, phi, weight_pythia);
               }
 
-              double fill_hn_photon[] = {pt, ptsim, (double)sector, (double)isolated, (double)ival, (double)isys};
+              double fill_hn_photon[] = {pt, pt_reco, (double)sector, (double)isolated, (double)ival, (double)isys};
               hn_photon->Fill(fill_hn_photon, weight_pythia);
-
-              /* Consider systematic errors for partner photon from pi0 */
-              if( calcsys && pid == PY_PIZERO &&
-                  phpythia->getChildNumber(parent) == 2 )
-              {
-                TMCParticle *partner = phpythia->getChild(parent,0);
-                if( partner == particle )
-                  partner = phpythia->getChild(parent,1);
-
-                /* Put partner's momentum and energy into TLorentzVector */
-                TLorentzVector pE_partner(partner->GetPx(), partner->GetPy(), partner->GetPz(), partner->GetEnergy());
-
-                /* Fill Vpart[], itwr_part[] and sec_part[]
-                 * and set NPart and NPeak */
-                photon_sim(pE_partner);
-
-                /* Copy parameters for reconstructed photon */
-                bool InAcc2 = emcwarnmap->IsGoodTower(itw_part[0]);
-                TLorentzVector pE_reco2(Vpart[0]);
-
-                /* Partner should be stable photon and in acceptance */
-                if( partner->GetKF() == PY_GAMMA &&
-                    partner->GetKS() == 1 &&
-                    InAcc2 &&
-                    pE_reco2.P() > eMin )
-                {
-                  TLorentzVector pPi0 = pE_reco + pE_reco2;
-                  double minv = pPi0.M()*mcorr;
-
-                  /* Check if partner within cone */
-                  double econe_pair = econe_acc[ival];
-                  TVector2 v2_particle = pE_part.EtaPhiVector();
-                  TVector2 v2_partner = pE_partner.EtaPhiVector();
-                  TVector2 v2_diff(v2_partner - v2_particle);
-                  if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
-                  else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
-                  if( v2_diff.Mod() < cone_angle )
-                    econe_pair -= pE_partner.P();
-
-                  int isopair = 0;
-                  if( econe_pair < eratio * pE_part.P() )
-                    isopair = 1;
-
-                  double fill_hn_pion[] = {pt, ptsim, minv, (double)sector,
-                    (double)isolated, (double)isopair, (double)ival, (double)isys};
-                  hn_pion->Fill(fill_hn_pion, weight_pythia);
-                } // partner is photon
-              } // pi0 has two daughters
             } // ival
-        } // InFiducial
-      } // high-pt stable photon
+
+          /* Consider systematic errors for partner photon from pi0 */
+          if( pid == PY_PIZERO && E_reco > eMin &&
+              phpythia->getChildNumber(parent) == 2 )
+          {
+            TMCParticle *partner = phpythia->getChild(parent,0);
+            if( partner == particle )
+              partner = phpythia->getChild(parent,1);
+
+            /* Put partner's momentum and energy into TLorentzVector */
+            TLorentzVector pE_partner(partner->GetPx(), partner->GetPy(), partner->GetPz(), partner->GetEnergy());
+
+            /* Fill Vpart[], itwr_part[] and sec_part[]
+             * and set NPart and NPeak */
+            photon_sim(pE_partner);
+
+            /* Copy parameters for reconstructed photon */
+            bool InAcc2 = emcwarnmap->IsGoodTower(itw_part[0]);
+            TLorentzVector pE_reco2(Vpart[0]);
+
+            /* Partner should be stable photon and in acceptance */
+            if( partner->GetKF() == PY_GAMMA &&
+                partner->GetKS() == 1 &&
+                InAcc2 &&
+                pE_reco2.P() > eMin )
+            {
+              TLorentzVector pPi0 = pE_reco + pE_reco2;
+              double minv = pPi0.M()*mcorr;
+
+              /* Check if partner within cone */
+              TVector2 v2_particle = pE_part.EtaPhiVector();
+              TVector2 v2_partner = pE_partner.EtaPhiVector();
+              TVector2 v2_diff(v2_partner - v2_particle);
+              if( v2_diff.Y() > PI ) v2_diff -= v2_2PI;
+              else if( v2_diff.Y() < -PI ) v2_diff += v2_2PI;
+
+              for(int ival=0; ival<3; ival++)
+              {
+                int isolated = 0;
+                if( econe_acc[ival] < eratio * E_reco )
+                  isolated = 1;
+
+                double econe_pair = econe_acc[ival];
+                if( v2_diff.Mod() < cone_angle )
+                  econe_pair -= pE_partner.P();
+
+                int isopair = 0;
+                if( econe_pair < eratio * E_reco )
+                  isopair = 1;
+
+                double fill_hn_pion[] = {pt, pt_reco, minv, (double)sector,
+                  (double)isolated, (double)isopair, (double)ival, (double)isys};
+                hn_pion->Fill(fill_hn_pion, weight_pythia);
+              } // ival
+            } // partner is photon
+          } // calcsys for pi0 has two daughters
+        } // InFiducial for photons
+
+        /* Fill histogram for non-veto charged pion in accpetance */
+        if( isys == 0 && InAcc && id == PY_PI && E_reco > eMin )
+        {
+          TVector3 v3_part(particle->GetPx(), particle->GetPy(), particle->GetPz());
+          int charge = particle->GetKF() > 0 ? 1 : -1;
+          int veto = InDCAcceptance(v3_part, charge) ? 1 : 0;
+
+          for(int ival=0; ival<3; ival++)
+          {
+            int isolated = 0;
+            if( econe_acc[ival] < eratio * E_reco )
+              isolated = 1;
+
+            double fill_hn_photon[] = {pt, pt_reco, (double)sector, (double)isolated, (double)ival, 4.+veto};
+            hn_photon->Fill(fill_hn_photon, weight_pythia);
+          } // ival
+        } // InFiducial for charged pion
+      } // high-pt stable photon or charged pion
     } // ipart
   } // isys
 
@@ -883,9 +913,9 @@ void AnaFastMC::BookHistograms()
     hn_hadron->Sumw2();
     hm->registerHisto(hn_hadron);
 
-    const int nbins_hn_photon[] = {npT, npT, 8, 2, 3, 4};
+    const int nbins_hn_photon[] = {npT, npT, 8, 2, 3, 6};
     const double xmin_hn_photon[] = {0., 0., -0.5, -0.5, -0.5, -0.5};
-    const double xmax_hn_photon[] = {0., 0., 7.5, 1.5, 2.5, 3.5};
+    const double xmax_hn_photon[] = {0., 0., 7.5, 1.5, 2.5, 5.5};
     hn_photon = new THnSparseF("hn_photon", "EMCal photon count;p_{T} truth [GeV];p_{T} reco [GeV];sector;isolated;ival;isys;",
         6, nbins_hn_photon, xmin_hn_photon, xmax_hn_photon);
     hn_photon->SetBinEdges(0, pTbin);

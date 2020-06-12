@@ -3,7 +3,7 @@
 // PHPythia format (which is fun4all compliant)
 //
 void
-phparticlegen(const int nevents = 10, const char *outputname = "phparticlegen.root")
+phparticlegen(const int process = 0, const int nevents = 10, const char *outputname = "phparticlegen.root")
 {
   gSystem->Load("libPythia6.so");
   gSystem->Load("libfun4all.so");	// framework + reco modules
@@ -38,7 +38,8 @@ phparticlegen(const int nevents = 10, const char *outputname = "phparticlegen.ro
 
   // Particle Type
   //ss->GetGenerator()->SetParameter("pid",13);		// mu+
-  ss->GetGenerator()->SetParameter("pid",111);	// pi0
+  //ss->GetGenerator()->SetParameter("pid",111);	// pi0
+  ss->GetGenerator()->SetParameter("pid",process%2?-211,211);	// even proc: pi+; odd proc: pi-
   //ss->GetGenerator()->SetParameter("pid",221);	// eta
   //ss->GetGenerator()->SetParameter("pid",22);		// gamma
   //ss->GetGenerator()->SetParameter("pid",23);		// gamma*/Z0
