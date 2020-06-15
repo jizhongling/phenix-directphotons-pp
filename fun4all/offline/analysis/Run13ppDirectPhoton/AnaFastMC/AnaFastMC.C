@@ -477,10 +477,9 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
       TLorentzVector pE_part(particle->GetPx(), particle->GetPy(), particle->GetPz(), particle->GetEnergy());
       double pt = pE_part.Pt();
       double eta = fabs(pE_part.Eta());
-      double ppt = parent ? TVector2(parent->GetPx(),parent->GetPy()).Mod() : 0.;
 
       /* Consider high-pT stable photon or charged pion */
-      if( (pt > 2. || ppt > 2.) &&
+      if( pt > 2. &&
           (id == PY_GAMMA || id == PY_PI) &&
           particle->GetKS() == 1 )
       {
@@ -502,30 +501,30 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
         SumETruth(particle, InAcc, econe_all, econe_acc);
 
         /* Photons from different hadrons
-         * fill_hn_hadron[2] = 0(prompt photon), 1(isolated prompt photon),
+         * fill_hn_hadron[4] = 0(prompt photon), 1(isolated prompt photon),
          *                     2(pi0), 3(eta), 4(omega), 5(eta prime) */
         if( isys == 0 && id == PY_GAMMA )
         {
-          double fill_hn_hadron[] = {ppt, eta, -10.};
+          double fill_hn_hadron[] = {pt, pt_reco, eta, InAcc?1.:0., -10.};
 
           if( pid < 100 )  // prompt photon
           {
-            fill_hn_hadron[0] = pt;
-            fill_hn_hadron[2] = 0.;
+            fill_hn_hadron[4] = 0.;
+            hn_hadron->Fill(fill_hn_hadron, weight_pythia);
             if( econe_all < eratio * pE_part.E() )
-              fill_hn_hadron[2] = 1.;
+              fill_hn_hadron[4] = 1.;
           }
           else if( pid == PY_PIZERO )
-            fill_hn_hadron[2] = 2.;
+            fill_hn_hadron[4] = 2.;
           else if( pid == PY_ETA )
-            fill_hn_hadron[2] = 3.;
+            fill_hn_hadron[4] = 3.;
           else if( pid == 223 )  // omega
-            fill_hn_hadron[2] = 4.;
+            fill_hn_hadron[4] = 4.;
           else if( pid == 331 )  // eta prime
-            fill_hn_hadron[2] = 5.;
+            fill_hn_hadron[4] = 5.;
 
           /* Fill histogram for photons from intrested hadrons */
-          if( isys == 0 && fill_hn_hadron[2] > -1. )
+          if( fill_hn_hadron[4] > -1. )
             hn_hadron->Fill(fill_hn_hadron, weight_pythia);
         }
 
@@ -904,12 +903,13 @@ void AnaFastMC::BookHistograms()
     hn_geom->Sumw2();
     hm->registerHisto(hn_geom);
 
-    const int nbins_hn_hadron[] = {npT, 4, 6};
-    const double xmin_hn_hadron[] = {0., 0., -0.5};
-    const double xmax_hn_hadron[] = {0., 1., 5.5};
-    hn_hadron = new THnSparseF("hn_hadron", "Hadron count;p_{T} [GeV];#eta;Hadron ID;",
-        3, nbins_hn_hadron, xmin_hn_hadron, xmax_hn_hadron);
+    const int nbins_hn_hadron[] = {npT, npT, 4, 2, 6};
+    const double xmin_hn_hadron[] = {0., 0., 0., -0.5, -0.5};
+    const double xmax_hn_hadron[] = {0., 0., 1., 1.5, 5.5};
+    hn_hadron = new THnSparseF("hn_hadron", "Hadron count;p_{T} truth [GeV];p_{T} reco [GeV];#eta;InAcc;Hadron ID;",
+        5, nbins_hn_hadron, xmin_hn_hadron, xmax_hn_hadron);
     hn_hadron->SetBinEdges(0, pTbin);
+    hn_hadron->SetBinEdges(1, pTbin);
     hn_hadron->Sumw2();
     hm->registerHisto(hn_hadron);
 

@@ -68,7 +68,7 @@ void draw_SysErr()
       TFile *f_nlo = new TFile( Form("data/%sprompt-x400-ct14-%s.root",type,jetphox_fname[iso][imu]) );
       TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
       h_nlo->Scale(jetphox_scale);
-      for(int ipt=12; ipt<npT; ipt++)
+      for(int ipt=10; ipt<npT; ipt++)
       {
         double xpt = (pTbin[ipt] + pTbin[ipt+1]) / 2.;
         double factor = 1. / (2*PI*xpt*DeltaEta);
@@ -87,7 +87,7 @@ void draw_SysErr()
       TGraphErrors *gr_ratio_sys = new TGraphErrors(npT);
 
       int igp = 0;
-      for(int ipt=12; ipt<npT; ipt++)
+      for(int ipt=10; ipt<npT; ipt++)
       {
         double xpt, Combine, eCombine, sysCombine;
         if( !qt_cross->Query(ipt, 3, xpt, Combine, eCombine) ||
@@ -152,7 +152,7 @@ void draw_SysErr()
         TGraphErrors *gr_cross = qt_cross->Graph(3);
         TGraphErrors *gr_cross_sys = qt_sys->Graph(iso);
         gr_cross->SetTitle("");
-        aset(gr_cross, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 5.9,30.1, 0.5e-1, 2e3);
+        aset(gr_cross, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 4.9,30.1, 0.5e-1, 5e3);
         style(gr_cross, 20, 1, 2);
         style(gr_cross_sys, 1, 1, 2);
         gr_cross->SetMarkerSize(0.8);
@@ -173,14 +173,14 @@ void draw_SysErr()
 
         pad2->cd();
         gr_ratio->SetTitle(";p_{T} [GeV/c];#frac{Data-Theory}{Theory}");
-        aset(gr_ratio, "","", 5.9,30.1, iso?-0.25:-0.65,iso?0.45:3.15, 1.,0.6,0.1,0.12);
+        aset(gr_ratio, "","", 4.9,30.1, iso?-0.25:-0.65,iso?0.45:3.15, 1.,0.6,0.1,0.12);
         style(gr_ratio_sys, 1, imu+1, 2);
         gr_ratio->GetXaxis()->SetLabelSize(0.09);
         gr_ratio->GetYaxis()->SetLabelSize(0.09);
         gr_ratio->GetXaxis()->SetTickSize(0.08);
         gr_ratio->Draw("APE");
         gr_ratio_sys->Draw("[]");
-        line->DrawLine(6., 0., 30., 0.);
+        line->DrawLine(5., 0., 30., 0.);
       }
       else
       {
