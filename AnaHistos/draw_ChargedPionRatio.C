@@ -2,7 +2,7 @@
 
 void draw_ChargedPionRatio()
 {
-  TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-chargedpion.root");
+  TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-minbias.root");
 
   THnSparse *hn_pion = (THnSparse*)f_pythia->Get("hn_pion");
   hn_pion->GetAxis(7)->SetRange(1,1);

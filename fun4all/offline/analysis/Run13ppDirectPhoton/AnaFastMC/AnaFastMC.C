@@ -501,32 +501,32 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
         SumETruth(particle, InAcc, econe_all, econe_acc);
 
         /* Photons from different hadrons
-         * fill_hn_hadron[4] = 0(prompt photon), 1(isolated prompt photon),
-         *                     2(pi0), 3(eta), 4(omega), 5(eta prime) */
+         * fill_hn_hadron[3] = 0(prompt photon), 1(pi0),
+         * 2(eta), 3(omega), 4(eta prime), 5(others) */
         if( isys == 0 && id == PY_GAMMA )
         {
-          double fill_hn_hadron[] = {pt, pt_reco, eta, InAcc?1.:0., -10.};
+          double fill_hn_hadron[] = {pt, pt_reco, eta, -1.,
+            InAcc ? 1. : 0.,
+            econe_all < eratio * pE_part.E() ? 1. : 0.,
+            econe_acc[2] < eratio * E_reco ? 1. : 0.};
 
-          if( pid < 100 )  // prompt photon
-          {
-            fill_hn_hadron[4] = 0.;
-            hn_hadron->Fill(fill_hn_hadron, weight_pythia);
-            if( econe_all < eratio * pE_part.E() )
-              fill_hn_hadron[4] = 1.;
-          }
+          if( pid == PY_GAMMA && parent->GetKS() == 21 )  // direct photon
+            fill_hn_hadron[3] = 0.;
+          else if( pid < 100 )  // prompt photon
+            fill_hn_hadron[3] = 1.;
           else if( pid == PY_PIZERO )
-            fill_hn_hadron[4] = 2.;
+            fill_hn_hadron[3] = 2.;
           else if( pid == PY_ETA )
-            fill_hn_hadron[4] = 3.;
+            fill_hn_hadron[3] = 3.;
           else if( pid == 223 )  // omega
-            fill_hn_hadron[4] = 4.;
+            fill_hn_hadron[3] = 4.;
           else if( pid == 331 )  // eta prime
-            fill_hn_hadron[4] = 5.;
+            fill_hn_hadron[3] = 5.;
+          else
+            fill_hn_hadron[3] = 6.;
 
-          /* Fill histogram for photons from intrested hadrons */
-          if( fill_hn_hadron[4] > -1. )
-            hn_hadron->Fill(fill_hn_hadron, weight_pythia);
-        }
+          hn_hadron->Fill(fill_hn_hadron, weight_pythia);
+        } // hn_hadron
 
         /* Fill histogram for photons in accpetance */
         if( InAcc && id == PY_GAMMA)
@@ -903,11 +903,11 @@ void AnaFastMC::BookHistograms()
     hn_geom->Sumw2();
     hm->registerHisto(hn_geom);
 
-    const int nbins_hn_hadron[] = {npT, npT, 4, 2, 6};
-    const double xmin_hn_hadron[] = {0., 0., 0., -0.5, -0.5};
-    const double xmax_hn_hadron[] = {0., 0., 1., 1.5, 5.5};
-    hn_hadron = new THnSparseF("hn_hadron", "Hadron count;p_{T} truth [GeV];p_{T} reco [GeV];#eta;InAcc;Hadron ID;",
-        5, nbins_hn_hadron, xmin_hn_hadron, xmax_hn_hadron);
+    const int nbins_hn_hadron[] = {npT, npT, 4, 7, 2, 2, 2};
+    const double xmin_hn_hadron[] = {0., 0., 0., -0.5, -0.5, -0.5, -0.5};
+    const double xmax_hn_hadron[] = {0., 0., 1., 6.5, 1.5, 1.5, 1.5};
+    hn_hadron = new THnSparseF("hn_hadron", "Photons from each hadron;p_{T} truth [GeV];p_{T} reco [GeV];#eta;Hadron ID;InAcc;IsoAll;IsoAcc;",
+        7, nbins_hn_hadron, xmin_hn_hadron, xmax_hn_hadron);
     hn_hadron->SetBinEdges(0, pTbin);
     hn_hadron->SetBinEdges(1, pTbin);
     hn_hadron->Sumw2();

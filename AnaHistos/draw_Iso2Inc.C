@@ -13,14 +13,14 @@ void draw_Iso2Inc()
   QueryTree *qt_jetphox = new QueryTree("data/JetphoxRatio.root");
   QueryTree *qt_sys = new QueryTree("data/CrossSection-syserr.root");
 
-  TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-photon.root");
+  TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-minbias.root");
   THnSparse *hn_hadron = (THnSparse*)f_pythia->Get("hn_hadron");
-  hn_hadron->GetAxis(2)->SetRange(1,1);  // prompt photons
-  hn_hadron->GetAxis(1)->SetRange(1,1);  // |eta| < 0.25
+  hn_hadron->GetAxis(3)->SetRange(1,1);  // prompt photons
+  hn_hadron->GetAxis(2)->SetRange(1,1);  // |eta| < 0.25
+  hn_hadron->GetAxis(5)->SetRange(1,2);  // inclusive
   TH1 *h_photon = hn_hadron->Projection(0);
   h_photon->SetName("h_photon_eta025");
-  hn_hadron->GetAxis(2)->SetRange(2,2);  // isolated prompt photons
-  hn_hadron->GetAxis(1)->SetRange(1,1);  // |eta| < 0.25
+  hn_hadron->GetAxis(5)->SetRange(2,2);  // isolated
   TH1 *h_isophoton = hn_hadron->Projection(0);
   h_isophoton->SetName("h_isophoton_eta025");
 
