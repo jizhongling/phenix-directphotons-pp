@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
          etaAbsPhoton = 999.;
 
   const double isoConeRadius = 0.5;
-  double isoCone_et;
+  double isoCone_mom;
   double isoCone_dR;
 
 
@@ -230,6 +230,7 @@ int main(int argc, char **argv) {
           // check whether it is the hardest photon and get its pt and eta
           int iH = (iDir == iPhoton ? 1 : 0);
           double ptDir = pythia.event[iDir].pT();
+          double momDir = pythia.event[iDir].pAbs();
           double etaAbsDir = TMath::Abs(pythia.event[iDir].eta());
 
           // Fill histograms for inclusive direct photon
@@ -241,7 +242,7 @@ int main(int argc, char **argv) {
 
           // isolation cut: sum energy around photon and abandon event if threshold is reached
           //----------------------------------------------------------------------
-          isoCone_et = 0.; // reset sum of energy in cone
+          isoCone_mom = 0.; // reset sum of energy in cone
           for (int i = 5; i < pythia.event.size(); i++) {
             if ( !pythia.event[i].isFinal() ) continue;
             if ( !pythia.event[i].isVisible() ) continue;
@@ -253,11 +254,11 @@ int main(int argc, char **argv) {
                 + pow(pythia.event[i].eta() - pythia.event[iDir].eta(), 2) );
 
             // sum energy in isolation cone
-            if(isoCone_dR < isoConeRadius) isoCone_et += pythia.event[i].eT();
+            if(isoCone_dR < isoConeRadius) isoCone_mom += pythia.event[i].pAbs();
           }
 
           // jump to next direct photon if hardest photon is not isolated
-          if( isoCone_et > 0.1*ptDir ) continue;
+          if( isoCone_mom > 0.1*momDir ) continue;
 
           // Fill histograms for isolated direct photon
           //----------------------------------------------------------------------
