@@ -18,8 +18,11 @@ setenv SPIN /phenix/spin/phnxsp01/zji
 setenv SCRATCH /phenix/scratch/zji
 
 cd $1
-foreach i (`seq 1 2`)
-  ./anaLHEF histos/AnaPowheg-histo$2-`printf "%04d" $i`.root $SPIN/data/powheg/pwgevents$2-`printf "%04d" $i`.lhe.gz &
+foreach i ( `seq 1 2` )
+  set INPUT = $SPIN/data/powheg/pwgevents$2-`printf "%04d" $i`.lhe.gz
+  if ( -f $INPUT ) then
+    ./anaLHEF histos/AnaPowheg-histo$2-`printf "%04d" $i`.root $INPUT &
+  endif
 end
 wait
 
