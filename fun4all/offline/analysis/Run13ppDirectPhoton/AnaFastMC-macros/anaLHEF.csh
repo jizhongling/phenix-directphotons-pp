@@ -19,7 +19,7 @@ setenv SCRATCH /phenix/scratch/zji
 
 cd $1
 foreach i (`seq 1 2`)
-  ./anaLHEF histos/powheg-histo$2-`printf "%04d" $i`.root $SPIN/data/powheg/pwgevents$2-`printf "%04d" $i`.lhe.gz &
+  ./anaLHEF histos/AnaPowheg-histo$2-`printf "%04d" $i`.root $SPIN/data/powheg/pwgevents$2-`printf "%04d" $i`.lhe.gz &
 end
 wait
 
