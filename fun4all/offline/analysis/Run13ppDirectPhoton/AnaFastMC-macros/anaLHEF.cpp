@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
   const int nPtBins = 30;
   const double etaAbsMin[3] = {0.0, 0.0, 0.0};
   const double etaAbsMax[3] = {0.25, 0.5, 1.0};
-  const double ptBins[nPtBins+1] = {0.0,
+  const double ptBins[nPtBins+1] = { 0.0,
     0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
     5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
     12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
@@ -257,14 +257,14 @@ int main(int argc, char **argv) {
           }
 
           // jump to next direct photon if hardest photon is not isolated
-          if( isoCone_et > 0.1*ptMax ) continue;
+          if( isoCone_et > 0.1*ptDir ) continue;
 
           // Fill histograms for isolated direct photon
           //----------------------------------------------------------------------
           for( int i = 0; i < 3; i++)
             if( etaAbsMin[i] < etaAbsDir &&
                 etaAbsDir < etaAbsMax[i] )
-              Fill_For_Each_Weight(vec_sim[iH][1].at(i), ptMax, vec_weights);
+              Fill_For_Each_Weight(vec_sim[iH][1].at(i), ptDir, vec_weights);
 
         } // end of direct photon loop
     } // end of while loop; break if next file
