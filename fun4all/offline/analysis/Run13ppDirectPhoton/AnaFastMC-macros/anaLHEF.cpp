@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
           // check whether it is the hardest photon and get its pt and eta
           int iH = (iDir == iPhoton ? 1 : 0);
           double ptDir = pythia.event[iDir].pT();
-          double momDir = pythia.event[iDir].pAbs();
+          double eDir = pythia.event[iDir].e();
           double etaAbsDir = TMath::Abs(pythia.event[iDir].eta());
 
           // Fill histograms for inclusive direct photon
@@ -258,7 +258,7 @@ int main(int argc, char **argv) {
           }
 
           // jump to next direct photon if hardest photon is not isolated
-          if( isoCone_mom > 0.1*momDir ) continue;
+          if( isoCone_mom > 0.1*eDir ) continue;
 
           // Fill histograms for isolated direct photon
           //----------------------------------------------------------------------
