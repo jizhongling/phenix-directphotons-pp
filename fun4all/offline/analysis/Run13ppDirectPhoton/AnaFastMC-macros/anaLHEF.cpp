@@ -279,8 +279,8 @@ int main(int argc, char **argv) {
     for(int iso=0; iso<2; iso++)
       for(int i = 0; i < 3; i++)
         for(unsigned long int j = 0; j < vec_weights.size(); j++){
-          vec_sim[iH][iso].at(i).at(j).Scale( 1./nEvents, "width");
           if(iH == 0) vec_sim[0][iso].at(i).at(j).Add(&vec_sim[1][iso].at(i).at(j));
+          vec_sim[iH][iso].at(i).at(j).Scale( 1./nEvents, "width");
           vec_sim[iH][iso].at(i).at(j).Write();
         }
 
