@@ -91,6 +91,8 @@ int main(int argc, char **argv) {
 
   // variables to keep track of
   //----------------------------------------------------------------------
+  bool init = false;    // whether initialized
+
   int nEvents = 0,
       iPhoton = -1;     // index of photon in pythia event
 
@@ -127,7 +129,9 @@ int main(int argc, char **argv) {
 
       // at very first event read in weight IDs and book histograms for each weight
       //----------------------------------------------------------------------
-      if (nEvents == 1 && iFile == 0) {
+      if (!init) {
+
+        init = true;
 
         // check if the sudakov weight from enhanced radiation is present
         for (map<string,double>::iterator it = pythia.info.weights_detailed->begin();
@@ -139,23 +143,13 @@ int main(int argc, char **argv) {
           }
         }
 
-        // // if more weights at the same time are used,
-        // // e.g. for scale or pdf variation, you can  access them like this
-        // for (map<string,double>::iterator it = pythia.info.weights_detailed->begin();
-        //     it != pythia.info.weights_detailed->end(); ++it) {
-        //   if (it->first.find("scales") != std::string::npos){
-        //     vec_weightsID.push_back(it->first);
-        //   }
-        // }
-
-        // insert central value always at first position for convenience 
-        // for (map<string,double>::iterator it = pythia.info.weights_detailed->begin();
-        //     it != pythia.info.weights_detailed->end(); ++it) {
-        //   if (it->first == "central"){ // NB: these strings follow 'lhrwgt_id' in powheg-input.save
-        //     vec_weightsID.insert(vec_weightsID.begin(), it->first);
-        //   }
-        // }
-        vec_weightsID.insert(vec_weightsID.begin(), "central");
+        // if more weights at the same time are used,
+        // e.g. for scale or pdf variation, you can  access them like this
+        int weight_id = 0;
+        for (vector<double>::iterator it = pythia.info.weights_compressed->begin();
+            it != pythia.info.weights_compressed->end(); ++it) {
+          vec_weightsID.push_back(Form("id%d",weight_id++));
+        }
 
         printf("Number of weights = %lu\n", vec_weightsID.size());
         for(long unsigned int i = 0; i < vec_weightsID.size(); i++)
@@ -179,10 +173,11 @@ int main(int argc, char **argv) {
 
       // reload vector with regular weights * sudaWeight for this event 
       if(vec_weights.size() != 0) vec_weights.clear();
-      //for(long unsigned int i = 0; i < vec_weightsID.size(); i++){
-      //  vec_weights.push_back(pythia.info.getWeightsDetailedValue(vec_weightsID.at(i)) * sudaWeight);
-      //}
-      vec_weights.push_back(pythia.info.weight() * sudaWeight);
+      double weight_default = *pythia.info.weights_compressed->begin();
+      for (vector<double>::iterator it = pythia.info.weights_compressed->begin();
+          it != pythia.info.weights_compressed->end(); ++it) {
+        vec_weights.push_back(*it / weight_default * pythia.info.weight() * sudaWeight);
+      }
 
       // The actual event analysis starts here.
       ptMax  = 0.;
