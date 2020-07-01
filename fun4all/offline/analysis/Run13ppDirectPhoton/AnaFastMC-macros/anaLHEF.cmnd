@@ -28,7 +28,7 @@ POWHEG:nFinal = 2
 POWHEG:veto = 1
 
 # Number of accepted emissions before no more vetos are performed (default 3)
-POWHEG:vetoCount = 3
+POWHEG:vetoCount = 50
 
 # How to define hardness. 0: SCALUP
 POWHEG:pThard = 0

@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
   TH1::SetDefaultSumw2(kTRUE);
   gStyle->SetOptStat(0);
 
-  // fill histograms with measured data points to compare with
+  // fill histograms with simulation results
   const int nPtBins = 30;
   const double etaAbsMin[3] = {0.0, 0.0, 0.0};
   const double etaAbsMax[3] = {0.25, 0.5, 1.0};
@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
       // if Sudakov reweighting is activated, get corresponding weight for this event
       if (isSudaWeight) sudaWeight = pythia.info.getWeightsDetailedValue(sudaWeightID.c_str());
 
-      // reload vector with regular weights * sudaWeight for this event 
+      // reload vector with regular weights * weight_suda for this event 
       if(vec_weights.size() != 0) vec_weights.clear();
       double weight_suda = pythia.info.weight() * sudaWeight / (*pythia.info.weights_compressed->begin());
       for (vector<double>::iterator it = pythia.info.weights_compressed->begin();
