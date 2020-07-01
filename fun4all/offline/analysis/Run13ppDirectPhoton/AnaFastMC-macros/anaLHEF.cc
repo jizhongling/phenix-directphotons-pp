@@ -173,10 +173,10 @@ int main(int argc, char **argv) {
 
       // reload vector with regular weights * sudaWeight for this event 
       if(vec_weights.size() != 0) vec_weights.clear();
-      double weight_default = *pythia.info.weights_compressed->begin();
+      double weight_suda = pythia.info.weight() * sudaWeight / (*pythia.info.weights_compressed->begin());
       for (vector<double>::iterator it = pythia.info.weights_compressed->begin();
           it != pythia.info.weights_compressed->end(); ++it) {
-        vec_weights.push_back(*it / weight_default * pythia.info.weight() * sudaWeight);
+        vec_weights.push_back((*it) * weight_suda);
       }
 
       // The actual event analysis starts here.
