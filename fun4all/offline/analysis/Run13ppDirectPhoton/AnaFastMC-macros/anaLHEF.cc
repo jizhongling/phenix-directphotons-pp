@@ -233,14 +233,7 @@ int main(int argc, char **argv) {
           double eDir = pythia.event[iDir].e();
           double etaAbsDir = TMath::Abs(pythia.event[iDir].eta());
 
-          // Fill histograms for inclusive direct photon
-          //----------------------------------------------------------------------
-          for( int i = 0; i < 3; i++)
-            if( etaAbsMin[i] < etaAbsDir &&
-                etaAbsDir < etaAbsMax[i] )
-              Fill_For_Each_Weight(vec_sim[iH][0].at(i), ptDir, vec_weights);
-
-          // isolation cut: sum energy around photon and abandon event if threshold is reached
+          // isolation cut: sum energy around photon and check whether threshold is reached
           //----------------------------------------------------------------------
           isoCone_mom = 0.; // reset sum of energy in cone
           for (int i = 5; i < pythia.event.size(); i++) {
@@ -250,22 +243,22 @@ int main(int argc, char **argv) {
             if ( i == iDir ) continue;
 
             // distance between photon and particle at index i
-            isoCone_dR = sqrt( pow(CorrectPhiDelta(pythia.event[i].phi(), pythia.event[iDir].phi()), 2)
-                + pow(pythia.event[i].eta() - pythia.event[iDir].eta(), 2) );
+            isoCone_dR = sqrt( pow2(CorrectPhiDelta(pythia.event[i].phi(), pythia.event[iDir].phi()))
+                + pow2(pythia.event[i].eta() - pythia.event[iDir].eta()) );
 
             // sum energy in isolation cone
             if(isoCone_dR < isoConeRadius) isoCone_mom += pythia.event[i].pAbs();
           }
 
-          // jump to next direct photon if hardest photon is not isolated
-          if( isoCone_mom > 0.1*eDir ) continue;
+          // check whether threshold is reached
+          int iso = (isoCone_mom < 0.1*eDir ? 1 : 0);
 
-          // Fill histograms for isolated direct photon
+          // Fill histograms
           //----------------------------------------------------------------------
           for( int i = 0; i < 3; i++)
             if( etaAbsMin[i] < etaAbsDir &&
                 etaAbsDir < etaAbsMax[i] )
-              Fill_For_Each_Weight(vec_sim[iH][1].at(i), ptDir, vec_weights);
+              Fill_For_Each_Weight(vec_sim[iH][iso].at(i), ptDir, vec_weights);
 
         } // end of direct photon loop
     } // end of while loop; break if next file
@@ -278,14 +271,21 @@ int main(int argc, char **argv) {
   TFile outFile(rootFileName, "RECREATE");
 
   // normalize simulated spectra for nEvents and pt bin width, then write
-  for(int iH=0; iH<2; iH++)
-    for(int iso=0; iso<2; iso++)
-      for(int i = 0; i < 3; i++)
-        for(unsigned long int j = 0; j < vec_weights.size(); j++){
-          if(iH == 0) vec_sim[0][iso].at(i).at(j).Add(&vec_sim[1][iso].at(i).at(j));
+  for(int i = 0; i < 3; i++)
+    for(unsigned long int j = 0; j < vec_weights.size(); j++){
+
+      for(int iH=0; iH<2; iH++)
+        vec_sim[iH][0].at(i).at(j).Add(&vec_sim[iH][1].at(i).at(j));
+      for(int iso=0; iso<2; iso++)
+        vec_sim[0][iso].at(i).at(j).Add(&vec_sim[1][iso].at(i).at(j));
+
+      for(int iH=0; iH<2; iH++)
+        for(int iso=0; iso<2; iso++)
+        {
           vec_sim[iH][iso].at(i).at(j).Scale( 1./nEvents, "width");
           vec_sim[iH][iso].at(i).at(j).Write();
         }
+    }
 
   outFile.Close();
 

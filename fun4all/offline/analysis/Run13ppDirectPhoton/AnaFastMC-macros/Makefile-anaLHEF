@@ -7,10 +7,10 @@ PYTHIA8LIBS=-L$(shell pythia8-config --libdir)  -L$(shell pythia8-config --libdi
 
 ROOT=$(shell root-config --cflags --libs)
 
-anaLHEF: anaLHEF.cpp
+anaLHEF: anaLHEF.cc
 	$(CXX) $(CXX_COMMON) -o $@  $+ $(PYTHIA8FLAGS) $(PYTHIA8LIBS) $(ROOT)
 
-anaLHEF_PowhegHooks: anaLHEF.cpp
+anaLHEF_PowhegHooks: anaLHEF.cc
 	$(CXX) $(CXX_COMMON) -D _CPPPWHGHOOKS -o $@ $+ $(PYTHIA8FLAGS) $(PYTHIA8LIBS) $(ROOT)
 
 .PHONY : clean
