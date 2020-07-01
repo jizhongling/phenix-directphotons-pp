@@ -171,12 +171,11 @@ int main(int argc, char **argv) {
       // if Sudakov reweighting is activated, get corresponding weight for this event
       if (isSudaWeight) sudaWeight = pythia.info.getWeightsDetailedValue(sudaWeightID.c_str());
 
-      // reload vector with regular weights * weight_suda for this event 
+      // reload vector with regular weights * sudaWeight for this event 
       if(vec_weights.size() != 0) vec_weights.clear();
-      double weight_suda = pythia.info.weight() * sudaWeight / (*pythia.info.weights_compressed->begin());
       for (vector<double>::iterator it = pythia.info.weights_compressed->begin();
           it != pythia.info.weights_compressed->end(); ++it) {
-        vec_weights.push_back((*it) * weight_suda);
+        vec_weights.push_back((*it) * sudaWeight);
       }
 
       // The actual event analysis starts here.
