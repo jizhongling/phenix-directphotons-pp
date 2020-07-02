@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
     5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
     12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0 };
 
-  TH1D *h_photon = new TH1D("h_photon", "Cross section of direct photon;p_{T} [GeV];#frac{d#sigma}{dp_{T}} [pb/GeV]", nPtBins, ptBins);
+  TH1D *h_photon = new TH1D("h_photon", "Direct photon cross section;p_{T} [GeV];#frac{d#sigma}{dp_{T}} [pb/GeV]", nPtBins, ptBins);
   vector< vector<TH1D> > vec_sim[2][2]; // two vector dimensions for different rap. bins & for different weights (e.g. for scale/pdf variation)
 
 

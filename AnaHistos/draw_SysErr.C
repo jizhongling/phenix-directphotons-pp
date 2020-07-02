@@ -23,7 +23,7 @@ void draw_SysErr(const int pwhg = 0)
   }
   else if(pwhg == 1)
   {
-    const double pythia_scale = 1./116.;
+    const double pythia_scale = 1./150.;
     const int nmu[2] = {7, 7};
     const char *mu_name[2][3] = {
       {"  1            1           --", "vary       vary        --", "vary       vary        --"},
