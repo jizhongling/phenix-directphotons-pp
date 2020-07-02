@@ -46,8 +46,8 @@ int main(int argc, char **argv) {
 
   // fill histograms with simulation results
   const int nPtBins = 30;
-  const double etaAbsMin[3] = {0.0, 0.0, 0.0};
-  const double etaAbsMax[3] = {0.25, 0.5, 1.0};
+  const double etaAbsMin[4] = {0.0, 0.25, 0.35, 0.5};
+  const double etaAbsMax[4] = {0.25, 0.35, 0.5, 1.0};
   const double ptBins[nPtBins+1] = { 0.0,
     0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
     5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
         // book histograms for each weight
         for(int iH=0; iH<2; iH++)
           for(int iso=0; iso<2; iso++)
-            for(int i = 0; i < 3; i++){ // consider each rapidity bin
+            for(int i = 0; i <= 3; i++){ // consider each rapidity bin
               vector <TH1D> vec_histo_temp;
               for(long unsigned int j = 0; j < vec_weightsID.size(); j++){
                 vec_histo_temp.push_back( *(TH1D*)h_photon->Clone(Form("hard%d_iso%d_rap%d_%s",iH,iso,i,vec_weightsID.at(j).c_str())) );
@@ -189,7 +189,7 @@ int main(int argc, char **argv) {
       for (int i = 5; i < pythia.event.size(); i++) {
         if (pythia.event[i].id() == 22 && pythia.event[i].isFinal() && // final photon
             pythia.event[i].status() < 90 &&                      // no decay photons allowed, only direct photons
-            TMath::Abs(pythia.event[i].eta()) < etaAbsMax[2] &&   // in maximal acceptance
+            TMath::Abs(pythia.event[i].eta()) < etaAbsMax[3] &&   // in maximal acceptance
             pythia.event[i].pT() > ptBins[4]){                    // in the pt reach of interest
 
           // find ptMax
@@ -218,7 +218,7 @@ int main(int argc, char **argv) {
       for (int iDir = 5; iDir < pythia.event.size(); iDir++)
         if (pythia.event[iDir].id() == 22 && pythia.event[iDir].isFinal() && // final photon
             pythia.event[iDir].status() < 90 &&                      // no decay photons allowed, only direct photons
-            TMath::Abs(pythia.event[iDir].eta()) < etaAbsMax[2] &&   // in maximal acceptance
+            TMath::Abs(pythia.event[iDir].eta()) < etaAbsMax[3] &&   // in maximal acceptance
             pythia.event[iDir].pT() > ptBins[4]){                    // in the pt reach of interest
 
           // check whether it is the hardest photon and get its pt and eta
@@ -233,7 +233,7 @@ int main(int argc, char **argv) {
           for (int i = 5; i < pythia.event.size(); i++) {
             if ( !pythia.event[i].isFinal() ) continue;
             if ( !pythia.event[i].isVisible() ) continue;
-            if ( TMath::Abs(pythia.event[i].eta()) > etaAbsMax[2]+isoConeRadius ) continue;
+            if ( TMath::Abs(pythia.event[i].eta()) > etaAbsMax[3]+isoConeRadius ) continue;
             if ( i == iDir ) continue;
 
             // distance between photon and particle at index i
@@ -249,7 +249,7 @@ int main(int argc, char **argv) {
 
           // Fill histograms
           //----------------------------------------------------------------------
-          for( int i = 0; i < 3; i++)
+          for( int i = 0; i <= 3; i++)
             if( etaAbsMin[i] < etaAbsDir &&
                 etaAbsDir < etaAbsMax[i] )
               Fill_For_Each_Weight(vec_sim[iH][iso].at(i), ptDir, vec_weights);
@@ -265,7 +265,7 @@ int main(int argc, char **argv) {
   TFile outFile(rootFileName, "RECREATE");
 
   // normalize simulated spectra for nEvents and pt bin width, then write
-  for(int i = 0; i < 3; i++)
+  for(int i = 0; i <= 3; i++)
     for(unsigned long int j = 0; j < vec_weights.size(); j++){
 
       for(int iH=0; iH<2; iH++)

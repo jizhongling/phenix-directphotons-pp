@@ -23,7 +23,7 @@ void draw_SysErr(const int pwhg = 0)
   }
   else if(pwhg == 1)
   {
-    const double pythia_scale = 1./178.;
+    const double powheg_scale = 1./190.;  // combined 800 histograms
     const int nmu[2] = {7, 7};
     const char *mu_name[2][3] = {
       {"  1            1           --", "vary       vary        --", "vary       vary        --"},
@@ -94,7 +94,7 @@ void draw_SysErr(const int pwhg = 0)
       else if(pwhg == 1)
       {
         TH1 *h_nlo = (TH1*)f_pythia->Get(Form("hard0_iso%d_rap0_id%d",iso,imu));
-        h_nlo->Scale(pythia_scale);
+        h_nlo->Scale(powheg_scale);
       }
       for(int ipt=10; ipt<npT; ipt++)
       {
@@ -183,7 +183,7 @@ void draw_SysErr(const int pwhg = 0)
         TGraphErrors *gr_cross = qt_cross->Graph(3);
         TGraphErrors *gr_cross_sys = qt_sys->Graph(iso);
         gr_cross->SetTitle("");
-        aset(gr_cross, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 4.9,30.1, 0.5e-1, 5e3);
+        aset(gr_cross, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 4.9,30.1, 0.5e-1, iso?3.5e3:1.5e4);
         style(gr_cross, 20, 1, 2);
         style(gr_cross_sys, 1, 1, 2);
         gr_cross->SetMarkerSize(0.8);
