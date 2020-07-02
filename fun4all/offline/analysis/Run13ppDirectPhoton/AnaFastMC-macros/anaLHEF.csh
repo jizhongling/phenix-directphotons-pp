@@ -26,10 +26,15 @@ foreach i ( `seq 1 2` )
 
   setenv INPUT
   foreach proc ( `seq $START $END` )
-    setenv FILE $SPIN/data/powheg/pwgevents$proc-`printf "%04d" $i`.lhe.gz
-    if ( -f $FILE ) then
-      if ( `ls -l --block-size=M $FILE | awk '{printf "%d", $5}'` > 50 ) then
-        setenv INPUT "$INPUT $FILE"
+    setenv GZ $SPIN/data/powheg/pwgevents$proc-`printf "%04d" $i`.lhe.gz
+    setenv LHE $SPIN/data/powheg/proc$proc/pwgevents-`printf "%04d" $i`.lhe
+    if ( -f $GZ ) then
+      if ( `ls -l --block-size=M $GZ | awk '{printf "%d", $5}'` > 10 ) then
+        setenv INPUT "$INPUT $GZ"
+      endif
+    else if ( -f $LHE ) then
+      if ( `ls -l --block-size=M $LHE | awk '{printf "%d", $5}'` > 10 ) then
+        setenv INPUT "$INPUT $LHE"
       endif
     endif
   end
