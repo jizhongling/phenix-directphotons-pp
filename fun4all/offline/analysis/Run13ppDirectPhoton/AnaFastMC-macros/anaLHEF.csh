@@ -17,8 +17,9 @@ setenv PLHF /phenix/plhf/zji
 setenv SPIN /phenix/spin/phnxsp01/zji
 setenv SCRATCH /phenix/scratch/zji
 
-@ START = $2 * 5
-@ END = $2 * 5 + 4
+set NFiles = 3
+@ START = $2 * $NFiles
+@ END = ( $2 + 1 ) * $NFiles - 1
 
 cd $1
 foreach i ( `seq 1 2` )
