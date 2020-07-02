@@ -2,7 +2,7 @@
 #include "QueryTree.h"
 #include "DivideFunctions.h"
 
-void draw_Iso2Inc()
+void draw_Iso2Inc(const int pwhg = 0)
 {
   const int sector = 3;  // PbSc west: 0; PbSc east: 1; PbGl: 2; Combined: 3
   const char *jetphox_fname[3] = {"p_{T}/2", "p_{T}", "2p_{T}"};
@@ -13,16 +13,33 @@ void draw_Iso2Inc()
   QueryTree *qt_jetphox = new QueryTree("data/JetphoxRatio.root");
   QueryTree *qt_sys = new QueryTree("data/CrossSection-syserr.root");
 
-  TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-minbias.root");
-  THnSparse *hn_hadron = (THnSparse*)f_pythia->Get("hn_hadron");
-  hn_hadron->GetAxis(3)->SetRange(1,1);  // prompt photons
-  hn_hadron->GetAxis(2)->SetRange(1,1);  // |eta| < 0.25
-  hn_hadron->GetAxis(5)->SetRange(1,2);  // inclusive
-  TH1 *h_photon = hn_hadron->Projection(0);
-  h_photon->SetName("h_photon_eta025");
-  hn_hadron->GetAxis(5)->SetRange(2,2);  // isolated
-  TH1 *h_isophoton = hn_hadron->Projection(0);
-  h_isophoton->SetName("h_isophoton_eta025");
+  if(pwhg == 0)
+  {
+    TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-minbias.root");
+    THnSparse *hn_hadron = (THnSparse*)f_pythia->Get("hn_hadron");
+    hn_hadron->GetAxis(3)->SetRange(1,1);  // prompt photons
+    hn_hadron->GetAxis(2)->SetRange(1,1);  // |eta| < 0.25
+    hn_hadron->GetAxis(5)->SetRange(1,2);  // inclusive
+    TH1 *h_photon = hn_hadron->Projection(0);
+    h_photon->SetName("h_photon_eta025");
+    hn_hadron->GetAxis(5)->SetRange(2,2);  // isolated
+    TH1 *h_isophoton = hn_hadron->Projection(0);
+    h_isophoton->SetName("h_isophoton_eta025");
+  }
+  else if(pwhg == 1)
+  {
+    const double pythia_scale = 1./116.;
+    TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo.root");
+    TH1 *h_photon = (TH1*)f_pythia->Get("hard0_iso0_rap0_id0");
+    h_photon->Scale(pythia_scale);
+    TH1 *h_isophoton = (TH1*)f_pythia->Get("hard0_iso1_rap0_id0");
+    h_isophoton->Scale(pythia_scale);
+  }
+  else
+  {
+    cout << "Wrong input" << endl;
+    return;
+  }
 
   TGraphErrors *gr[2];
   int igp[2] = {};

@@ -17,8 +17,8 @@ setenv PLHF /phenix/plhf/zji
 setenv SPIN /phenix/spin/phnxsp01/zji
 setenv SCRATCH /phenix/scratch/zji
 
-@ START = $2 * 10
-@ END = $2 * 10 + 9
+@ START = $2 * 5
+@ END = $2 * 5 + 4
 
 cd $1
 foreach i ( `seq 1 2` )

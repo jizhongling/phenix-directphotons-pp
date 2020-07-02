@@ -2,20 +2,40 @@
 #include "QueryTree.h"
 #include "Chi2Fit.h"
 
-void draw_SysErr()
+void draw_SysErr(const int pwhg = 0)
 {
   const double PI = TMath::Pi();
   const double DeltaEta = 0.5;
-  const double jetphox_scale = 1./400.;  // combined 400 histograms
-  const int nmu[2] = {3, 7};
-  const char *jetphox_fname[2][nmu[1]] = {
-    {"onept", "halfpt", "twopt"},
-    {"MMM", "LLH", "LHH", "LLL", "HLL", "HHL", "HHH"}
-  };
-  const char *mu_name[2][3] = {
-    {"   1           1            1", " 1/2        1/2         1/2", "   2           2            2"},
-    {"0.56         1            1", "0.54    1/2 or 2       2", "0.58    1/2 or 2     1/2"}
-  };
+  const char *prog_name[2] = {"JETPHOX", "POWHEG"};
+
+  if(pwhg == 0)
+  {
+    const double jetphox_scale = 1./400.;  // combined 400 histograms
+    const int nmu[2] = {3, 7};
+    const char *jetphox_fname[2][nmu[1]] = {
+      {"onept", "halfpt", "twopt"},
+      {"MMM", "LLH", "LHH", "LLL", "HLL", "HHL", "HHH"}
+    };
+    const char *mu_name[2][3] = {
+      {"   1           1            1", " 1/2        1/2         1/2", "   2           2            2"},
+      {"0.56         1            1", "0.54    1/2 or 2       2", "0.58    1/2 or 2     1/2"}
+    };
+  }
+  else if(pwhg == 1)
+  {
+    const double pythia_scale = 1./116.;
+    const int nmu[2] = {7, 7};
+    const char *mu_name[2][3] = {
+      {"  1            1           --", "vary       vary        --", "vary       vary        --"},
+      {"  1            1           --", "vary       vary        --", "vary       vary        --"}
+    };
+    TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo.root");
+  }
+  else
+  {
+    cout << "Wrong input" << endl;
+    return;
+  }
 
   QueryTree *qt_sys = new QueryTree("data/CrossSection-syserr.root", "RECREATE");
 
@@ -65,18 +85,26 @@ void draw_SysErr()
     for(int imu=0; imu<nmu[iso]; imu++)
     {
       char *type = iso ? "iso" : "inc";
-      TFile *f_nlo = new TFile( Form("data/%sprompt-x400-ct14-%s.root",type,jetphox_fname[iso][imu]) );
-      TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
-      h_nlo->Scale(jetphox_scale);
+      if(pwhg == 0)
+      {
+        TFile *f_nlo = new TFile( Form("data/%sprompt-x400-ct14-%s.root",type,jetphox_fname[iso][imu]) );
+        TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
+        h_nlo->Scale(jetphox_scale);
+      }
+      else if(pwhg == 1)
+      {
+        TH1 *h_nlo = (TH1*)f_pythia->Get(Form("hard0_iso%d_rap0_id%d",iso,imu));
+        h_nlo->Scale(pythia_scale);
+      }
       for(int ipt=10; ipt<npT; ipt++)
       {
         double xpt = (pTbin[ipt] + pTbin[ipt+1]) / 2.;
-        double factor = 1. / (2*PI*xpt*DeltaEta);
         int bin_th = h_nlo->GetXaxis()->FindBin(xpt);
-        nlo[ipt][imu] = factor * h_nlo->GetBinContent(bin_th);
-        enlo[ipt][imu] = factor * h_nlo->GetBinError(bin_th);
+        nlo[ipt][imu] = h_nlo->GetBinContent(bin_th);
+        enlo[ipt][imu] = h_nlo->GetBinError(bin_th);
       }
-      delete f_nlo;
+      if(pwhg == 0)
+        delete f_nlo;
     } // imu
 
     TGraphErrors *gr_central;
@@ -94,6 +122,7 @@ void draw_SysErr()
             !qt_sys->Query(ipt, iso, xpt, Combine, sysCombine) )
           continue;
 
+        double factor = 1. / (2*PI*xpt*DeltaEta);
         double sigma_nlo, esigma_nlo;
         if(imu == 0)
         {
@@ -110,6 +139,8 @@ void draw_SysErr()
           sigma_nlo = TMath::MinElement(nmu[iso], nlo[ipt]);
           esigma_nlo = TMath::MaxElement(nmu[iso], enlo[ipt]);
         }
+        sigma_nlo *= factor;
+        esigma_nlo *= factor;
         gr_nlo->SetPoint(igp, xpt, sigma_nlo);
         gr_nlo->SetPointError(igp, 0., esigma_nlo);
 
@@ -124,7 +155,7 @@ void draw_SysErr()
         }
         else
         {
-          ratio = sigma_nlo/nlo[ipt][0];
+          ratio = sigma_nlo/nlo[ipt][0]/factor;
           eratio = ratio*sqrt(pow(enlo[ipt][0]/nlo[ipt][0],2) + pow(esigma_nlo/sigma_nlo,2));
         }
         gr_ratio->SetPoint(igp, xpt, ratio-1);
@@ -162,8 +193,11 @@ void draw_SysErr()
         leg0->Draw();
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not included}");
-        latex->DrawLatexNDC(0.25,0.38, "#splitline{NLO pQCD}{(by JETPHOX)}");
-        latex->DrawLatexNDC(0.25,0.29, "#splitline{CT14 PDF}{BFG II FF}");
+        latex->DrawLatexNDC(0.25,0.38, Form("#splitline{NLO pQCD}{(by %s)}",prog_name[pwhg]));
+        if(pwhg == 0)
+          latex->DrawLatexNDC(0.25,0.29, "#splitline{CT14 PDF}{BFG II FF}");
+        else if(pwhg == 1)
+          latex->DrawLatexNDC(0.25,0.29, "CT14 PDF");
         latex->DrawLatexNDC(0.31,0.22, "#scale[0.8]{#mu_{R}/p_{T}    #mu_{f}/p_{T}    #mu_{F}/p_{T}}");
         if(iso)
         {
