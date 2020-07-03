@@ -17,7 +17,7 @@ setenv PLHF /phenix/plhf/zji
 setenv SPIN /phenix/spin/phnxsp01/zji
 setenv SCRATCH /phenix/scratch/zji
 
-set NFiles = 3
+set NFiles = 5
 @ START = $2 * $NFiles
 @ END = ( $2 + 1 ) * $NFiles - 1
 
@@ -29,11 +29,11 @@ foreach i ( `seq 1 2` )
     setenv GZ $SPIN/data/powheg/pwgevents$proc-`printf "%04d" $i`.lhe.gz
     setenv LHE $SPIN/data/powheg/proc$proc/pwgevents-`printf "%04d" $i`.lhe
     if ( -f $GZ ) then
-      if ( `ls -l --block-size=M $GZ | awk '{printf "%d", $5}'` > 10 ) then
+      if ( `ls -l --block-size=M $GZ | awk '{printf "%d", $5}'` > 3 ) then
         setenv INPUT "$INPUT $GZ"
       endif
     else if ( -f $LHE ) then
-      if ( `ls -l --block-size=M $LHE | awk '{printf "%d", $5}'` > 10 ) then
+      if ( `ls -l --block-size=M $LHE | awk '{printf "%d", $5}'` > 3 ) then
         setenv INPUT "$INPUT $LHE"
       endif
     endif

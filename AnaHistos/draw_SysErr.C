@@ -207,7 +207,7 @@ void draw_SysErr(const int pwhg = 0)
 
         pad2->cd();
         gr_ratio->SetTitle(";p_{T} [GeV/c];#frac{Data-Theory}{Theory}");
-        aset(gr_ratio, "","", 4.9,30.1, iso?-0.25:-0.65,iso?0.45:3.15, 1.,0.6,0.1,0.12);
+        aset(gr_ratio, "","", 4.9,30.1, iso*(1-pwhg)?-0.25:-0.65-0.2*pwhg,iso*(1-pwhg)?0.45:3.15-pwhg-iso, 1.,0.6,0.1,0.12);
         style(gr_ratio_sys, 1, imu+1, 2);
         gr_ratio->GetXaxis()->SetLabelSize(0.09);
         gr_ratio->GetYaxis()->SetLabelSize(0.09);
