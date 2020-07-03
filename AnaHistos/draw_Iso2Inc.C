@@ -28,7 +28,7 @@ void draw_Iso2Inc(const int pwhg = 0)
   }
   else if(pwhg == 1)
   {
-    TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo-x800.root");
+    TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo-x703.root");
     TH1 *h_photon = (TH1*)f_pythia->Get("hard0_iso0_rap0_id0");
     TH1 *h_isophoton = (TH1*)f_pythia->Get("hard0_iso1_rap0_id0");
   }
