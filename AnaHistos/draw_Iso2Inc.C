@@ -119,5 +119,5 @@ void draw_Iso2Inc(const int pwhg = 0)
   }
   leg0->Draw();
 
-  c0->Print("plots/Iso2Inc.pdf");
+  c0->Print(Form("plots/Iso2Inc%s.pdf",pwhg?"-pwhg":""));
 }

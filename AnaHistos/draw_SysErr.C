@@ -227,9 +227,12 @@ void draw_SysErr(const int pwhg = 0)
     } // imu
 
     char *type = iso ? "iso" : "";
-    c0->Print(Form("plots/CrossSection-%sphoton-syserr.pdf",type));
-    const char *cmd = Form("preliminary.pl --input=plots/CrossSection-%sphoton-syserr.pdf --output=plots/CrossSection-%sphoton-prelim.pdf --x=360 --y=420 --scale=0.8", type,type);
-    system(cmd);
+    c0->Print(Form("plots/CrossSection-%sphoton-%s.pdf",type,pwhg?"pwhg":"syserr"));
+    if(pwhg == 0)
+    {
+      const char *cmd = Form("preliminary.pl --input=plots/CrossSection-%sphoton-syserr.pdf --output=plots/CrossSection-%sphoton-prelim.pdf --x=360 --y=420 --scale=0.8", type,type);
+      system(cmd);
+    }
     delete c0;
   } // iso
 
