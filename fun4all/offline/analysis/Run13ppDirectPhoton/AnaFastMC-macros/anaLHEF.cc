@@ -97,8 +97,7 @@ int main(int argc, char **argv) {
       iPhoton = -1;     // index of photon in pythia event
 
   double ptMax = 0., // pT of hardest photon
-         ptTemp = 0.,
-         etaAbsPhoton = 999.;
+         ptTemp = 0.;
 
   const double isoConeRadius = 0.5;
   double isoCone_mom;
@@ -182,7 +181,6 @@ int main(int argc, char **argv) {
       ptMax  = 0.;
       ptTemp = 0.;
       iPhoton = -1;
-      etaAbsPhoton = 999.;
 
       // search for hardest photon in this event
       //----------------------------------------------------------------------
@@ -203,8 +201,6 @@ int main(int argc, char **argv) {
 
       // skip to next event, if no photon was found
       if(iPhoton < 0) continue;
-
-      etaAbsPhoton = TMath::Abs(pythia.event[iPhoton].eta());
 
       // use following line to ignore events with extreme weights that can cause ugly fluctuations
       // but make sure the cross section does not decrease significantly
@@ -293,7 +289,7 @@ int main(int argc, char **argv) {
 double CorrectPhiDelta(double angle1, double angle2){
   double pi = TMath::Pi();
   double phi = TMath::Abs(angle1 - angle2);
-  if(phi >= pi) return 2*pi-phi;
+  if(phi > pi) return 2*pi-phi;
   else return phi;
 }
 
