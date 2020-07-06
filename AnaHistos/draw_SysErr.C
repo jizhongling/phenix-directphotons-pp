@@ -68,7 +68,7 @@ void draw_SysErr(const int pwhg = 0)
     gPad->SetTopMargin(0.05);
     gPad->SetBottomMargin(0.);
     gPad->SetLogy();
-    legi(0, 0.25,0.03,0.50,0.20);
+    legi(0, 0.22,0.03,0.47,0.20);
     leg0->SetTextSize(0.035);
     TLatex *latex = new TLatex();
     latex->SetTextSize(0.04);
@@ -193,12 +193,12 @@ void draw_SysErr(const int pwhg = 0)
         leg0->Draw();
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not included}");
-        latex->DrawLatexNDC(0.25,0.38, Form("#splitline{NLO pQCD}{(by %s)}",prog_name[pwhg]));
+        latex->DrawLatexNDC(0.22,0.38, Form("#splitline{NLO pQCD}{(by %s)}",prog_name[pwhg]));
         if(pwhg == 0)
-          latex->DrawLatexNDC(0.25,0.29, "#splitline{CT14 PDF}{BFG II FF}");
+          latex->DrawLatexNDC(0.22,0.29, "#splitline{CT14 PDF}{BFG II FF}");
         else if(pwhg == 1)
-          latex->DrawLatexNDC(0.25,0.29, "CT14 PDF");
-        latex->DrawLatexNDC(0.31,0.22, "#scale[0.8]{#mu_{R}/p_{T}    #mu_{f}/p_{T}    #mu_{F}/p_{T}}");
+          latex->DrawLatexNDC(0.22,0.29, "CT14 PDF");
+        latex->DrawLatexNDC(0.28,0.22, "#scale[0.8]{#mu_{R}/p_{T}    #mu_{f}/p_{T}    #mu_{F}/p_{T}}");
         if(iso)
         {
           latex->DrawLatexNDC(0.45,0.70, "Isolation cut condition");
