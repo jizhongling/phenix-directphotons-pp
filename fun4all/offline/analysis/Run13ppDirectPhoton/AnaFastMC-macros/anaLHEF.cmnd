@@ -2,6 +2,10 @@
 # Pythia Setup for showering powheg-directphoton   #
 #--------------------------------------------------#
 
+# Pick new random number seed for each run, based on clock
+Random:setSeed = on
+Random:seed = 0
+
 #PartonLevel:MPI = off
 
 #HadronLevel:all = off
