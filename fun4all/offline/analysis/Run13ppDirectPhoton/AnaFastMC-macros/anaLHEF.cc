@@ -30,16 +30,17 @@ int main(int argc, char **argv) {
   Pythia pythia;
   _CPPHOOKS *powhegHooks = 0; // POWHEG UserHooks
   bool loadhooks;
-  pythia.readFile("anaLHEF.cmnd");
 
   //---read commandline args----------------------------------------
-  if (argc < 3) {
+  if (argc < 4) {
     cout << endl << "Usage: " << argv[0]
-      << " outputfile.root eventfile1.lhe eventfile2.lhe ..." << endl;
+      << " inputfile.cmnd outputfile.root eventfile1.lhe eventfile2.lhe ..." << endl;
     exit(EXIT_FAILURE);
   } 
-  const char *rootFileName = argv[1]; // output file
-  nFiles = argc - 2; // number of event files to process
+  const char *cmndFileName = argv[1]; // cmnd file
+  const char *rootFileName = argv[2]; // output file
+  nFiles = argc - 3; // number of event files to process
+  pythia.readFile(cmndFileName);
 
   TH1::SetDefaultSumw2(kTRUE);
   gStyle->SetOptStat(0);
@@ -108,7 +109,7 @@ int main(int argc, char **argv) {
   //----------------------------------------------------------------------
   for (int iFile = 0; iFile < nFiles; iFile++) {
 
-    fileName = argv[2 + iFile];
+    fileName = argv[3 + iFile];
     cout << "Showering events in " << fileName << endl;
 
     // tell Pythia to use several lhe files while initializing once
@@ -204,7 +205,7 @@ int main(int argc, char **argv) {
 
       // use following line to ignore events with extreme weights that can cause ugly fluctuations
       // but make sure the cross section does not decrease significantly
-      if(ptMax > pythia.info.getScalesAttribute("uborns")*2.5){
+      if(ptMax > pythia.info.getScalesAttribute("uborns")){
         nEvents--;
         continue;
       }

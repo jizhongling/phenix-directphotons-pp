@@ -39,7 +39,7 @@ foreach i ( `seq 1 2` )
     endif
   end
 
-  ./anaLHEF histos/AnaPowheg-histo$2-`printf "%04d" $i`.root $INPUT &
+  ./anaLHEF anaLHEF.cmnd histos/AnaPowheg-histo$2-`printf "%04d" $i`.root $INPUT &
 end
 wait
 
