@@ -120,28 +120,24 @@ void draw_BgRatio_IsoPhoton()
           eBadPass = 0.;
         }
 
-        int part = 4*icr;
+        int part = 3*icr;
         if(pttype == 0)
         {
           double Eff = Conv*Prob*ToF;
 
-          double rbg = (1 + Merge1*(1 - Conv)/Eff)*npion[0]/nphoton;
-          double erbg = rbg * sqrt( pow(enpion[0]/npion[0],2) + pow(enphoton/nphoton,2) );
+          double rbg = (1 + Merge1*(1 - Conv)/Eff)*npion[0]/nphoton + Miss/Eff*npion[1]/nphoton;
+          double erbg = sqrt(pow(eToF,2)*pow(-(((1 - Conv)*Merge1*npion[0])/(Conv*nphoton*Prob*pow(ToF,2))) - (Miss*npion[1])/(Conv*nphoton*Prob*pow(ToF,2)),2) + pow(eProb,2)*pow(-(((1 - Conv)*Merge1*npion[0])/(Conv*nphoton*pow(Prob,2)*ToF)) - (Miss*npion[1])/(Conv*nphoton*pow(Prob,2)*ToF),2) + (pow(enpion[0],2)*pow(1 + ((1 - Conv)*Merge1)/(Conv*Prob*ToF),2))/pow(nphoton,2) + pow(enphoton,2)*pow(-((npion[0]*(1 + ((1 - Conv)*Merge1)/(Conv*Prob*ToF)))/pow(nphoton,2)) - (Miss*npion[1])/(Conv*pow(nphoton,2)*Prob*ToF),2) + pow(eConv,2)*pow((npion[0]*(-(((1 - Conv)*Merge1)/(pow(Conv,2)*Prob*ToF)) - Merge1/(Conv*Prob*ToF)))/nphoton - (Miss*npion[1])/(pow(Conv,2)*nphoton*Prob*ToF),2) + (pow(enpion[1],2)*pow(Miss,2))/(pow(Conv,2)*pow(nphoton,2)*pow(Prob,2)*pow(ToF,2)) + (pow(1 - Conv,2)*pow(eMerge1,2)*pow(npion[0],2))/(pow(Conv,2)*pow(nphoton,2)*pow(Prob,2)*pow(ToF,2)) + (pow(eMiss,2)*pow(npion[1],2))/(pow(Conv,2)*pow(nphoton,2)*pow(Prob,2)*pow(ToF,2)));
           qt_rbg->Fill(ipt, part, xpt, rbg, erbg);
 
-          rbg = Miss/Eff*npion[1]/nphoton;
-          erbg = rbg * sqrt( pow(enpion[1]/npion[1],2) + pow(enphoton/nphoton,2) );
-          qt_rbg->Fill(ipt, part+1, xpt, rbg, erbg);
-
           rbg = A*(1 + 2.*Miss + Merge1)/(1 + 2.*MissEta)*(Veto + MissEta/Eff)*npion[0]/nphoton;
-          erbg = rbg * sqrt( pow(enpion[0]/npion[0],2) + pow(enphoton/nphoton,2) );
-          qt_rbg->Fill(ipt, part+3, xpt, rbg, erbg);
+          erbg = sqrt((pow(A,2)*pow(eVeto,2)*pow(1 + Merge1 + 2.*Miss,2)*pow(npion[0],2))/(pow(1 + 2.*MissEta,2)*pow(nphoton,2))+ (pow(A,2)*pow(eToF,2)*pow(1 + Merge1 + 2.*Miss,2)*pow(MissEta,2)*pow(npion[0],2))/(pow(Conv,2)*pow(1 + 2.*MissEta,2)*pow(nphoton,2)*pow(Prob,2)*pow(ToF,4)) + (pow(A,2)*pow(eProb,2)*pow(1 + Merge1 + 2.*Miss,2)*pow(MissEta,2)*pow(npion[0],2))/(pow(Conv,2)*pow(1 + 2.*MissEta,2)*pow(nphoton,2)*pow(Prob,4)*pow(ToF,2)) + (pow(A,2)*pow(eConv,2)*pow(1 + Merge1 + 2.*Miss,2)*pow(MissEta,2)*pow(npion[0],2))/(pow(Conv,4)*pow(1 + 2.*MissEta,2)*pow(nphoton,2)*pow(Prob,2)*pow(ToF,2)) + (pow(A,2)*pow(enpion[0],2)*pow(1 + Merge1 + 2.*Miss,2)*pow(MissEta/(Conv*Prob*ToF) + Veto,2))/(pow(1 + 2.*MissEta,2)*pow(nphoton,2))+ (pow(A,2)*pow(enphoton,2)*pow(1 + Merge1 + 2.*Miss,2)*pow(npion[0],2)*pow(MissEta/(Conv*Prob*ToF) + Veto,2))/(pow(1 + 2.*MissEta,2)*pow(nphoton,4))+ (pow(A,2)*pow(eMerge1,2)*pow(npion[0],2)*pow(MissEta/(Conv*Prob*ToF) + Veto,2))/(pow(1 + 2.*MissEta,2)*pow(nphoton,2))+ (4.*pow(A,2)*pow(eMiss,2)*pow(npion[0],2)*pow(MissEta/(Conv*Prob*ToF) + Veto,2))/(pow(1 + 2.*MissEta,2)*pow(nphoton,2))+ (pow(eA,2)*pow(1 + Merge1 + 2.*Miss,2)*pow(npion[0],2)*pow(MissEta/(Conv*Prob*ToF) + Veto,2))/(pow(1 + 2.*MissEta,2)*pow(nphoton,2))+ pow(eMissEta,2)*pow((A*(1 + Merge1 + 2.*Miss)*npion[0])/(Conv*(1 + 2.*MissEta)*nphoton*Prob*ToF)- (2.*A*(1 + Merge1 + 2.*Miss)*npion[0]*(MissEta/(Conv*Prob*ToF) + Veto))/(pow(1 + 2.*MissEta,2)*nphoton),2));
+          qt_rbg->Fill(ipt, part+2, xpt, rbg, erbg);
         }
         else
         {
           double rbg = Merge2*BadPass/2./Prob/Prob*npion[1]/nphoton;
-          double erbg = rbg * sqrt( pow(enpion[1]/npion[1],2) + pow(enphoton/nphoton,2) );
-          qt_rbg->Fill(ipt, part+2, xpt, rbg, erbg);
+          double erbg = sqrt((1.*pow(BadPass,2)*pow(eProb,2)*pow(Merge2,2)*pow(npion[1],2))/(pow(nphoton,2)*pow(Prob,6)) + (0.25*pow(BadPass,2)*pow(enpion[1],2)*pow(Merge2,2))/(pow(nphoton,2)*pow(Prob,4)) + (0.25*pow(BadPass,2)*pow(enphoton,2)*pow(Merge2,2)*pow(npion[1],2))/(pow(nphoton,4)*pow(Prob,4)) + (0.25*pow(BadPass,2)*pow(eMerge2,2)*pow(npion[1],2))/(pow(nphoton,2)*pow(Prob,4)) + (0.25*pow(eBadPass,2)*pow(Merge2,2)*pow(npion[1],2))/(pow(nphoton,2)*pow(Prob,4)));
+          qt_rbg->Fill(ipt, part+1, xpt, rbg, erbg);
         }
       } // ipt
     } // pttype

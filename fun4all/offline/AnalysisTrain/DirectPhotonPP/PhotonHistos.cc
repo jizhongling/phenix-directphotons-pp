@@ -55,7 +55,7 @@ const double tofMaxALL = 15.;
 const double AsymCut = 0.8;
 
 /* Some cuts for isolation cut */
-const double eClusMin = 0.5;  // default 0.15
+const double eClusMin = 1.;  // default 0.15
 const double pTrkMin = 0.2;
 const double pTrkMax = 15.;
 

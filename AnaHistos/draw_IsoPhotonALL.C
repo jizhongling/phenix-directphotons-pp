@@ -13,7 +13,7 @@ void draw_IsoPhotonALL()
 
   QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root", "RECREATE");
 
-  QueryTree *qt_asym = new QueryTree("data/isophoton-asym-tightcut.root");
+  QueryTree *qt_asym = new QueryTree("data/isophoton-asym.root");
   qt_asym->SetQuiet();
   int imul = 1;
 
@@ -37,7 +37,7 @@ void draw_IsoPhotonALL()
           vp_ALL[id].clear();
           vp_eALL[id].clear();
 
-          int ig = imul + 10*beam + 10*3*icr + 10*3*2*pattern + 10*3*2*4*ipt;
+          int ig = imul + 6*beam + 6*3*icr + 6*3*2*pattern + 6*3*2*4*ipt;
           TSQLResult *res = qt_asym->Query(ig); // runnumber:runnumber:value:error:errorlow:errorhigh
           TSQLRow *row;
           while( row = res->Next() )
@@ -70,22 +70,19 @@ void draw_IsoPhotonALL()
       for(int icr=0; icr<2; icr++)
         for(int pattern=0; pattern<4; pattern++)
         {
-          double xpt, allpion[3], eallpion[3], rbg[4], erbg[4];
-          for(int isotype=0; isotype<2; isotype++)
-            for(int pttype=0; pttype<2; pttype++)
-            {
-              if(isotype == 0 && pttype == 1) continue;
-              int bgtype = isotype + pttype;
-              int part = beam + 3*isotype + 3*2*pttype + ngr_pion/2*3;
-              qt_allpion->Query(ipt, part, xpt, allpion[bgtype], eallpion[bgtype]);
-              if( !TMath::Finite(allpion[bgtype]) )
-                allpion[bgtype] = 0.;
-              if( !TMath::Finite(eallpion[bgtype]) )
-                eallpion[bgtype] = 0.;
-            }
-          for(int ibg=0; ibg<4; ibg++)
+          double xpt, allpion[2], eallpion[2], rbg[3], erbg[3];
+          for(int pttype=0; pttype<2; pttype++)
           {
-            part = ibg + 4*icr;
+            int part = beam + 3*pttype + ngr_pion/2*3;
+            qt_allpion->Query(ipt, part, xpt, allpion[pttype], eallpion[pttype]);
+            if( !TMath::Finite(allpion[pttype]) )
+              allpion[pttype] = 0.;
+            if( !TMath::Finite(eallpion[pttype]) )
+              eallpion[pttype] = 0.;
+          }
+          for(int ibg=0; ibg<3; ibg++)
+          {
+            part = ibg + 3*icr;
             qt_rbg->Query(ipt, part, xpt, rbg[ibg], erbg[ibg]);
             if( !TMath::Finite(rbg[ibg]) )
               rbg[ibg] = 0.;
@@ -116,8 +113,8 @@ void draw_IsoPhotonALL()
             int ipat = icr + 2*pattern;
             for(int ibg=0; ibg<3; ibg++)
               rbg[ibg] *= (1 + 0.04*isys);
-            sig[isys][ipat] = (mean - rbg[0]*allpion[0] - rbg[1]*allpion[1] - rbg[2]*allpion[2])/(1 - rbg[0] - rbg[1] - rbg[2] - rbg[3]);
-            esig[isys][ipat] = ( pow(mean,2) + pow(rbg[0]*allpion[0],2) + pow(rbg[1]*allpion[1],2) + pow(rbg[2]*allpion[2],2) ) / (1 - rbg[0] - rbg[1] - rbg[2] -rbg[3]);
+            sig[isys][ipat] = (mean - rbg[0]*allpion[0] - rbg[1]*allpion[1])/(1 - rbg[0] - rbg[1] - rbg[2]);
+            esig[isys][ipat] = sqrt(pow(erbg[0],2)*pow((mean - allpion[0]*rbg[0] - allpion[1]*rbg[1])/pow(1 - rbg[0] - rbg[1] - rbg[2],2) - allpion[0]/(1 - rbg[0] - rbg[1] - rbg[2]),2) + pow(erbg[1],2)*pow((mean - allpion[0]*rbg[0] - allpion[1]*rbg[1])/pow(1 - rbg[0] - rbg[1] - rbg[2],2) - allpion[1]/(1 - rbg[0] - rbg[1] - rbg[2]),2) + (pow(erbg[2],2)*pow(mean - allpion[0]*rbg[0] - allpion[1]*rbg[1],2))/pow(1 - rbg[0] - rbg[1] - rbg[2],4) + pow(emean,2)/pow(1 - rbg[0] - rbg[1] - rbg[2],2) + (pow(eallpion[0],2)*pow(rbg[0],2))/pow(1 - rbg[0] - rbg[1] - rbg[2],2) + (pow(eallpion[1],2)*pow(rbg[1],2))/pow(1 - rbg[0] - rbg[1] - rbg[2],2));
 
             int igr = beam + 3*icr + 3*2*pattern + ngr_photon + ngr_photon*3*isys;
             qt_all->Fill(ipt, igr, xpt, sig[isys][ipat], esig[isys][ipat]);

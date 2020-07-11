@@ -35,7 +35,7 @@ void anaIsoPhotonALL(const int process = 0)
 
     t_rlum->GetEntry(ien);
 
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/16462/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15811/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() )
     {
       cout << "Cannot open file for runnumber = " << runnumber << endl;
@@ -43,7 +43,7 @@ void anaIsoPhotonALL(const int process = 0)
     }
 
     double nphoton[3][2][2][2][npT_pol] = {};  // beam, isolated, icr, ipol, ipt
-    double npion[3][2][2][2][2][2][npT_pol] = {};  // beam, isotype(both|pair), pttype(pt|2pt), ibg, icr, ipol, ipt
+    double npion[3][2][2][2][2][npT_pol] = {};  // beam, pttype(pt|2pt), ibg, icr, ipol, ipt
 
     int checkmap = 1;
     int ical = 0;
@@ -77,19 +77,9 @@ void anaIsoPhotonALL(const int process = 0)
                 {
                   int ptbin_first = h2_pion->GetXaxis()->FindBin(pTbin_pol[ipt]);
                   int ptbin_last = h2_pion->GetXaxis()->FindBin(pTbin_pol[ipt+1]) - 1;
-                  double npeak = h2_pion->Integral(ptbin_first,ptbin_last, 113,162);
-                  double nside = h2_pion->Integral(ptbin_first,ptbin_last, 48,97) +
+                  npion[beam][pttype][0][icr][ipol][ipt] += h2_pion->Integral(ptbin_first,ptbin_last, 113,162);
+                  npion[beam][pttype][1][icr][ipol][ipt] += h2_pion->Integral(ptbin_first,ptbin_last, 48,97) +
                     h2_pion->Integral(ptbin_first,ptbin_last, 178,227);
-                  if(isoboth == 1)
-                  {
-                    npion[beam][0][pttype][0][icr][ipol][ipt] += npeak;
-                    npion[beam][0][pttype][1][icr][ipol][ipt] += nside;
-                  }
-                  if(isopair == 1)
-                  {
-                    npion[beam][1][pttype][0][icr][ipol][ipt] += npeak;
-                    npion[beam][1][pttype][1][icr][ipol][ipt] += nside;
-                  }
                 } // ipt
               } // pttype, isoboth, isopair
         } // beam, icr, ipol
@@ -133,41 +123,39 @@ void anaIsoPhotonALL(const int process = 0)
 
             if( TMath::Finite(ALL+eALL) && eALL > 0. )
             {
-              int ig = imul + 10*beam + 10*3*icr + 10*3*2*spin_pattern + 10*3*2*4*ipt;
+              int ig = imul + 6*beam + 6*3*icr + 6*3*2*spin_pattern + 6*3*2*4*ipt;
               qt_asym->Fill(runnumber, ig, runnumber, ALL, eALL);
             }
           } // isolated
 
-          for(int isotype=0; isotype<2; isotype++)
-            for(int pttype=0; pttype<2; pttype++)
+          for(int pttype=0; pttype<2; pttype++)
+          {
+            if( npion[beam][pttype][0][icr][1][ipt] + npion[beam][pttype][0][icr][0][ipt] < 10. ||
+                npion[beam][pttype][0][icr][1][ipt] < 1. || npion[beam][pttype][0][icr][0][ipt] < 1. ||
+                npion[beam][pttype][1][icr][1][ipt] < 1. || npion[beam][pttype][1][icr][0][ipt] < 1. )
+              continue;
+
+            for(int ibg=0; ibg<2; ibg++)
             {
-              if( npion[beam][isotype][pttype][0][icr][1][ipt] + npion[beam][isotype][pttype][0][icr][0][ipt] < 10. ||
-                  npion[beam][isotype][pttype][0][icr][1][ipt] < 1. || npion[beam][isotype][pttype][0][icr][0][ipt] < 1. ||
-                  npion[beam][isotype][pttype][1][icr][1][ipt] < 1. || npion[beam][isotype][pttype][1][icr][0][ipt] < 1. )
-                continue;
+              int imul = 2 + ibg + 2*pttype;
+              int part = imul + 6*beam + 6*3*icr + 6*3*2*checkmap + 6*3*2*2*ical;
+              double xpt, k2 = 1., ek2;
+              qt_ken2->Query(ipt, part, xpt, k2, ek2);
 
-              for(int ibg=0; ibg<2; ibg++)
+              double npp = npion[beam][pttype][ibg][icr][1][ipt];
+              double npm = npion[beam][pttype][ibg][icr][0][ipt];
+
+              double ALL = 1./pbeam*(npp - r*npm)/(npp + r*npm);
+              double eALL = sqrt(pow(2*r*npp*npm/pbeam,2)/pow(npp + r*npm,4)*(k2/npp + k2/npm + er*er/r/r)
+                  + e2pbeam*ALL*ALL);
+
+              if( TMath::Finite(ALL+eALL) && eALL > 0. )
               {
-                int imul = 2 + ibg + 2*pttype;
-                int part = imul + 6*beam + 6*3*icr + 6*3*2*checkmap + 6*3*2*2*ical;
-                double xpt, k2 = 1., ek2;
-                qt_ken2->Query(ipt, part, xpt, k2, ek2);
-
-                double npp = npion[beam][isotype][pttype][ibg][icr][1][ipt];
-                double npm = npion[beam][isotype][pttype][ibg][icr][0][ipt];
-
-                double ALL = 1./pbeam*(npp - r*npm)/(npp + r*npm);
-                double eALL = sqrt(pow(2*r*npp*npm/pbeam,2)/pow(npp + r*npm,4)*(k2/npp + k2/npm + er*er/r/r)
-                    + e2pbeam*ALL*ALL);
-
-                if( TMath::Finite(ALL+eALL) && eALL > 0. )
-                {
-                  int imul = 2 + ibg + 2*isotype + 2*2*pttype;
-                  int ig = imul + 10*beam + 10*3*icr + 10*3*2*spin_pattern + 10*3*2*4*ipt;
-                  qt_asym->Fill(runnumber, ig, runnumber, ALL, eALL);
-                }
-              } // ibg
-            } // pttype
+                int ig = imul + 6*beam + 6*3*icr + 6*3*2*spin_pattern + 6*3*2*4*ipt;
+                qt_asym->Fill(runnumber, ig, runnumber, ALL, eALL);
+              }
+            } // ibg
+          } // pttype
         } // ipt
       } // beam, icr
 
