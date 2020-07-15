@@ -23,7 +23,7 @@ void draw_SysErr(const int pwhg = 0)
   }
   else if(pwhg == 1)
   {
-    const double powheg_scale = 1./5273.;
+    const double powheg_scale = 1./3349.;
     const int nmu[2] = {7, 7};
     const char *mu_name[2][3] = {
       {"  1            1           --", "vary       vary        --", "vary       vary        --"},
@@ -52,7 +52,7 @@ void draw_SysErr(const int pwhg = 0)
       qt_cross->Query(ipt, 4, xpt, rsys, ersys);
       double sys = xsec*rsys;
       qt_sys->Fill(ipt, iso, xpt, xsec, sys);
-      if( TMath::Finite(xsec+exsec+sys) && xsec > 0. )
+      if( false && TMath::Finite(xsec+exsec+sys) && xsec > 0. )
         cout << xpt << " & " << xsec << " & " << exsec << " (" << 100.*exsec/xsec << "\\%) & "
           << sys << " (" << 100.*sys/xsec << "\\%) \\\\" << endl;
     }

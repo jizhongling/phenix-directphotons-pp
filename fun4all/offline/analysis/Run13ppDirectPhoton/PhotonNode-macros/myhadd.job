@@ -6,7 +6,7 @@ Requirements    = (CPU_Speed >= 2)
 Rank		= CPU_Speed
 request_memory  = 1G
 request_cpus    = 1
-Priority        = 20
+Priority        = 30
 GetEnv          = False
 Initialdir      = $ENV(PWD)
 Input           = /dev/null

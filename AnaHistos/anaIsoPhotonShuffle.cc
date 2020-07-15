@@ -11,6 +11,8 @@
 #include <TH1.h>
 #include <TGraphErrors.h>
 
+#include "CommonFunc.h"
+
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -32,7 +34,7 @@ int main(int argc, char *argv[])
   TTree *t_rlum = (TTree*)f_rlum->Get("T");
   const int nruns = t_rlum->GetEntries();
   int runnumber, fillnumber, lastfill = 0;
-  double pol[2], epol[2], rate_bunch[120], erate_bunch[120];
+  double pol[2], epol[2], count_bunch[120], ecount_bunch[120];
   int spin_pol[120], spin_rnd[120];
   double rlum[2], erlum[2];
   t_rlum->SetBranchAddress("Runnumber", &runnumber);
@@ -40,8 +42,8 @@ int main(int argc, char *argv[])
   t_rlum->SetBranchAddress("Pol", pol);
   t_rlum->SetBranchAddress("ePol", epol);
   t_rlum->SetBranchAddress("Pattern", spin_pol);
-  t_rlum->SetBranchAddress("Rate", rate_bunch);
-  t_rlum->SetBranchAddress("eRate", erate_bunch);
+  t_rlum->SetBranchAddress("Count", count_bunch);
+  t_rlum->SetBranchAddress("eCount", ecount_bunch);
 
   TFile *f_ken2 = new TFile("data/YieldKEN2-isophoton.root");
   TTree *t_ken2 = (TTree*)f_ken2->Get("t1");
@@ -93,19 +95,19 @@ int main(int argc, char *argv[])
     }
 
     /* Calculate relative luminosities under this random spin patterns */
-    double rate[2][2] = {}, e2rate[2][2] = {};  // icr, ipol
+    double count[2][2] = {}, e2count[2][2] = {};  // icr, ipol
     for(int ib=0; ib<120; ib++)
       if(abs(spin_pol[ib]) == 1)
       {
         int ipol = spin_rnd[ib];
-        rate[ib%2][ipol] += rate_bunch[ib];
-        e2rate[ib%2][ipol] += erate_bunch[ib]*erate_bunch[ib];
+        count[ib%2][ipol] += count_bunch[ib];
+        e2count[ib%2][ipol] += pow2(ecount_bunch[ib]);
       }
     for(int icr=0; icr<2; icr++)
     {
-      rlum[icr] = rate[icr][1]/rate[icr][0];
-      erlum[icr] = rlum[icr]*sqrt(e2rate[icr][1]/rate[icr][1]/rate[icr][1] +
-          e2rate[icr][0]/rate[icr][0]/rate[icr][0]);
+      rlum[icr] = count[icr][1]/count[icr][0];
+      erlum[icr] = rlum[icr]*sqrt(e2count[icr][1]/pow2(count[icr][1]) +
+          e2count[icr][0]/pow2(count[icr][0]));
     }
 
     /* Calculate ALL for each run */

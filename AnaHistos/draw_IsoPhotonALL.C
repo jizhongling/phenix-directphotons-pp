@@ -13,7 +13,7 @@ void draw_IsoPhotonALL()
 
   QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root", "RECREATE");
 
-  QueryTree *qt_asym = new QueryTree("data/isophoton-asym.root");
+  QueryTree *qt_asym = new QueryTree("data/isophoton-asym-tightcut.root");
   qt_asym->SetQuiet();
   int imul = 1;
 
@@ -24,7 +24,7 @@ void draw_IsoPhotonALL()
   vector<double> *vp_eALL = new vector<double>[8];
 
   cout.precision(4);
-  for(int beam=3; beam<3; beam++)
+  for(int beam=2; beam<3; beam++)
   {
     cout << "beam " << beam << endl;
 
@@ -113,8 +113,8 @@ void draw_IsoPhotonALL()
             int ipat = icr + 2*pattern;
             for(int ibg=0; ibg<3; ibg++)
               rbg[ibg] *= (1 + 0.04*isys);
-            sig[isys][ipat] = (mean - rbg[0]*allpion[0] - rbg[1]*allpion[1])/(1 - rbg[0] - rbg[1] - rbg[2]);
-            esig[isys][ipat] = sqrt(pow(erbg[0],2)*pow((mean - allpion[0]*rbg[0] - allpion[1]*rbg[1])/pow(1 - rbg[0] - rbg[1] - rbg[2],2) - allpion[0]/(1 - rbg[0] - rbg[1] - rbg[2]),2) + pow(erbg[1],2)*pow((mean - allpion[0]*rbg[0] - allpion[1]*rbg[1])/pow(1 - rbg[0] - rbg[1] - rbg[2],2) - allpion[1]/(1 - rbg[0] - rbg[1] - rbg[2]),2) + (pow(erbg[2],2)*pow(mean - allpion[0]*rbg[0] - allpion[1]*rbg[1],2))/pow(1 - rbg[0] - rbg[1] - rbg[2],4) + pow(emean,2)/pow(1 - rbg[0] - rbg[1] - rbg[2],2) + (pow(eallpion[0],2)*pow(rbg[0],2))/pow(1 - rbg[0] - rbg[1] - rbg[2],2) + (pow(eallpion[1],2)*pow(rbg[1],2))/pow(1 - rbg[0] - rbg[1] - rbg[2],2));
+            sig[isys][ipat] = (mean - rbg[0]*allpion[0] - rbg[1]*allpion[1]) / (1 - rbg[0] - rbg[1] - rbg[2]);
+            esig[isys][ipat] = sqrt( emean*emean + pow(rbg[0]*eallpion[0],2) + pow(rbg[1]*eallpion[1],2) ) / (1 - rbg[0] - rbg[1] - rbg[2]);
 
             int igr = beam + 3*icr + 3*2*pattern + ngr_photon + ngr_photon*3*isys;
             qt_all->Fill(ipt, igr, xpt, sig[isys][ipat], esig[isys][ipat]);

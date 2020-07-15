@@ -20,6 +20,8 @@
 #include <SpinDBOutput.hh>
 #include <SpinDBContent.hh>
 
+#include "CommonFunc.h"
+
 using namespace std;
 
 double rate_f(double x, void *params)
@@ -230,7 +232,7 @@ int main()
 
   TTree *t_rlum = new TTree("T", "Relative luminosity");
   int spin_pol[120];
-  double pol[2], epol[2], rlum[3][2], erlum[3][2], rate_bunch[120], erate_bunch[120];
+  double pol[2], epol[2], rlum[3][2], erlum[3][2], count_bunch[120], ecount_bunch[120];
   t_rlum->Branch("Runnumber", &runnumber, "Runnumber/I");
   t_rlum->Branch("Fillnumber", &fillnumber, "Fillnumber/I");
   t_rlum->Branch("SpinPattern", &spin_pattern, "SpinPattern/I");
@@ -245,8 +247,8 @@ int main()
   t_rlum->Branch("RelLum", rlum[2], "RelLum[2]/D");
   t_rlum->Branch("eRelLum", erlum[2], "eRelLum[2]/D");
   t_rlum->Branch("Pattern", spin_pol, "Pattern[120]/I");
-  t_rlum->Branch("Rate", rate_bunch, "Rate[120]/D");
-  t_rlum->Branch("eRate", erate_bunch, "eRate[120]/D");
+  t_rlum->Branch("Count", count_bunch, "Count[120]/D");
+  t_rlum->Branch("eCount", ecount_bunch, "eCount[120]/D");
 
   TTree *t_rlum_check = new TTree("T1", "Relative luminosity check");
   bool runqa;
@@ -284,15 +286,11 @@ int main()
 
   TFile *f_bbc = new TFile("data/BBC_Run13_PING.root");
   TTree *t_bbc = (TTree*)f_bbc->Get("T");
-  int pb[120], py[120], clock[120], bbcn[120], bbcs[120],
-      bbcns[120], bbc30[120], bbcnovtx[120];
+  int pb[120], py[120], clock[120], bbc30[120], bbcnovtx[120];
   t_bbc->SetBranchAddress("Runnumber", &runnumber);
   t_bbc->SetBranchAddress("SpinPatBlue", pb);
   t_bbc->SetBranchAddress("SpinPatYellow", py);
   t_bbc->SetBranchAddress("CLOCK", clock);
-  t_bbc->SetBranchAddress("BBCN", bbcn);
-  t_bbc->SetBranchAddress("BBCS", bbcs);
-  t_bbc->SetBranchAddress("BBCNS", bbcns);
   t_bbc->SetBranchAddress("BBC_30cm", bbc30);
   t_bbc->SetBranchAddress("BBCnovtx", bbcnovtx);
 
@@ -355,46 +353,33 @@ int main()
     spin_pattern = it_Inseok != runnoInseok.end() ? it_Inseok->second : 4;
 
     get_gl1p(spin_out, spin_cont, runnumber, fillnumber,
-        pol, epol, gl1p, egl1p, spin_pol, rate_bunch, erate_bunch);
+        pol, epol, gl1p, egl1p, spin_pol, count_bunch, ecount_bunch);
 
     map_ulong_t::iterator it_run = daq_runevents.find(runnumber);
     map_ulong_t::iterator it_fill = daq_fillevents.find(runnumber);
     runevents = it_run != daq_runevents.end() ? it_run->second : 0;
     fillevents = it_fill != daq_fillevents.end() ? it_fill->second : 0;
 
-    double rate_raw[2][2] = {};
-    double e2rate_raw[2][2] = {};
-    double rate_pile[2][2] = {};
-    double e2rate_pile[2][2] = {};
-    double rate_res[3][2][2] = {};
-    double e2rate_res[3][2][2] = {};
+    double count_raw[2][2] = {};
+    double e2count_raw[2][2] = {};
+    double count_pile[2][2] = {};
+    double e2count_pile[2][2] = {};
+    double count_res[3][2][2] = {};
+    double e2count_res[3][2][2] = {};
 
     for(int ib=0; ib<120; ib++)
     {
       int pattern[3] = {pb[ib], py[ib], pb[ib]*py[ib]};
 
-      if( clock[ib] > 0 && rate_bunch[ib] > 0. )
+      if( clock[ib] > 0 && bbc30[ib] > 0 && bbcnovtx[ib] > 0 )
       {
-        double e2count = 1./rate_bunch[ib] + 1./clock[ib];
-        rate_bunch[ib] /= clock[ib];
-        erate_bunch[ib] = rate_bunch[ib]*sqrt(e2count);
-      }
-      else
-      {
-        rate_bunch[ib] = 0.;
-        erate_bunch[ib] = 0.;
-      }
+        double rate_vtx = (double)bbc30[ib]/clock[ib];
+        double erate_vtx = sqrt((double)bbc30[ib])/clock[ib];
+        double rate_novtx = (double)bbcnovtx[ib]/clock[ib];
+        double erate_novtx = sqrt((double)bbcnovtx[ib])/clock[ib];
 
-      if( clock[ib] > 0 && bbcn[ib] > 0 && bbcs[ib] > 0 &&
-          bbcns[ib] > 0 && bbc30[ib] > 0 && bbcnovtx[ib] > 0 )
-      {
-        double bbc_vtx = (double)bbc30[ib]/clock[ib];
-        double ebbc_vtx = bbc_vtx*sqrt(1./bbc30[ib] + 1./clock[ib]);
-        double bbc_novtx = (double)bbcnovtx[ib]/clock[ib];
-        double ebbc_novtx = bbc_novtx*sqrt(1./bbcnovtx[ib] + 1./clock[ib]);
-
-        double rate_obs[2] = {bbc_vtx, bbc_novtx};
-        double erate_obs[2] = {ebbc_vtx, ebbc_novtx};
+        double rate_obs[2] = {rate_vtx, rate_novtx};
+        double erate_obs[2] = {erate_vtx, erate_novtx};
         double rate_true[3], erate_true[3];
         rate_corr(KFactor, rate_obs, erate_obs, rate_true, erate_true);
 
@@ -404,15 +389,15 @@ int main()
             int ipol = pattern[beam] > 0 ? 1 : 0;
             if(beam == 2)
             {
-              rate_raw[ib%2][ipol] += rate_obs[0];
-              e2rate_raw[ib%2][ipol] += erate_obs[0]*erate_obs[0];
-              rate_pile[ib%2][ipol] += rate_true[0];
-              e2rate_pile[ib%2][ipol] += erate_true[0]*erate_true[0];
-              rate_bunch[ib] = rate_true[2];
-              erate_bunch[ib] = erate_true[2];
+              count_raw[ib%2][ipol] += rate_obs[0]*clock[ib];
+              e2count_raw[ib%2][ipol] += pow2(erate_obs[0]*clock[ib]);
+              count_pile[ib%2][ipol] += rate_true[0]*clock[ib];
+              e2count_pile[ib%2][ipol] += pow2(erate_true[0]*clock[ib]);
+              count_bunch[ib] = rate_true[2]*clock[ib];
+              ecount_bunch[ib] = erate_true[2]*clock[ib];
             }
-            rate_res[beam][ib%2][ipol] += rate_true[2];
-            e2rate_res[beam][ib%2][ipol] += erate_true[2]*erate_true[2];
+            count_res[beam][ib%2][ipol] += rate_true[2]*clock[ib];
+            e2count_res[beam][ib%2][ipol] += pow2(erate_true[2]*clock[ib]);
           }
       }
       else
@@ -421,32 +406,30 @@ int main()
           if( abs(pattern[beam]) == 1 )
           {
             int ipol = pattern[beam] > 0 ? 1 : 0;
-            rate_res[beam][ib%2][ipol] += rate_bunch[ib];
-            e2rate_res[beam][ib%2][ipol] += erate_bunch[ib]*erate_bunch[ib];
+            count_res[beam][ib%2][ipol] += count_bunch[ib];
+            e2count_res[beam][ib%2][ipol] += pow2(ecount_bunch[ib]);
           }
       }
     } // ib
 
     for(int evenodd=0; evenodd<2; evenodd++)
     {
-      ss_raw[evenodd] = rate_raw[evenodd][1]/rate_raw[evenodd][0];
-      ess_raw[evenodd] = ss_raw[evenodd]*sqrt(e2rate_raw[evenodd][1]/rate_raw[evenodd][1]/rate_raw[evenodd][1]
-          + e2rate_raw[evenodd][0]/rate_raw[evenodd][0]/rate_raw[evenodd][0]);
-      ss_pile[evenodd] = rate_pile[evenodd][1]/rate_pile[evenodd][0];
-      ess_pile[evenodd] = ss_pile[evenodd]*sqrt(e2rate_pile[evenodd][1]/rate_pile[evenodd][1]/rate_pile[evenodd][1]
-          + e2rate_pile[evenodd][0]/rate_pile[evenodd][0]/rate_pile[evenodd][0]);
+      ss_raw[evenodd] = count_raw[evenodd][1]/count_raw[evenodd][0];
+      ess_raw[evenodd] = ss_raw[evenodd]*sqrt(e2count_raw[evenodd][1]/pow2(count_raw[evenodd][1])
+          + e2count_raw[evenodd][0]/pow2(count_raw[evenodd][0]));
+      ss_pile[evenodd] = count_pile[evenodd][1]/count_pile[evenodd][0];
+      ess_pile[evenodd] = ss_pile[evenodd]*sqrt(e2count_pile[evenodd][1]/pow2(count_pile[evenodd][1])
+          + e2count_pile[evenodd][0]/pow2(count_pile[evenodd][0]));
       for(int beam=0; beam<3; beam++)
       {
-        double sum_res = rate_res[beam][evenodd][1]/rate_res[beam][evenodd][0];
-        double esum_res = sum_res*sqrt(e2rate_res[beam][evenodd][1]/rate_res[beam][evenodd][1]/rate_res[beam][evenodd][1]
-            + e2rate_res[beam][evenodd][0]/rate_res[beam][evenodd][0]/rate_res[beam][evenodd][0]);
+        rlum[beam][evenodd] = count_res[beam][evenodd][1]/count_res[beam][evenodd][0];
+        erlum[beam][evenodd] = rlum[beam][evenodd]*sqrt(e2count_res[beam][evenodd][1]/pow2(count_res[beam][evenodd][1])
+            + e2count_res[beam][evenodd][0]/pow2(count_res[beam][evenodd][0]));
         if(beam == 2)
         {
-          ss_res[evenodd] = sum_res;
-          ess_res[evenodd] = esum_res;
+          ss_res[evenodd] = rlum[beam][evenodd];
+          ess_res[evenodd] = erlum[beam][evenodd];
         }
-        rlum[beam][evenodd] = sum_res;
-        erlum[beam][evenodd] = esum_res;
       }
     }
 
@@ -477,7 +460,7 @@ int main()
       spin_pattern = runno.second;
 
       get_gl1p(spin_out, spin_cont, runnumber, fillnumber,
-          pol, epol, rlum, erlum, spin_pol, rate_bunch, erate_bunch);
+          pol, epol, rlum, erlum, spin_pol, count_bunch, ecount_bunch);
 
       map_ulong_t::iterator it_run = daq_runevents.find(runnumber);
       map_ulong_t::iterator it_fill = daq_fillevents.find(runnumber);
