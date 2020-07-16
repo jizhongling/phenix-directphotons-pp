@@ -137,15 +137,27 @@ void rate_corr(double KFactor[], double rate_obs[], double erate_obs[],
 }
 
 void get_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont,
-    int runnumber, int &fillnumber,
+    int runnumber, int &fillnumber, int &lastfill,
     double pol[], double epol[], double rlum[][2], double erlum[][2],
-    int spin_pol[], double count_bunch[], double ecount_bunch[])
+    int spin_pol[], double count_bunch[], double ecount_bunch[],
+    double count_fill[][2][2], double e2count_fill[][2][2])
 {
   /* Retrieve entry from Spin DB and get fill number */
   int qa_level = spin_out.GetDefaultQA(runnumber);
   spin_out.StoreDBContent(runnumber, runnumber, qa_level);
   spin_out.GetDBContentStore(spin_cont, runnumber);
   fillnumber = spin_cont.GetFillNumber();
+  if(fillnumber != lastfill)
+  {
+    lastfill = fillnumber;
+    for(int beam=0; beam<3; beam++)
+      for(int evenodd=0; evenodd<2; evenodd++)
+        for(int ipol=0; ipol<2; ipol++)
+        {
+          count_fill[beam][evenodd][ipol] = 0.;
+          e2count_fill[beam][evenodd][ipol] = 0.;
+        }
+  }
 
   if( spin_out.CheckRunRow(runnumber,qa_level) != 1 )
   {
@@ -190,6 +202,11 @@ void get_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont,
     {
       rlum[beam][evenodd] = (double)bbc30_gl1p[beam][evenodd][1]/bbc30_gl1p[beam][evenodd][0];
       erlum[beam][evenodd] = rlum[beam][evenodd]*sqrt(1./bbc30_gl1p[beam][evenodd][1] + 1./bbc30_gl1p[beam][evenodd][0]);
+      for(int ipol=0; ipol<2; ipol++)
+      {
+        count_fill[beam][evenodd][ipol] += bbc30_gl1p[beam][evenodd][ipol];
+        e2count_fill[beam][evenodd][ipol] += bbc30_gl1p[beam][evenodd][ipol];
+      }
     }
 
   return;
@@ -224,7 +241,7 @@ void ReadKFactor(double KFactor[][2])
 
 int main()
 {
-  int runnumber, fillnumber;
+  int runnumber, fillnumber, lastfill = 0;
   int spin_pattern = 0;
   unsigned long long runevents, fillevents;
 
@@ -232,7 +249,9 @@ int main()
 
   TTree *t_rlum = new TTree("T", "Relative luminosity");
   int spin_pol[120];
-  double pol[2], epol[2], rlum[3][2], erlum[3][2], count_bunch[120], ecount_bunch[120];
+  double pol[2], epol[2], rlum[3][2], erlum[3][2],
+         rlum_fill[3][2], erlum_fill[3][2],
+         count_bunch[120], ecount_bunch[120];
   t_rlum->Branch("Runnumber", &runnumber, "Runnumber/I");
   t_rlum->Branch("Fillnumber", &fillnumber, "Fillnumber/I");
   t_rlum->Branch("SpinPattern", &spin_pattern, "SpinPattern/I");
@@ -246,6 +265,12 @@ int main()
   t_rlum->Branch("eBlueRelLum", erlum[1], "eBlueRelLum[2]/D");
   t_rlum->Branch("RelLum", rlum[2], "RelLum[2]/D");
   t_rlum->Branch("eRelLum", erlum[2], "eRelLum[2]/D");
+  t_rlum->Branch("YellowRelLumFill", rlum_fill[0], "YellowRelLumFill[2]/D");
+  t_rlum->Branch("eYellowRelLumFill", erlum_fill[0], "eYellowRelLumFill[2]/D");
+  t_rlum->Branch("BlueRelLumFill", rlum_fill[1], "BlueRelLumFill[2]/D");
+  t_rlum->Branch("eBlueRelLumFill", erlum_fill[1], "eBlueRelLumFill[2]/D");
+  t_rlum->Branch("RelLumFill", rlum_fill[2], "RelLumFill[2]/D");
+  t_rlum->Branch("eRelLumFill", erlum_fill[2], "eRelLumFill[2]/D");
   t_rlum->Branch("Pattern", spin_pol, "Pattern[120]/I");
   t_rlum->Branch("Count", count_bunch, "Count[120]/D");
   t_rlum->Branch("eCount", ecount_bunch, "eCount[120]/D");
@@ -310,7 +335,7 @@ int main()
     runlistDaq.push_back(runnumber);
   }
   sort(runlistDaq.begin(), runlistDaq.end());
-  int lastfill = 0;
+  lastfill = 0;
   vector<int> unfilledrun;
   BOOST_FOREACH(const int &runnumber, runlistDaq)
   {
@@ -345,6 +370,12 @@ int main()
 
   vector<int> runnoDone;
 
+  double count_fill[3][2][2] = {};
+  double e2count_fill[3][2][2] = {};
+  double gl1p_fill[3][2][2] = {};
+  double e2gl1p_fill[3][2][2] = {};
+
+  lastfill = 0;
   for(int ien=0; ien<t_bbc->GetEntries(); ien++)
   {
     t_bbc->GetEntry(ien);
@@ -352,8 +383,9 @@ int main()
     map_int_t::iterator it_Inseok = runnoInseok.find(runnumber);
     spin_pattern = it_Inseok != runnoInseok.end() ? it_Inseok->second : 4;
 
-    get_gl1p(spin_out, spin_cont, runnumber, fillnumber,
-        pol, epol, gl1p, egl1p, spin_pol, count_bunch, ecount_bunch);
+    get_gl1p(spin_out, spin_cont, runnumber, fillnumber, lastfill,
+        pol, epol, gl1p, egl1p, spin_pol, count_bunch, ecount_bunch,
+        gl1p_fill, e2gl1p_fill);
 
     map_ulong_t::iterator it_run = daq_runevents.find(runnumber);
     map_ulong_t::iterator it_fill = daq_fillevents.find(runnumber);
@@ -425,6 +457,14 @@ int main()
         rlum[beam][evenodd] = count_res[beam][evenodd][1]/count_res[beam][evenodd][0];
         erlum[beam][evenodd] = rlum[beam][evenodd]*sqrt(e2count_res[beam][evenodd][1]/pow2(count_res[beam][evenodd][1])
             + e2count_res[beam][evenodd][0]/pow2(count_res[beam][evenodd][0]));
+        for(int ipol=0; ipol<2; ipol++)
+        {
+          count_fill[beam][evenodd][ipol] += count_res[beam][evenodd][ipol];
+          e2count_fill[beam][evenodd][ipol] += e2count_res[beam][evenodd][ipol];
+        }
+        rlum_fill[beam][evenodd] = count_fill[beam][evenodd][1]/count_fill[beam][evenodd][0];
+        erlum_fill[beam][evenodd] = rlum_fill[beam][evenodd]*sqrt(e2count_fill[beam][evenodd][1]/pow2(count_fill[beam][evenodd][1])
+            + e2count_fill[beam][evenodd][0]/pow2(count_fill[beam][evenodd][0]));
         if(beam == 2)
         {
           ss_res[evenodd] = rlum[beam][evenodd];
@@ -442,6 +482,9 @@ int main()
           {
             rlum[beam][evenodd] = gl1p[beam][evenodd];
             erlum[beam][evenodd] = egl1p[beam][evenodd];
+            rlum_fill[beam][evenodd] = gl1p_fill[beam][evenodd][1]/gl1p_fill[beam][evenodd][0];
+            erlum_fill[beam][evenodd] = rlum_fill[beam][evenodd]*sqrt(e2gl1p_fill[beam][evenodd][1]/pow2(gl1p_fill[beam][evenodd][1])
+                + e2gl1p_fill[beam][evenodd][0]/pow2(gl1p_fill[beam][evenodd][0]));
           }
       else
         runqa = true;
@@ -453,19 +496,29 @@ int main()
     t_rlum_check->Fill();
   } // ien
 
+  lastfill = 0;
   BOOST_FOREACH(const map_int_t::value_type &runno, runnoInseok)
     if( find(runnoDone.begin(), runnoDone.end(), runno.first) == runnoDone.end() )
     {
       runnumber = runno.first;
       spin_pattern = runno.second;
 
-      get_gl1p(spin_out, spin_cont, runnumber, fillnumber,
-          pol, epol, rlum, erlum, spin_pol, count_bunch, ecount_bunch);
+      get_gl1p(spin_out, spin_cont, runnumber, fillnumber, lastfill,
+          pol, epol, rlum, erlum, spin_pol, count_bunch, ecount_bunch,
+          count_fill, e2count_fill);
 
       map_ulong_t::iterator it_run = daq_runevents.find(runnumber);
       map_ulong_t::iterator it_fill = daq_fillevents.find(runnumber);
       runevents = it_run != daq_runevents.end() ? it_run->second : 0;
       fillevents = it_fill != daq_fillevents.end() ? it_fill->second : 0;
+
+      for(int beam=0; beam<3; beam++)
+        for(int evenodd=0; evenodd<2; evenodd++)
+        {
+          rlum_fill[beam][evenodd] = count_fill[beam][evenodd][1]/count_fill[beam][evenodd][0];
+          erlum_fill[beam][evenodd] = rlum_fill[beam][evenodd]*sqrt(e2count_fill[beam][evenodd][1]/pow2(count_fill[beam][evenodd][1])
+              + e2count_fill[beam][evenodd][0]/pow2(count_fill[beam][evenodd][0]));
+        }
 
       t_rlum->Fill();
     }
