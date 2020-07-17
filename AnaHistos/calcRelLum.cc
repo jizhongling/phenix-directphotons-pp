@@ -24,6 +24,12 @@
 
 using namespace std;
 
+struct Pol
+{
+  double pol[2];
+  double epol[2];
+};
+
 double rate_f(double x, void *params)
 {
   double *p = (double*)params;
@@ -245,6 +251,20 @@ int main()
   int spin_pattern = 0;
   unsigned long long runevents, fillevents;
 
+  Pol pol_fill;
+  map<int,Pol> pol_info;
+  ifstream fin("data/pol-fill.txt");
+  while(fin >> fillnumber >> pol_fill.pol[0] >> pol_fill.epol[0] >> pol_fill.pol[1] >> pol_fill.epol[1])
+  {
+    for(int i=0; i<2; i++)
+    {
+      pol_fill.pol[i] /= 100.;
+      pol_fill.epol[i] /= 100.;
+    }
+    pol_info.insert( make_pair(fillnumber, pol_fill) );
+  }
+  fin.close();
+
   TFile *f_rlum = new TFile("data/RelLum.root", "RECREATE");
 
   TTree *t_rlum = new TTree("T", "Relative luminosity");
@@ -259,16 +279,18 @@ int main()
   t_rlum->Branch("FillEvents", &fillevents, "FillEvents/l");
   t_rlum->Branch("Pol", pol, "Pol[2]/D");
   t_rlum->Branch("ePol", epol, "ePol[2]/D");
-  t_rlum->Branch("YellowRelLum", rlum[0], "YellowRelLum[2]/D");
-  t_rlum->Branch("eYellowRelLum", erlum[0], "eYellowRelLum[2]/D");
+  t_rlum->Branch("PolFill", pol_fill.pol, "PolFill[2]/D");
+  t_rlum->Branch("ePolFill", pol_fill.epol, "ePolFill[2]/D");
   t_rlum->Branch("BlueRelLum", rlum[1], "BlueRelLum[2]/D");
   t_rlum->Branch("eBlueRelLum", erlum[1], "eBlueRelLum[2]/D");
+  t_rlum->Branch("YellowRelLum", rlum[0], "YellowRelLum[2]/D");
+  t_rlum->Branch("eYellowRelLum", erlum[0], "eYellowRelLum[2]/D");
   t_rlum->Branch("RelLum", rlum[2], "RelLum[2]/D");
   t_rlum->Branch("eRelLum", erlum[2], "eRelLum[2]/D");
-  t_rlum->Branch("YellowRelLumFill", rlum_fill[0], "YellowRelLumFill[2]/D");
-  t_rlum->Branch("eYellowRelLumFill", erlum_fill[0], "eYellowRelLumFill[2]/D");
   t_rlum->Branch("BlueRelLumFill", rlum_fill[1], "BlueRelLumFill[2]/D");
   t_rlum->Branch("eBlueRelLumFill", erlum_fill[1], "eBlueRelLumFill[2]/D");
+  t_rlum->Branch("YellowRelLumFill", rlum_fill[0], "YellowRelLumFill[2]/D");
+  t_rlum->Branch("eYellowRelLumFill", erlum_fill[0], "eYellowRelLumFill[2]/D");
   t_rlum->Branch("RelLumFill", rlum_fill[2], "RelLumFill[2]/D");
   t_rlum->Branch("eRelLumFill", erlum_fill[2], "eRelLumFill[2]/D");
   t_rlum->Branch("Pattern", spin_pol, "Pattern[120]/I");
@@ -476,6 +498,16 @@ int main()
     runqa = false;
     if( it_Inseok != runnoInseok.end() )
     {
+      map<int,Pol>::iterator it_pol = pol_info.find(fillnumber);
+      if(it_pol == pol_info.end() )
+        cout << "No pol info for fill " << fillnumber << endl;
+      else
+        for(int i=0; i<2; i++)
+        {
+          pol_fill.pol[i] = it_pol->second.pol[i];
+          pol_fill.epol[i] = it_pol->second.epol[i];
+        }
+
       if(runnumber < 386946)
         for(int beam=0; beam<3; beam++)
           for(int evenodd=0; evenodd<2; evenodd++)
@@ -511,6 +543,16 @@ int main()
       map_ulong_t::iterator it_fill = daq_fillevents.find(runnumber);
       runevents = it_run != daq_runevents.end() ? it_run->second : 0;
       fillevents = it_fill != daq_fillevents.end() ? it_fill->second : 0;
+
+      map<int,Pol>::iterator it_pol = pol_info.find(fillnumber);
+      if(it_pol == pol_info.end() )
+        cout << "No pol info for fill " << fillnumber << endl;
+      else
+        for(int i=0; i<2; i++)
+        {
+          pol_fill.pol[i] = it_pol->second.pol[i];
+          pol_fill.epol[i] = it_pol->second.epol[i];
+        }
 
       for(int beam=0; beam<3; beam++)
         for(int evenodd=0; evenodd<2; evenodd++)

@@ -24,7 +24,7 @@ void draw_IsoPhotonALL()
   vector<double> *vp_eALL = new vector<double>[8];
 
   cout.precision(4);
-  for(int beam=0; beam<3; beam++)
+  for(int beam=2; beam<3; beam++)
   {
     cout << "beam " << beam << endl;
 

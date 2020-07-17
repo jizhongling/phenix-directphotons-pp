@@ -22,7 +22,7 @@ void draw_IsoPionALL()
   vector<double> *vp_eALL = new vector<double>[8];
 
   cout.precision(4);
-  for(int beam=0; beam<3; beam++)
+  for(int beam=2; beam<3; beam++)
     for(int pttype=0; pttype<2; pttype++)
       for(int ibg=0; ibg<2; ibg++)
       {
