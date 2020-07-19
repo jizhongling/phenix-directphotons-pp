@@ -50,4 +50,4 @@ POWHEG:pTdef = 1
 POWHEG:QEDveto = 0
 
 # Veto on MPI
-POWHEG:MPIveto = 0
+POWHEG:MPIveto = 1

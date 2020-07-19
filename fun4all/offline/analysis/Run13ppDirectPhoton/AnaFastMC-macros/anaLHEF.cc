@@ -205,7 +205,7 @@ int main(int argc, char **argv) {
 
       // use following line to ignore events with extreme weights that can cause ugly fluctuations
       // but make sure the cross section does not decrease significantly
-      if(ptMax > pythia.info.getScalesAttribute("uborns")){
+      if(ptMax > pythia.info.getScalesAttribute("uborns")*2.5){
         nEvents--;
         continue;
       }
