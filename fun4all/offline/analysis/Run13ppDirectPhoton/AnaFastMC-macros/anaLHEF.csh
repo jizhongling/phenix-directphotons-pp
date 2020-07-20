@@ -17,27 +17,20 @@ setenv PLHF /phenix/plhf/zji
 setenv SPIN /phenix/spin/phnxsp01/zji
 setenv SCRATCH /phenix/scratch/zji
 
-set NFiles = 2
+set NFiles = 10
 @ START = $2 * $NFiles
 @ END = ( $2 + 1 ) * $NFiles - 1
 
-setenv INPUT
+setenv LHE
 foreach proc ( `seq $START $END` )
   foreach i ( `seq 1 2` )
-    setenv GZ $SPIN/data/powheg/pwgevents$proc-`printf "%04d" $i`.lhe.gz
-    setenv LHE $SPIN/data/powheg/proc$proc/pwgevents-`printf "%04d" $i`.lhe
-    if ( -f $GZ ) then
-      if ( `ls -l --block-size=M $GZ | awk '{printf "%d", $5}'` > 3 ) then
-        setenv INPUT "$INPUT $GZ"
-      endif
-    else if ( -f $LHE ) then
-      if ( `ls -l --block-size=M $LHE | awk '{printf "%d", $5}'` > 3 ) then
-        setenv INPUT "$INPUT $LHE"
-      endif
+    setenv FILE $SPIN/data/powheg/pwgevents$proc-`printf "%04d" $i`.lhe.gz
+    if ( -f $FILE ) then
+      setenv LHE "$LHE $FILE"
     endif
   end
 end
 
 cd $1
-./anaLHEF anaLHEF.cmnd histos/AnaPowheg-histo$2.root $INPUT
-./anaLHEF anaLHEFNoMPI.cmnd histos/AnaPowhegNoMPI-histo$2.root $INPUT
+./anaLHEF anaLHEF.cmnd histos/AnaPowheg-histo$2.root $LHE
+./anaLHEF anaLHEFNoMPI.cmnd histos/AnaPowhegNoMPI-histo$2.root $LHE
