@@ -4,7 +4,7 @@ Executable      = anaLHEF.csh
 Arguments       = $(Initialdir) $(Process)
 Requirements    = (CPU_Speed >= 2)
 Rank		= CPU_Speed
-request_memory  = 256M
+request_memory  = 128M
 request_cpus    = 1
 Priority        = 20
 GetEnv          = False
