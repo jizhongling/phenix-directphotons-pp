@@ -1,6 +1,6 @@
 ENABLE_SHARED=false
 CXX=g++
-CXX_COMMON=-O2 -ansi -pedantic -W -Wall -Wshadow -fPIC
+CXX_COMMON=-O2 -ansi -pedantic -W -Wall -Wshadow -Wno-long-long -fPIC
 
 PYTHIA8FLAGS=$(shell pythia8-config --cxxflags)
 PYTHIA8LIBS=-L$(shell pythia8-config --libdir)  -L$(shell pythia8-config --libdir)/archive -lpythia8 -ldl -lstdc++ -lz

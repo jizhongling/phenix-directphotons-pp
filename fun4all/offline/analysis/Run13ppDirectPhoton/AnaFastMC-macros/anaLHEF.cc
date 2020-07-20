@@ -1,8 +1,10 @@
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <map>
 #include <cstring>
 #include <vector>
+#include <sys/time.h>
 #include <TStyle.h>
 #include <Pythia8/Pythia.h>
 #include <TFile.h>
@@ -41,6 +43,35 @@ int main(int argc, char **argv) {
   const char *rootFileName = argv[2]; // output file
   nFiles = argc - 3; // number of event files to process
   pythia.readFile(cmndFileName);
+
+  // first try getting seed from /dev/random
+  long unsigned int seed = 0;
+  ifstream devrandom;
+  devrandom.open("/dev/random",ios::binary);
+  devrandom.read((char*)&seed,sizeof(seed));
+
+  // check that devrandom worked
+  if (!devrandom.fail()) {
+    cout << "Got seed from /dev/random" << endl;
+    seed = seed%900000000 + 1;
+  }
+  else {
+    // /dev/random failed, get the random seed from the time of day, to the microsecond
+    cout << "Getting seed from gettimeofday()" << endl;
+    timeval xtime;
+    int status = gettimeofday(&xtime,NULL);
+    if (status == 0) {
+      seed = ((xtime.tv_sec << 12) + (xtime.tv_usec&0xfff))%900000000 + 1;
+    }
+    else {
+      cout << "Something wrong with gettimeofday()" << endl;
+      seed = 0;
+    }
+  }
+  devrandom.close();
+
+  pythia.readString("Random:setSeed = on");
+  pythia.readString(Form("Random:seed = %lu",seed));
 
   TH1::SetDefaultSumw2(kTRUE);
   gStyle->SetOptStat(0);
