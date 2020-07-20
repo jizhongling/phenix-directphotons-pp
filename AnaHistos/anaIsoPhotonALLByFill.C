@@ -26,14 +26,17 @@ void anaIsoPhotonALLByFill()
   double nphoton[3][2][2][2][npT_pol] = {};  // beam, isolated, icr, ipol, ipt
   double npion[3][2][2][2][2][npT_pol] = {};  // beam, pttype(pt|2pt), ibg, icr, ipol, ipt
 
-  for(int ien=0; ien<t_rlum->GetEntries(); ien++)
+  const int n_rlum = t_rlum->GetEntries();
+  for(int ien=0; ien<=n_rlum; ien++)
   {
     if(ien != 0 && ien%50 == 0)
       cout << ien << endl;
 
-    t_rlum->GetEntry(ien);
+    if(ien < n_rlum)
+      t_rlum->GetEntry(ien);
 
-    if(fillnumber != lastfill)
+    if( fillnumber != lastfill ||
+        ien == n_rlum )
     {
       t_rlum->GetEntry(ien-1);
 
@@ -112,7 +115,10 @@ void anaIsoPhotonALLByFill()
           } // ipt
         } // beam, icr
 
-      t_rlum->GetEntry(ien);
+      if(ien < n_rlum)
+        t_rlum->GetEntry(ien);
+      else
+        break;
       lastfill = fillnumber;
 
       for(int beam=0; beam<3; beam++)

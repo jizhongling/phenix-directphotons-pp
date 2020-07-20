@@ -398,139 +398,146 @@ int main()
   double e2gl1p_fill[3][2][2] = {};
 
   lastfill = 0;
-  for(int ien=0; ien<t_bbc->GetEntries(); ien++)
-  {
-    t_bbc->GetEntry(ien);
-
-    map_int_t::iterator it_Inseok = runnoInseok.find(runnumber);
-    spin_pattern = it_Inseok != runnoInseok.end() ? it_Inseok->second : 4;
-
-    get_gl1p(spin_out, spin_cont, runnumber, fillnumber, lastfill,
-        pol, epol, gl1p, egl1p, spin_pol, count_bunch, ecount_bunch,
-        gl1p_fill, e2gl1p_fill);
-
-    map_ulong_t::iterator it_run = daq_runevents.find(runnumber);
-    map_ulong_t::iterator it_fill = daq_fillevents.find(runnumber);
-    runevents = it_run != daq_runevents.end() ? it_run->second : 0;
-    fillevents = it_fill != daq_fillevents.end() ? it_fill->second : 0;
-
-    double count_raw[2][2] = {};
-    double e2count_raw[2][2] = {};
-    double count_pile[2][2] = {};
-    double e2count_pile[2][2] = {};
-    double count_res[3][2][2] = {};
-    double e2count_res[3][2][2] = {};
-
-    for(int ib=0; ib<120; ib++)
-    {
-      int pattern[3] = {pb[ib], py[ib], pb[ib]*py[ib]};
-
-      if( clock[ib] > 0 && bbc30[ib] > 0 && bbcnovtx[ib] > 0 )
-      {
-        double rate_vtx = (double)bbc30[ib]/clock[ib];
-        double erate_vtx = sqrt((double)bbc30[ib])/clock[ib];
-        double rate_novtx = (double)bbcnovtx[ib]/clock[ib];
-        double erate_novtx = sqrt((double)bbcnovtx[ib])/clock[ib];
-
-        double rate_obs[2] = {rate_vtx, rate_novtx};
-        double erate_obs[2] = {erate_vtx, erate_novtx};
-        double rate_true[3], erate_true[3];
-        rate_corr(KFactor, rate_obs, erate_obs, rate_true, erate_true);
-
-        for(int beam=0; beam<3; beam++)
-          if( abs(pattern[beam]) == 1 )
-          {
-            int ipol = pattern[beam] > 0 ? 1 : 0;
-            if(beam == 2)
-            {
-              count_raw[ib%2][ipol] += rate_obs[0]*clock[ib];
-              e2count_raw[ib%2][ipol] += pow2(erate_obs[0]*clock[ib]);
-              count_pile[ib%2][ipol] += rate_true[0]*clock[ib];
-              e2count_pile[ib%2][ipol] += pow2(erate_true[0]*clock[ib]);
-              count_bunch[ib] = rate_true[2]*clock[ib];
-              ecount_bunch[ib] = erate_true[2]*clock[ib];
-            }
-            count_res[beam][ib%2][ipol] += rate_true[2]*clock[ib];
-            e2count_res[beam][ib%2][ipol] += pow2(erate_true[2]*clock[ib]);
-          }
-      }
-      else
-      {
-        for(int beam=0; beam<3; beam++)
-          if( abs(pattern[beam]) == 1 )
-          {
-            int ipol = pattern[beam] > 0 ? 1 : 0;
-            count_res[beam][ib%2][ipol] += count_bunch[ib];
-            e2count_res[beam][ib%2][ipol] += pow2(ecount_bunch[ib]);
-          }
-      }
-    } // ib
-
-    for(int evenodd=0; evenodd<2; evenodd++)
-    {
-      ss_raw[evenodd] = count_raw[evenodd][1]/count_raw[evenodd][0];
-      ess_raw[evenodd] = ss_raw[evenodd]*sqrt(e2count_raw[evenodd][1]/pow2(count_raw[evenodd][1])
-          + e2count_raw[evenodd][0]/pow2(count_raw[evenodd][0]));
-      ss_pile[evenodd] = count_pile[evenodd][1]/count_pile[evenodd][0];
-      ess_pile[evenodd] = ss_pile[evenodd]*sqrt(e2count_pile[evenodd][1]/pow2(count_pile[evenodd][1])
-          + e2count_pile[evenodd][0]/pow2(count_pile[evenodd][0]));
-      for(int beam=0; beam<3; beam++)
-      {
-        rlum[beam][evenodd] = count_res[beam][evenodd][1]/count_res[beam][evenodd][0];
-        erlum[beam][evenodd] = rlum[beam][evenodd]*sqrt(e2count_res[beam][evenodd][1]/pow2(count_res[beam][evenodd][1])
-            + e2count_res[beam][evenodd][0]/pow2(count_res[beam][evenodd][0]));
-        for(int ipol=0; ipol<2; ipol++)
-        {
-          count_fill[beam][evenodd][ipol] += count_res[beam][evenodd][ipol];
-          e2count_fill[beam][evenodd][ipol] += e2count_res[beam][evenodd][ipol];
-        }
-        rlum_fill[beam][evenodd] = count_fill[beam][evenodd][1]/count_fill[beam][evenodd][0];
-        erlum_fill[beam][evenodd] = rlum_fill[beam][evenodd]*sqrt(e2count_fill[beam][evenodd][1]/pow2(count_fill[beam][evenodd][1])
-            + e2count_fill[beam][evenodd][0]/pow2(count_fill[beam][evenodd][0]));
-        if(beam == 2)
-        {
-          ss_res[evenodd] = rlum[beam][evenodd];
-          ess_res[evenodd] = erlum[beam][evenodd];
-        }
-      }
-    }
-
-    runqa = false;
-    if( it_Inseok != runnoInseok.end() )
-    {
-      map<int,Pol>::iterator it_pol = pol_info.find(fillnumber);
-      if(it_pol == pol_info.end() )
-        cout << "No pol info for fill " << fillnumber << endl;
-      else
-        for(int i=0; i<2; i++)
-        {
-          pol_fill.pol[i] = it_pol->second.pol[i];
-          pol_fill.epol[i] = it_pol->second.epol[i];
-        }
-
-      if(runnumber < 386946)
-        for(int beam=0; beam<3; beam++)
-          for(int evenodd=0; evenodd<2; evenodd++)
-          {
-            rlum[beam][evenodd] = gl1p[beam][evenodd];
-            erlum[beam][evenodd] = egl1p[beam][evenodd];
-            rlum_fill[beam][evenodd] = gl1p_fill[beam][evenodd][1]/gl1p_fill[beam][evenodd][0];
-            erlum_fill[beam][evenodd] = rlum_fill[beam][evenodd]*sqrt(e2gl1p_fill[beam][evenodd][1]/pow2(gl1p_fill[beam][evenodd][1])
-                + e2gl1p_fill[beam][evenodd][0]/pow2(gl1p_fill[beam][evenodd][0]));
-          }
-      else
-        runqa = true;
-
-      t_rlum->Fill();
-      runnoDone.push_back(runnumber);
-    }
-
-    t_rlum_check->Fill();
-  } // ien
-
-  lastfill = 0;
   BOOST_FOREACH(const map_int_t::value_type &runno, runnoInseok)
-    if( find(runnoDone.begin(), runnoDone.end(), runno.first) == runnoDone.end() )
+  {
+    bool in_db = false;
+    for(int ien=0; ien<t_bbc->GetEntries(); ien++)
+    {
+      t_bbc->GetEntry(ien);
+      if(in_db)
+        break;
+      else if(runnumber != runno.first)
+        continue;
+      else
+        in_db = true;
+
+      map_int_t::iterator it_Inseok = runnoInseok.find(runnumber);
+      spin_pattern = it_Inseok != runnoInseok.end() ? it_Inseok->second : 4;
+
+      get_gl1p(spin_out, spin_cont, runnumber, fillnumber, lastfill,
+          pol, epol, gl1p, egl1p, spin_pol, count_bunch, ecount_bunch,
+          gl1p_fill, e2gl1p_fill);
+
+      map_ulong_t::iterator it_run = daq_runevents.find(runnumber);
+      map_ulong_t::iterator it_fill = daq_fillevents.find(runnumber);
+      runevents = it_run != daq_runevents.end() ? it_run->second : 0;
+      fillevents = it_fill != daq_fillevents.end() ? it_fill->second : 0;
+
+      double count_raw[2][2] = {};
+      double e2count_raw[2][2] = {};
+      double count_pile[2][2] = {};
+      double e2count_pile[2][2] = {};
+      double count_res[3][2][2] = {};
+      double e2count_res[3][2][2] = {};
+
+      for(int ib=0; ib<120; ib++)
+      {
+        int pattern[3] = {pb[ib], py[ib], pb[ib]*py[ib]};
+
+        if( clock[ib] > 0 && bbc30[ib] > 0 && bbcnovtx[ib] > 0 )
+        {
+          double rate_vtx = (double)bbc30[ib]/clock[ib];
+          double erate_vtx = sqrt((double)bbc30[ib])/clock[ib];
+          double rate_novtx = (double)bbcnovtx[ib]/clock[ib];
+          double erate_novtx = sqrt((double)bbcnovtx[ib])/clock[ib];
+
+          double rate_obs[2] = {rate_vtx, rate_novtx};
+          double erate_obs[2] = {erate_vtx, erate_novtx};
+          double rate_true[3], erate_true[3];
+          rate_corr(KFactor, rate_obs, erate_obs, rate_true, erate_true);
+
+          for(int beam=0; beam<3; beam++)
+            if( abs(pattern[beam]) == 1 )
+            {
+              int ipol = pattern[beam] > 0 ? 1 : 0;
+              if(beam == 2)
+              {
+                count_raw[ib%2][ipol] += rate_obs[0]*clock[ib];
+                e2count_raw[ib%2][ipol] += pow2(erate_obs[0]*clock[ib]);
+                count_pile[ib%2][ipol] += rate_true[0]*clock[ib];
+                e2count_pile[ib%2][ipol] += pow2(erate_true[0]*clock[ib]);
+                count_bunch[ib] = rate_true[2]*clock[ib];
+                ecount_bunch[ib] = erate_true[2]*clock[ib];
+              }
+              count_res[beam][ib%2][ipol] += rate_true[2]*clock[ib];
+              e2count_res[beam][ib%2][ipol] += pow2(erate_true[2]*clock[ib]);
+            }
+        }
+        else
+        {
+          for(int beam=0; beam<3; beam++)
+            if( abs(pattern[beam]) == 1 )
+            {
+              int ipol = pattern[beam] > 0 ? 1 : 0;
+              count_res[beam][ib%2][ipol] += count_bunch[ib];
+              e2count_res[beam][ib%2][ipol] += pow2(ecount_bunch[ib]);
+            }
+        }
+      } // ib
+
+      for(int evenodd=0; evenodd<2; evenodd++)
+      {
+        ss_raw[evenodd] = count_raw[evenodd][1]/count_raw[evenodd][0];
+        ess_raw[evenodd] = ss_raw[evenodd]*sqrt(e2count_raw[evenodd][1]/pow2(count_raw[evenodd][1])
+            + e2count_raw[evenodd][0]/pow2(count_raw[evenodd][0]));
+        ss_pile[evenodd] = count_pile[evenodd][1]/count_pile[evenodd][0];
+        ess_pile[evenodd] = ss_pile[evenodd]*sqrt(e2count_pile[evenodd][1]/pow2(count_pile[evenodd][1])
+            + e2count_pile[evenodd][0]/pow2(count_pile[evenodd][0]));
+        for(int beam=0; beam<3; beam++)
+        {
+          rlum[beam][evenodd] = count_res[beam][evenodd][1]/count_res[beam][evenodd][0];
+          erlum[beam][evenodd] = rlum[beam][evenodd]*sqrt(e2count_res[beam][evenodd][1]/pow2(count_res[beam][evenodd][1])
+              + e2count_res[beam][evenodd][0]/pow2(count_res[beam][evenodd][0]));
+          for(int ipol=0; ipol<2; ipol++)
+          {
+            count_fill[beam][evenodd][ipol] += count_res[beam][evenodd][ipol];
+            e2count_fill[beam][evenodd][ipol] += e2count_res[beam][evenodd][ipol];
+          }
+          rlum_fill[beam][evenodd] = count_fill[beam][evenodd][1]/count_fill[beam][evenodd][0];
+          erlum_fill[beam][evenodd] = rlum_fill[beam][evenodd]*sqrt(e2count_fill[beam][evenodd][1]/pow2(count_fill[beam][evenodd][1])
+              + e2count_fill[beam][evenodd][0]/pow2(count_fill[beam][evenodd][0]));
+          if(beam == 2)
+          {
+            ss_res[evenodd] = rlum[beam][evenodd];
+            ess_res[evenodd] = erlum[beam][evenodd];
+          }
+        }
+      }
+
+      runqa = false;
+      if( it_Inseok != runnoInseok.end() )
+      {
+        map<int,Pol>::iterator it_pol = pol_info.find(fillnumber);
+        if(it_pol == pol_info.end() )
+          cout << "No pol info for fill " << fillnumber << endl;
+        else
+          for(int i=0; i<2; i++)
+          {
+            pol_fill.pol[i] = it_pol->second.pol[i];
+            pol_fill.epol[i] = it_pol->second.epol[i];
+          }
+
+        if(runnumber < 386946)
+          for(int beam=0; beam<3; beam++)
+            for(int evenodd=0; evenodd<2; evenodd++)
+            {
+              rlum[beam][evenodd] = gl1p[beam][evenodd];
+              erlum[beam][evenodd] = egl1p[beam][evenodd];
+              rlum_fill[beam][evenodd] = gl1p_fill[beam][evenodd][1]/gl1p_fill[beam][evenodd][0];
+              erlum_fill[beam][evenodd] = rlum_fill[beam][evenodd]*sqrt(e2gl1p_fill[beam][evenodd][1]/pow2(gl1p_fill[beam][evenodd][1])
+                  + e2gl1p_fill[beam][evenodd][0]/pow2(gl1p_fill[beam][evenodd][0]));
+            }
+        else
+          runqa = true;
+
+        t_rlum->Fill();
+        runnoDone.push_back(runnumber);
+      }
+
+      t_rlum_check->Fill();
+    } // ien
+
+    if(!in_db)
     {
       runnumber = runno.first;
       spin_pattern = runno.second;
@@ -563,7 +570,8 @@ int main()
         }
 
       t_rlum->Fill();
-    }
+    } // !in_db
+  } // runnoInseok
 
 
   f_rlum->cd();
