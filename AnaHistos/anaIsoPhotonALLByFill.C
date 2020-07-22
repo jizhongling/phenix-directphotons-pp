@@ -3,6 +3,8 @@
 
 void anaIsoPhotonALLByFill()
 {
+  QueryTree *qt_asym = new QueryTree("data/isophoton-asym-fill-tightcut.root", "RECREATE");
+
   TFile *f_rlum = new TFile("data/RelLum.root");
   TTree *t_rlum = (TTree*)f_rlum->Get("T");
   int runnumber, spin_pattern, fillnumber, lastfill = 0;
@@ -21,10 +23,11 @@ void anaIsoPhotonALLByFill()
 
   QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-isophoton.root");
 
-  QueryTree *qt_asym = new QueryTree("data/isophoton-asym-fill-tightcut.root", "RECREATE");
-
   double nphoton[3][2][2][2][npT_pol] = {};  // beam, isolated, icr, ipol, ipt
   double npion[3][2][2][2][2][npT_pol] = {};  // beam, pttype(pt|2pt), ibg, icr, ipol, ipt
+
+  int checkmap = 1;
+  int ical = 0;
 
   const int n_rlum = t_rlum->GetEntries();
   for(int ien=0; ien<=n_rlum; ien++)
@@ -34,6 +37,8 @@ void anaIsoPhotonALLByFill()
 
     if(ien < n_rlum)
       t_rlum->GetEntry(ien);
+    if(ien == 0)
+      lastfill = fillnumber;
 
     if( fillnumber != lastfill ||
         ien == n_rlum )
@@ -145,9 +150,6 @@ void anaIsoPhotonALLByFill()
       cout << "Cannot open file for runnumber = " << runnumber << endl;
       continue;
     }
-
-    int checkmap = 1;
-    int ical = 0;
 
     for(int beam=0; beam<3; beam++)
       for(int icr=0; icr<2; icr++)

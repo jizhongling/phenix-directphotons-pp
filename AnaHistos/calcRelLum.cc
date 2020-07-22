@@ -143,7 +143,7 @@ void rate_corr(double KFactor[], double rate_obs[], double erate_obs[],
 }
 
 void get_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont,
-    int runnumber, int &fillnumber, int &lastfill,
+    int runnumber, int &fillnumber, int lastfill,
     double pol[], double epol[], double rlum[][2], double erlum[][2],
     int spin_pol[], double count_bunch[], double ecount_bunch[],
     double count_fill[][2][2], double e2count_fill[][2][2])
@@ -154,8 +154,6 @@ void get_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont,
   spin_out.GetDBContentStore(spin_cont, runnumber);
   fillnumber = spin_cont.GetFillNumber();
   if(fillnumber != lastfill)
-  {
-    lastfill = fillnumber;
     for(int beam=0; beam<3; beam++)
       for(int evenodd=0; evenodd<2; evenodd++)
         for(int ipol=0; ipol<2; ipol++)
@@ -163,7 +161,6 @@ void get_gl1p(SpinDBOutput &spin_out, SpinDBContent &spin_cont,
           count_fill[beam][evenodd][ipol] = 0.;
           e2count_fill[beam][evenodd][ipol] = 0.;
         }
-  }
 
   if( spin_out.CheckRunRow(runnumber,qa_level) != 1 )
   {
@@ -418,6 +415,18 @@ int main()
           pol, epol, gl1p, egl1p, spin_pol, count_bunch, ecount_bunch,
           gl1p_fill, e2gl1p_fill);
 
+      if(fillnumber != lastfill)
+      {
+        lastfill = fillnumber;
+        for(int beam=0; beam<3; beam++)
+          for(int evenodd=0; evenodd<2; evenodd++)
+            for(int ipol=0; ipol<2; ipol++)
+            {
+              count_fill[beam][evenodd][ipol] = 0.;
+              e2count_fill[beam][evenodd][ipol] = 0.;
+            }
+      }
+
       map_ulong_t::iterator it_run = daq_runevents.find(runnumber);
       map_ulong_t::iterator it_fill = daq_fillevents.find(runnumber);
       runevents = it_run != daq_runevents.end() ? it_run->second : 0;
@@ -545,6 +554,9 @@ int main()
       get_gl1p(spin_out, spin_cont, runnumber, fillnumber, lastfill,
           pol, epol, rlum, erlum, spin_pol, count_bunch, ecount_bunch,
           count_fill, e2count_fill);
+
+      if(fillnumber != lastfill)
+        lastfill = fillnumber;
 
       map_ulong_t::iterator it_run = daq_runevents.find(runnumber);
       map_ulong_t::iterator it_fill = daq_fillevents.find(runnumber);

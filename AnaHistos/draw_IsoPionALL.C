@@ -13,7 +13,7 @@ void draw_IsoPionALL()
 
   QueryTree *qt_all = new QueryTree("data/IsoPionALL.root", "RECREATE");
 
-  QueryTree *qt_asym = new QueryTree("data/isophoton-asym-fill-tightcut.root");
+  QueryTree *qt_asym = new QueryTree("data/isophoton-asym-tightcut.root");
   qt_asym->SetQuiet();
 
   QueryTree *qt_rbg = new QueryTree("data/BgRatio-isopion.root");
@@ -22,7 +22,7 @@ void draw_IsoPionALL()
   vector<double> *vp_eALL = new vector<double>[8];
 
   cout.precision(4);
-  for(int beam=2; beam<3; beam++)
+  for(int beam=0; beam<3; beam++)
     for(int pttype=0; pttype<2; pttype++)
       for(int ibg=0; ibg<2; ibg++)
       {
@@ -89,6 +89,7 @@ void draw_IsoPionALL()
               TGraphErrors *gr = qt_asym->Graph(ig); 
               gr->SetTitle(Form("p_{T}: %.1f-%.1f GeV",pTbin_pol[ipt],pTbin_pol[ipt+1]));
               aset(gr, "runnumber",beam_list[beam], 386700.,398200., -0.5,0.5);
+              //aset(gr, "fillnumber",beam_list[beam], 17200.,17602., -0.5,0.5);
               style(gr, 20, 1);
               gr->Draw("AP");
 
