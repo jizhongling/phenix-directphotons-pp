@@ -17,7 +17,7 @@ setenv PLHF /phenix/plhf/zji
 setenv SPIN /phenix/spin/phnxsp01/zji
 setenv SCRATCH /phenix/scratch/zji
 
-set NFiles = 10
+set NFiles = 6
 @ START = $2 * $NFiles
 @ END = ( $2 + 1 ) * $NFiles - 1
 
@@ -34,3 +34,4 @@ end
 cd $1
 ./anaLHEF anaLHEF.cmnd histos/AnaPowheg-histo$2.root $LHE
 ./anaLHEF anaLHEFNoMPI.cmnd histos/AnaPowhegNoMPI-histo$2.root $LHE
+./anaLHEF anaLHEFPureHard.cmnd histos/AnaPowhegPureHard-histo$2.root $LHE

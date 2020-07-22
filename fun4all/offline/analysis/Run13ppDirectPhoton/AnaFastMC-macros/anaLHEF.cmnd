@@ -14,7 +14,7 @@
 #PartonLevel:Remnants = off
 #HadronLevel:all = off
 
-#Print:quiet = on
+Print:quiet = on
 
 ### POWHEG hooks
 #--------------------------------------------------

@@ -2,17 +2,17 @@
 # Pythia Setup for showering powheg-directphoton   #
 #--------------------------------------------------#
 
-PartonLevel:MPI = off
+#PartonLevel:MPI = off
 
 #HadronLevel:all = off
 
 ### uncomment following propagating the event without any shower in pythia
-#Check:event = off
-#PartonLevel:MPI = off
-#PartonLevel:ISR = off
-#PartonLevel:FSR = off
-#PartonLevel:Remnants = off
-#HadronLevel:all = off
+Check:event = off
+PartonLevel:MPI = off
+PartonLevel:ISR = off
+PartonLevel:FSR = off
+PartonLevel:Remnants = off
+HadronLevel:all = off
 
 Print:quiet = on
 
@@ -25,7 +25,7 @@ POWHEG:nFinal = 2
 # 1: showers start at kinematical limit and are vetoed; set pTmaxMatch = 2!
 # 0: SCALUP is used as a starting scale (problematic due to differing
 #    pT definitions in POWHEG BOX and Pythia
-POWHEG:veto = 1
+POWHEG:veto = 0
 
 # Number of accepted emissions before no more vetos are performed (default 3)
 POWHEG:vetoCount = 50
