@@ -1,6 +1,7 @@
 #ifndef __PTWEIGHTS_H__
 #define __PTWEIGHTS_H__
 
+class Fun4AllHistoManager;
 class TF1;
 class TFile;
 class TH2;
@@ -11,6 +12,7 @@ class PtWeights
     PtWeights();
     virtual ~PtWeights();
 
+    void WeightXsec(Fun4AllHistoManager *hm);
     double EvalPi0(double pt);
     double EvalPhoton(double pt);
     double Integral(double pt1, double pt2, const char *option);

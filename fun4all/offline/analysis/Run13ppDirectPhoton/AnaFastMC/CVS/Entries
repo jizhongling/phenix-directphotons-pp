@@ -2,10 +2,10 @@
 /configure.ac/1.2/Fri Jan 25 22:35:50 2019//
 /dead_eff_run13pp500gev.dat/1.1/Fri Jan 25 22:35:50 2019//
 /AnaFastMCLinkDef.h/1.2/Sun Sep  8 21:17:04 2019//
-/Makefile.am/1.5/Sun Sep  8 21:41:33 2019//
-/PtWeights.h/1.1/Sun Sep  8 21:37:24 2019//
 /MinBiasPtWeights.root/1.2/Mon Sep  9 18:09:57 2019//
-/PtWeights.C/1.1/Thu Nov  7 21:52:23 2019//
-/AnaFastMC.h/1.10/Thu Apr 30 18:10:25 2020//
-/AnaFastMC.C/1.17/Thu Jul 23 23:26:52 2020//
+/AnaFastMC.C/1.18/Fri Jul 24 22:51:34 2020//
+/AnaFastMC.h/1.11/Fri Jul 24 22:48:18 2020//
+/Makefile.am/1.6/Fri Jul 24 17:59:02 2020//
+/PtWeights.C/1.2/Fri Jul 24 22:50:52 2020//
+/PtWeights.h/1.2/Fri Jul 24 22:44:16 2020//
 D

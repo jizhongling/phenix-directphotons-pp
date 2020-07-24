@@ -41,6 +41,7 @@ class AnaFastMC: public SubsysReco
     void SetWeightPythia(double weight) { weight_pythia = weight; }
     void set_outfile(std::string filename) { outFileName = filename; }
     void set_mcmethod(MCMethod method) { mcmethod = method; }
+    void use_xsec_weight(bool use = true) { usexsec = use; }
     void enable_calcsys(bool calc = true) { calcsys = calc; }
 
   protected:
@@ -89,6 +90,7 @@ class AnaFastMC: public SubsysReco
     std::string outFileName;
     MCMethod mcmethod;
 
+    bool usexsec;
     bool calcsys;
     bool sysengl;
     bool sysenlin;

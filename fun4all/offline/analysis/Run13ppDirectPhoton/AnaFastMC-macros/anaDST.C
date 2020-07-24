@@ -10,7 +10,7 @@ void anaDST(const int process = 0,
   gSystem->Load("libAnaFastMC.so");
   gSystem->Load("libMissingRatio.so");
 
-  PtWeights *ptweights = new PtWeights();
+  //PtWeights *ptweights = new PtWeights();
 
   // Setup recoConsts
   recoConsts *rc = recoConsts::instance();
@@ -42,6 +42,7 @@ void anaDST(const int process = 0,
   HadronResponse *my1 = new HadronResponse("HadronResponse");
   //MissingRatio *my1 = new MissingRatio("MissingRatio");
   my1->set_outfile(histoname);
+  my1->use_xsec_weight();
   se->registerSubsystem(my1);
 
   // Real input from DST files
@@ -58,9 +59,9 @@ void anaDST(const int process = 0,
   }
 
   // Do the analysis for this DST file
-  double pt_start = 3. + process/scale * 0.1;
-  double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "MinBias") / ptweights->Integral(3., 4., "MinBias");
-  my1->SetWeightPythia(weight_pythia);
+  //double pt_start = 3. + process/scale * 0.1;
+  //double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "MinBias") / ptweights->Integral(3., 4., "MinBias");
+  //my1->SetWeightPythia(weight_pythia);
   se->run(0);
 
   cout << "\nClosing input file, and a No Input file open message from Fun4All should appear" << endl;

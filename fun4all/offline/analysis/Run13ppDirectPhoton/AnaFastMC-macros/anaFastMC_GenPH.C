@@ -15,7 +15,7 @@ void anaFastMC_GenPH(const int process = 0,
   recoConsts *rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER",0);
 
-  PtWeights *ptweights = new PtWeights();
+  //PtWeights *ptweights = new PtWeights();
 
   /////////////////////////////////////////////////////////////////
   //  Server...
@@ -49,6 +49,7 @@ void anaFastMC_GenPH(const int process = 0,
   AnaFastMC *my1 = new AnaFastMC("AnaFastMC");
   my1->set_outfile(histoname);
   my1->set_mcmethod(PHParticleGen);
+  my1->use_xsec_weight();
   se->registerSubsystem(my1);
 
   //** You can select only particular particles to write out
@@ -73,9 +74,9 @@ void anaFastMC_GenPH(const int process = 0,
   // se->registerOutputManager(oscar_manager);
 
   // Run over all events
-  double pt_start = 3. + process/scale * 0.1;
-  double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "MinBias") / ptweights->Integral(3., 4., "MinBias");
-  my1->SetWeightPythia(weight_pythia);
+  //double pt_start = 3. + process/scale * 0.1;
+  //double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "MinBias") / ptweights->Integral(3., 4., "MinBias");
+  //my1->SetWeightPythia(weight_pythia);
   se->run(10000);
 
   // Write histograms

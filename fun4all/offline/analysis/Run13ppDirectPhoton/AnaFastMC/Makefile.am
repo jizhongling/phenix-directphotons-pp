@@ -11,10 +11,10 @@ dist_mydata_DATA = \
   dead_eff_run13pp500gev.dat \
   MinBiasPtWeights.root
 
-include_HEADERS =
+include_HEADERS = \
+  PtWeights.h
 
 noinst_HEADERS = \
-  PtWeights.h \
   AnaFastMC.h
 
 libAnaFastMC_la_SOURCES = \

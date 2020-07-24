@@ -72,6 +72,7 @@ AnaFastMC::AnaFastMC(const string &name):
   SubsysReco(name),
   outFileName("histos/AnaFastMC-"),
   mcmethod(FastMC),
+  usexsec(false),
   calcsys(false),
   sysengl(false),
   sysenlin(false),
@@ -171,7 +172,8 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
 int AnaFastMC::process_event(PHCompositeNode *topNode)
 {
   /* Count events */
-  h_events->Fill(1.);
+  if(!usexsec)
+    h_events->Fill(1.);
 
   /* Use FastMC input (i.e. random number generator for pi0, eta and direct photon eta, phi, pt) */
   if( mcmethod == FastMC )
@@ -657,6 +659,8 @@ void AnaFastMC::PythiaInput(PHCompositeNode *topNode)
 int AnaFastMC::End(PHCompositeNode *topNode)
 {
   /* Write histogram output to ROOT file */
+  if(usexsec)
+    ptweights->WeightXsec(hm);
   hm->dumpHistos(outFileName);
   delete hm;
   delete ptweights;

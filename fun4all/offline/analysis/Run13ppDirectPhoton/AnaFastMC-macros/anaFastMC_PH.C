@@ -12,7 +12,7 @@ void anaFastMC_PH(const int process = 0, const int scale = 4)
   recoConsts *rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER",0);
 
-  PtWeights *ptweights = new PtWeights();
+  //PtWeights *ptweights = new PtWeights();
 
   /////////////////////////////////////////////////////////////////
   //  Server...
@@ -50,6 +50,7 @@ void anaFastMC_PH(const int process = 0, const int scale = 4)
   AnaFastMC *my1 = new AnaFastMC("AnaFastMC");
   my1->set_outfile( Form("../AnaFastMC-PH-histo%d.root",process) );
   my1->set_mcmethod(PHParticleGen);
+  my1->use_xsec_weight();
   //my1->enable_calcsys();
   se->registerSubsystem(my1);
 
@@ -71,9 +72,9 @@ void anaFastMC_PH(const int process = 0, const int scale = 4)
   // se->registerOutputManager(oscar_manager);
 
   // Run over all events
-  double pt_start = 3. + process/scale * 0.1;
-  double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "Photon") / ptweights->Integral(3., 4., "Photon");
-  my1->SetWeightPythia(weight_pythia);
+  //double pt_start = 3. + process/scale * 0.1;
+  //double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "Photon") / ptweights->Integral(3., 4., "Photon");
+  //my1->SetWeightPythia(weight_pythia);
   se->run(500000);
 
   // Write histograms

@@ -4,6 +4,7 @@
 #include <SubsysReco.h>
 #include <string>
 
+class PtWeights;
 class ERTSimTrigger;
 class EMCWarnmapChecker;
 class DCDeadmapChecker;
@@ -31,6 +32,7 @@ class HadronResponse: public SubsysReco
 
     void SetWeightPythia(double weight) { weight_pythia = weight; }
     void set_outfile(std::string filename) { outFileName = filename; }
+    void use_xsec_weight(bool use = true) { usexsec = use; }
 
   protected:
     /* Number of histogram array */
@@ -50,8 +52,13 @@ class HadronResponse: public SubsysReco
     /* Check charge veto and tower status */
     bool TestPhoton(const emcClusterContent *cluster);
 
-    /* Pythia pT weights */
+    std::string outFileName;
+
+    bool usexsec;
+
+    /* Pythia pT weights and pT weights calculator */
     double weight_pythia;
+    PtWeights *ptweights;
 
     /* ERT sim trigger */
     ERTSimTrigger *ertsim;
@@ -62,9 +69,7 @@ class HadronResponse: public SubsysReco
     /* DC deadmap checker */
     DCDeadmapChecker *dcdeadmap;
 
-    std::string outFileName;
     Fun4AllHistoManager *hm;
-
     TH1 *h_events;
     TH2 *h2_eta_phi[nh_eta_phi];
     THnSparse *hn_1photon;

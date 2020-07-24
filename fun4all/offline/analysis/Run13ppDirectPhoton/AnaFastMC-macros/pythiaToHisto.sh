@@ -23,6 +23,7 @@ file_checker="${pythia_ldir}/IsGoodFile"
 pythia_macro="anaFastMC_GenPH.C"
 #pythia_macro="phparticlegen.C"
 pythia_config="pythia.cfg"
+pythia_xsec="${output_dir}/phpy_xsec${proc}.root"
 pythia_tree="phpythia${proc}.root"
 pythia_histo="AnaFastMC-GenPH-histo${proc}.root"
 
@@ -47,6 +48,7 @@ fi
 mkdir -p "${working}"
 mkdir -p "${output_dir}"
 cd "${working}"
+cp "${pythia_xsec}" "phpy_xsec.root"
 cp "${output_dir}/${pythia_histo}" .
 cp "${output_dir}/${pythia_tree}" .
 cp "${output_dir}/${pisa_tree}" .
@@ -116,6 +118,7 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
     status_tree="${?}"
     if [[ "${status_tree}" -ne "0" || $(ls -l --block-size=M "${pisa_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
+	    cp "phpy_xsec.root" "${pythia_xsec}"
 	    cp "${pythia_histo}" "${output_dir}"
             cp "${pythia_tree}" "${output_dir}"
 	    echo -e "Process ${proc}: PISA failed" >> "${logfile}"
@@ -141,6 +144,7 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
     status_tree="${?}"
     if [[ "${status_tree}" -ne "0" || $(ls -l --block-size=M "${working}/${dst_tree}" | awk '{printf "%d", $5}') -lt "${minsize}" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
+	    cp "${working}/phpy_xsec.root" "${pythia_xsec}"
 	    cp "${working}/${pythia_histo}" "${output_dir}"
             cp "${working}/${pisa_tree}" "${output_dir}"
             rm -f "${output_dir}/${pythia_tree}"
@@ -169,6 +173,7 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
     status_histo="${?}"
     if [[ "${status_histo}" -ne "0" ]] ; then
 	if [[ "${icheck}" -eq "${maxcheck}" ]] ; then
+	    cp "phpy_xsec.root" "${pythia_xsec}"
 	    cp "${pythia_histo}" "${output_dir}"
             cp "${dst_tree}" "${output_dir}"
             rm -f "${output_dir}/${pythia_tree}"
@@ -181,6 +186,7 @@ for (( icheck = 1; icheck <= ${maxcheck}; icheck++ )) ; do
 	echo -e "Process ${proc}: anaDST runs ${icheck} times" >> "${logfile}"
         root -l -b -q "${dst_macro}(${proc},${scale},\"${dst_tree}\",\"${dst_histo}\")"
     else
+        rm -f "${pythia_xsec}"
         rm -f "${output_dir}/${pythia_tree}"
         rm -f "${output_dir}/${pisa_tree}"
         rm -f "${output_dir}/${dst_tree}"

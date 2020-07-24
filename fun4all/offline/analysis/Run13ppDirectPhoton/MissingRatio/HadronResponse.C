@@ -1,5 +1,6 @@
 #include "HadronResponse.h"
 
+#include <PtWeights.h>
 #include <AnaToolsCluster.h>
 #include "ERTSimTrigger.h"
 #include <EMCWarnmapChecker.h>
@@ -46,11 +47,11 @@ const TVector2 v2_2PI(0.,2.*PI);
 const double eMin = 0.3;
 const double probMin = 0.02;
 const double tofMax = 10.;
-const double tofMaxIso = 50.;
+const double tofMaxIso = 10.;  // loose cut is 50.
 const double AsymCut = 0.8;
 
 /* Some cuts for isolation cut */
-const double eClusMin = 0.15;
+const double eClusMin = 0.5;  // loose cut is 0.15
 const double pTrkMin = 0.2;
 const double pTrkMax = 15.;
 
@@ -60,7 +61,10 @@ const double eratio = 0.1;
 
 HadronResponse::HadronResponse(const string &name):
   SubsysReco(name),
+  outFileName("histos/HadronResponse-"),
+  usexsec(false),
   weight_pythia(1.),
+  ptweights(nullptr),
   ertsim(nullptr),
   emcwarnmap(nullptr),
   dcdeadmap(nullptr),
@@ -86,6 +90,14 @@ int HadronResponse::Init(PHCompositeNode *topNode)
 {
   /* Create and register histograms */
   BookHistograms();
+
+  /* pT weights calculator */
+  ptweights = new PtWeights();
+  if(!ptweights)
+  {
+    cerr << "No ptweights" << endl;
+    exit(1);
+  }
 
   /* Initialize ERT sim trigger */
   ertsim = new ERTSimTrigger();
@@ -117,7 +129,8 @@ int HadronResponse::Init(PHCompositeNode *topNode)
 int HadronResponse::process_event(PHCompositeNode *topNode)
 {
   /* Count events */
-  h_events->Fill(1.);
+  if(!usexsec)
+    h_events->Fill(1.);
 
   /* EMC track truth info */
   emcGeaTrackContainer *emctrkcont = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);
@@ -284,8 +297,11 @@ int HadronResponse::process_event(PHCompositeNode *topNode)
 int HadronResponse::End(PHCompositeNode *topNode)
 {
   /* Write histogram output to ROOT file */
+  if(usexsec)
+    ptweights->WeightXsec(hm);
   hm->dumpHistos();
   delete hm;
+  delete ptweights;
   delete ertsim;
   delete emcwarnmap;
   delete dcdeadmap;
