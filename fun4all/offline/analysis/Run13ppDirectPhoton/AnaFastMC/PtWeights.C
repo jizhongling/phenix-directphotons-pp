@@ -74,31 +74,19 @@ void PtWeights::WeightXsec(Fun4AllHistoManager *hm)
 
   for(unsigned ih=0; ih<hm->nHistos(); ih++)
   {
-    TString hname = hm->getHistoName(ih);
-    if(hname.EqualTo("h_events"))
+    TH1 *h;
+    THnSparse *hn;
+    if(( h = dynamic_cast<TH1*>(hm->getHisto(ih)) ))
     {
-      TH1 *h = (TH1*)hm->getHisto(ih);
-      h->SetBinContent(1, (double)nEvents);
+      TString hname = h->GetName();
+      if( hname.EqualTo("h_events") )
+        h->SetBinContent(1, (double)nEvents);
+      else
+        h->Scale(xsec);
     }
-    else if(hname.BeginsWith("h_"))
+    else if(( hn = dynamic_cast<THnSparse*>(hm->getHisto(ih)) ))
     {
-      TH1 *h = (TH1*)hm->getHisto(ih);
-      h->Scale(xsec);
-    }
-    else if(hname.BeginsWith("h2_"))
-    {
-      TH2 *h = (TH2*)hm->getHisto(ih);
-      h->Scale(xsec);
-    }
-    else if(hname.BeginsWith("h3_"))
-    {
-      TH3 *h = (TH3*)hm->getHisto(ih);
-      h->Scale(xsec);
-    }
-    else if(hname.BeginsWith("hn_"))
-    {
-      THnSparse *h = (THnSparse*)hm->getHisto(ih);
-      h->Scale(xsec);
+      hn->Scale(xsec);
     }
   }
 
