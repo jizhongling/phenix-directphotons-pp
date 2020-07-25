@@ -9,8 +9,7 @@
 #include <TTree.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TH3.h>
-#include <THnSparse.h>
+#include <THnBase.h>
 
 using namespace std;
 
@@ -75,7 +74,7 @@ void PtWeights::WeightXsec(Fun4AllHistoManager *hm)
   for(unsigned ih=0; ih<hm->nHistos(); ih++)
   {
     TH1 *h;
-    THnSparse *hn;
+    THnBase *hn;
     if(( h = dynamic_cast<TH1*>(hm->getHisto(ih)) ))
     {
       TString hname = h->GetName();
@@ -84,7 +83,7 @@ void PtWeights::WeightXsec(Fun4AllHistoManager *hm)
       else
         h->Scale(xsec);
     }
-    else if(( hn = dynamic_cast<THnSparse*>(hm->getHisto(ih)) ))
+    else if(( hn = dynamic_cast<THnBase*>(hm->getHisto(ih)) ))
     {
       hn->Scale(xsec);
     }
