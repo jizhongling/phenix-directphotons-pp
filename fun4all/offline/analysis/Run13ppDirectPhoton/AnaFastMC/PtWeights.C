@@ -75,7 +75,7 @@ void PtWeights::WeightXsec(Fun4AllHistoManager *hm)
   for(unsigned ih=0; ih<hm->nHistos(); ih++)
   {
     TString hname = hm->getHistoName(ih);
-    if(hname.BeginsWith("h_events"))
+    if(hname.EqualTo("h_events"))
     {
       TH1 *h = (TH1*)hm->getHisto(ih);
       h->SetBinContent(1, (double)nEvents);
