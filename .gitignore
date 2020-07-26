@@ -11,6 +11,7 @@ ltmain.sh
 missing
 
 #folders
+CVS
 attic
 data/taxi
 warnmap/warnmap-output
