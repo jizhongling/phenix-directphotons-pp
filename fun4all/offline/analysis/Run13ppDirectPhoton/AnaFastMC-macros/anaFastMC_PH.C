@@ -78,4 +78,7 @@ void anaFastMC_PH(const int process = 0, const int scale = 4)
 
   // Write histograms
   se->End();
+
+  // Delete Fun4All server
+  delete se;
 }

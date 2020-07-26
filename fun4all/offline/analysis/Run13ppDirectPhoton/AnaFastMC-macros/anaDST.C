@@ -73,4 +73,7 @@ void anaDST(const int process = 0,
 
   // Write histograms
   se->End();
+
+  // Delete Fun4All server
+  delete se;
 }

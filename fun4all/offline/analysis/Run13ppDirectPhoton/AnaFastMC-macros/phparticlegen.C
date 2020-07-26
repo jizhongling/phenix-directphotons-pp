@@ -104,5 +104,7 @@ phparticlegen(const int process = 0, const int nevents = 10, const char *outputn
   se->run(nevents);  // run over all events
   se->End();
 
+  // Delete Fun4All server
+  delete se;
 }
 

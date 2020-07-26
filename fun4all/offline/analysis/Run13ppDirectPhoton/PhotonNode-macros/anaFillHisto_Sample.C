@@ -38,4 +38,7 @@ void anaFillHisto_Sample()
 
   // Write histograms
   se->End();
+
+  // Delete Fun4All server
+  delete se;
 }

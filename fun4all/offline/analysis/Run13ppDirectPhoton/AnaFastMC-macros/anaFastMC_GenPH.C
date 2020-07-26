@@ -80,4 +80,7 @@ void anaFastMC_GenPH(const int process = 0,
 
   // Write histograms
   se->End();
+
+  // Delete Fun4All server
+  delete se;
 }

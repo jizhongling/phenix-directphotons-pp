@@ -68,4 +68,7 @@ void anaPHPythiaHistos(const int process = 0)
   // run over all events
   se->run(5000000);  
   se->End();
+
+  // Delete Fun4All server
+  delete se;
 }
