@@ -26,7 +26,7 @@ void draw_SysErr(const int pwhg = 0)
     TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo.root");
     //TH1 *h_events = (TH1*)f_pythia->Get("h_events");
     //const double nEvents = h_events->GetBinContent(1);
-    const double powheg_scale = 1./8377.;
+    const double powheg_scale = 1./2703.;
     const int nmu[2] = {7, 7};
     const char *mu_name[2][3] = {
       {"  1            1           --", "vary       vary        --", "vary       vary        --"},

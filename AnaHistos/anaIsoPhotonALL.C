@@ -14,10 +14,10 @@ void anaIsoPhotonALL(const int process = 0)
   t_rlum->SetBranchAddress("SpinPattern", &spin_pattern);
   t_rlum->SetBranchAddress("Pol", pol);
   t_rlum->SetBranchAddress("ePol", epol);
-  t_rlum->SetBranchAddress("YellowRelLum", rlum[0]);
-  t_rlum->SetBranchAddress("eYellowRelLum", erlum[0]);
-  t_rlum->SetBranchAddress("BlueRelLum", rlum[1]);
-  t_rlum->SetBranchAddress("eBlueRelLum", erlum[1]);
+  t_rlum->SetBranchAddress("BlueRelLum", rlum[0]);
+  t_rlum->SetBranchAddress("eBlueRelLum", erlum[0]);
+  t_rlum->SetBranchAddress("YellowRelLum", rlum[1]);
+  t_rlum->SetBranchAddress("eYellowRelLum", erlum[1]);
   t_rlum->SetBranchAddress("RelLum", rlum[2]);
   t_rlum->SetBranchAddress("eRelLum", erlum[2]);
 
