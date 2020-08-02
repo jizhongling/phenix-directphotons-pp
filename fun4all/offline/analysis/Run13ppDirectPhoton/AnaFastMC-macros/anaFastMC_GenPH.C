@@ -1,5 +1,5 @@
 void anaFastMC_GenPH(const int process = 0,
-    const int scale = 40,
+    const int scale = 400,
     const char *outputname = "phpythia.root",
     const char *histoname = "histo.root")
 {
@@ -72,9 +72,9 @@ void anaFastMC_GenPH(const int process = 0,
   // se->registerOutputManager(oscar_manager);
 
   // Run over all events
-  //double pt_start = 3. + process/scale * 0.1;
+  //double pt_start = process/scale + 3;
   //PtWeights *ptweights = new PtWeights();
-  //double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "MinBias");
+  //double weight_pythia = ptweights->Integral(pt_start, pt_start+1, "Photon");
   //my1->SetWeightPythia(weight_pythia);
   se->run(10000);
 

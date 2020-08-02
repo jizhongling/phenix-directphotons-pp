@@ -100,7 +100,7 @@ void draw_Pi0ALL()
 
           int ipat = icr + 2*pattern;
           sig[ipat] = (mean[0] - rbg*mean[1])/(1 - rbg);
-          esig[ipat] = sqrt(pow(emean[0],2)/pow(1 - rbg,2) + (pow(emean[1],2)*pow(rbg,2))/pow(1 - rbg,2) + pow(erbg,2)*pow(-(mean[1]/(1 - rbg)) + (mean[0] - mean[1]*rbg)/pow(1 - rbg,2),2));
+          esig[ipat] = sqrt( emean[0]*emean[0] + pow(rbg*emean[1],2) ) / (1 - rbg);
 
           int igr = beam + 3*icr + 3*2*pattern + ngr_pi0;
           qt_all->Fill(ipt, igr, xpt, sig[ipat], esig[ipat]);

@@ -68,9 +68,8 @@ void PtWeights::WeightXsec(Fun4AllHistoManager *hm)
     cout << "Wrong isub number!" << endl;
     exit(1);
   }
-  xsec *= 1e9;
-  cout << "nEvents = " << nEvents << ", xsec = " << xsec << " pb" << endl;
 
+  double weight = 1e9*xsec/nEvents;
   for(unsigned ih=0; ih<hm->nHistos(); ih++)
   {
     TH1 *h;
@@ -78,14 +77,12 @@ void PtWeights::WeightXsec(Fun4AllHistoManager *hm)
     if(( h = dynamic_cast<TH1*>(hm->getHisto(ih)) ))
     {
       TString hname = h->GetName();
-      if( hname.EqualTo("h_events") )
-        h->SetBinContent(1, (double)nEvents);
-      else
-        h->Scale(xsec);
+      if( !hname.EqualTo("h_events") )
+        h->Scale(weight);
     }
     else if(( hn = dynamic_cast<THnBase*>(hm->getHisto(ih)) ))
     {
-      hn->Scale(xsec);
+      hn->Scale(weight);
     }
   }
 

@@ -1,5 +1,5 @@
 void anaDST(const int process = 0,
-    const int scale = 40,
+    const int scale = 400,
     const char *dstFileName = "simDST.root",
     const char *histoname = "histo.root")
 {
@@ -57,9 +57,9 @@ void anaDST(const int process = 0,
   }
 
   // Do the analysis for this DST file
-  //double pt_start = 3. + process/scale * 0.1;
+  //double pt_start = process/scale + 3;
   //PtWeights *ptweights = new PtWeights();
-  //double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "MinBias");
+  //double weight_pythia = ptweights->Integral(pt_start, pt_start+1, "Photon");
   //my1->SetWeightPythia(weight_pythia);
   se->run(0);
 

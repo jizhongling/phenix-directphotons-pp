@@ -3,7 +3,7 @@
 
 void anaIsoPhotonALLByFill()
 {
-  QueryTree *qt_asym = new QueryTree("data/isophoton-asym-fill-tightcut.root", "RECREATE");
+  QueryTree *qt_asym = new QueryTree("data/isophoton-asym-fill.root", "RECREATE");
 
   TFile *f_rlum = new TFile("data/RelLum.root");
   TTree *t_rlum = (TTree*)f_rlum->Get("T");

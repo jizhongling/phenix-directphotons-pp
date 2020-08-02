@@ -1,4 +1,4 @@
-void anaFastMC_PH(const int process = 0, const int scale = 4)
+void anaFastMC_PH(const int process = 0, const int scale = 40)
 {
   //gSystem->Load("libfun4allfuncs.so");	// framework only
   gSystem->Load("libfun4all.so");	// framework + reco modules
@@ -48,7 +48,7 @@ void anaFastMC_PH(const int process = 0, const int scale = 4)
   AnaFastMC *my1 = new AnaFastMC("AnaFastMC");
   my1->set_outfile( Form("../AnaFastMC-PH-histo%d.root",process) );
   my1->set_mcmethod(PHParticleGen);
-  my1->use_xsec_weight();
+  //my1->use_xsec_weight();
   //my1->enable_calcsys();
   se->registerSubsystem(my1);
 
@@ -70,10 +70,10 @@ void anaFastMC_PH(const int process = 0, const int scale = 4)
   // se->registerOutputManager(oscar_manager);
 
   // Run over all events
-  //double pt_start = 3. + process/scale * 0.1;
-  //PtWeights *ptweights = new PtWeights();
-  //double weight_pythia = ptweights->Integral(pt_start, pt_start+1., "Photon");
-  //my1->SetWeightPythia(weight_pythia);
+  double pt_start = process/scale + 3;
+  PtWeights *ptweights = new PtWeights();
+  double weight_pythia = ptweights->Integral(pt_start, pt_start+1, "Photon");
+  my1->SetWeightPythia(weight_pythia);
   se->run(500000);
 
   // Write histograms

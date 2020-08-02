@@ -3,7 +3,7 @@
 
 void draw_YieldKEN2()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Inseok.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Inseok-tightcut.root");
 
   QueryTree *qt_ken2_pion = new QueryTree("data/YieldKEN2-pion.root", "RECREATE");
   for(int ibg=0; ibg<2; ibg++)

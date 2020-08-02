@@ -60,7 +60,7 @@ const double eMin = 0.3;
 const double AsymCut = 0.8;
 
 /* Some cuts for isolation cut */
-const double eClusMin = 0.5;  // loose cut is 0.15
+const double eClusMin = 0.15;
 const double pTrkMin = 0.2;
 const double pTrkMax = 15.;
 
@@ -172,8 +172,7 @@ int AnaFastMC::Init(PHCompositeNode *topNode)
 int AnaFastMC::process_event(PHCompositeNode *topNode)
 {
   /* Count events */
-  if(!usexsec)
-    h_events->Fill(1.);
+  h_events->Fill(1.);
 
   /* Use FastMC input (i.e. random number generator for pi0, eta and direct photon eta, phi, pt) */
   if( mcmethod == FastMC )

@@ -6,6 +6,8 @@ void anaIsoPhotonALL(const int process = 0)
   const int nThread = 50;
   int thread = -1;
 
+  QueryTree *qt_asym = new QueryTree(Form("histos/isophoton-asym-%d.root",process), "RECREATE");
+
   TFile *f_rlum = new TFile("data/RelLum.root");
   TTree *t_rlum = (TTree*)f_rlum->Get("T");
   int runnumber, spin_pattern;
@@ -22,8 +24,6 @@ void anaIsoPhotonALL(const int process = 0)
   t_rlum->SetBranchAddress("eRelLum", erlum[2]);
 
   QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-isophoton.root");
-
-  QueryTree *qt_asym = new QueryTree(Form("histos/isophoton-asym-%d.root",process), "RECREATE");
 
   for(int ien=0; ien<t_rlum->GetEntries(); ien++)
   {

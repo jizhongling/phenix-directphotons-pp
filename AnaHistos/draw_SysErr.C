@@ -24,9 +24,8 @@ void draw_SysErr(const int pwhg = 0)
   else if(pwhg == 1)
   {
     TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo.root");
-    //TH1 *h_events = (TH1*)f_pythia->Get("h_events");
-    //const double nEvents = h_events->GetBinContent(1);
-    const double powheg_scale = 1./2703.;
+    TH1 *h_events = (TH1*)f_pythia->Get("h_events");
+    const double nEvents = h_events->GetBinContent(1);
     const int nmu[2] = {7, 7};
     const char *mu_name[2][3] = {
       {"  1            1           --", "vary       vary        --", "vary       vary        --"},
@@ -96,8 +95,7 @@ void draw_SysErr(const int pwhg = 0)
       else if(pwhg == 1)
       {
         TH1 *h_nlo = (TH1*)f_pythia->Get(Form("hard0_iso%d_rap0_id%d",iso,imu));
-        //h_nlo->Scale(1./nEvents, "width");
-        h_nlo->Scale(powheg_scale);
+        h_nlo->Scale(1./nEvents, "width");
       }
       for(int ipt=10; ipt<npT; ipt++)
       {

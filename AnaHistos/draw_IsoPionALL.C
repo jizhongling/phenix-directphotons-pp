@@ -13,7 +13,7 @@ void draw_IsoPionALL()
 
   QueryTree *qt_all = new QueryTree("data/IsoPionALL.root", "RECREATE");
 
-  QueryTree *qt_asym = new QueryTree("data/isophoton-asym-tightcut.root");
+  QueryTree *qt_asym = new QueryTree("data/isophoton-asym.root");
   qt_asym->SetQuiet();
 
   QueryTree *qt_rbg = new QueryTree("data/BgRatio-isopion.root");

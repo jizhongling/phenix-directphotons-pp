@@ -10,14 +10,14 @@ source $HOME/.login
 
 set config = "pythia.cfg"
 set nProcess = 1200
-set scale = `echo "$nProcess/300" | bc`
+set scale = `echo "$nProcess/30" | bc`
 
 cd $1/histos
 mkdir proc$2
 cp ../$0:t:r.C ../$config proc$2
 
 cd proc$2
-set pt = `echo "3 + $2/$scale * 0.1" | bc`
+set pt = `echo "$2/$scale + 3" | bc`
 sed -i "s/^ckin 3 .*/ckin 3 $pt/" $config
 set pt = `echo "$pt + 1" | bc`
 sed -i "s/^ckin 4 .*/ckin 4 $pt/" $config

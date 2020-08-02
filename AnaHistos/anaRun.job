@@ -1,7 +1,7 @@
 Universe        = vanilla
 Notification    = Complete
 Executable      = /phenix/u/zji/bin/condor-root.csh
-Arguments       = $(Initialdir) anaIsoPhotonALL.C $(Process)
+Arguments       = $(Initialdir) anaPileup_IsoPhoton.C $(Process)
 Requirements    = (CPU_Speed >= 1)
 Rank		= CPU_Speed
 request_memory  = 128M
@@ -14,4 +14,4 @@ Output          = /dev/null
 Error           = /dev/null
 Log             = /dev/null
 Notify_user     = zji@rcf.rhic.bnl.gov
-Queue 16
+Queue 9

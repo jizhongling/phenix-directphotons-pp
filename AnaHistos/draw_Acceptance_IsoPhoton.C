@@ -5,7 +5,6 @@
 
 void draw_Acceptance_IsoPhoton(const int subbg = 0)
 {
-  const char *fname[2] = {"photon", "minbias"};
   const char *simname[2] = {"FastMC", "PISA"};
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
   const int secl[3] = {1, 5, 7};
@@ -29,51 +28,26 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
     QueryTree *qt_veto = new QueryTree("data/SelfVeto.root");
   } // subbg
 
-  TH1 *h_photon, *h_isolated;
-  THnSparse *hn_geom, *hn_isolated;
-  THnSparse *hn_1photon,*hn_2photon;
-  for(int id=0; id<1; id++)
-  {
-    TFile *f_pythia = new TFile( Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-%s.root",fname[id]) );
-    THnSparse *hn_hadron = (THnSparse*)f_pythia->Get("hn_hadron");
-    hn_hadron->GetAxis(2)->SetRange(1,1);  // prompt photons
-    hn_hadron->GetAxis(1)->SetRange(1,1);  // |eta| < 0.25
-    TH1 *h_photon_tmp = hn_hadron->Projection(0);
-    h_photon_tmp->SetName("h_photon_eta025");
-    hn_hadron->GetAxis(2)->SetRange(2,2);  // isolated prompt photons
-    hn_hadron->GetAxis(1)->SetRange(1,1);  // |eta| < 0.25
-    TH1 *h_isolated_tmp = hn_hadron->Projection(0);
-    h_isolated_tmp->SetName("h_isophoton_eta025");
-    THnSparse *hn_geom_tmp = (THnSparse*)f_pythia->Get("hn_geom");
-    THnSparse *hn_isolated_tmp = (THnSparse*)f_pythia->Get("hn_isolated");
+  TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-photon.root");
+  THnSparse *hn_hadron = (THnSparse*)f_pythia->Get("hn_hadron");
+  hn_hadron->GetAxis(3)->SetRange(1,2);  // prompt photons
+  hn_hadron->GetAxis(2)->SetRange(1,1);  // |eta| < 0.25
+  hn_hadron->GetAxis(5)->SetRange(1,2);  // inclusive
+  TH1 *h_photon = hn_hadron->Projection(0);
+  h_photon->SetName("h_photon_eta025");
+  hn_hadron->GetAxis(5)->SetRange(2,2);  // isolated
+  TH1 *h_isolated = hn_hadron->Projection(0);
+  h_isolated->SetName("h_isophoton_eta025");
+  THnSparse *hn_geom = (THnSparse*)f_pythia->Get("hn_geom");
+  THnSparse *hn_isolated = (THnSparse*)f_pythia->Get("hn_photon");
 
-    TFile *f_pisa = new TFile( Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/HadronResponse-histo-%s.root",fname[id]) );
-    THnSparse *hn_1photon_tmp = (THnSparse*)f_pisa->Get("hn_1photon");
-    THnSparse *hn_2photon_tmp = (THnSparse*)f_pisa->Get("hn_2photon");
+  TFile *f_pisa = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/HadronResponse-histo-photon.root");
+  THnSparse *hn_1photon = (THnSparse*)f_pisa->Get("hn_1photon");
+  THnSparse *hn_2photon = (THnSparse*)f_pisa->Get("hn_2photon");
 
-    if(id == 0)
-    {
-      h_photon = h_photon_tmp;
-      h_isolated = h_isolated_tmp;
-      hn_geom = hn_geom_tmp;
-      hn_isolated = hn_isolated_tmp;
-      hn_1photon = hn_1photon_tmp;
-      hn_2photon = hn_2photon_tmp;
-    }
-    else if(id == 1)
-    {
-      h_photon->Add(h_photon_tmp, 1e3);
-      h_isolated->Add(h_isolated_tmp, 1e3);
-      hn_geom->Add(hn_geom_tmp, 1e3);
-      hn_isolated->Add(hn_isolated_tmp, 1e3);
-      hn_1photon->Add(hn_1photon_tmp, 1e3);
-      hn_2photon->Add(hn_2photon_tmp, 1e3);
-    }
-  }
-
-  //hn_isolated->GetAxis(5)->SetRange(1,1);  // isys
-  hn_isolated->GetAxis(3)->SetRange(3,3);  // econe_trk[ival]: EMCal, nomap, withmap
-  //hn_isolated->GetAxis(3)->SetRange(2,2);  // isolated
+  hn_isolated->GetAxis(5)->SetRange(1,1);  // isys
+  hn_isolated->GetAxis(4)->SetRange(3,3);  // econe_trk[ival]: EMCal, nomap, withmap
+  hn_isolated->GetAxis(3)->SetRange(2,2);  // isolated
   hn_1photon->GetAxis(2)->SetRange(2,2);  // isolated
   hn_1photon->GetAxis(4)->SetRange(1,2);  // trig
   hn_2photon->GetAxis(7)->SetRange(1,2);  // trig
@@ -157,7 +131,6 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
 
       double xpt, Prob, eProb;
       qt_prob->Query(ipt, part/2, xpt, Prob, eProb);
-      eProb = 0.02;
 
       if(subbg)
       {
@@ -230,19 +203,24 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
         qt_badpass->Query(ipt, part/2, xpt, BadPass, eBadPass);
         qt_veto->Query(ipt, part, xpt, Veto, eVeto);
 
-        double AIso = A * Veto * (1.+MissEta)/(1.+2.*MissEta) * (1+2.*Miss+Merge1);
-        double ndir = nphoton/Conv[part] - (1. + Merge1*Conv[part]*(1.-Conv[part])) * nisoboth/pow(Conv[part],2) - Miss * nisopair/pow(Conv[part],2) - Merge2/2.*BadPass * nisopair2pt - AIso * nisopair;
-        double endir = sqrt(pow(enphoton,2)/pow(Conv[part],2) + (pow(enisoboth,2)* pow(1. + (1. - Conv[part])*Conv[part]*Merge1,2))/ pow(Conv[part],4) + 0.25*pow(BadPass,2)*pow(enisopair2pt,2)* pow(Merge2,2) + 0.25*pow(BadPass,2)*pow(eMerge2,2)* pow(nisopair2pt,2) + 0.25*pow(eBadPass,2)*pow(Merge2,2)* pow(nisopair2pt,2) + (pow(A,2)*pow(eVeto,2)* pow(1. + Miss,2)* pow(1 + Merge1 + 2.*Miss,2)* pow(nisopair,2))/pow(1. + 2.*Miss,2) + pow(eConv[part],2)* pow(-((((1. - Conv[part])*Merge1 - Conv[part]*Merge1)* nisoboth)/pow(Conv[part],2)) + (2*(1. + (1. - Conv[part])*Conv[part]*Merge1)* nisoboth)/pow(Conv[part],3) + (2*Miss*nisopair)/pow(Conv[part],3) - nphoton/pow(Conv[part],2),2) + (pow(eA,2)*pow(1. + Miss,2)* pow(1 + Merge1 + 2.*Miss,2)* pow(nisopair,2)*pow(Veto,2))/ pow(1. + 2.*Miss,2) + pow(enisopair,2)* pow(-(Miss/pow(Conv[part],2)) - (A*(1. + Miss)*(1 + Merge1 + 2.*Miss)* Veto)/(1. + 2.*Miss),2) + pow(eMerge1,2)* pow(-(((1. - Conv[part])*nisoboth)/Conv[part]) - (A*(1. + Miss)*nisopair*Veto)/ (1. + 2.*Miss),2) + pow(eMiss,2)*pow(-(nisopair/ pow(Conv[part],2)) - (2.*A*(1. + Miss)*nisopair*Veto)/ (1. + 2.*Miss) + (2.*A*(1. + Miss)*(1 + Merge1 + 2.*Miss)* nisopair*Veto)/pow(1. + 2.*Miss,2) - (A*(1 + Merge1 + 2.*Miss)*nisopair*Veto)/ (1. + 2.*Miss),2));
+        double Eff = Conv[part];
+        double AIso = A*(Veto + MissEta)/(1 + 2*MissEta)*(1 + 2*Miss + Merge1);
+        double nbg = (1 + Merge1*Conv[part]*(1 - Conv[part]))*nisoboth + (Miss + AIso)*nisopair + Merge2/2*BadPass*nisopair2pt;
+        double e2nbg = pow((1 + Merge1*Conv[part]*(1 - Conv[part]))*enisoboth,2) + pow((Miss + AIso)*enisopair,2) + pow(Merge2/2*BadPass*enisopair2pt,2);
+
+        double ndir = nphoton/Eff - nbg/Eff/Eff;
+        double endir = sqrt(enphoton*enphoton + e2nbg/Eff/Eff) / Eff;
       } // subbg
       else
       {
-        double ndir = nphoton / Conv[part];
-        double endir = ndir * sqrt( pow(enphoton/nphoton,2) + pow(eConv[part]/Conv[1],2) );
+        double Eff = Conv[part];
+        double ndir = nphoton/Eff;
+        double endir = enphoton/Eff;
       } // nosubbg
 
-      double nacc = ndir / Prob;
-      double enacc = nacc * sqrt( pow(endir/ndir,2) + pow(eProb/Prob,2) );
-      double Acc = nacc / nisophoton;
+      double nacc = ndir/Prob;
+      double enacc = endir/Prob;
+      double Acc = nacc/nisophoton;
       double eAcc = Acc * sqrt( pow(enisophoton/nisophoton,2) + pow(enacc/nacc,2) );
       if( TMath::Finite(Acc+eAcc) )
         qt_acc->Fill(ipt, part+3, xpt, Acc, eAcc);

@@ -47,11 +47,11 @@ const TVector2 v2_2PI(0.,2.*PI);
 const double eMin = 0.3;
 const double probMin = 0.02;
 const double tofMax = 10.;
-const double tofMaxIso = 10.;  // loose cut is 50.
+const double tofMaxIso = 50.;
 const double AsymCut = 0.8;
 
 /* Some cuts for isolation cut */
-const double eClusMin = 0.5;  // loose cut is 0.15
+const double eClusMin = 0.15;
 const double pTrkMin = 0.2;
 const double pTrkMax = 15.;
 
@@ -129,8 +129,7 @@ int HadronResponse::Init(PHCompositeNode *topNode)
 int HadronResponse::process_event(PHCompositeNode *topNode)
 {
   /* Count events */
-  if(!usexsec)
-    h_events->Fill(1.);
+  h_events->Fill(1.);
 
   /* EMC track truth info */
   emcGeaTrackContainer *emctrkcont = emcNodeHelper::getObject<emcGeaTrackContainer>("emcGeaTrackContainer", topNode);

@@ -24,7 +24,7 @@ void IsGoodHisto(const char *fname, const double nevents)
   TFile *f = new TFile(fname);
   if(!f || f->IsZombie()) exit(1);
   TH1 *h = (TH1*)f->Get("h_events");
-  if(!h || fabs(h->GetBinContent(1)-nevents) > 0.5) exit(1);
+  if(!h || fabs(h->GetEntries()-nevents) > 0.5) exit(1);
   exit(0);
 }
 

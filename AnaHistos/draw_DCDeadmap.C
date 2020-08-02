@@ -105,7 +105,7 @@ void calcMCRunRatio()
         imap = i;
     if(imap < 0 || imap >= nmap) continue;
 
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15410/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15811/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() ) continue;
 
     TH1 *h_events = (TH1*)f->Get("h_events");

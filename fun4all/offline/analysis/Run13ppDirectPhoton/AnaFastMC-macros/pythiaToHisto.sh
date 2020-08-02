@@ -11,7 +11,7 @@ goodlist="${output_dir}/aa_goodlist.txt"
 badlist="${output_dir}/aa_badlist.txt"
 nProcess="12000"
 #nProcess="1200"
-scale=`echo "${nProcess}/300" | bc`
+scale=`echo "${nProcess}/30" | bc`
 nevents="10000"
 #nevents="5000"
 maxcheck="4"
@@ -59,7 +59,7 @@ cd "${working}"
 cp "${pythia_ldir}/${pythia_macro}" .
 cp "${pythia_ldir}/${pythia_config}" .
 
-pt=`echo "3 + ${proc}/${scale} * 0.1" | bc`
+pt=`echo "${proc}/${scale} + 3" | bc`
 sed -i "s/^ckin 3 .*/ckin 3 ${pt}/" "${pythia_config}"
 pt=`echo "${pt} + 1" | bc`
 sed -i "s/^ckin 4 .*/ckin 4 ${pt}/" "${pythia_config}"

@@ -25,7 +25,7 @@ void anaRawALL(const int process = 0)
       break;
     if(spin_pattern > 3) continue;
 
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15410/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/15811/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() ) continue;
 
     // h[icr][ipol]

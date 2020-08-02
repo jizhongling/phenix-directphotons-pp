@@ -20,7 +20,7 @@ bool valid_bunch(int bunch, int spin_pol[])
 
 int main()
 {
-  const int taxi = 15811;
+  const int taxi = 16462;
   const int npT_pol = 15;
 
   TFile *f_rlum = new TFile("data/RelLum.root");
