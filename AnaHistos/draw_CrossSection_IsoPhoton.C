@@ -181,8 +181,8 @@ void draw_CrossSection_IsoPhoton()
 
         double Acc, eAcc, TrigERT, eTrigERT, Miss, eMiss, MissEta, eMissEta,
                Merge1, eMerge1, Merge2, eMerge2, BadPass, eBadPass, Veto, eVeto;
-        qt_acc->Query(ipt, part, dummy, Acc, eAcc);
-        qt_ert->Query(ipt, part, xpt, TrigERT, eTrigERT);
+        qt_acc->Query(ipt, part, xpt, Acc, eAcc);
+        qt_ert->Query(ipt, part, dummy, TrigERT, eTrigERT);
         qt_miss->Query(ipt, part, dummy, Miss, eMiss);
         qt_miss_eta->Query(ipt, part, dummy, MissEta, eMissEta);
         qt_veto->Query(ipt, part, dummy, Veto, eVeto);

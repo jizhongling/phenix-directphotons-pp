@@ -85,9 +85,9 @@ void draw_CrossSection_Pion()
         evtype = 1;
 
       double Acc, eAcc, Merge, eMerge, TrigERT, eTrigERT;
-      qt_acc->Query(ipt, part, dummy, Acc, eAcc);
+      qt_acc->Query(ipt, part, xpt, Acc, eAcc);
       qt_merge->Query(ipt, part/2, dummy, Merge, eMerge);
-      qt_ert->Query(ipt, part/2, xpt, TrigERT, eTrigERT);
+      qt_ert->Query(ipt, part/2, dummy, TrigERT, eTrigERT);
 
       if(xpt > 10.)
       {

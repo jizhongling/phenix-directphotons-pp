@@ -31,7 +31,7 @@ void draw_YieldKEN2()
       }
   qt_ken2_pion->Save();
 
-  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-isophoton.root", "RECREATE");
+  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-isophoton-tightcut.root", "RECREATE");
   for(int imul=0; imul<6; imul++)
     for(int beam=0; beam<3; beam++)
       for(int icr=0; icr<2; icr++)

@@ -15,7 +15,7 @@ void draw_BgRatio_IsoPhoton()
   const double A = 0.28;
   const double eA = 0.05;
 
-  QueryTree *qt_rbg = new QueryTree("data/BgRatio-isophoton.root", "RECREATE");
+  QueryTree *qt_rbg = new QueryTree("data/BgRatio-isophoton-tightcut.root", "RECREATE");
 
   QueryTree *qt_miss = new QueryTree("data/MissingRatio.root");
   QueryTree *qt_miss_eta = new QueryTree("data/MissingRatio-eta.root");

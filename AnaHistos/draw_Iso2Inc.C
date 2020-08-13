@@ -15,7 +15,7 @@ void draw_Iso2Inc(const int pwhg = 0)
 
   if(pwhg == 0)
   {
-    TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-minbias.root");
+    TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-photon.root");
     THnSparse *hn_hadron = (THnSparse*)f_pythia->Get("hn_hadron");
     hn_hadron->GetAxis(3)->SetRange(1,1);  // prompt photons
     hn_hadron->GetAxis(2)->SetRange(1,1);  // |eta| < 0.25
