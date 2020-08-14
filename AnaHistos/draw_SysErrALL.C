@@ -20,13 +20,13 @@ void draw_SysErrALL()
   {
     for(int ipt=0; ipt<npT_pol; ipt++)
     {
-      double xpt, comb[2], ecomb[2];
-      for(int isys=0; isys<2; isys++)
+      double xpt, comb[3], ecomb[3];
+      for(int isys=0; isys<3; isys++)
       {
         int igr = beam + ngr_photon*2 + ngr_photon*3*isys;
         qt_all->Query(ipt, igr, xpt, comb[isys], ecomb[isys]);
       }
-      double esys = sqrt(pow(3.853e-4,2) + pow(comb[0]*0.066,2) + pow(comb[1]-comb[0],2));
+      double esys = sqrt(pow(3.853e-4,2) + pow(comb[0]*0.066/(beam<2?2:1),2) + pow(comb[2]-comb[0],2) + pow(comb[1]-comb[0],2));
       qt_sys->Fill(ipt, beam, xpt, comb[0], esys);
     } // ipt
 

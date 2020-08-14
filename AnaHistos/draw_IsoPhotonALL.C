@@ -65,8 +65,8 @@ void draw_IsoPhotonALL()
   for(int beam=0; beam<3; beam++)
     for(int ipt=0; ipt<npT_pol; ipt++)
     {
-      double sig[2][8] = {};
-      double esig[2][8] = {};
+      double sig[3][8] = {};
+      double esig[3][8] = {};
       for(int icr=0; icr<2; icr++)
         for(int pattern=0; pattern<4; pattern++)
         {
@@ -109,12 +109,13 @@ void draw_IsoPhotonALL()
           if( TMath::Finite(mean+emean) )
             qt_all->Fill(ipt, igr, xpt, mean, emean);
 
-          for(int isys=0; isys<2; isys++)
+          for(int isys=0; isys<3; isys++)
           {
             int ipat = icr + 2*pattern;
-            for(int ibg=0; ibg<3; ibg++)
-              rbg[ibg] *= (1 + (xpt<10?-0.01:0.05)*isys);
-            sig[isys][ipat] = (mean - rbg[0]*allpion[0] - rbg[1]*allpion[1]) / (1 - rbg[0] - rbg[1] - rbg[2]);
+            if(isys==2)
+              for(int ibg=0; ibg<3; ibg++)
+                rbg[ibg] *= (1 + (xpt<10?-0.01:0.05));
+            sig[isys][ipat] = (mean - rbg[0]*allpion[0] - rbg[1]*allpion[1] - rbg[2]*(beam==2&&isys==1?Get_sys_eta(xpt):0)) / (1 - rbg[0] - rbg[1] - rbg[2]);
             esig[isys][ipat] = sqrt( emean*emean + pow(rbg[0]*eallpion[0],2) + pow(rbg[1]*eallpion[1],2) ) / (1 - rbg[0] - rbg[1] - rbg[2]);
 
             int igr = beam + 3*icr + 3*2*pattern + ngr_photon + ngr_photon*3*isys;
@@ -122,7 +123,7 @@ void draw_IsoPhotonALL()
           } // isys
         } // icr, pattern
 
-      for(int isys=0; isys<2; isys++)
+      for(int isys=0; isys<3; isys++)
       {
         double comb, ecomb;
         Chi2Fit(8, sig[isys], esig[isys], comb, ecomb);
