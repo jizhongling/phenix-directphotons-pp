@@ -1,6 +1,8 @@
 // To compile: g++ -Wall -o anaIsoPhotonShuffle anaIsoPhotonShuffle.cc `root-config --cflags --libs`
 #include <iostream>
+#include <fstream>
 #include <sstream>
+#include <sys/time.h>
 
 #include <TMath.h>
 #include <TFitResult.h>
@@ -14,6 +16,37 @@
 #include "CommonFunc.h"
 
 using namespace std;
+
+long unsigned int get_seed()
+{
+  // first try getting seed from /dev/random
+  long unsigned int seed = 0;
+  ifstream devrandom;
+  devrandom.open("/dev/random",ios::binary);
+  devrandom.read((char*)&seed,sizeof(seed));
+
+  // check that devrandom worked
+  if (!devrandom.fail()) {
+    //cout << "Got seed from /dev/random" << endl;
+    seed = seed%900000000 + 1;
+  }
+  else {
+    // /dev/random failed, get the random seed from the time of day, to the microsecond
+    //cout << "Getting seed from gettimeofday()" << endl;
+    timeval xtime;
+    int status = gettimeofday(&xtime,NULL);
+    if (status == 0) {
+      seed = ((xtime.tv_sec << 12) + (xtime.tv_usec&0xfff))%900000000 + 1;
+    }
+    else {
+      //cout << "Something wrong with gettimeofday()" << endl;
+      seed = 0;
+    }
+  }
+  devrandom.close();
+
+  return seed;
+}
 
 int main(int argc, char *argv[])
 {
@@ -87,7 +120,7 @@ int main(int argc, char *argv[])
     /* Generate random spin patterns for each fill */
     if(fillnumber != lastfill)
     {
-      rnd->SetSeed(ien + 1000*process + 1); 
+      rnd->SetSeed(get_seed()); 
       for(int ib=0; ib<120; ib++)
         if(abs(spin_pol[ib]) == 1)
           spin_rnd[ib] = rnd->Integer(2);

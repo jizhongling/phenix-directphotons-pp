@@ -4,8 +4,6 @@
 
 void draw_BgRatio_IsoPion()
 {
-  gSystem->Load("libGausProc.so");
-
   QueryTree *qt_rbg = new QueryTree("data/BgRatio-isopion.root", "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Inseok-tightcut.root");
@@ -15,6 +13,7 @@ void draw_BgRatio_IsoPion()
 
   int beam = 2;
   int checkmap = 1;
+  int ical = 0;
 
   for(int pttype=0; pttype<2; pttype++)
     for(int icr=0; icr<2; icr++)
@@ -25,7 +24,7 @@ void draw_BgRatio_IsoPion()
         for(int isopair=0; isopair<2; isopair++)
           for(int ipol=0; ipol<2; ipol++)
           {
-            int ih = beam + 3*icr + 3*2*ipol + 3*2*2*checkmap + 3*2*2*2*isoboth + 3*2*2*2*2*isopair;
+            int ih = beam + 3*icr + 3*2*ipol + 3*2*2*checkmap + 3*2*2*2*isoboth + 3*2*2*2*2*isopair + 3*2*2*2*2*2*ical;
             TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon%s_pol_%d",ptname,ih));
             h2_pion->Add(h2_tmp);
           }

@@ -36,13 +36,14 @@ void draw_BgRatio_IsoPhoton()
 
   int beam = 2;
   int checkmap = 1;
+  int ical = 0;
 
   for(int icr=0; icr<2; icr++)
   {
     h_photon->Reset();
     for(int ipol=0; ipol<2; ipol++)
     {
-      int ih = beam + 3*icr + 3*2*ipol + 3*2*2*checkmap;
+      int ih = beam + 3*icr + 3*2*ipol + 3*2*2*checkmap  + 3*2*2*2*2*ical;
       TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_pol_%d",ih));
       h_photon->Add(h_tmp);
     } // ipol
@@ -58,7 +59,7 @@ void draw_BgRatio_IsoPhoton()
         for(int iso=0; iso<2; iso++)
           for(int ipol=0; ipol<2; ipol++)
           {
-            int ih = beam + 3*icr + 3*2*ipol + 3*2*2*checkmap + 3*2*2*2*(1-isotype*iso) + 3*2*2*2*2*(1-(1-isotype)*iso);
+            int ih = beam + 3*icr + 3*2*ipol + 3*2*2*checkmap + 3*2*2*2*(1-isotype*iso) + 3*2*2*2*2*(1-(1-isotype)*iso) + 3*2*2*2*2*2*ical;
             TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon%s_pol_%d",ptname,ih));
             h2_pion[isotype]->Add(h2_tmp);
           } // ipol
