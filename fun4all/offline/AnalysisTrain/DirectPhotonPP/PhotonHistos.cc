@@ -55,9 +55,9 @@ const double tofMaxALL = 15.;
 const double AsymCut = 0.8;
 
 /* Some cuts for isolation cut */
-const double eClusMin = 0.3;
+const double eClusMin = 0.15;
 const double pTrkMin = 0.2;
-const double pTrkMax = 30.;
+const double pTrkMax = 15.;
 
 /* Isolation cut cone angle and energy fraction */
 const double cone_angle = 0.5;

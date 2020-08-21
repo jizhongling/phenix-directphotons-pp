@@ -17,37 +17,6 @@
 
 using namespace std;
 
-long unsigned int get_seed()
-{
-  // first try getting seed from /dev/random
-  long unsigned int seed = 0;
-  ifstream devrandom;
-  devrandom.open("/dev/random",ios::binary);
-  devrandom.read((char*)&seed,sizeof(seed));
-
-  // check that devrandom worked
-  if (!devrandom.fail()) {
-    //cout << "Got seed from /dev/random" << endl;
-    seed = seed%900000000 + 1;
-  }
-  else {
-    // /dev/random failed, get the random seed from the time of day, to the microsecond
-    //cout << "Getting seed from gettimeofday()" << endl;
-    timeval xtime;
-    int status = gettimeofday(&xtime,NULL);
-    if (status == 0) {
-      seed = ((xtime.tv_sec << 12) + (xtime.tv_usec&0xfff))%900000000 + 1;
-    }
-    else {
-      //cout << "Something wrong with gettimeofday()" << endl;
-      seed = 0;
-    }
-  }
-  devrandom.close();
-
-  return seed;
-}
-
 int main(int argc, char *argv[])
 {
   if(argc != 3)
@@ -111,7 +80,34 @@ int main(int argc, char *argv[])
   for(int ig=0; ig<ngr_asym; ig++)
     gr_asym[ig] = new TGraphErrors(nruns);
 
+  // first try getting seed from /dev/random
+  long unsigned int seed = 0;
+  ifstream devrandom;
+  devrandom.open("/dev/random",ios::binary);
+  devrandom.read((char*)&seed,sizeof(seed));
+
+  // check that devrandom worked
+  if (!devrandom.fail()) {
+    cout << "Got seed from /dev/random" << endl;
+    seed = seed%900000000 + 1;
+  }
+  else {
+    // /dev/random failed, get the random seed from the time of day, to the microsecond
+    cout << "Getting seed from gettimeofday()" << endl;
+    timeval xtime;
+    int status = gettimeofday(&xtime,NULL);
+    if (status == 0) {
+      seed = ((xtime.tv_sec << 12) + (xtime.tv_usec&0xfff))%900000000 + 1;
+    }
+    else {
+      cout << "Something wrong with gettimeofday()" << endl;
+      seed = 0;
+    }
+  }
+  devrandom.close();
+
   TRandom3 *rnd = new TRandom3();
+  rnd->SetSeed(seed);
 
   for(int ien=0; ien<nruns; ien++)
   {
@@ -120,7 +116,6 @@ int main(int argc, char *argv[])
     /* Generate random spin patterns for each fill */
     if(fillnumber != lastfill)
     {
-      rnd->SetSeed(get_seed()); 
       for(int ib=0; ib<120; ib++)
         if(abs(spin_pol[ib]) == 1)
           spin_rnd[ib] = rnd->Integer(2);
@@ -188,9 +183,9 @@ int main(int argc, char *argv[])
 
           int index = imul + 6*beam + 6*3*icr + 6*3*2*checkmap + 6*3*2*2*ical + 6*3*2*2*2*ipt;
           double k2 = ken2[index];
-          double ALL = 1./pbeam*(npp - r*npm)/(npp + r*npm);
-          double eALL = sqrt(pow(2*r*npp*npm/pbeam,2)/pow(npp + r*npm,4)*(k2/npp + k2/npm + er*er/r/r)
-              + e2pbeam*ALL*ALL);
+          double ALL = (npp - r*npm)/(npp + r*npm)/pbeam;
+          double eALL = sqrt(pow2(2*r*npp*npm/pow2(npp + r*npm)/pbeam)*(k2/npp + k2/npm + pow2(er/r))
+              + e2pbeam*pow2(ALL));
 
           if( TMath::Finite(ALL+eALL) && eALL > 0. )
           {
