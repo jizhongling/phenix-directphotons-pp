@@ -19,6 +19,7 @@ void draw_IsoPhotonALL()
 
   QueryTree *qt_allpion = new QueryTree("data/IsoPionALL.root");
   QueryTree *qt_rbg = new QueryTree("data/BgRatio-isophoton-tightcut.root");
+  QueryTree *qt_pt = new QueryTree("data/PtShift.root");
 
   vector<double> *vp_ALL = new vector<double>[8];
   vector<double> *vp_eALL = new vector<double>[8];
@@ -65,16 +66,18 @@ void draw_IsoPhotonALL()
   for(int beam=0; beam<3; beam++)
     for(int ipt=0; ipt<npT_pol; ipt++)
     {
+      double dummy, xpt;
+      qt_pt->Query(ipt, 2, dummy, xpt, dummy);
       double sig[3][8] = {};
       double esig[3][8] = {};
       for(int icr=0; icr<2; icr++)
         for(int pattern=0; pattern<4; pattern++)
         {
-          double xpt, allpion[2], eallpion[2], rbg[3], erbg[3];
+          double allpion[2], eallpion[2], rbg[3], erbg[3];
           for(int pttype=0; pttype<2; pttype++)
           {
             int part = beam + 3*pttype + ngr_pion/2*3;
-            qt_allpion->Query(ipt, part, xpt, allpion[pttype], eallpion[pttype]);
+            qt_allpion->Query(ipt, part, dummy, allpion[pttype], eallpion[pttype]);
             if( !TMath::Finite(allpion[pttype]) )
               allpion[pttype] = 0.;
             if( !TMath::Finite(eallpion[pttype]) )
@@ -83,7 +86,7 @@ void draw_IsoPhotonALL()
           for(int ibg=0; ibg<3; ibg++)
           {
             part = ibg + 3*icr;
-            qt_rbg->Query(ipt, part, xpt, rbg[ibg], erbg[ibg]);
+            qt_rbg->Query(ipt, part, dummy, rbg[ibg], erbg[ibg]);
             if( !TMath::Finite(rbg[ibg]) )
               rbg[ibg] = 0.;
             if( !TMath::Finite(erbg[ibg]) )

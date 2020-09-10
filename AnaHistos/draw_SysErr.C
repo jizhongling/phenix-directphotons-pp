@@ -53,7 +53,7 @@ void draw_SysErr(const int pwhg = 0)
       qt_cross->Query(ipt, 4, xpt, rsys, ersys);
       double sys = xsec*rsys;
       qt_sys->Fill(ipt, iso, xpt, xsec, sys);
-      if( false && TMath::Finite(xsec+exsec+sys) && xsec > 0. )
+      if( TMath::Finite(xsec+exsec+sys) && xsec > 0. )
         cout << xpt << " & " << xsec << " & " << exsec << " (" << 100.*exsec/xsec << "\\%) & "
           << sys << " (" << 100.*sys/xsec << "\\%) \\\\" << endl;
     }
