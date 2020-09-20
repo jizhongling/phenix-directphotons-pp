@@ -184,7 +184,7 @@ void draw_SysErr(const int pwhg = 0)
         TGraphErrors *gr_cross = qt_cross->Graph(3);
         TGraphErrors *gr_cross_sys = qt_sys->Graph(iso);
         gr_cross->SetTitle("");
-        aset(gr_cross, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 4.9,30.1, 0.5e-1, iso?3.5e3:1.5e4);
+        aset(gr_cross, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 5.9,30.1, 0.5e-1, iso?2e3:5e3);
         style(gr_cross, 20, 1, 2);
         style(gr_cross_sys, 1, 1, 2);
         gr_cross->SetMarkerSize(0.8);
@@ -208,14 +208,14 @@ void draw_SysErr(const int pwhg = 0)
 
         pad2->cd();
         gr_ratio->SetTitle(";p_{T} [GeV/c];#frac{Data-Theory}{Theory}");
-        aset(gr_ratio, "","", 4.9,30.1, iso*(1-pwhg)?-0.25:-0.45,iso*(1-pwhg)?0.55:3.15-2*iso, 1.,0.6,0.1,0.12);
+        aset(gr_ratio, "","", 5.9,30.1, iso*(1-pwhg)?-0.25:-0.45,iso*(1-pwhg)?0.55:2.15-iso, 1.,0.6,0.1,0.12);
         style(gr_ratio_sys, 1, imu+1, 2);
         gr_ratio->GetXaxis()->SetLabelSize(0.09);
         gr_ratio->GetYaxis()->SetLabelSize(0.09);
         gr_ratio->GetXaxis()->SetTickSize(0.08);
         gr_ratio->Draw("APE");
         gr_ratio_sys->Draw("[]");
-        line->DrawLine(5., 0., 30., 0.);
+        line->DrawLine(6., 0., 30., 0.);
       }
       else
       {
@@ -229,9 +229,9 @@ void draw_SysErr(const int pwhg = 0)
 
     char *type = iso ? "iso" : "";
     c0->Print(Form("plots/CrossSection-%sphoton-%s.pdf",type,pwhg?"pwhg":"syserr"));
-    if(pwhg == 0)
+    if( (iso==0&&pwhg==1) || (iso==1&&pwhg==0) )
     {
-      const char *cmd = Form("preliminary.pl --input=plots/CrossSection-%sphoton-syserr.pdf --output=plots/CrossSection-%sphoton-prelim.pdf --x=360 --y=420 --scale=0.8", type,type);
+      const char *cmd = Form("preliminary.pl --input=plots/CrossSection-%sphoton-%s.pdf --output=plots/CrossSection-%sphoton-prelim.pdf --x=360 --y=420 --scale=0.8", type,pwhg?"pwhg":"syserr",type);
       system(cmd);
     }
     delete c0;

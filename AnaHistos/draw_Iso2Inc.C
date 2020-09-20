@@ -89,7 +89,7 @@ void draw_Iso2Inc(const int pwhg = 0)
   for(int iph=0; iph<2; iph++)
   {
     gr[iph]->Set(igp[iph]);
-    aset(gr[iph], "p_{T} [GeV]", "Iso/Inc", 5.,30., 0.,1.4);
+    aset(gr[iph], "p_{T} [GeV]", "Iso/Inc", 5.9,30.1, 0.,1.4);
     style(gr[iph], iph+20, iph+1);
     if(iph==0)
     {
@@ -120,4 +120,6 @@ void draw_Iso2Inc(const int pwhg = 0)
   leg0->Draw();
 
   c0->Print(Form("plots/Iso2Inc%s.pdf",pwhg?"-pwhg":""));
+  if(pwhg == 1)
+    system("preliminary.pl --input=plots/Iso2Inc-pwhg.pdf --output=plots/Iso2Inc-prelim.pdf --x=320 --y=220 --scale=0.8");
 }

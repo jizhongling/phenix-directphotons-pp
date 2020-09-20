@@ -23,10 +23,12 @@ void draw_SysErrALL()
   mc();
   mcd();
   gPad->SetGridy();
+  TLatex *latex = new TLatex();
+  latex->SetTextSize(0.04);
   cout.precision(4);
   for(int beam=0; beam<3; beam++)
   {
-    for(int ipt=0; ipt<npT_pol-1; ipt++)
+    for(int ipt=7; ipt<npT_pol-1; ipt++)
     {
       double xpt, comb[3], ecomb[3];
       for(int isys=0; isys<3; isys++)
@@ -49,7 +51,7 @@ void draw_SysErrALL()
     TGraphErrors *gr_all = qt_all->Graph(igr);
     TGraphErrors *gr_sys = qt_sys->Graph(beam);
     gr_all->SetTitle( Form("#gamma^{dir} %s",beam_list[beam]) );
-    aset(gr_all, "p_{T} [GeV]",beam_list[beam], 0.,20., -0.06,0.05);
+    aset(gr_all, "p_{T} [GeV]",beam_list[beam], 5.9,20.1, -0.06,0.05);
     style(gr_all, 1, 1);
     style(gr_sys, 1, 1);
     gr_all->GetYaxis()->SetNdivisions(510);
@@ -67,10 +69,13 @@ void draw_SysErrALL()
     {
       gr_dssv->SetLineColor(kRed);
       gr_dssv->Draw("C");
+      latex->DrawLatexNDC(0.23,0.37, "#splitline{Isolated direct photon A_{LL}}{#vec{p}+#vec{p} #sqrt{s} = 510 GeV, |#eta| < 0.25}");
+      latex->DrawLatexNDC(0.75,0.65, "DSSV14");
     }
     c0->Print(Form("plots/IsoPhotonALL-beam%d-syserr.pdf",beam));
     c0->Clear("D");
   } // beam
+  system("preliminary.pl --input=plots/IsoPhotonALL-beam2-syserr.pdf --output=plots/IsoPhotonALL-beam2-prelim.pdf --x=360 --y=420 --scale=0.8");
 
   mc(1);
   mcd(1);
@@ -78,14 +83,14 @@ void draw_SysErrALL()
   leg0->SetNColumns(2);
   for(int i=0; i<3; i++)
   {
-    aset(gr_ratio[i], "p_T [GeV]","Rel Err", 6.,20., 0.,0.15);
+    aset(gr_ratio[i], "p_{T} [GeV]","Rel Err", 5.9,20.1, 0.,0.15);
     style(gr_ratio[i], 1, 1+i);
     gr_ratio[i]->Draw(i==0?"AL":"L");
     leg0->AddEntry(gr_ratio[i], err_name[i], "L");
   }
   TLine *l_ratio = new TLine;
   l_ratio->SetLineColor(4);
-  l_ratio->DrawLine(6.,0.066,25.,0.066);
+  l_ratio->DrawLine(6.,0.066,17.,0.066);
   leg0->AddEntry(l_ratio, err_name[3], "L");
   leg0->Draw();
   c1->Print("plots/IsoPhotonALL-beam2-relerr.pdf");
