@@ -89,7 +89,7 @@ void draw_BgRatio()
 
     mcd(3);
     TGraphErrors *gr = qt_rbg->Graph(part);
-    aset(gr, "p_{T} [GeV]","#Deltar_{sig}", 6.1,16., -0.02,0.1);
+    aset(gr, "p_{T} [GeV/c]","#Deltar_{sig}", 6.1,16., -0.02,0.1);
     style(gr, part+20, part+1);
     char *opt = part==0 ? "AP" : "P";
     gr->Draw(opt);

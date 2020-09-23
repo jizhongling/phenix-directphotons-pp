@@ -78,7 +78,7 @@ void draw_YieldCmpSample()
   for(int part=0; part<3; part++)
   {
     gr[part]->Set(igp[part]);
-    aset(gr[part], "p_{T} [GeV]","#frac{histo}{node}", 0.,30., 0.9999,1.0001);
+    aset(gr[part], "p_{T} [GeV/c]","#frac{histo}{node}", 0.,30., 0.9999,1.0001);
     style(gr[part], part+24, part+1);
     if(part == 0)
       gr[part]->Draw("AP");

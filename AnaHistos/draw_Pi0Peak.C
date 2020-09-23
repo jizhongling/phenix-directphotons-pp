@@ -125,8 +125,8 @@ void draw_Pi0Peak()
     gr_sim_mass[part]->Set(igp_sim[part]);
     gr_sim_width[part]->Set(igp_sim[part]);
 
-    aset(gr_data_mass[part], "p_{T} [GeV]","mass [GeV]", 0.,20., 0.13,0.145);
-    aset(gr_data_width[part], "p_{T} [GeV]","width [GeV]", 0.,20., 0.007,0.015);
+    aset(gr_data_mass[part], "p_{T} [GeV/c]","mass [GeV]", 0.,20., 0.13,0.145);
+    aset(gr_data_width[part], "p_{T} [GeV/c]","width [GeV]", 0.,20., 0.007,0.015);
     style(gr_data_mass[part], 24, kRed);
     style(gr_data_width[part], 24, kRed);
     style(gr_sim_mass[part], 24, kBlue);

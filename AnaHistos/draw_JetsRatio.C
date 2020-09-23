@@ -27,7 +27,7 @@ void draw_JetsRatio()
     h_jets->Rebin(ngroup);
 
     TGraphErrors *gr_jets = DivideHisto(h_jets, h_photon);
-    aset(gr_jets, "p_{T} [GeV]","N_{jets}/N_{#gamma}", 5.,30., 0.5,1.1);
+    aset(gr_jets, "p_{T} [GeV/c]","N_{jets}/N_{#gamma}", 5.,30., 0.5,1.1);
     style(gr_jets, 20+iso, 1+iso);
     gr_jets->Draw(iso==0?"AP":"P");
 

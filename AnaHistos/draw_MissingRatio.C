@@ -44,7 +44,7 @@ void draw_MissingRatio()
     {
       TGraphErrors *gr_miss = qt_miss->Graph(part);
       gr_miss->SetNameTitle(Form("gr_%d",part), "Missing Ratio for #pi^{0}");
-      aset(gr_miss, "p_{T}^{1#gamma} [GeV]","R", 5.,30., 0.,1.5);
+      aset(gr_miss, "p_{T}^{1#gamma} [GeV/c]","R", 5.,30., 0.,1.5);
       style(gr_miss, 20+part, 1+part);
       if(part == 0)
         gr_miss->Draw("AP");
@@ -74,7 +74,7 @@ void draw_MissingRatio()
     {
       TGraphErrors *gr_miss_eta = qt_miss_eta->Graph(part);
       gr_miss_eta->SetNameTitle(Form("gr_%d",part), "Missing Ratio for #eta");
-      aset(gr_miss_eta, "p_{T}^{1#gamma} [GeV]","R", 5.,30., 0.,1.5);
+      aset(gr_miss_eta, "p_{T}^{1#gamma} [GeV/c]","R", 5.,30., 0.,1.5);
       style(gr_miss_eta, 20+part, 1+part);
       if(part == 0)
         gr_miss_eta->Draw("AP");
@@ -99,7 +99,7 @@ void draw_MissingRatio()
     {
       TGraphErrors *gr_merge1 = qt_merge1->Graph(part);
       gr_merge1->SetNameTitle(Form("gr_%d",part+3), "Merging Ratio for one photon p_{T}");
-      aset(gr_merge1, "p_{T}^{1#gamma} [GeV]","Merging ratio", 5.,30., 1e-4,10.);
+      aset(gr_merge1, "p_{T}^{1#gamma} [GeV/c]","Merging ratio", 5.,30., 1e-4,10.);
       style(gr_merge1, 20+part, 1+part);
       if(part == 0)
         gr_merge1->Draw("AP");
@@ -129,7 +129,7 @@ void draw_MissingRatio()
     {
       TGraphErrors *gr_merge2 = qt_merge2->Graph(part);
       gr_merge2->SetNameTitle(Form("gr_%d",part), "Merging Ratio for two photon p_{T}");
-      aset(gr_merge2, "p_{T}^{2#gamma} [GeV]","Merging ratio", 5.,30., 1e-4,20.);
+      aset(gr_merge2, "p_{T}^{2#gamma} [GeV/c]","Merging ratio", 5.,30., 1e-4,20.);
       style(gr_merge2, 20+part, 1+part);
       if(part == 0)
         gr_merge2->Draw("AP");

@@ -74,7 +74,7 @@ void draw_Pileup_Isolated()
 
         mcd(1, part+3*im+1);
         gr_ratio->SetTitle( Form("%s: %s fit by %s", type[iph], pname[part], mname[im]) );
-        aset(gr_ratio, "pT [GeV]", "#frac{p0}{mean}");
+        aset(gr_ratio, "p_{T} [GeV/c]", "#frac{p0}{mean}");
         style(gr_ratio, 20, kRed);
         gr_ratio->Draw("AP");
         gr_ratio->Fit("pol0", "Q");

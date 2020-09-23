@@ -34,7 +34,7 @@ void draw_YieldPhoton()
   legi(0, 0.4,0.7,0.9,0.9);
   gPad->SetLogy();
   h_1photon[0]->SetTitle("All photon yield");
-  aset(h_1photon[0], "p_{T} [GeV]","Yield", 6.1,30.);
+  aset(h_1photon[0], "p_{T} [GeV/c]","Yield", 6.1,30.);
   style(h_1photon[0], 20, 1);
   style(h_1photon[1], 20, 2);
   h_1photon[0]->Draw("HISTO");

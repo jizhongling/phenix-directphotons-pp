@@ -74,7 +74,7 @@ void draw_Acceptance_Pion()
   {
     TGraphAsymmErrors *gr = qt_acc->GraphAsymm(part);
     gr->SetTitle("#pi^{0} acceptance");
-    aset(gr, "p_{T} [GeV]","acceptance", 0.,30., 0.,0.12);
+    aset(gr, "p_{T} [GeV/c]","acceptance", 0.,30., 0.,0.12);
     style(gr, part+20, part+1);
     if(part==0)
       gr->Draw("AP");

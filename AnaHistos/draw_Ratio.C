@@ -17,7 +17,7 @@ void draw_Ratio()
   mc();
   mcd();
   gPad->SetLogy();
-  aset(gr_ratio, "p_{T} [GeV]","Ratio", 0.,30., 1e-2,1e2);
+  aset(gr_ratio, "p_{T} [GeV/c]","Ratio", 0.,30., 1e-2,1e2);
   style(gr_ratio, 20, 1);
   gr_ratio->Draw("AP");
   c0->Print("plots/ALLRatio.pdf");

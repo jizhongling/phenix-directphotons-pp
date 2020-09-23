@@ -38,8 +38,8 @@ void draw_DirRun6()
   }
 
   gr_ratio->Set(igp);
-  aset(gr_ratio, "p_{T} [GeV]","#frac{data}{theory}");
-  //aset(gr_ratio, "p_{T} [GeV]","#frac{atlas}{mine}");
+  aset(gr_ratio, "p_{T} [GeV/c]","#frac{data}{theory}");
+  //aset(gr_ratio, "p_{T} [GeV/c]","#frac{atlas}{mine}");
   style(gr_ratio, 20, 1);
   gr_ratio->Draw("AP");
   //gr_ratio->Fit("pol0", "Q");

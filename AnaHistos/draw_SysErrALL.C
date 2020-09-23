@@ -51,7 +51,7 @@ void draw_SysErrALL()
     TGraphErrors *gr_all = qt_all->Graph(igr);
     TGraphErrors *gr_sys = qt_sys->Graph(beam);
     gr_all->SetTitle( Form("#gamma^{dir} %s",beam_list[beam]) );
-    aset(gr_all, "p_{T} [GeV]",beam_list[beam], 5.9,20.1, -0.06,0.05);
+    aset(gr_all, "p_{T} [GeV/c]",beam_list[beam], 5.9,20.1, -0.06,0.05);
     style(gr_all, 1, 1);
     style(gr_sys, 1, 1);
     gr_all->GetYaxis()->SetNdivisions(510);
@@ -83,7 +83,7 @@ void draw_SysErrALL()
   leg0->SetNColumns(2);
   for(int i=0; i<3; i++)
   {
-    aset(gr_ratio[i], "p_{T} [GeV]","Rel Err", 5.9,20.1, 0.,0.15);
+    aset(gr_ratio[i], "p_{T} [GeV/c]","Rel Err", 5.9,20.1, 0.,0.15);
     style(gr_ratio[i], 1, 1+i);
     gr_ratio[i]->Draw(i==0?"AL":"L");
     leg0->AddEntry(gr_ratio[i], err_name[i], "L");

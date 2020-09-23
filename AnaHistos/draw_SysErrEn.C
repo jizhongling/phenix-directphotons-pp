@@ -71,7 +71,7 @@ void draw_SysErrEn()
     {
       int index = itype + 2*isys;
       TGraphErrors *gr = qt_sys->Graph(index);
-      aset(gr, "p_{T} [GeV]","SysErr", 0.,30., 0.,0.15);
+      aset(gr, "p_{T} [GeV/c]","SysErr", 0.,30., 0.,0.15);
       style(gr, 20+isys, 1+isys);
       char *opt = isys ? "P" : "AL";
       gr->Draw(opt);

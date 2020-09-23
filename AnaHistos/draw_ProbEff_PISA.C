@@ -30,7 +30,7 @@ void draw_ProbEff_PISA()
     mcd(0, part+1);
     TGraphErrors *gr = qt_prob->Graph(part);
     gr->SetTitle( Form("Prob Eff for %s",pname[part]) );
-    aset(gr, "p_{T} [GeV]","Prob Eff", 5.1,30., 0.95,1.01);
+    aset(gr, "p_{T} [GeV/c]","Prob Eff", 5.1,30., 0.95,1.01);
     style(gr, part+20, part+1);
     gr->Draw("AP");
 

@@ -97,7 +97,7 @@ void draw_HadronResponse()
     mcd(6, 1+part);
     TGraphErrors *gr = qt_res->Graph(part);
     gr->SetTitle(pname[part]);
-    aset(gr, "p_{T} [GeV]","sum_reco/sum_mc", 0.,30., 0.,2.);
+    aset(gr, "p_{T} [GeV/c]","sum_reco/sum_mc", 0.,30., 0.,2.);
     style(gr, 20, 1);
     gr->Draw();
     gr->Fit("pol0", "","", 3.,30.);

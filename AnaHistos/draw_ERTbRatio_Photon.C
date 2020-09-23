@@ -51,7 +51,7 @@ void draw_ERTbRatio_Photon()
   {
     mcd(0, part+1);
     TGraphErrors *gr = qt_ratio->Graph(part);
-    aset(gr, "p_{T} [GeV]");
+    aset(gr, "p_{T} [GeV/c]");
     style(gr, part+20, part+1);
     gr->Draw("AP");
     gr->Fit("pol0", "Q","", 10.,30.);

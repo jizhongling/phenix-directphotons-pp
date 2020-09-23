@@ -4,7 +4,7 @@ bool GetMassWidth(TH1 *h_minv, double &mass, double &emass, double &width, doubl
   if( max <= 0. )
     return false;
 
-  aset(h_minv, "m_{inv} [GeV]","", 0.,0.3);
+  aset(h_minv, "m_{inv} [GeV/c^{2}]","", 0.,0.3);
 
   TF1 *fn_fit = new TF1("fn_fit", "gaus(0) + pol2(3)", 0.06, 0.25);
 

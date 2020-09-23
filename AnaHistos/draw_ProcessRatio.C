@@ -40,7 +40,7 @@ void draw_ProcessRatio()
   mcd();
   TGraphErrors *gr = DivideHisto(h_photon, h_total);
   gr->SetTitle("#frac{Prompt photons}{Hard QCD}");
-  aset(gr, "p_{T} [GeV]","Ratio", 5.1,30., 0.,0.002);
+  aset(gr, "p_{T} [GeV/c]","Ratio", 5.1,30., 0.,0.002);
   style(gr, 20, 1);
   gr->Draw("APE");
   c0->Print("plots/ProcessRatio.pdf");

@@ -38,7 +38,7 @@ void draw_Dir2Pi0()
       mcd(0, io+1);
       gr_ratio->Set(igp);
       gr_ratio->SetTitle(gtitle[io]);
-      aset(gr_ratio, "p_{T} [GeV]","#gamma_{dir}/#pi^{0}");
+      aset(gr_ratio, "p_{T} [GeV/c]","#gamma_{dir}/#pi^{0}");
       style(gr_ratio, 20+imu, 1+imu);
       if(imu==0)
         gr_ratio->Draw("AP");

@@ -65,7 +65,7 @@ void draw_Merge()
   {
     TGraphAsymmErrors *gr = qt_merge->GraphAsymm(part);
     gr->SetTitle("Separating rate");
-    aset(gr, "p_{T} [GeV]","rate", 0.,30., 0.,1.1);
+    aset(gr, "p_{T} [GeV/c]","rate", 0.,30., 0.,1.1);
     style(gr, part+20, part+1);
     if(part==0)
       gr->Draw("AP");

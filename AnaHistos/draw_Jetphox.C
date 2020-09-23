@@ -37,7 +37,7 @@ void draw_Jetphox()
       }
 
       TGraphErrors *gr_ratio = qt_ratio->Graph(imu);
-      gr_ratio->SetTitle( Form("%s/%s;p_{T} [GeV];#frac{%s}{%s}",jetphox_setnum[iset],jetphox_setden[iset],jetphox_setnum[iset],jetphox_setden[iset]) );
+      gr_ratio->SetTitle( Form("%s/%s;p_{T} [GeV/c];#frac{%s}{%s}",jetphox_setnum[iset],jetphox_setden[iset],jetphox_setnum[iset],jetphox_setden[iset]) );
       if(iset < 2)
       {
         aset(gr_ratio, "","", 5.1,30., 0.7,1.1);

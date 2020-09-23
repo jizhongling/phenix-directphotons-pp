@@ -42,7 +42,7 @@ void draw_MergePassRate()
       if(part < 2)
       {
         gr->SetTitle( Form("|#eta|: %.2f - %.2f",(ieta-ieta/7*7)*0.05,(ieta+1-ieta/7*3)*0.05) );
-        aset(gr, "p_{T} [GeV]","Bad Pass", 16.,30., 0.,0.3);
+        aset(gr, "p_{T} [GeV/c]","Bad Pass", 16.,30., 0.,0.3);
         style(gr, part+20, part+1);
         if(part==0)
           gr->Draw("AP");

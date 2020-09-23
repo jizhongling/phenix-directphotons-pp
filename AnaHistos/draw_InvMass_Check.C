@@ -63,7 +63,7 @@ void draw_InvMass_Check()
     for(int igr=0; igr<3; igr++)
     {
       c->cd(ipad++);
-      gr[part][igr]->GetXaxis()->SetTitle("p_{T} [GeV]");
+      gr[part][igr]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
       gr[part][igr]->SetMarkerStyle(20);
       gr[part][igr]->SetMarkerColor(1);
       gr[part][igr]->SetMarkerSize(2);

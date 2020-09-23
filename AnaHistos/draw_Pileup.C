@@ -86,14 +86,14 @@ void draw_Pileup()
 
         mcd(id+1, im*2+is+1);
         gr_ratio->SetTitle( Form("%s %s fit by %s", dname[id], cname[2+is], mname[im]) );
-        aset(gr_ratio, "pT [GeV]", "#frac{p0}{mean}");
+        aset(gr_ratio, "p_{T} [GeV/c]", "#frac{p0}{mean}");
         style(gr_ratio, 20, kRed);
         gr_ratio->Draw("AP");
         gr_ratio->Fit("pol0", "Q");
 
         mcd(id+3, im*2+is+1);
         gr_tof->SetTitle( Form("%s eff fit by %s in %s", cname[2+is], mname[im], dname[id]) );
-        aset(gr_tof, "pT [GeV]", "#ToF Eff");
+        aset(gr_tof, "p_{T} [GeV/c]", "#ToF Eff");
         style(gr_tof, 20, kRed);
         gr_tof->Draw("AP");
         gr_tof->Fit("pol0", "Q");

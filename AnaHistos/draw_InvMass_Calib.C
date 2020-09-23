@@ -93,7 +93,7 @@ void draw_InvMass_Calib()
     {
       mcd(0, 2*i+part+1);
       aset(gr_sim[part][i]);
-      gr_sim[part][i]->GetXaxis()->SetTitle("p_{T} [GeV]");
+      gr_sim[part][i]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
       gr_sim[part][i]->GetXaxis()->SetRangeUser(0., 20.);
       if(i == 0)
       {

@@ -33,7 +33,7 @@ void draw_MergeAsym_photon()
       }
 
       h_pt->SetTitle(name);
-      aset(h_pt, "Photon p_{T} [GeV]");
+      aset(h_pt, "Photon p_{T} [GeV/c]");
       h_pt->DrawCopy("HIST E");
       
       delete h_pt;

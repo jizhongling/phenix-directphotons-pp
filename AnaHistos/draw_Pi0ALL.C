@@ -132,7 +132,7 @@ void draw_Pi0ALL()
           TGraphErrors *gr_all = qt_all->Graph(igr);
 
           gr_all->SetTitle( Form("#pi^{0} %s %s",beam_list[beam],region[ibg]) );
-          aset(gr_all, "p_{T} [GeV]",beam_list[beam], 0.,20., -0.2,0.4);
+          aset(gr_all, "p_{T} [GeV/c]",beam_list[beam], 0.,20., -0.2,0.4);
           style(gr_all, 1+icr, 1+pattern);
           gr_all->SetMarkerSize(0.);
           if(icr==0 && pattern==0)
@@ -150,7 +150,7 @@ void draw_Pi0ALL()
     int igr = beam + ngr_pi0/2*3;
     TGraphErrors *gr_all = qt_all->Graph(igr);
     gr_all->SetTitle( Form("#pi^{0} %s %s",beam_list[beam],region[3]) );
-    aset(gr_all, "p_{T} [GeV]",beam_list[beam], 0.,20., -0.02,0.03);
+    aset(gr_all, "p_{T} [GeV/c]",beam_list[beam], 0.,20., -0.02,0.03);
     style(gr_all, 1, 1);
     style(gr_inseok[beam], 1, 2);
     gr_all->SetMarkerSize(0.);

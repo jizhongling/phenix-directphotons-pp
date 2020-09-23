@@ -94,7 +94,7 @@ void draw_RawALL()
       TGraphErrors *gr_all = qt_all->Graph(igr);
 
       gr_all->SetTitle("Raw A_{LL}");
-      aset(gr_all, "p_{T} [GeV]","A_{LL}", 0.,30., -1.,1.);
+      aset(gr_all, "p_{T} [GeV/c]","A_{LL}", 0.,30., -1.,1.);
       style(gr_all, 1, 1+igr);
       gr_all->SetMarkerSize(0.);
       if(igr==0)

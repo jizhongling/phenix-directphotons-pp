@@ -49,7 +49,7 @@ void draw_Smear_Sasha()
     mcd(0);
     TGraphErrors *gr = DivideGraph(gr1, gr2);
     gr->SetTitle("Smear Ratio");
-    aset(gr, "p_{T} [GeV]", "#frac{My smear}{Sasha's smear}", 0.,30., 0.7,1.3);
+    aset(gr, "p_{T} [GeV/c]", "#frac{My smear}{Sasha's smear}", 0.,30., 0.7,1.3);
     style(gr, 20+part, 1+part);
     if(part==0)
       gr->Draw("AP");
@@ -60,7 +60,7 @@ void draw_Smear_Sasha()
 
     mcd(1);
     gr1->SetTitle("Smear");
-    aset(gr1, "p_{T} [GeV]", "Smear", 0.,30., 0.7,1.5);
+    aset(gr1, "p_{T} [GeV/c]", "Smear", 0.,30., 0.7,1.5);
     style(gr1, 20+part, 1+part);
     style(gr2, 20+part, 1+part);
     gr2->SetLineWidth(6.);

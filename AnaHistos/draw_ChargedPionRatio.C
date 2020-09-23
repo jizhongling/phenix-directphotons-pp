@@ -28,7 +28,7 @@ void draw_ChargedPionRatio()
     h_chpi->SetName("h_chpi");
 
     TGraphErrors *gr_ratio = DivideHisto(h_chpi, h_pi0);
-    aset(gr_ratio, "p_{T} [GeV]","#pi^{#pm}/#pi^{0}", 5.,30., 0.,0.2);
+    aset(gr_ratio, "p_{T} [GeV/c]","#pi^{#pm}/#pi^{0}", 5.,30., 0.,0.2);
     style(gr_ratio, 20+iso, 1+iso);
     gr_ratio->Draw(iso==0?"AP":"P");
 

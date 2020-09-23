@@ -57,12 +57,12 @@ void draw_GammaRatio()
     if(iph == 0)
     {
       gr->SetTitle("#gamma Ratio");
-      aset(gr, "p_{T} [GeV]","#frac{#eta+#omega+#eta'}{#pi^{0}}", 5.1,30., 0.3,0.5);
+      aset(gr, "p_{T} [GeV/c]","#frac{#eta+#omega+#eta'}{#pi^{0}}", 5.1,30., 0.3,0.5);
     }
     else if(iph == 1)
     {
       gr->SetTitle("#gamma/#pi^{0} Ratio");
-      aset(gr, "p_{T} [GeV]","#frac{#gamma}{#pi^{0}}", 5.1,30., 0.,1.);
+      aset(gr, "p_{T} [GeV/c]","#frac{#gamma}{#pi^{0}}", 5.1,30., 0.,1.);
     }
     style(gr, 20, 1);
     gr->Draw("AP");

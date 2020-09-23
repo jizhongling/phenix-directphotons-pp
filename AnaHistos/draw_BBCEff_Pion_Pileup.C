@@ -40,7 +40,7 @@ void draw_BBCEff_Pion_Pileup()
     mcd(2, part+1);
     TGraphErrors *gr = qt_pile->Graph(part);
     gr->Set(igp[part]);
-    aset(gr, "pT [GeV]","Eff", 3.,20., 0.,1.);
+    aset(gr, "p_{T} [GeV/c]","Eff", 3.,20., 0.,1.);
     style(gr, part+20, part+1);
     gr->Draw("AP");
     gr->Fit("pol0", "Q","", 3.,20.);

@@ -34,7 +34,7 @@ void draw_Pi0PeakRatio()
     }
 
     TGraphErrors *gr = qt_ratio->Graph(part);
-    aset(gr, "p_{T} [GeV]","Peak ratio", 5.,30.);
+    aset(gr, "p_{T} [GeV/c]","Peak ratio", 5.,30.);
     style(gr, 20+part, 1+part);
     char *opt = part==0 ? "AP" : "P";
     gr->Draw(opt);

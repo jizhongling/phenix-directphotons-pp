@@ -45,7 +45,7 @@ void draw_SysErrJetphox()
 
     gr_ratio->Set(igp);
     style(gr_ratio, 1, imu);
-    aset(gr_ratio, "p_{T} [GeV]","Ratio", 6.,30., 0.8,1.2);
+    aset(gr_ratio, "p_{T} [GeV/c]","Ratio", 6.,30., 0.8,1.2);
     gr_ratio->Draw(imu==1?"AL":"L");
     leg0->AddEntry(gr_ratio, Form("%s",jetphox_fname[imu]), "L");
   } // imu

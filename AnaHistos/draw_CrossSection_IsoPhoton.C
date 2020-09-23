@@ -381,7 +381,7 @@ void draw_CrossSection_IsoPhoton()
       gr->SetTitle("Separated");
     else if(part == 3)
       gr->SetTitle("Combined");
-    aset(gr, "p_{T} [GeV]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 6.1,30., 1e-1, 2e3);
+    aset(gr, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 6.1,30., 1e-1, 2e3);
     style(gr, part+20, part+1);
     if(part%3==0)
     {
@@ -406,7 +406,7 @@ void draw_CrossSection_IsoPhoton()
   for(int igsys=0; igsys<=ngsys; igsys++)
   {
     TGraphErrors *gr = qt_cross->Graph(4+igsys);
-    aset(gr, "p_{T} [GeV]", "SysErr", 6.1,30., 0.,0.15);
+    aset(gr, "p_{T} [GeV/c]", "SysErr", 6.1,30., 0.,0.15);
     style(gr, igsys+20, igsys+1);
     gr->SetLineStyle(igsys/3*8+1);
     char *opt = igsys==0 ? "AP" : "L";
