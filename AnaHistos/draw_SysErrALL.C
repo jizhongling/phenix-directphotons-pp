@@ -70,6 +70,7 @@ void draw_SysErrALL()
       gr_dssv->SetLineColor(kRed);
       gr_dssv->Draw("C");
       latex->DrawLatexNDC(0.23,0.37, "#splitline{Isolated direct photon A_{LL}}{#vec{p}+#vec{p} #sqrt{s} = 510 GeV, |#eta| < 0.25}");
+      latex->DrawLatexNDC(0.23,0.27, "#scale[0.8]{#DeltaA_{LL}^{RelLum} = 3.853e-4, #frac{#DeltaA_{LL}^{Pol}}{|A_{LL}|} = 6.6%}");
       latex->DrawLatexNDC(0.75,0.65, "DSSV14");
     }
     c0->Print(Form("plots/IsoPhotonALL-beam%d-syserr.pdf",beam));
