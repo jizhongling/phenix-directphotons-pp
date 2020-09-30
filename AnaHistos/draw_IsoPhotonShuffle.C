@@ -5,7 +5,7 @@ void draw_IsoPhotonShuffle()
   const int ntype = 6*2*npT_pol;
   const char *type_names[6] = {"incphoton", "isophoton", "pion-pt1-peak", "pion-pt1-side", "pion-pt2-peak", "pion-pt2-side"};
 
-  TFile *f_out = new TFile("data/IsoPhotonShuffle-tightcut.root", "RECREATE");
+  TFile *f_out = new TFile("data/IsoPhotonShuffle.root", "RECREATE");
 
   TH1 *h_ndf[ntype];
   TH1 *h_chi2[ntype];
@@ -20,7 +20,7 @@ void draw_IsoPhotonShuffle()
         h_all[ih] = new TH1F(Form("h_all_%d",ih), "#frac{A_{LL}}{#DeltaA_{LL}}", 400, -10., 10.);
       }
 
-  TFile *f = new TFile("data/isophoton-shuffle-tightcut.root");
+  TFile *f = new TFile("data/isophoton-shuffle.root");
   TTree *t1 = (TTree*)f->Get("T");
   int ALLtype, ALLndf;
   double ALLchi2, ALL, eALL;

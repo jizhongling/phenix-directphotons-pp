@@ -23,7 +23,7 @@ void anaIsoPhotonALL(const int process = 0)
   t_rlum->SetBranchAddress("RelLum", rlum[2]);
   t_rlum->SetBranchAddress("eRelLum", erlum[2]);
 
-  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-isophoton-tightcut.root");
+  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-isophoton.root");
 
   for(int ien=0; ien<t_rlum->GetEntries(); ien++)
   {
@@ -35,7 +35,7 @@ void anaIsoPhotonALL(const int process = 0)
 
     t_rlum->GetEntry(ien);
 
-    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/16462/data/PhotonHistos-%d.root",runnumber));
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/16669/data/PhotonHistos-%d.root",runnumber));
     if( f->IsZombie() )
     {
       cout << "Cannot open file for runnumber = " << runnumber << endl;

@@ -1,13 +1,13 @@
 #include "GlobalVars.h"
 #include "QueryTree.h"
 
-void draw_ERTEff_Photon()
+void draw_ERTEff_Photon(const int iso = 0)
 {
   const char *pname[3] = {"PbSc West", "PbSc East", "PbGl"};
   const int secl[3] = {1, 5, 7};
   const int sech[3] = {4, 6, 8};
 
-  QueryTree *qt_ert = new QueryTree("data/ERTEff-photon.root", "RECREATE");
+  QueryTree *qt_ert = new QueryTree(Form("data/ERTEff-%sphoton.root",iso?"iso":""), "RECREATE");
 
   TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-DC3sigma.root");
 
@@ -26,7 +26,7 @@ void draw_ERTEff_Photon()
     for(int ert_trig=0; ert_trig<2; ert_trig++)
     {
       h_ert[ert_trig] = (TH1*)h_ert_t->Clone(Form("h_ert_trig%d",ert_trig));
-      for(int isolated=0; isolated<2; isolated++)
+      for(int isolated=iso; isolated<2; isolated++)
       {
         int ih = part + 3*ert_trig + 3*2*evtype + 3*2*3*checkmap + 3*2*3*2*isolated + 3*2*3*2*2*ival;
         TH1 *h2_tmp = (TH1*)f->Get(Form("h_ert_%d",ih));
@@ -79,10 +79,10 @@ void draw_ERTEff_Photon()
 
     TGraphAsymmErrors *gr_sim = qt_ert->GraphAsymm(part+3);
     style(gr_sim, part+24, part+1);
-    gr_sim->Draw("PE");
+    //gr_sim->Draw("PE");
   }
   leg0->Draw();
 
-  c0->Print("plots/ERTEff-photon.pdf");
+  c0->Print(Form("plots/ERTEff-%sphoton.pdf",iso?"iso":""));
   qt_ert->Save();
 }

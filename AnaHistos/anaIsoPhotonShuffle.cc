@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
   t_rlum->SetBranchAddress("Count", count_bunch);
   t_rlum->SetBranchAddress("eCount", ecount_bunch);
 
-  TFile *f_ken2 = new TFile("data/YieldKEN2-isophoton-tightcut.root");
+  TFile *f_ken2 = new TFile("data/YieldKEN2-isophoton.root");
   TTree *t_ken2 = (TTree*)f_ken2->Get("t1");
   const int nken2 = t_ken2->GetEntries();
   int ken2_ipt, ken2_part;

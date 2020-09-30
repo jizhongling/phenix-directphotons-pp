@@ -7,8 +7,8 @@ void draw_SysErrALL()
   const char *beam_list[3] = {"A_{L}^{Blue}", "A_{L}^{Yellow}", "A_{LL}"};
   const char *err_name[4] = {"Rel Lum", "A_{LL}^{#eta}", "#pi^{0} fitting", "Pol"};
 
-  QueryTree *qt_sys = new QueryTree("data/IsoPhotonALL-syserr-tightcut.root", "RECREATE");
-  QueryTree *qt_all = new QueryTree("data/IsoPhotonALL-tightcut.root");
+  QueryTree *qt_sys = new QueryTree("data/IsoPhotonALL-syserr.root", "RECREATE");
+  QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root");
 
   TGraph *gr_dssv = new TGraph("data/dssv-all.txt", "%lg %lg");
 
@@ -73,10 +73,10 @@ void draw_SysErrALL()
       latex->DrawLatexNDC(0.23,0.27, "#scale[0.8]{#DeltaA_{LL}^{RelLum} = 3.853e-4, #frac{#DeltaA_{LL}^{Pol}}{|A_{LL}|} = 6.6%}");
       latex->DrawLatexNDC(0.75,0.65, "DSSV14");
     }
-    c0->Print(Form("plots/IsoPhotonALL-beam%d-syserr.pdf",beam));
+    c0->Print(Form("plots/IsoPhotonALL-beam%d.pdf",beam));
     c0->Clear("D");
   } // beam
-  system("preliminary.pl --input=plots/IsoPhotonALL-beam2-syserr.pdf --output=plots/IsoPhotonALL-beam2-prelim.pdf --x=360 --y=420 --scale=0.8");
+  system("preliminary.pl --input=plots/IsoPhotonALL-beam2.pdf --output=plots/IsoPhotonALL-beam2-prelim.pdf --x=360 --y=420 --scale=0.8");
 
   mc(1);
   mcd(1);
@@ -94,7 +94,7 @@ void draw_SysErrALL()
   l_ratio->DrawLine(6.,0.066,17.,0.066);
   leg0->AddEntry(l_ratio, err_name[3], "L");
   leg0->Draw();
-  c1->Print("plots/IsoPhotonALL-beam2-relerr.pdf");
+  //c1->Print("plots/IsoPhotonALL-beam2-relerr.pdf");
 
   qt_sys->Save();
 }

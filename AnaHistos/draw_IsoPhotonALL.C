@@ -11,14 +11,14 @@ void draw_IsoPhotonALL()
   const char *crossing_list[2] = {"Even", "Odd"};
   const char *pattern_list[4] = {"SOOSSOO", "OSSOOSS", "SSOO", "OOSS"};
 
-  QueryTree *qt_all = new QueryTree("data/IsoPhotonALL-tightcut.root", "RECREATE");
+  QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root", "RECREATE");
 
-  QueryTree *qt_asym = new QueryTree("data/isophoton-asym-tightcut.root");
+  QueryTree *qt_asym = new QueryTree("data/isophoton-asym.root");
   qt_asym->SetQuiet();
   int imul = 1;
 
   QueryTree *qt_allpion = new QueryTree("data/IsoPionALL.root");
-  QueryTree *qt_rbg = new QueryTree("data/BgRatio-isophoton-tightcut.root");
+  QueryTree *qt_rbg = new QueryTree("data/BgRatio-isophoton.root");
   QueryTree *qt_pt = new QueryTree("data/PtShift.root");
 
   vector<double> *vp_ALL = new vector<double>[8];

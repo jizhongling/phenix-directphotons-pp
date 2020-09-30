@@ -6,7 +6,7 @@ void draw_BgRatio_IsoPion()
 {
   QueryTree *qt_rbg = new QueryTree("data/BgRatio-isopion.root", "RECREATE");
 
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Inseok-tightcut.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Inseok.root");
 
   TH2 *h2_pion = (TH2*)f->Get("h2_2photon_pol_0");
   h2_pion = (TH2*)h2_pion->Clone();

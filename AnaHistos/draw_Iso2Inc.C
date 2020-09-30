@@ -2,9 +2,10 @@
 #include "QueryTree.h"
 #include "DivideFunctions.h"
 
-void draw_Iso2Inc(const int pwhg = 0)
+void draw_Iso2Inc(const int pwhg = 0, const int ipwhg = 0)
 {
   const int sector = 3;  // PbSc west: 0; PbSc east: 1; PbGl: 2; Combined: 3
+  const char *suffix[4] = {"-pwhg", "-qedqcd", "-nompi", "-purehard"};
   const char *jetphox_fname[3] = {"p_{T}/2", "p_{T}", "2p_{T}"};
 
   QueryTree *qt_pion = new QueryTree("data/CrossSection-pion.root");
@@ -28,7 +29,7 @@ void draw_Iso2Inc(const int pwhg = 0)
   }
   else if(pwhg == 1)
   {
-    TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo.root");
+    TFile *f_pythia = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo%s.root",ipwhg?suffix[ipwhg]:""));
     TH1 *h_photon = (TH1*)f_pythia->Get("hard0_iso0_rap0_id0");
     TH1 *h_isophoton = (TH1*)f_pythia->Get("hard0_iso1_rap0_id0");
   }
@@ -119,7 +120,7 @@ void draw_Iso2Inc(const int pwhg = 0)
   }
   leg0->Draw();
 
-  c0->Print(Form("plots/Iso2Inc%s.pdf",pwhg?"-pwhg":""));
-  if(pwhg == 1)
+  c0->Print(Form("plots/Iso2Inc%s.pdf",pwhg?suffix[ipwhg]:""));
+  if(pwhg == 1 && ipwhg == 0)
     system("preliminary.pl --input=plots/Iso2Inc-pwhg.pdf --output=plots/Iso2Inc-prelim.pdf --x=320 --y=200 --scale=0.8");
 }

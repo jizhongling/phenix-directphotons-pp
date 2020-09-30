@@ -5,18 +5,17 @@
 
 void anaPileup(const int process = 0)
 {
-  const int nThread = 20;
+  const int nThread = 100;
   int thread = -1;
-  int irun = 0;
   int runnumber;
-  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist.txt");
-
-  const int secl[2] = {1, 7};
-  const int sech[2] = {6, 8};
+  ifstream fin("/phenix/plhf/zji/taxi/Run13pp510MinBias/runlist-DC3sigma.txt");
 
   QueryTree *qt_pile = new QueryTree(Form("histos/Pileup-%d.root",process), "RECREATE");
 
   DataBase *db = new DataBase();
+
+  mc();
+  mcd();
 
   while( fin >> runnumber )
   {
@@ -26,67 +25,99 @@ void anaPileup(const int process = 0)
     else if( thread >= (process+1)*nThread )
       break;
 
-    TFile *f_ert = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-ERT/PhotonNode-%d.root",runnumber));
-    TFile *f_mb = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/histos-MB/PhotonNode-%d.root",runnumber));
-    if( f_ert->IsZombie() || f_mb->IsZombie() ) continue;
+    TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510ERT/16669/data/PhotonHistos-%d.root",runnumber));
+    if( f->IsZombie() ) continue;
 
-    TH1 *h_events_ert = (TH1*)f_ert->Get("h_events");
-    TH1 *h_events_mb = (TH1*)f_mb->Get("h_events");
-    THnSparse *hn_pion[2];
-    hn_pion[0] = (THnSparse*)f_ert->Get("hn_pion");
-    hn_pion[1] = (THnSparse*)f_mb->Get("hn_pion");
-    hn_pion[0]->GetAxis(4)->SetRange(3,3);
-    hn_pion[1]->GetAxis(4)->SetRange(1,1);
+    TH1 *h_events = (TH1*)f->Get("h_events");
+
+    // h[iso][part]
+    TH1 *h_1photon[2][3];
+    TH2 *h2_2photon[3][3];
+
+    int evtype = 2;
+    int checkmap = 1;
+    int ival = 1;
+
+    TH1 *h_1photon_t = (TH1*)f->Get("h_1photon_0");
+    h_1photon_t = (TH1*)h_1photon_t->Clone();
+    h_1photon_t->Reset();
+
+    TH2 *h2_2photon_t = (TH2*)f->Get("h2_2photon_0");
+    h2_2photon_t = (TH2*)h2_2photon_t->Clone();
+    h2_2photon_t->Reset();
+
+    for(int part=0; part<3; part++)
+    {
+      for(int iso=0; iso<3; iso++)
+      {
+        if(iso<2)
+          h_1photon[iso][part] = (TH1*)h_1photon_t->Clone(Form("h_1photon_iso%d_part%d",iso,part));
+        h2_2photon[iso][part] = (TH2*)h2_2photon_t->Clone(Form("h2_2photon_iso%d_part%d",iso,part));
+      }
+
+      for(int isolated=0; isolated<2; isolated++)
+      {
+        int ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isolated + 3*3*2*2*ival;
+        TH1 *h_tmp = (TH1*)f->Get(Form("h_1photon_%d",ih));
+        h_1photon[0][part]->Add(h_tmp);
+        if(isolated==1)
+          h_1photon[1][part]->Add(h_tmp);
+        delete h_tmp;
+      }
+
+      for(int isoboth=0; isoboth<2; isoboth++)
+        for(int isopair=0; isopair<2; isopair++)
+        {
+          int ih = part + 3*evtype + 3*3*checkmap + 3*3*2*isoboth + 3*3*2*2*isopair + 3*3*2*2*2*ival;
+          TH2 *h2_tmp = (TH2*)f->Get(Form("h2_2photon_%d",ih));
+          h2_2photon[0][part]->Add(h2_tmp);
+          if(isoboth==1)
+            h2_2photon[1][part]->Add(h2_tmp);
+          if(isopair==1)
+            h2_2photon[2][part]->Add(h2_tmp);
+          delete h2_tmp;
+        } // isoboth, isopair
+    }
 
     unsigned long long nclock = db->GetClockLive(runnumber);
     unsigned long long nmb = db->GetBBCNarrowLive(runnumber);
     unsigned long long scaledown = db->GetERT4x4cScaledown(runnumber) + 1;
-    
-    double nev[2];
-    //nev[0] = h_events_ert->GetBinContent( h_events_ert->GetXaxis()->FindBin("ert_c") );
-    nev[0] = nmb / scaledown;
-    nev[1] = h_events_mb->GetBinContent( h_events_mb->GetXaxis()->FindBin("bbc_narrow_10cm") );
 
-    TF1 *fn_fit = new TF1("fn_fit", "gaus(0) + pol2(3)", 0.06, 0.25);
-    TF1 *fn_bg = new TF1("fn_bg", "pol2", 0.06, 0.25);
+    double nev = h_events->GetBinContent( h_events->GetXaxis()->FindBin("ert_c_10cm") );
+    //double nev = nmb / scaledown;
 
-    for(int ipt=0; ipt<npT; ipt++)
-      for(int id=0; id<2; id++)
-        for(int ic=0; ic<2; ic++)
-          for(int is=0; is<2; is++)
+    for(int part=0; part<3; part++)
+      for(int ipt=0; ipt<npT; ipt++)
+      {
+        double xx = (double)nmb / (double)nclock;
+        double yy[5] = {}, eyy[5] = {};
+
+        for(int iso=0; iso<3; iso++)
+        {
+          TH1 *h_minv;
+          h_minv = (TH1*)h2_2photon[iso][part]->ProjectionY("h_py", pTlow[0][ipt],pThigh[0][ipt])->Clone("h_minv");
+          h_minv->Rebin(10);
+          FitMinv(h_minv, yy[2+iso], eyy[2+iso], false, 0.10,0.17);
+          delete h_minv;
+
+          if(iso<2)
           {
-            int ig = ipt*8+id*4+ic*2+is;
-            mcd(ig, irun+1);
-            
-            double npion, enpion;
-
-            hn_pion[id]->GetAxis(3)->SetRange(ic+3,ic+3);
-            hn_pion[id]->GetAxis(0)->SetRange(secl[is],sech[is]);
-            hn_pion[id]->GetAxis(1)->SetRange(pTlow[id][ipt], pThigh[id][ipt]);
-
-            TH1 *h_minv = hn_pion[id]->Projection(2);
-            h_minv->Rebin(10);
-            h_minv->SetTitle(Form("#%d",runnumber));
-            FitMinv(h_minv, npion, enpion);
-            delete h_minv;
-
-            double xx = (double)nmb / (double)nclock;
-            double yy = npion / nev[id];
-            double eyy = enpion / nev[id];
-            if( TMath::Finite(yy+eyy) )
-              qt_pile->Fill(runnumber, ig, xx, yy, eyy);
+            yy[iso] = h_1photon[iso][part]->IntegralAndError(pTlow[0][ipt],pThigh[0][ipt], eyy[iso]);
+            yy[iso] -= yy[2+iso];
+            eyy[iso] = sqrt(eyy[iso]*eyy[iso] + eyy[iso+2]*eyy[iso+2]);
           }
+        } // iso
 
-    delete f_ert;
-    delete f_mb;
-    irun++;
+        for(int iph=0; iph<5; iph++)
+          if( TMath::Finite(yy[iph]+eyy[iph]) && eyy[iph] > 0. )
+          {
+            int ig = iph + 5*part + 5*3*ipt;
+            qt_pile->Fill(runnumber, ig, xx, yy[iph]/nev, eyy[iph]/nev);
+          } // iph
+      } // part, ipt
+
+    delete f;
   }
 
-  qt_pile->Write();
-  for(int ipt=0; ipt<npT; ipt++)
-    for(int id=0; id<2; id++)
-      for(int ic=0; ic<2; ic++)
-        for(int is=0; is<2; is++)
-          mcw( ig, Form("proc%d-data%d-cond%d-pt%d-%d", process, id, ic*2+is, pTlow[id][ipt], pThigh[id][ipt]) );
-  qt_pile->Close();
+  qt_pile->Save();
 }

@@ -132,8 +132,8 @@ void draw_CrossSection_Photon()
         double FactorPion = 1.;
         double eFactor = 1e-3;
         double NBBC =  3.52e11;  // from rejection power
-        double Pile[3] = {0.890, 0.890, 0.916};
-        double ePile = 0.01;
+        double Pile[3] = {0.83, 0.83, 0.85};
+        double ePile = 0.07;
         double TrigBBC = 0.91;
         double eTrigBBC = 0.01;
         double Prob = 0.96;

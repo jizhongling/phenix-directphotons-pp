@@ -3,7 +3,7 @@
 
 void draw_YieldKEN2()
 {
-  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Inseok-tightcut.root");
+  TFile *f = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Inseok.root");
 
   QueryTree *qt_ken2_pion = new QueryTree("data/YieldKEN2-pion.root", "RECREATE");
   for(int ibg=0; ibg<2; ibg++)
@@ -31,7 +31,7 @@ void draw_YieldKEN2()
       }
   qt_ken2_pion->Save();
 
-  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-isophoton-tightcut.root", "RECREATE");
+  QueryTree *qt_ken2 = new QueryTree("data/YieldKEN2-isophoton.root", "RECREATE");
   for(int imul=0; imul<6; imul++)
     for(int beam=0; beam<3; beam++)
       for(int icr=0; icr<2; icr++)

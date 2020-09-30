@@ -2,11 +2,12 @@
 #include "QueryTree.h"
 #include "Chi2Fit.h"
 
-void draw_SysErr(const int pwhg = 0)
+void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
 {
   const double PI = TMath::Pi();
   const double DeltaEta = 0.5;
   const char *prog_name[2] = {"JETPHOX", "POWHEG"};
+  const char *suffix[4] = {"-pwhg", "-qedqcd", "-nompi", "-purehard"};
 
   if(pwhg == 0)
   {
@@ -23,7 +24,7 @@ void draw_SysErr(const int pwhg = 0)
   }
   else if(pwhg == 1)
   {
-    TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo.root");
+    TFile *f_pythia = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo%s.root",ipwhg?suffix[ipwhg]:""));
     TH1 *h_events = (TH1*)f_pythia->Get("h_events");
     const double nEvents = h_events->GetBinContent(1);
     const int nmu[2] = {7, 7};
@@ -53,7 +54,7 @@ void draw_SysErr(const int pwhg = 0)
       qt_cross->Query(ipt, 4, xpt, rsys, ersys);
       double sys = xsec*rsys;
       qt_sys->Fill(ipt, iso, xpt, xsec, sys);
-      if( TMath::Finite(xsec+exsec+sys) && xsec > 0. )
+      if( pwhg == 0 && TMath::Finite(xsec+exsec+sys) && xsec > 0. )
         cout << xpt << " & " << xsec << " & " << exsec << " (" << 100.*exsec/xsec << "\\%) & "
           << sys << " (" << 100.*sys/xsec << "\\%) \\\\" << endl;
     }
@@ -228,10 +229,10 @@ void draw_SysErr(const int pwhg = 0)
     } // imu
 
     char *type = iso ? "iso" : "";
-    c0->Print(Form("plots/CrossSection-%sphoton-%s.pdf",type,pwhg?"pwhg":"syserr"));
-    if( (iso==0&&pwhg==1) || (iso==1&&pwhg==0) )
+    c0->Print(Form("plots/CrossSection-%sphoton%s.pdf",type,pwhg?suffix[ipwhg]:"-jetphox"));
+    if( (iso==0&&pwhg==1&&ipwhg==0) || (iso==1&&pwhg==0) )
     {
-      const char *cmd = Form("preliminary.pl --input=plots/CrossSection-%sphoton-%s.pdf --output=plots/CrossSection-%sphoton-prelim.pdf --x=360 --y=420 --scale=0.8", type,pwhg?"pwhg":"syserr",type);
+      const char *cmd = Form("preliminary.pl --input=plots/CrossSection-%sphoton%s.pdf --output=plots/CrossSection-%sphoton-prelim.pdf --x=360 --y=420 --scale=0.8", type,pwhg?"-pwhg":"-jetphox",type);
       system(cmd);
     }
     delete c0;

@@ -164,7 +164,7 @@ void draw_CrossSection_IsoPhoton()
         double FactorPion = 1.;
         double eFactor = 1e-3;
         double NBBC =  3.52e11;  // from rejection power
-        double Pile[3] = {1.10, 1.08, 1.05};
+        double Pile[3] = {0.91, 0.93, 0.96};
         double ePile = 0.02;
         double TrigBBC = 0.91;
         double eTrigBBC = 0.01;
