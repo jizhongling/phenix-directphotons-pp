@@ -69,14 +69,21 @@ void draw_SysErrALL()
     {
       gr_dssv->SetLineColor(kRed);
       gr_dssv->Draw("C");
-      latex->DrawLatexNDC(0.23,0.37, "#splitline{Isolated direct photon A_{LL}}{#vec{p}+#vec{p} #sqrt{s} = 510 GeV, |#eta| < 0.25}");
-      latex->DrawLatexNDC(0.23,0.27, "#scale[0.8]{#DeltaA_{LL}^{RelLum} = 3.853e-4, #frac{#DeltaA_{LL}^{Pol}}{|A_{LL}|} = 6.6%}");
+      latex->DrawLatexNDC(0.23,0.82, "#splitline{Isolated direct photon A_{LL}}{#vec{p}+#vec{p} #sqrt{s} = 510 GeV, |#eta| < 0.25}");
+      latex->DrawLatexNDC(0.23,0.45, "#scale[0.8]{#splitline{Include #DeltaA_{LL}^{RelLum} = 3.853e-4 and}{6.6% polarization uncertainty}}");
       latex->DrawLatexNDC(0.75,0.65, "DSSV14");
     }
-    c0->Print(Form("plots/IsoPhotonALL-beam%d.pdf",beam));
+    const char *outfile = Form("plots/IsoPhotonALL-beam%d", beam);
+    c0->Print(Form("%s.pdf", outfile));
     c0->Clear("D");
+    if(beam == 2)
+    {
+      char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=150 --y=150 --scale=0.8", outfile,outfile);
+      system(cmd);
+      cmd = Form("rm %s.pdf", outfile);
+      system(cmd);
+    }
   } // beam
-  system("preliminary.pl --input=plots/IsoPhotonALL-beam2.pdf --output=plots/IsoPhotonALL-beam2-prelim.pdf --x=360 --y=420 --scale=0.8");
 
   mc(1);
   mcd(1);

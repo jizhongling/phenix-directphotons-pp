@@ -120,7 +120,13 @@ void draw_Iso2Inc(const int pwhg = 0, const int ipwhg = 0)
   }
   leg0->Draw();
 
-  c0->Print(Form("plots/Iso2Inc%s.pdf",pwhg?suffix[ipwhg]:""));
-  if(pwhg == 1 && ipwhg == 0)
-    system("preliminary.pl --input=plots/Iso2Inc-pwhg.pdf --output=plots/Iso2Inc-prelim.pdf --x=320 --y=200 --scale=0.8");
+  const char *outfile = Form("plots/Iso2Inc%s", pwhg?suffix[ipwhg]:"-pythia6");
+  c0->Print(Form("%s.pdf", outfile));
+  if(pwhg == 1)
+  {
+    char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=320 --y=200 --scale=0.8", outfile,outfile);
+    system(cmd);
+    cmd = Form("rm %s.pdf", outfile);
+    system(cmd);
+  }
 }

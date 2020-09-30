@@ -229,10 +229,13 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     } // imu
 
     char *type = iso ? "iso" : "";
-    c0->Print(Form("plots/CrossSection-%sphoton%s.pdf",type,pwhg?suffix[ipwhg]:"-jetphox"));
-    if( (iso==0&&pwhg==1&&ipwhg==0) || (iso==1&&pwhg==0) )
+    const char *outfile = Form("plots/CrossSection-%sphoton%s", type,pwhg?suffix[ipwhg]:"-jetphox");
+    c0->Print(Form("%s.pdf", outfile));
+    if( iso==0 || (iso==1&&pwhg==0) )
     {
-      const char *cmd = Form("preliminary.pl --input=plots/CrossSection-%sphoton%s.pdf --output=plots/CrossSection-%sphoton-prelim.pdf --x=360 --y=420 --scale=0.8", type,pwhg?"-pwhg":"-jetphox",type);
+      char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=360 --y=420 --scale=0.8", outfile,outfile);
+      system(cmd);
+      cmd = Form("rm %s.pdf", outfile);
       system(cmd);
     }
     delete c0;
