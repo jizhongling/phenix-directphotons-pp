@@ -56,6 +56,13 @@ void draw_SysErrALL()
     int igr = beam + ngr_photon*2;
     TGraphErrors *gr_all = qt_all->Graph(igr);
     TGraphErrors *gr_sys = qt_sys->Graph(beam);
+    while(true)
+    {
+      double xgr, ygr;
+      gr_all->GetPoint(0, xgr, ygr);
+      if(xgr > 6.) break;
+      gr_all->RemovePoint(0);
+    }
     gr_all->SetTitle("");
     aset(gr_all, "p_{T} [GeV/c]",beam_list[beam], 4.9,20.1, -0.06,0.05);
     style(gr_all, 20, 1);
