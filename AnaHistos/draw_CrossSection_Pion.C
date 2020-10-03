@@ -71,7 +71,7 @@ void draw_CrossSection_Pion()
     mc(part+3, 6,5);
   }
 
-  for(int ipt=0; ipt<npT; ipt++)
+  for(int ipt=12; ipt<npT; ipt++)
   {
     double dummy, xpt, xsec[2][3], exsec[2][3],
            rsys[2][3], ersys[2][3];  // iso, part
@@ -189,7 +189,7 @@ void draw_CrossSection_Pion()
       gr->SetTitle("Separated");
     else if(part == 3)
       gr->SetTitle("Combined");
-    aset(gr, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 6.,30., 1e-1,1e5);
+    aset(gr, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 4.9,30.1, 1e-1,1e5);
     style(gr, part+20, part+1);
     if(part%3==0)
       gr->Draw("AP");

@@ -6,7 +6,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
 {
   const double PI = TMath::Pi();
   const double DeltaEta = 0.5;
-  const char *prog_name[2] = {"JETPHOX", "POWHEG"};
+  const char *pwhg_type[4] = {"with MPI", "QED-QCD veto", "without MPI", "pure hard"};
   const char *suffix[4] = {"-pwhg", "-qedqcd", "-nompi", "-purehard"};
 
   if(pwhg == 0)
@@ -40,6 +40,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
   }
 
   QueryTree *qt_sys = new QueryTree("data/CrossSection-syserr.root", "RECREATE");
+  TGraphErrors *gr_cross[2], *gr_cross_sys[2];
 
   for(int iso=0; iso<2; iso++)
   {
@@ -47,7 +48,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     QueryTree *qt_cross = new QueryTree(Form("data/CrossSection-%sphoton.root",type));
 
     cout.precision(4);
-    for(int ipt=0; ipt<npT; ipt++)
+    for(int ipt=12; ipt<npT; ipt++)
     {
       double xpt, xsec, exsec, rsys, ersys;
       qt_cross->Query(ipt, 3, xpt, xsec, exsec);
@@ -98,7 +99,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         TH1 *h_nlo = (TH1*)f_pythia->Get(Form("hard0_iso%d_rap0_id%d",iso,imu));
         h_nlo->Scale(1./nEvents, "width");
       }
-      for(int ipt=10; ipt<npT; ipt++)
+      for(int ipt=12; ipt<npT; ipt++)
       {
         double xpt = (pTbin[ipt] + pTbin[ipt+1]) / 2.;
         int bin_th = h_nlo->GetXaxis()->FindBin(xpt);
@@ -117,7 +118,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       TGraphErrors *gr_ratio_sys = new TGraphErrors(npT);
 
       int igp = 0;
-      for(int ipt=10; ipt<npT; ipt++)
+      for(int ipt=12; ipt<npT; ipt++)
       {
         double xpt, Combine, eCombine, sysCombine;
         if( !qt_cross->Query(ipt, 3, xpt, Combine, eCombine) ||
@@ -182,24 +183,30 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       if(imu == 0)
       {
         pad1->cd();
-        TGraphErrors *gr_cross = qt_cross->Graph(3);
-        TGraphErrors *gr_cross_sys = qt_sys->Graph(iso);
-        gr_cross->SetTitle("");
-        aset(gr_cross, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 5.9,30.1, 0.5e-1, iso?2e3:5e3);
-        style(gr_cross, 20, 1, 2);
-        style(gr_cross_sys, 1, 1, 2);
-        gr_cross->SetMarkerSize(0.8);
-        gr_cross->Draw("AP");
-        gr_cross_sys->Draw("[]");
+        gr_cross[iso] = qt_cross->Graph(3);
+        gr_cross_sys[iso] = qt_sys->Graph(iso);
+        gr_cross[iso]->SetTitle("");
+        aset(gr_cross[iso], "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 4.9,30.1, 0.5e-1, iso?2e3:5e3);
+        style(gr_cross[iso], 20, 1, 2);
+        style(gr_cross_sys[iso], 1, 1, 2);
+        gr_cross[iso]->SetMarkerSize(0.8);
+        gr_cross[iso]->Draw("AP");
+        gr_cross_sys[iso]->Draw("[]");
         gr_nlo->Draw("LX");
         leg0->Draw();
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not included}");
-        latex->DrawLatexNDC(0.22,0.38, Form("#splitline{NLO pQCD}{(by %s)}",prog_name[pwhg]));
+        latex->DrawLatexNDC(0.24,0.40, "NLO pQCD");
         if(pwhg == 0)
-          latex->DrawLatexNDC(0.22,0.29, "#splitline{CT14 PDF}{BFG II FF}");
+        {
+          latex->DrawLatexNDC(0.24,0.35, "(by JETPHOX)");
+          latex->DrawLatexNDC(0.24,0.28, "#splitline{CT14 PDF}{BFG II FF}");
+        }
         else if(pwhg == 1)
-          latex->DrawLatexNDC(0.22,0.29, "CT14 PDF");
+        {
+          latex->DrawLatexNDC(0.24,0.32, Form("#splitline{(by POWHEG}{%s)}",pwhg_type[ipwhg]));
+          latex->DrawLatexNDC(0.24,0.25, "CT14 PDF");
+        }
         latex->DrawLatexNDC(0.28,0.22, "#scale[0.8]{#mu_{R}/p_{T}    #mu_{f}/p_{T}    #mu_{F}/p_{T}}");
         if(iso)
         {
@@ -209,10 +216,11 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
 
         pad2->cd();
         gr_ratio->SetTitle(";p_{T} [GeV/c];#frac{Data-Theory}{Theory}");
-        aset(gr_ratio, "","", 5.9,30.1, iso*(1-pwhg)?-0.25:-0.45,iso*(1-pwhg)?0.55:2.15-iso, 1.,0.6,0.1,0.12);
+        aset(gr_ratio, "","", 4.9,30.1, iso*(1-pwhg)?-0.25:-0.45,iso*(1-pwhg)?0.55:2.15-iso, 1.,0.6,0.1,0.12);
         style(gr_ratio_sys, 1, imu+1, 2);
         gr_ratio->GetXaxis()->SetLabelSize(0.09);
         gr_ratio->GetYaxis()->SetLabelSize(0.09);
+        gr_ratio->GetYaxis()->SetLabelOffset(0.01);
         gr_ratio->GetXaxis()->SetTickSize(0.08);
         gr_ratio->Draw("APE");
         gr_ratio_sys->Draw("[]");
@@ -231,7 +239,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     char *type = iso ? "iso" : "";
     const char *outfile = Form("plots/CrossSection-%sphoton%s", type,pwhg?suffix[ipwhg]:"-jetphox");
     c0->Print(Form("%s.pdf", outfile));
-    if( iso==0 || (iso==1&&pwhg==0) )
+    if(iso == 0 && ipwhg != 1)
     {
       char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=360 --y=420 --scale=0.8", outfile,outfile);
       system(cmd);
@@ -242,4 +250,43 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
   } // iso
 
   qt_sys->Save();
+
+  if(pwhg == 0)
+  {
+    TCanvas *c1 = new TCanvas("c1", "c1", 600,800);
+    TPad *pad3 = new TPad("pad3", "pad3", 0.,0.,1.,1., -1,0);
+    pad3->Draw();
+
+    pad3->cd();
+    gPad->SetLeftMargin(0.2);
+    gPad->SetTopMargin(0.05);
+    gPad->SetBottomMargin(0.15);
+    gPad->SetLogy();
+    legi(1, 0.22,0.18,0.45,0.28);
+    leg0->SetTextSize(0.035);
+    TLatex *latex = new TLatex();
+    latex->SetTextSize(0.04);
+
+    for(int iso=0; iso<2; iso++)
+    {
+      style(gr_cross[iso], 20+iso, 1+iso, 2);
+      style(gr_cross_sys[iso], 1, 1+iso, 2);
+      gr_cross[iso]->SetMarkerSize(0.8);
+      gr_cross[iso]->Draw(iso?"P":"AP");
+      gr_cross_sys[iso]->Draw("[]");
+      leg1->AddEntry(gr_cross[iso], Form("%s direct photon",iso?"Isolated":"Inclusive"), "P");
+    }
+    leg1->Draw();
+    latex->DrawLatexNDC(0.35,0.88, "#splitline{Direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}");
+    latex->DrawLatexNDC(0.35,0.80, "#scale[0.8]{#splitline{10% absolute luminosity}{uncertainty not included}}");
+    latex->DrawLatexNDC(0.45,0.70, "Isolation cut condition");
+    latex->DrawLatexNDC(0.45,0.62, "#splitline{r_{cone} = #sqrt{(#delta#eta)^{2} + (#delta#phi)^{2}} = 0.5}{E_{cone} < 0.1E_{#gamma}}");
+
+    const char *outfile = "plots/CrossSection-photon-isophoton";
+    c1->Print(Form("%s.pdf", outfile));
+    char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=360 --y=320 --scale=0.8", outfile,outfile);
+    system(cmd);
+    cmd = Form("rm %s.pdf", outfile);
+    system(cmd);
+  }
 }

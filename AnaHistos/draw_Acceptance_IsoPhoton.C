@@ -86,7 +86,7 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
   {
     mcd(0);
     gr_geom[part]->SetTitle("Geometric acceptance");
-    aset(gr_geom[part], "p_{T} [GeV/c]","InAcc/All", 4.,30., 0.,0.12);
+    aset(gr_geom[part], "p_{T} [GeV/c]","InAcc/All", 4.9,30.1, 0.,0.12);
     style(gr_geom[part], part+20, part+1);
     if(part==0)
       gr_geom[part]->Draw("AP");
@@ -95,7 +95,7 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
 
     mcd(1);
     gr_iso[part]->SetTitle("Isolated over inclusive prompt photons");
-    aset(gr_iso[part], "p_{T} [GeV/c]","Iso/InAcc", 4.,30.);
+    aset(gr_iso[part], "p_{T} [GeV/c]","Iso/InAcc", 4.9,30.1);
     style(gr_iso[part], part+20, part+1);
     if(part==0)
       gr_iso[part]->Draw("AP");
@@ -104,7 +104,7 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
 
     mcd(2);
     gr_smear[part]->SetTitle("Photon p_{T} smearing");
-    aset(gr_smear[part], "p_{T} [GeV/c]","Reco/Truth", 4.,30., 0.9,1.5);
+    aset(gr_smear[part], "p_{T} [GeV/c]","Reco/Truth", 4.9,30.1, 0.9,1.5);
     style(gr_smear[part], part+20, part+1);
     if(part==0)
       gr_smear[part]->Draw("AP");
@@ -233,7 +233,7 @@ void draw_Acceptance_IsoPhoton(const int subbg = 0)
       mcd(3, pisa+1);
       TGraphErrors *gr_acc = qt_acc->Graph(part+3*pisa);
       gr_acc->SetTitle( Form("Combined acceptance in %s",simname[pisa]) );
-      aset(gr_acc, "p_{T} [GeV/c]","Acceptance", 4.,30., 0.,0.4);
+      aset(gr_acc, "p_{T} [GeV/c]","Acceptance", 4.9,30.1, 0.,0.4);
       style(gr_acc, part+20, part+1);
       if(part==0)
         gr_acc->Draw("AP");

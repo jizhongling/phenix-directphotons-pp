@@ -20,7 +20,7 @@ void draw_CrossSection_IsoPhoton()
   const double eXBBC = 3.24e9;
 
   // function for pT weight for direct photon
-  cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]*[4]", 0, 30);
+  cross_ph = new TF1("cross_ph", "x**(-[1]-[2]*log(x/[0]))*(1-(x/[0])**2)**[3]*[4]", 6., 30.);
   cross_ph->SetParameters(255., 5.98, 0.273, 14.43, 1.);
   double ndata = 0.;
   double nfit = 0.;
@@ -98,7 +98,7 @@ void draw_CrossSection_IsoPhoton()
     mc(part+6, 6,5);
   }
 
-  for(int ipt=2; ipt<npT; ipt++)
+  for(int ipt=12; ipt<npT; ipt++)
   {
     double dummy, xpt, xsec[3], exsec[3];  // part
     double rsys[nsys][3], ersys[nsys][3];  // isys-1, part
@@ -381,7 +381,7 @@ void draw_CrossSection_IsoPhoton()
       gr->SetTitle("Separated");
     else if(part == 3)
       gr->SetTitle("Combined");
-    aset(gr, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 6.1,30., 1e-1, 2e3);
+    aset(gr, "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 4.9,30.1, 1e-1, 2e3);
     style(gr, part+20, part+1);
     if(part%3==0)
     {
@@ -406,7 +406,7 @@ void draw_CrossSection_IsoPhoton()
   for(int igsys=0; igsys<=ngsys; igsys++)
   {
     TGraphErrors *gr = qt_cross->Graph(4+igsys);
-    aset(gr, "p_{T} [GeV/c]", "SysErr", 6.1,30., 0.,0.15);
+    aset(gr, "p_{T} [GeV/c]", "SysErr", 4.9,30.1, 0.,0.15);
     style(gr, igsys+20, igsys+1);
     gr->SetLineStyle(igsys/3*8+1);
     char *opt = igsys==0 ? "AP" : "L";

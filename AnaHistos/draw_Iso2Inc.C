@@ -5,6 +5,7 @@
 void draw_Iso2Inc(const int pwhg = 0, const int ipwhg = 0)
 {
   const int sector = 3;  // PbSc west: 0; PbSc east: 1; PbGl: 2; Combined: 3
+  const char *pwhg_type[4] = {"with MPI", "QED-QCD veto", "without MPI", "pure hard"};
   const char *suffix[4] = {"-pwhg", "-qedqcd", "-nompi", "-purehard"};
   const char *jetphox_fname[3] = {"p_{T}/2", "p_{T}", "2p_{T}"};
 
@@ -45,7 +46,7 @@ void draw_Iso2Inc(const int pwhg = 0, const int ipwhg = 0)
     gr[iph] = new TGraphErrors(npT);
   TGraphErrors *gr_sys = new TGraphErrors(npT);
 
-  for(int ipt=0; ipt<npT; ipt++)
+  for(int ipt=12; ipt<npT; ipt++)
   {
     double xpt, incl, eincl, iso, eiso;
 
@@ -85,16 +86,17 @@ void draw_Iso2Inc(const int pwhg = 0, const int ipwhg = 0)
 
   mc();
   mcd();
-  legi(0, 0.2,0.8,0.9,0.9);
+  legi(0, 0.22,0.8,0.85,0.9);
   leg0->SetNColumns(3);
+  legi(1, 0.22,0.65,0.42,0.82);
   for(int iph=0; iph<2; iph++)
   {
     gr[iph]->Set(igp[iph]);
-    aset(gr[iph], "p_{T} [GeV/c]", "#frac{Isolated}{Inclusive}", 5.9,30.1, 0.,1.6);
+    aset(gr[iph], "p_{T} [GeV/c]", "#frac{Isolated}{Inclusive}", 4.9,30.1, 0.,1.6);
     style(gr[iph], iph+20, iph+1);
     if(iph==0)
     {
-      gr[iph]->SetTitle("Isolated/Inclusive ratio");
+      gr[iph]->SetTitle("");
       gr[iph]->Draw("AP");
     }
     else
@@ -106,23 +108,33 @@ void draw_Iso2Inc(const int pwhg = 0, const int ipwhg = 0)
     }
   }
   TGraphErrors *gr_pythia = DivideHisto(h_isophoton, h_photon);
-  style(gr_pythia, 25, 2);
-  gr_pythia->Draw("P");
-  leg0->AddEntry(gr[0], "Data #pi^{0}", "P");
-  leg0->AddEntry(gr[1], "Data #gamma_{dir}", "P");
-  leg0->AddEntry(gr_pythia, "Pythia #gamma_{dir}", "P");
+  while(true)
+  {
+    double xgr, ygr;
+    gr_pythia->GetPoint(0, xgr, ygr);
+    if(xgr > 6.) break;
+    gr_pythia->RemovePoint(0);
+  }
+  for(int i=0; i<gr_pythia->GetN(); i++)
+    gr_pythia->SetPointError(i, 0., gr_pythia->GetErrorY(i));
+  style(gr_pythia, 1, 4);
+  gr_pythia->Draw("LE");
+  leg0->AddEntry(gr[0], "#scale[0.9]{Data #pi^{0}}", "P");
+  leg0->AddEntry(gr[1], "#scale[0.9]{Data #gamma_{dir}}", "P");
+  leg0->AddEntry(gr_pythia, Form("#scale[0.7]{#splitline{Pythia #gamma_{dir}}{%s}}",pwhg_type[ipwhg]), "L");
   for(int imu=0; imu<3; imu++)
   {
     TGraphErrors *gr_jetphox = qt_jetphox->Graph(imu);
-    style(gr_jetphox, imu+20, imu+1);
+    style(gr_jetphox, 2, imu+1);
     gr_jetphox->Draw("LE");
-    leg0->AddEntry(gr_jetphox, Form("NLO %s",jetphox_fname[imu]), "L");
+    leg1->AddEntry(gr_jetphox, Form("#scale[0.7]{JETPHOX #gamma_{dir} %s}",jetphox_fname[imu]), "L");
   }
   leg0->Draw();
+  leg1->Draw();
 
   const char *outfile = Form("plots/Iso2Inc%s", pwhg?suffix[ipwhg]:"-pythia6");
   c0->Print(Form("%s.pdf", outfile));
-  if(pwhg == 1)
+  if(pwhg == 1 && ipwhg != 1)
   {
     char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=320 --y=200 --scale=0.8", outfile,outfile);
     system(cmd);

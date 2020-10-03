@@ -33,7 +33,7 @@ void draw_CrossSectionCmp(const int nameid)
   for(int part=0; part<4; part++)
     gr_parts[part] = new TGraphErrors(npT);
 
-  for(int ipt=2; ipt<npT; ipt++)
+  for(int ipt=12; ipt<npT; ipt++)
   {
     double xpt, Combine, eCombine;
     if( !qt_cross->Query(ipt, 3, xpt, Combine, eCombine) )
@@ -84,7 +84,7 @@ void draw_CrossSectionCmp(const int nameid)
     {
       mcd(0);
       gr_parts[part]->SetTitle("Diff in parts;p_{T} [GeV/c];Diff;");
-      aset(gr_parts[part], "","", 5.9,30.1, -0.5,0.5);
+      aset(gr_parts[part], "","", 4.9,30.1, -0.5,0.5);
       leg0->AddEntry(gr_parts[part], Form("%s",pname[part]), "P");
     }
     else
@@ -93,12 +93,12 @@ void draw_CrossSectionCmp(const int nameid)
       if( name.EqualTo("pion") )
       {
         gr_parts[part]->SetTitle("Diff with PRD 93, 011501;p_{T} [GeV/c];Diff;");
-        aset(gr_parts[part], "","", 5.9,30.1, -0.05,0.05);
+        aset(gr_parts[part], "","", 4.9,30.1, -0.05,0.05);
       }
       else
       {
         gr_parts[part]->SetTitle("#gamma/#pi^{0};p_{T} [GeV/c];#gamma/#pi^{0};");
-        aset(gr_parts[part], "","", 5.9,30.1, 0.,0.5);
+        aset(gr_parts[part], "","", 4.9,30.1, 0.,0.5);
       }
     }
     style(gr_parts[part], part+20, part+1);
