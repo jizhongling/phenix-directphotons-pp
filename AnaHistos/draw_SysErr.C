@@ -11,11 +11,11 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
 
   if(pwhg == 0)
   {
-    const double jetphox_scale = 1./400.;  // combined 400 histograms
-    const int nmu[2] = {3, 7};
+    const double jetphox_scale = 1./2000.;  // combined 2000 histograms
+    const int nmu[2] = {3, 5};
     const char *jetphox_fname[2][nmu[1]] = {
       {"onept", "halfpt", "twopt"},
-      {"MMM", "LLH", "LHH", "LLL", "HLL", "HHL", "HHH"}
+      {"MMM", "LLH", "LHH", "HLL", "HHL"}
     };
     const char *mu_name[2][3] = {
       {"   1           1            1", " 1/2        1/2         1/2", "   2           2            2"},
@@ -90,7 +90,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       char *type = iso ? "iso" : "inc";
       if(pwhg == 0)
       {
-        TFile *f_nlo = new TFile( Form("data/%sprompt-x400-ct14-%s.root",type,jetphox_fname[iso][imu]) );
+        TFile *f_nlo = new TFile( Form("data/%sprompt-x2000-ct14-%s.root",type,jetphox_fname[iso][imu]) );
         TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
         h_nlo->Scale(jetphox_scale);
       }

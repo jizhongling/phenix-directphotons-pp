@@ -7,7 +7,8 @@ void draw_Iso2Inc(const int pwhg = 0, const int ipwhg = 0)
   const int sector = 3;  // PbSc west: 0; PbSc east: 1; PbGl: 2; Combined: 3
   const char *pwhg_type[4] = {"with MPI", "QED-QCD veto", "without MPI", "pure hard"};
   const char *suffix[4] = {"-pwhg", "-qedqcd", "-nompi", "-purehard"};
-  const char *jetphox_fname[3] = {"p_{T}/2", "p_{T}", "2p_{T}"};
+  const char *jetphox_fname[3] = {"halfpt", "onept", "twopt"};
+  const char *jetphox_scale[3] = {"p_{T}/2", "p_{T}", "2p_{T}"};
 
   QueryTree *qt_pion = new QueryTree("data/CrossSection-pion.root");
   QueryTree *qt_photon = new QueryTree("data/CrossSection-photon.root");
@@ -124,10 +125,31 @@ void draw_Iso2Inc(const int pwhg = 0, const int ipwhg = 0)
   leg0->AddEntry(gr_pythia, Form("#scale[0.7]{#splitline{Pythia #gamma_{dir}}{%s}}",pwhg_type[ipwhg]), "L");
   for(int imu=0; imu<3; imu++)
   {
-    TGraphErrors *gr_jetphox = qt_jetphox->Graph(imu);
+    TFile *f_iso = new TFile( Form("data/isoprompt-x2000-ct14-%s.root",jetphox_fname[imu]) );
+    TFile *f_inc = new TFile( Form("data/incprompt-x2000-ct14-%s.root",jetphox_fname[imu]) );
+    TH1 *h_iso = (TH1*)f_iso->Get("hp41");
+    TH1 *h_inc = (TH1*)f_inc->Get("hp41");
+    TGraphErrors *gr_jetphox = new TGraphErrors(npT);
+    int igr_jetphox = 0;
+    for(int ipt=12; ipt<npT; ipt++)
+    {
+      double xpt = ( pTbin[ipt] + pTbin[ipt+1] ) / 2.;
+      int bin_th = h_iso->GetXaxis()->FindBin(xpt);
+      double ratio = h_iso->GetBinContent(bin_th) / h_inc->GetBinContent(bin_th);
+      double eratio = ratio * sqrt( pow(h_iso->GetBinError(bin_th)/h_iso->GetBinContent(bin_th),2) + pow(h_inc->GetBinError(bin_th)/h_inc->GetBinContent(bin_th),2) );
+      if( TMath::Finite(ratio+eratio) )
+      {
+        gr_jetphox->SetPoint(igr_jetphox, xpt, ratio);
+        gr_jetphox->SetPointError(igr_jetphox, 0., eratio);
+        igr_jetphox++;
+      }
+    }
+    gr_jetphox->Set(igr_jetphox);
+    delete f_iso;
+    delete f_inc;
     style(gr_jetphox, 2, imu+1);
     gr_jetphox->Draw("LE");
-    leg1->AddEntry(gr_jetphox, Form("#scale[0.7]{JETPHOX #gamma_{dir} %s}",jetphox_fname[imu]), "L");
+    leg1->AddEntry(gr_jetphox, Form("#scale[0.7]{JETPHOX #gamma_{dir} %s}",jetphox_scale[imu]), "L");
   }
   leg0->Draw();
   leg1->Draw();

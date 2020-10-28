@@ -17,9 +17,10 @@ setenv PLHF /phenix/plhf/zji
 setenv SPIN /phenix/spin/phnxsp01/zji
 setenv SCRATCH /phenix/scratch/zji
 
+set NPWHG = 12000
 set NFiles = 10
-@ START = $2 * $NFiles
-@ END = ( $2 + 1 ) * $NFiles - 1
+@ START = $2 % ( $NPWHG / $NFiles ) * $NFiles
+@ END = ( $2 % ( $NPWHG / $NFiles ) + 1 ) * $NFiles - 1
 
 setenv LHE
 foreach proc ( `seq $START $END` )
