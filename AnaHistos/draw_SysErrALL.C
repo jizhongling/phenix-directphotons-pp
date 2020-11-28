@@ -97,8 +97,6 @@ void draw_SysErrALL()
     {
       char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=150 --y=130 --scale=0.8", outfile,outfile);
       system(cmd);
-      cmd = Form("rm %s.pdf", outfile);
-      system(cmd);
     }
   } // beam
 

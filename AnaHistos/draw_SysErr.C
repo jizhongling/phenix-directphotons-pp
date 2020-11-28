@@ -243,8 +243,11 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     {
       char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=360 --y=420 --scale=0.8", outfile,outfile);
       system(cmd);
-      cmd = Form("rm %s.pdf", outfile);
-      system(cmd);
+      if(pwhg != 1 || ipwhg != 0)
+      {
+        cmd = Form("rm %s.pdf", outfile);
+        system(cmd);
+      }
     }
     delete c0;
   } // iso
