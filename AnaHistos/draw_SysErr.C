@@ -170,8 +170,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       gr_ratio->Set(igp);
       gr_ratio_sys->Set(igp);
 
-      style(gr_nlo, 1, imu+1, 2);
-      style(gr_ratio, 20, imu+1, 2);
+      style(gr_nlo, imu+1, imu+1, 2);
+      style(gr_ratio, imu==0?20:imu+1, imu+1, 2);
       gr_ratio->SetMarkerSize(0.8);
       if(imu == 0)
         gr_central == gr_nlo;
