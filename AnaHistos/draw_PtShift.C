@@ -65,16 +65,16 @@ void draw_PtShift()
       }
 
       double stats[4], ptbar[4];
-      h_1photon[isolated]->GetXaxis()->SetRange(pTbin[ipt]*10, pTbin[ipt+1]*10-1);
+      h_1photon[isolated]->GetXaxis()->SetRange(pTbin[ipt]*10+1, pTbin[ipt+1]*10);
       h_1photon[isolated]->GetStats(stats);
       ptbar[3] = stats[2]/stats[0];
-      h_2photon[0][isolated]->GetXaxis()->SetRange(pTbin[ipt]*10, pTbin[ipt+1]*10-1);
+      h_2photon[0][isolated]->GetXaxis()->SetRange(pTbin[ipt]*10+1, pTbin[ipt+1]*10);
       h_2photon[0][isolated]->GetStats(stats);
       ptbar[0] = stats[2]/stats[0];
-      h_2photon[1][isolated*2]->GetXaxis()->SetRange(pTbin[ipt]*10, pTbin[ipt+1]*10-1);
+      h_2photon[1][isolated*2]->GetXaxis()->SetRange(pTbin[ipt]*10+1, pTbin[ipt+1]*10);
       h_2photon[1][isolated*2]->GetStats(stats);
       ptbar[1] = stats[2]/stats[0];
-      h_2photon[0][isolated*2]->GetXaxis()->SetRange(pTbin[ipt]*10, pTbin[ipt+1]*10-1);
+      h_2photon[0][isolated*2]->GetXaxis()->SetRange(pTbin[ipt]*10+1, pTbin[ipt+1]*10);
       h_2photon[0][isolated*2]->GetStats(stats);
       ptbar[2] = stats[2]/stats[0];
       double ptshift = (ptbar[3] - rbg[0]*ptbar[0] - rbg[1]*ptbar[1] - rbg[2]*ptbar[2]) / (1 - rbg[0] - rbg[1] - rbg[2]);
@@ -97,16 +97,16 @@ void draw_PtShift()
     }
 
     double stats[4], ptbar[4];
-    h_1photon[isolated]->GetXaxis()->SetRange(pTbin_pol[ipt]*10, pTbin_pol[ipt+1]*10-1);
+    h_1photon[isolated]->GetXaxis()->SetRange(pTbin_pol[ipt]*10+1, pTbin_pol[ipt+1]*10);
     h_1photon[isolated]->GetStats(stats);
     ptbar[3] = stats[2]/stats[0];
-    h_2photon[0][isolated]->GetXaxis()->SetRange(pTbin_pol[ipt]*10, pTbin_pol[ipt+1]*10-1);
+    h_2photon[0][isolated]->GetXaxis()->SetRange(pTbin_pol[ipt]*10+1, pTbin_pol[ipt+1]*10);
     h_2photon[0][isolated]->GetStats(stats);
     ptbar[0] = stats[2]/stats[0];
-    h_2photon[1][isolated*2]->GetXaxis()->SetRange(pTbin_pol[ipt]*10, pTbin_pol[ipt+1]*10-1);
+    h_2photon[1][isolated*2]->GetXaxis()->SetRange(pTbin_pol[ipt]*10+1, pTbin_pol[ipt+1]*10);
     h_2photon[1][isolated*2]->GetStats(stats);
     ptbar[1] = stats[2]/stats[0];
-    h_2photon[0][isolated*2]->GetXaxis()->SetRange(pTbin_pol[ipt]*10, pTbin_pol[ipt+1]*10-1);
+    h_2photon[0][isolated*2]->GetXaxis()->SetRange(pTbin_pol[ipt]*10+1, pTbin_pol[ipt+1]*10);
     h_2photon[0][isolated*2]->GetStats(stats);
     ptbar[2] = stats[2]/stats[0];
     double ptshift = (ptbar[3] - rbg[0]*ptbar[0] - rbg[1]*ptbar[1] - rbg[2]*ptbar[2]) / (1 - rbg[0] - rbg[1] - rbg[2]);
