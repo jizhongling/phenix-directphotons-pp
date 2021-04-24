@@ -9,7 +9,7 @@ void draw_SysErrALL()
   QueryTree *qt_sys = new QueryTree("data/IsoPhotonALL-syserr.root", "RECREATE");
   QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root");
 
-  TGraph *gr_dssv = new TGraph("data/dssv-all.txt", "%lg %lg");
+  TGraph *gr_dssv = new TGraph("data/werner-all-dssv14-nnpdf-grv.txt", "%lg %lg");
 
   TBox *box = new TBox();
   box->SetLineColor(2);
