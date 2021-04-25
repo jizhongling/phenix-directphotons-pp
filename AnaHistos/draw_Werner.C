@@ -7,10 +7,11 @@ void draw_Werner()
   const double PI = TMath::Pi();
   const double DeltaEta = 0.5;
   const double jetphox_scale = 1./2000.;  // combined 2000 histograms
-  const int nmu = 7;
-  const int nana = 5;
-  const char *scale_name[nmu] = {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt", "ct14-grv-onept", "ct14-bfg2-onept", "onept", "MMM"};
-  const char *leg_name[nmu] = {"NNPDF GRV p_{T}", "NNPDF GRV p_{T}/2", "NNPDF GRV 2p_{T}", "CT14 GRV p_{T}", "CT14 BFGII p_{T}", "JETPHOX CT14 BFGII p_{T}", "JETPHOX CT14 BFGII 0.56p_{T} (#mu_{PMC})"};
+
+  const int nmu = 8;
+  const int nana = 8;
+  const char *scale_name[nmu] = {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt", "ct14-grv-onept", "ct14-bfg2-onept", "ct14-grv-scR05-scF05", "ct14-grv-scR05-scF1", "ct14-grv-scR05-scF2"};
+  const char *leg_name[nmu] = {"NNPDF GRV p_{T}", "NNPDF GRV p_{T}/2", "NNPDF GRV 2p_{T}", "CT14 GRV p_{T}", "CT14 BFGII p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}/2", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=2p_{T}"};
 
   TGraph *gr_werner[nmu];
   TGraphErrors *gr_cross, *gr_cross_sys;
@@ -41,7 +42,7 @@ void draw_Werner()
   TLine *line = new TLine();
   line->SetLineWidth(2);
 
-  double pt_shift[npT], nlo[npT][nmu];
+  double nlo[npT][nmu];
   TGraphErrors *gr_central;
   for(int imu=0; imu<nmu; imu++)
   {
@@ -66,22 +67,20 @@ void draw_Werner()
     int igp = 0;
     for(int ipt=12; ipt<npT; ipt++)
     {
-      double xpt;
+      double xpt, dummy;
       double ratio, eratio, sysratio;
       double Combine, eCombine, sysCombine;
+
+      if( !qt_cross->Query(ipt, 3, xpt, Combine, eCombine) ||
+          !qt_sys->Query(ipt, 1, xpt, Combine, sysCombine) )
+        continue;
+
       if(imu < nana)
       {
-        gr_werner[imu]->GetPoint(ipt-4, xpt, nlo[ipt][imu]);
+        gr_werner[imu]->GetPoint(ipt-4, dummy, nlo[ipt][imu]);
       }
-      if(imu < 3)
+      else
       {
-        if( !qt_cross->Query(ipt, 3, xpt, Combine, eCombine) ||
-            !qt_sys->Query(ipt, 1, pt_shift[ipt], Combine, sysCombine) )
-          continue;
-      }
-      if(imu >= nana)
-      {
-        xpt = pt_shift[ipt];
         int bin_th = h_nlo->GetXaxis()->FindBin(xpt);
         nlo[ipt][imu] = h_nlo->GetBinContent(bin_th) / (2*PI*xpt*DeltaEta);
         gr_werner[imu]->SetPoint(igp, xpt, nlo[ipt][imu]);
@@ -106,7 +105,10 @@ void draw_Werner()
     } // ipt
 
     if(imu >= nana)
+    {
       gr_werner[imu]->Set(igp);
+      delete f_nlo;
+    }
     gr_ratio->Set(igp);
     gr_ratio_sys->Set(igp);
 
