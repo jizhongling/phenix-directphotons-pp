@@ -29,7 +29,7 @@ void draw_Werner()
   gPad->SetTopMargin(0.05);
   gPad->SetBottomMargin(0.);
   gPad->SetLogy();
-  legi(0, 0.22,0.03,0.47,0.40);
+  legi(0, 0.22,0.03,0.45,0.40);
   leg0->SetTextSize(0.035);
   TLatex *latex = new TLatex();
   latex->SetTextSize(0.04);
@@ -137,7 +137,8 @@ void draw_Werner()
       gr_werner[imu]->Draw("LX");
       latex->DrawLatexNDC(0.29,0.87, "#splitline{Isolated direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}");
       latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not included}");
-      latex->DrawLatexNDC(0.24,0.43, "NLO pQCD");
+      latex->DrawLatexNDC(0.24,0.46, "NLO pQCD");
+      latex->DrawLatexNDC(0.22,0.42, "(by Vogelsang)");
       latex->DrawLatexNDC(0.45,0.70, "Isolation cut condition");
       latex->DrawLatexNDC(0.45,0.60, "#splitline{r_{cone} = #sqrt{(#delta#eta)^{2} + (#delta#phi)^{2}} = 0.5}{E_{cone} < 0.1E_{#gamma}}");
       leg0->Draw();
