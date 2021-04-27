@@ -8,12 +8,10 @@ void draw_Werner()
   const double DeltaEta = 0.5;
   const double jetphox_scale = 1./2000.;  // combined 2000 histograms
 
-  const int nmu = 3;
-  const int nana = 3;
-  const char *scale_name[nmu] = {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt"};
-  const char *leg_name[nmu] = {"#mu = p_{T}", "#mu = p_{T}/2", "#mu = 2p_{T}"};
-  //const char *scale_name[nmu] = {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt", /*"ct14-grv-onept",*/ "ct14-bfg2-onept", "ct14-bfg2-scR056-scF1", "ct14-grv-scR05-scF05", "ct14-grv-scR05-scF1", "ct14-grv-scR05-scF2", "MMM"};
-  //const char *leg_name[nmu] = {"NNPDF GRV p_{T}", "NNPDF GRV p_{T}/2", "NNPDF GRV 2p_{T}", /*"CT14 GRV p_{T}",*/ "CT14 BFGII p_{T}", "CT14 BFGII #mu_{R}=#mu_{PMC}, #mu_{F}=p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}/2", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=2p_{T}", "JETPHOX #mu_{R}=#mu_{PMC}, #mu_{F}=p_{T}"};
+  const int nmu = 8;
+  const int nana = 8;
+  const char *scale_name[nmu] = {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt", /*"ct14-grv-onept",*/ "ct14-bfg2-onept", "ct14-bfg2-scR056-scF1", "ct14-grv-scR05-scF05", "ct14-grv-scR05-scF1", "ct14-grv-scR05-scF2"};
+  const char *leg_name[nmu] = {"NNPDF GRV p_{T}", "NNPDF GRV p_{T}/2", "NNPDF GRV 2p_{T}", /*"CT14 GRV p_{T}",*/ "CT14 BFGII p_{T}", "CT14 BFGII #mu_{R}=#mu_{PMC}, #mu_{F}=p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}/2", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=2p_{T}"};
 
   TGraph *gr_werner[nmu];
   TGraphErrors *gr_cross, *gr_cross_sys;
@@ -31,8 +29,7 @@ void draw_Werner()
   gPad->SetTopMargin(0.05);
   gPad->SetBottomMargin(0.);
   gPad->SetLogy();
-  legi(0, 0.25,0.03,0.45,0.20);
-  //legi(0, 0.22,0.03,0.45,0.40);
+  legi(0, 0.22,0.03,0.45,0.40);
   leg0->SetTextSize(0.035);
   TLatex *latex = new TLatex();
   latex->SetTextSize(0.04);
@@ -115,8 +112,8 @@ void draw_Werner()
     gr_ratio->Set(igp);
     gr_ratio_sys->Set(igp);
 
-    style(gr_werner[imu], imu+1, imu+1, 2);
-    style(gr_ratio, imu==0?20:imu+1, imu+1, 2);
+    style(gr_werner[imu], imu+1, imu<4?imu+1:imu+2, 2);
+    style(gr_ratio, imu==0?20:imu+1, imu<4?imu+1:imu+2, 2);
     gr_ratio->SetMarkerSize(0.8);
     if(imu == 0)
       gr_central == gr_werner[imu];
@@ -140,10 +137,8 @@ void draw_Werner()
       gr_werner[imu]->Draw("LX");
       latex->DrawLatexNDC(0.29,0.87, "#splitline{Isolated direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}");
       latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not included}");
-      latex->DrawLatexNDC(0.25,0.37, "NLO pQCD");
-      latex->DrawLatexNDC(0.25,0.32, "(by Vogelsang)");
-      latex->DrawLatexNDC(0.25,0.27, "NNPDF3.0 PDF");
-      latex->DrawLatexNDC(0.25,0.22, "GRV FF");
+      latex->DrawLatexNDC(0.23,0.47, "NLO pQCD");
+      latex->DrawLatexNDC(0.22,0.42, "(by Vogelsang)");
       latex->DrawLatexNDC(0.45,0.70, "Isolation cut condition");
       latex->DrawLatexNDC(0.45,0.60, "#splitline{r_{cone} = #sqrt{(#delta#eta)^{2} + (#delta#phi)^{2}} = 0.5}{E_{cone} < 0.1E_{#gamma}}");
       leg0->Draw();

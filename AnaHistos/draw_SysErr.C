@@ -9,6 +9,11 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
   const char *pwhg_type[4] = {"with MPI", "QED-QCD veto", "without MPI", "pure hard"};
   const char *suffix[4] = {"-pwhg", "-qedqcd", "-nompi", "-purehard"};
 
+  const int nana = 3;
+  const char *scale_name[nana] = {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt"};
+  const char *leg_name[nana] = {"#mu = p_{T}", "#mu = p_{T}/2", "#mu = 2p_{T}"};
+  TGraph *gr_werner[nana];
+
   if(pwhg == 0)
   {
     const double jetphox_scale = 1./2000.;  // combined 2000 histograms
@@ -18,8 +23,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       {"MMM", "LLH", "LHH", "HLL", "HHL"}
     };
     const char *mu_name[2][3] = {
-      {"   1           1            1", " 1/2        1/2         1/2", "   2           2            2"},
-      {"0.56         1            1", "0.54    1/2 or 2       2", "0.58    1/2 or 2     1/2"}
+      {"#mu = p_{T}/2", "#mu = p_{T}", "#mu = 2p_{T}"},
+      {"#mu_{R} = 0.54p_{T}, #mu_{F} vary", "#mu_{R} = 0.56p_{T}, #mu_{F} = p_{T}", "#mu_{R} = 0.58p_{T}, #mu_{F} vary"}
     };
   }
   else if(pwhg == 1)
@@ -28,10 +33,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     TH1 *h_events = (TH1*)f_pythia->Get("h_events");
     const double nEvents = h_events->GetBinContent(1);
     const int nmu[2] = {7, 7};
-    const char *mu_name[2][3] = {
-      {"  1            1           --", "vary       vary        --", "vary       vary        --"},
-      {"  1            1           --", "vary       vary        --", "vary       vary        --"}
-    };
+    const char *mu_name[3] = {"#mu_{R} = p_{T}/2, #mu_{F} vary", "#mu = p_{T}", "#mu_{R} = 2p_{T}, #mu_{F} vary"};
   }
   else
   {
@@ -71,8 +73,10 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     gPad->SetTopMargin(0.05);
     gPad->SetBottomMargin(0.);
     gPad->SetLogy();
-    legi(0, 0.22,0.03,0.47,0.20);
+    legi(0, 0.25,0.03,0.47,0.20);
+    legi(1, 0.60+0.05*pwhg,0.30,0.90,0.45);
     leg0->SetTextSize(0.035);
+    leg1->SetTextSize(0.030);
     TLatex *latex = new TLatex();
     latex->SetTextSize(0.04);
 
@@ -84,7 +88,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     TLine *line = new TLine();
     line->SetLineWidth(2);
 
-    double nlo[npT][nmu[1]], enlo[npT][nmu[1]];
+    double nlo[npT][nmu[1]+nana];
     for(int imu=0; imu<nmu[iso]; imu++)
     {
       char *type = iso ? "iso" : "inc";
@@ -104,62 +108,61 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         double xpt = (pTbin[ipt] + pTbin[ipt+1]) / 2.;
         int bin_th = h_nlo->GetXaxis()->FindBin(xpt);
         nlo[ipt][imu] = h_nlo->GetBinContent(bin_th);
-        enlo[ipt][imu] = h_nlo->GetBinError(bin_th);
       }
       if(pwhg == 0)
         delete f_nlo;
     } // imu
 
     TGraphErrors *gr_central;
-    for(int imu=0; imu<3; imu++)
+    for(int imu=0; imu<nana+3; imu++)
     {
-      TGraphErrors *gr_nlo = new TGraphErrors(npT);
+      TGraph *gr_nlo = new TGraph(npT);
       TGraphErrors *gr_ratio = new TGraphErrors(npT);
       TGraphErrors *gr_ratio_sys = new TGraphErrors(npT);
 
       int igp = 0;
       for(int ipt=12; ipt<npT; ipt++)
       {
-        double xpt, Combine, eCombine, sysCombine;
+        double xpt, dummy, Combine, eCombine, sysCombine;
         if( !qt_cross->Query(ipt, 3, xpt, Combine, eCombine) ||
             !qt_sys->Query(ipt, iso, xpt, Combine, sysCombine) )
           continue;
 
         double factor = 1. / (2*PI*xpt*DeltaEta);
-        double sigma_nlo, esigma_nlo;
-        if(imu == 0)
+        double sigma_nlo;
+        if(imu < nana)
         {
-          sigma_nlo = nlo[ipt][0];
-          esigma_nlo = enlo[ipt][0];
+          gr_werner[imu] = new TGraph(Form("data/werner-cross-%s-%s.txt",type,scale_name[imu]));
+          gr_werner[imu]->GetPoint(ipt-4, dummy, nlo[ipt][nmu[iso]+imu]);
+          sigma_nlo = nlo[ipt][nmu[iso]+imu];
         }
-        else if(imu == 1)
+        else if(imu == nana)
         {
-          sigma_nlo = TMath::MaxElement(nmu[iso], nlo[ipt]);
-          esigma_nlo = TMath::MaxElement(nmu[iso], enlo[ipt]);
+          sigma_nlo = TMath::MaxElement(nmu[iso], nlo[ipt]) * factor;
         }
-        else if(imu == 2)
+        else if(imu == nana+1)
         {
-          sigma_nlo = TMath::MinElement(nmu[iso], nlo[ipt]);
-          esigma_nlo = TMath::MaxElement(nmu[iso], enlo[ipt]);
+          sigma_nlo = nlo[ipt][0] * factor;
         }
-        sigma_nlo *= factor;
-        esigma_nlo *= factor;
+        else if(imu == nana+2)
+        {
+          sigma_nlo = TMath::MinElement(nmu[iso], nlo[ipt]) * factor;
+        }
         gr_nlo->SetPoint(igp, xpt, sigma_nlo);
-        gr_nlo->SetPointError(igp, 0., esigma_nlo);
 
         double ratio, eratio, sysratio;
         if(imu == 0)
         {
           ratio = Combine/sigma_nlo;
-          eratio = ratio*sqrt(pow(eCombine/Combine,2) + pow(esigma_nlo/sigma_nlo,2));
+          eratio = eCombine/sigma_nlo;
           sysratio = sysCombine/sigma_nlo; 
           gr_ratio_sys->SetPoint(igp, xpt, ratio-1);
           gr_ratio_sys->SetPointError(igp, 0., sysratio);
         }
         else
         {
-          ratio = sigma_nlo/nlo[ipt][0]/factor;
-          eratio = ratio*sqrt(pow(enlo[ipt][0]/nlo[ipt][0],2) + pow(esigma_nlo/sigma_nlo,2));
+          ratio = sigma_nlo/nlo[ipt][nmu[iso]];
+          eratio = 1e-9;
         }
         gr_ratio->SetPoint(igp, xpt, ratio-1);
         gr_ratio->SetPointError(igp, 0., eratio);
@@ -170,15 +173,17 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       gr_ratio->Set(igp);
       gr_ratio_sys->Set(igp);
 
-      style(gr_nlo, imu+1, imu+1, 2);
-      style(gr_ratio, imu==0?20:imu+1, imu+1, 2);
+      style(gr_nlo, imu+1, imu<4?imu+1:imu+2, 2);
+      style(gr_ratio, imu==0?20:imu+1, imu<4?imu+1:imu+2, 2);
       gr_ratio->SetMarkerSize(0.8);
       if(imu == 0)
         gr_central == gr_nlo;
+      else if(imu < nana)
+        leg0->AddEntry(gr_nlo, leg_name[imu], "L");
       else
-        leg0->AddEntry(gr_nlo, mu_name[iso][imu], "L");
+        leg1->AddEntry(gr_nlo, pwhg?mu_name[imu-nana]:mu_name[iso][imu-nana], "L");
       if(imu == 1)
-        leg0->AddEntry(gr_central, mu_name[iso][0], "L");
+        leg0->AddEntry(gr_central, leg_name[0], "L");
 
       if(imu == 0)
       {
@@ -194,20 +199,23 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         gr_cross_sys[iso]->Draw("[]");
         gr_nlo->Draw("LX");
         leg0->Draw();
+        leg1->Draw();
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not included}");
-        latex->DrawLatexNDC(0.24,0.40, "NLO pQCD");
+        latex->DrawLatexNDC(0.25,0.37, "NLO pQCD");
+        latex->DrawLatexNDC(0.25,0.32, "(by Vogelsang)");
+        latex->DrawLatexNDC(0.25,0.27, "NNPDF3.0 PDF");
+        latex->DrawLatexNDC(0.25,0.22, "GRV FF");
         if(pwhg == 0)
         {
-          latex->DrawLatexNDC(0.24,0.35, "(by JETPHOX)");
-          latex->DrawLatexNDC(0.24,0.28, "#splitline{CT14 PDF}{BFG II FF}");
+          latex->DrawLatexNDC(0.55,0.50, "JETPHOX");
+          latex->DrawLatexNDC(0.55,0.45, "CT14 PDF & BFG II FF");
         }
         else if(pwhg == 1)
         {
-          latex->DrawLatexNDC(0.24,0.32, Form("#splitline{(by POWHEG}{%s)}",pwhg_type[ipwhg]));
-          latex->DrawLatexNDC(0.24,0.25, "CT14 PDF");
+          latex->DrawLatexNDC(0.55,0.50, Form("POWHEG %s",pwhg_type[ipwhg]));
+          latex->DrawLatexNDC(0.55,0.45, "CT14 PDF");
         }
-        latex->DrawLatexNDC(0.28,0.22, "#scale[0.8]{#mu_{R}/p_{T}    #mu_{f}/p_{T}    #mu_{F}/p_{T}}");
         if(iso)
         {
           latex->DrawLatexNDC(0.45,0.70, "Isolation cut condition");
@@ -239,7 +247,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     char *type = iso ? "iso" : "";
     const char *outfile = Form("plots/CrossSection-%sphoton%s", type,pwhg?suffix[ipwhg]:"-jetphox");
     c0->Print(Form("%s.pdf", outfile));
-    if(iso == 0 && ipwhg != 1)
+    if(false && iso == 0 && ipwhg != 1)
     {
       char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=360 --y=420 --scale=0.8", outfile,outfile);
       system(cmd);
