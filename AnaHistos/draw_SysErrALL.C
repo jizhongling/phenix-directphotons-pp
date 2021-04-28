@@ -83,8 +83,9 @@ void draw_SysErrALL()
       gr_dssv->Draw("3");
       gr_dssv->Draw("CX");
       gr_all->Draw("P");
-      latex->DrawLatexNDC(0.23,0.82, "#splitline{Isolated direct photon A_{LL}}{#vec{p}+#vec{p} #sqrt{s} = 510 GeV, |#eta| < 0.25}");
-      latex->DrawLatexNDC(0.23,0.47, "#scale[0.8]{#splitline{3.9e-4 shift uncertainty from}{relative luminosity not included}}");
+      latex->DrawLatexNDC(0.23,0.86, "Isolated direct photon A_{LL}");
+      latex->DrawLatexNDC(0.23,0.79, "#vec{p}+#vec{p} #sqrt{s} = 510 GeV, |#eta| < 0.25");
+      latex->DrawLatexNDC(0.23,0.49, "#scale[0.8]{#splitline{3.9e-4 shift uncertainty from}{relative luminosity not included}}");
       latex->DrawLatexNDC(0.23,0.38, "#scale[0.8]{#splitline{6.6% scale uncertainty from}{polarization not included}}");
       leg0->AddEntry(gr_dssv, "DSSV14 with DSSV_{MC} uncertainty", "LF");
       leg0->Draw();

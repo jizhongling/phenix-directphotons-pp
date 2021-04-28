@@ -8,10 +8,10 @@ void draw_Werner()
   const double DeltaEta = 0.5;
   const double jetphox_scale = 1./2000.;  // combined 2000 histograms
 
-  const int nmu = 8;
+  const int nmu = 9;
   const int nana = 8;
-  const char *scale_name[nmu] = {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt", /*"ct14-grv-onept",*/ "ct14-bfg2-onept", "ct14-bfg2-scR056-scF1", "ct14-grv-scR05-scF05", "ct14-grv-scR05-scF1", "ct14-grv-scR05-scF2"};
-  const char *leg_name[nmu] = {"NNPDF GRV p_{T}", "NNPDF GRV p_{T}/2", "NNPDF GRV 2p_{T}", /*"CT14 GRV p_{T}",*/ "CT14 BFGII p_{T}", "CT14 BFGII #mu_{R}=#mu_{PMC}, #mu_{F}=p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}/2", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=2p_{T}"};
+  const char *scale_name[nmu] = {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt", /*"ct14-grv-onept",*/ "ct14-bfg2-onept", "ct14-bfg2-scR056-scF1", "ct14-grv-scR05-scF05", "ct14-grv-scR05-scF1", "ct14-grv-scR05-scF2", "MMM"};
+  const char *leg_name[nmu] = {"NNPDF GRV p_{T}", "NNPDF GRV p_{T}/2", "NNPDF GRV 2p_{T}", /*"CT14 GRV p_{T}",*/ "CT14 BFGII p_{T}", "CT14 BFGII #mu_{R}=#mu_{PMC}, #mu_{F}=p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}/2", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=2p_{T}", "JETPHOX #mu_{R}=#mu_{PMC}, #mu_{F}=p_{T}"};
 
   TGraph *gr_werner[nmu];
   TGraphErrors *gr_cross, *gr_cross_sys;
@@ -112,8 +112,8 @@ void draw_Werner()
     gr_ratio->Set(igp);
     gr_ratio_sys->Set(igp);
 
-    style(gr_werner[imu], imu+1, imu<4?imu+1:imu+2, 2);
-    style(gr_ratio, imu==0?20:imu+1, imu<4?imu+1:imu+2, 2);
+    style(gr_werner[imu], imu+1, imu+1, 2);
+    style(gr_ratio, imu==0?20:imu+1, imu+1, 2);
     gr_ratio->SetMarkerSize(0.8);
     if(imu == 0)
       gr_central == gr_werner[imu];
