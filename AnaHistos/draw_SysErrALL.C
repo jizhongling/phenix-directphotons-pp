@@ -9,11 +9,14 @@ void draw_SysErrALL()
   QueryTree *qt_sys = new QueryTree("data/IsoPhotonALL-syserr.root", "RECREATE");
   QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root");
 
-  TGraph *gr_dssv = new TGraph("data/werner-all-dssv14-nnpdf-grv.txt", "%lg %lg");
+  TGraphErrors *gr_dssv = new TGraphErrors("data/werner-all-dssv14-nnpdf-grv.txt", "%lg %lg %lg");
 
   TBox *box = new TBox();
   box->SetLineColor(2);
   box->SetFillStyle(0);
+
+  legi(0, 0.22,0.25,0.50,0.30);
+  leg0->SetTextSize(0.035);
 
   const int nge = 25;
   Double_t xge[nge], yge[nge], eyge[nge];
@@ -72,6 +75,20 @@ void draw_SysErrALL()
     gr_all->GetYaxis()->SetNdivisions(510);
     gr_sys->SetLineWidth(2);
     gr_all->Draw("AP");
+    if(beam==2)
+    {
+      style(gr_dssv, 1, 2);
+      gr_dssv->SetFillColor(kCyan-7);
+      //gr_dssv->SetFillStyle(3001);
+      gr_dssv->Draw("3");
+      gr_dssv->Draw("CX");
+      gr_all->Draw("P");
+      latex->DrawLatexNDC(0.23,0.82, "#splitline{Isolated direct photon A_{LL}}{#vec{p}+#vec{p} #sqrt{s} = 510 GeV, |#eta| < 0.25}");
+      latex->DrawLatexNDC(0.23,0.47, "#scale[0.8]{#splitline{3.9e-4 shift uncertainty from}{relative luminosity not included}}");
+      latex->DrawLatexNDC(0.23,0.38, "#scale[0.8]{#splitline{6.6% scale uncertainty from}{polarization not included}}");
+      leg0->AddEntry(gr_dssv, "DSSV14 with DSSV_{MC} uncertainty", "LF");
+      leg0->Draw();
+    }
     //gr_lum->Draw("3");
     //gr_sys->Draw("[]");
     for(int i=0; i<gr_sys->GetN(); i++)
@@ -81,19 +98,10 @@ void draw_SysErrALL()
       double eyy = gr_sys->GetErrorY(i);
       box->DrawBox(xx-0.2,yy-eyy,xx+0.2,yy+eyy);
     }
-    if(beam==2)
-    {
-      gr_dssv->SetLineColor(kRed);
-      gr_dssv->Draw("C");
-      latex->DrawLatexNDC(0.23,0.82, "#splitline{Isolated direct photon A_{LL}}{#vec{p}+#vec{p} #sqrt{s} = 510 GeV, |#eta| < 0.25}");
-      latex->DrawLatexNDC(0.23,0.47, "#scale[0.8]{#splitline{3.9e-4 shift uncertainty from}{relative luminosity not included}}");
-      latex->DrawLatexNDC(0.23,0.38, "#scale[0.8]{#splitline{6.6% scale uncertainty from}{polarization not included}}");
-      latex->DrawLatexNDC(0.75,0.65, "DSSV14");
-    }
     const char *outfile = Form("plots/IsoPhotonALL-beam%d", beam);
     c0->Print(Form("%s.pdf", outfile));
     c0->Clear("D");
-    if(beam == 2)
+    if(false && beam == 2)
     {
       char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=150 --y=130 --scale=0.8", outfile,outfile);
       system(cmd);
