@@ -132,7 +132,7 @@ void draw_Iso2Inc()
       for(int i=0; i<gr_pythia->GetN(); i++)
         gr_pythia->SetPointError(i, 0., gr_pythia->GetErrorY(i));
 
-      style(gr_pythia, imu+1, imu<4?imu+1:imu+3);
+      style(gr_pythia, imu+2, imu<4?imu+1:imu+3);
       gr_pythia->Draw("LE");
       leg0->AddEntry(gr_pythia, Form("#scale[0.8]{#splitline{PYTHIA8}{%s}}",leg_name[imu]), "L");
     } // powheg ratio
