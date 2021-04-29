@@ -62,9 +62,9 @@ void draw_Iso2Inc()
 
   mc();
   mcd();
-  legi(0, 0.22,0.80,0.88,0.88);
-  leg0->SetNColumns(4);
-  legi(1, 0.22,0.23,0.88,0.33);
+  legi(0, 0.22,0.80,0.90,0.90);
+  leg0->SetNColumns(3);
+  legi(1, 0.22,0.23,0.90,0.33);
   leg1->SetNColumns(3);
   for(int iph=0; iph<1; iph++)
   {
@@ -112,7 +112,7 @@ void draw_Iso2Inc()
       gr_werner->Set(igr_nlo);
       style(gr_werner, imu<2?2-imu:imu+1, imu<2?2-imu:imu+1);
       gr_werner->Draw("C");
-      leg1->AddEntry(gr_werner, Form("#scale[0.8]{#splitline{NLO}{%s}}",leg_name[imu]), "L");
+      leg1->AddEntry(gr_werner, Form("#scale[0.8]{#splitline{NLO pQCD}{%s}}",leg_name[imu]), "L");
     } // werner ratio
 
     else
