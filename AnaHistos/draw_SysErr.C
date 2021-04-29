@@ -50,8 +50,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
 
   for(int iso=0; iso<2; iso++)
   {
-    char *type = iso ? "iso" : "";
-    QueryTree *qt_cross = new QueryTree(Form("data/CrossSection-%sphoton.root",type));
+    QueryTree *qt_cross = new QueryTree(Form("data/CrossSection-%sphoton.root",iso?"iso":""));
 
     cout.precision(4);
     for(int ipt=12; ipt<npT; ipt++)
@@ -90,13 +89,12 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     TLine *line = new TLine();
     line->SetLineWidth(2);
 
-    double nlo[2][npT][nmu[1]];
+    double nlo[npT][nmu[1]];
     for(int imu=0; imu<nmu[iso]; imu++)
     {
-      char *type = iso ? "iso" : "inc";
       if(pwhg == 0)
       {
-        TFile *f_nlo = new TFile( Form("data/%sprompt-x2000-ct14-%s.root",type,jetphox_fname[iso][imu]) );
+        TFile *f_nlo = new TFile( Form("data/%sprompt-x2000-ct14-%s.root",iso?"iso":"inc",jetphox_fname[iso][imu]) );
         TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
         h_nlo->Scale(jetphox_scale);
       }
@@ -107,7 +105,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       }
       else if(pwhg == 2)
       {
-        gr_werner[imu] = new TGraph(Form("data/werner-cross-%s-%s.txt",type,scale_name[imu]));
+        gr_werner[imu] = new TGraph(Form("data/werner-cross-%s-%s.txt",iso?"iso":"inc",scale_name[imu]));
       }
       for(int ipt=12; ipt<npT; ipt++)
       {
@@ -115,12 +113,12 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         {
           double xpt = (pTbin[ipt] + pTbin[ipt+1]) / 2.;
           int bin_th = h_nlo->GetXaxis()->FindBin(xpt);
-          nlo[iso][ipt][imu] = h_nlo->GetBinContent(bin_th);
+          nlo[ipt][imu] = h_nlo->GetBinContent(bin_th);
         }
         else if(pwhg == 2)
         {
           double xpt;
-          gr_werner[imu]->GetPoint(ipt-4, xpt, nlo[iso][ipt][imu]);
+          gr_werner[imu]->GetPoint(ipt-4, xpt, nlo[ipt][imu]);
         }
       }
       if(pwhg == 0)
@@ -144,15 +142,15 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
 
         if(pwhg < 2 && imu == 0)
           for(int i=0; i<nmu[iso]; i++)
-            nlo[iso][ipt][i] /= (2*PI*xpt*DeltaEta);
+            nlo[ipt][i] /= (2*PI*xpt*DeltaEta);
 
         double sigma_nlo;
         if(imu == 0)
-          sigma_nlo = nlo[iso][ipt][imu];
+          sigma_nlo = nlo[ipt][imu];
         else if(imu == 1)
-          sigma_nlo = TMath::MaxElement(nmu[iso], nlo[iso][ipt]);
+          sigma_nlo = TMath::MaxElement(nmu[iso], nlo[ipt]);
         else if(imu == 2)
-          sigma_nlo = TMath::MinElement(nmu[iso], nlo[iso][ipt]);
+          sigma_nlo = TMath::MinElement(nmu[iso], nlo[ipt]);
         gr_nlo->SetPoint(igp, xpt, sigma_nlo);
 
         double ratio, eratio, sysratio;
@@ -166,7 +164,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         }
         else
         {
-          ratio = sigma_nlo/nlo[iso][ipt][0];
+          ratio = sigma_nlo/nlo[ipt][0];
           eratio = 1e-9;
         }
         gr_ratio->SetPoint(igp, xpt, ratio-1);
@@ -231,7 +229,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
 
         pad2->cd();
         gr_ratio->SetTitle(";p_{T} [GeV/c];#frac{Data-Theory}{Theory}");
-        aset(gr_ratio, "","", 4.9,30.1, (iso&&pwhg==0)?-0.25:-0.45,(iso&&pwhg==0)?0.55:2.15-iso, 1.,0.6,0.1,0.12);
+        aset(gr_ratio, "","", 4.9,30.1, iso?-0.25:-0.45,(iso&&pwhg!=1)?0.45+0.125*pwhg:2.15-iso, 1.,0.6,0.1,0.12);
         style(gr_ratio_sys, 1, imu+1, 2);
         gr_ratio->GetXaxis()->SetLabelSize(0.09);
         gr_ratio->GetYaxis()->SetLabelSize(0.09);
@@ -251,8 +249,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       }
     } // imu
 
-    char *type = iso ? "iso" : "";
-    const char *outfile = Form("plots/CrossSection-%sphoton%s", type,pwhg==1?suffix[ipwhg]:suffix);
+    const char *outfile = Form("plots/CrossSection-%sphoton%s", iso?"iso":"",pwhg==1?suffix[ipwhg]:suffix);
     c0->Print(Form("%s.pdf", outfile));
     if(false)
     {
