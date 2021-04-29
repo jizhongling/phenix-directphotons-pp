@@ -37,7 +37,7 @@ void draw_Werner()
     gPad->SetTopMargin(0.05);
     gPad->SetBottomMargin(0.);
     gPad->SetLogy();
-    legi(0, 0.22,0.03,0.45,0.33+0.07*iso);
+    legi(0, 0.24-0.02*iso,0.03,0.45,0.33+0.07*iso);
     leg0->SetTextSize(0.035);
     TLatex *latex = new TLatex();
     latex->SetTextSize(0.04);
@@ -120,8 +120,8 @@ void draw_Werner()
       gr_ratio->Set(igp);
       gr_ratio_sys->Set(igp);
 
-      style(gr_werner[imu], imu+1, imu+1, 2);
-      style(gr_ratio, imu==0?20:imu+1, imu+1, 2);
+      style(gr_werner[imu], imu+1, imu<4||imu>7?imu+1:imu+2, 2);
+      style(gr_ratio, imu==0?20:imu+1, imu<4||imu>7?imu+1:imu+2, 2);
       gr_ratio->SetMarkerSize(0.8);
       if(imu == 0)
         gr_central == gr_werner[imu];
@@ -145,8 +145,8 @@ void draw_Werner()
         gr_werner[imu]->Draw("LX");
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not included}");
-        latex->DrawLatexNDC(0.23,0.40+0.07*iso, "NLO pQCD");
-        latex->DrawLatexNDC(0.22,0.35+0.07*iso, "(by Vogelsang)");
+        latex->DrawLatexNDC(0.25-0.02*iso,0.40+0.07*iso, "NLO pQCD");
+        latex->DrawLatexNDC(0.24-0.02*iso,0.35+0.07*iso, "(by Vogelsang)");
         if(iso)
         {
           latex->DrawLatexNDC(0.45,0.70, "Isolation cut condition");

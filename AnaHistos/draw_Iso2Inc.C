@@ -12,8 +12,8 @@ void draw_Iso2Inc()
 
   QueryTree *qt_photon = new QueryTree("data/CrossSection-photon.root");
   QueryTree *qt_isophoton = new QueryTree("data/CrossSection-isophoton.root");
-  QueryTree *qt_pion = new QueryTree("data/CrossSection-pion.root");
   QueryTree *qt_sys = new QueryTree("data/CrossSection-syserr.root");
+  QueryTree *qt_pion = new QueryTree("data/CrossSection-pion.root");
 
   TGraphErrors *gr[2];
   int igp[2] = {};
