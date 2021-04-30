@@ -29,7 +29,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     TH1 *h_events = (TH1*)f_pythia->Get("h_events");
     const double nEvents = h_events->GetBinContent(1);
     const int nmu[2] = {7, 7};
-    const char *mu_name[3] = {"#mu_{R} = p_{T}, #mu_{F} = p_{T}", "#mu_{R} = p_{T}/2, #mu_{F} = p_{T}/2 or 2p_{T}", "#mu_{R} = 2p_{T}, #mu_{F} = p_{T}/2 or 2p_{T}"};
+    const char *mu_name[3] = {"#mu_{R} = p_{T}, #mu_{F} = p_{T}", "#mu_{R} = p_{T}/2, #mu_{F} = p_{T}/2 or p_{T}", "#mu_{R} = 2p_{T}, #mu_{F} = p_{T} or 2p_{T}"};
   }
   else if(pwhg == 2)
   {
