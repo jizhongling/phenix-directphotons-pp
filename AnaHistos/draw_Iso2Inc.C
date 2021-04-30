@@ -62,12 +62,12 @@ void draw_Iso2Inc()
 
   mc();
   mcd();
-  legi(0, 0.70,0.22,1.00,0.43);
+  legi(0, 0.67,0.22,1.00,0.43);
   legi(1, 0.25,0.67,0.55,0.82);
   leg0->SetTextSize(0.035);
   leg1->SetTextSize(0.035);
   TLatex *latex = new TLatex();
-  latex->SetTextSize(0.04);
+  latex->SetTextSize(0.035);
 
   for(int iph=0; iph<1; iph++)
   {
@@ -114,10 +114,10 @@ void draw_Iso2Inc()
       style(gr_werner, imu<2?2-imu:imu+1, imu<2?2-imu:imu+1);
       gr_werner->Draw("C");
       leg0->AddEntry(gr_werner, leg_name[imu], "L");
-      latex->DrawLatexNDC(0.41,0.38, "NLO pQCD");
-      latex->DrawLatexNDC(0.41,0.33, "(by Vogelsang)");
-      latex->DrawLatexNDC(0.41,0.28, "NNPDF3.0 PDF");
-      latex->DrawLatexNDC(0.41,0.23, "GRV FF");
+      latex->DrawLatexNDC(0.43,0.38, "NLO pQCD");
+      latex->DrawLatexNDC(0.43,0.33, "(by Vogelsang)");
+      latex->DrawLatexNDC(0.43,0.28, "NNPDF3.0 PDF");
+      latex->DrawLatexNDC(0.43,0.23, "GRV FF");
     } // werner ratio
 
     else
