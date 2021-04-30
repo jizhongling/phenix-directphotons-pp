@@ -62,10 +62,13 @@ void draw_Iso2Inc()
 
   mc();
   mcd();
-  legi(0, 0.22,0.80,0.90,0.90);
-  leg0->SetNColumns(3);
-  legi(1, 0.22,0.23,0.90,0.33);
-  leg1->SetNColumns(3);
+  legi(0, 0.70,0.22,1.00,0.43);
+  legi(1, 0.25,0.67,0.55,0.82);
+  leg0->SetTextSize(0.035);
+  leg1->SetTextSize(0.035);
+  TLatex *latex = new TLatex();
+  latex->SetTextSize(0.04);
+
   for(int iph=0; iph<1; iph++)
   {
     gr[iph]->Set(igp[iph]);
@@ -78,12 +81,10 @@ void draw_Iso2Inc()
       style(gr_sys, 1, iph+1);
       gr_sys->SetLineWidth(2);
       gr_sys->Draw("[]");
-      leg0->AddEntry(gr[iph], "#scale[0.8]{Data}", "P");
     } // draw photon ratio
     else
     {
       gr[iph]->Draw("P");
-      leg0->AddEntry(gr[iph], "#scale[0.8]{Data #pi^{0}}", "P");
     } // draw pion ratio
   } // iph
 
@@ -112,7 +113,11 @@ void draw_Iso2Inc()
       gr_werner->Set(igr_nlo);
       style(gr_werner, imu<2?2-imu:imu+1, imu<2?2-imu:imu+1);
       gr_werner->Draw("C");
-      leg1->AddEntry(gr_werner, Form("#scale[0.8]{#splitline{NLO pQCD}{%s}}",leg_name[imu]), "L");
+      leg0->AddEntry(gr_werner, leg_name[imu], "L");
+      latex->DrawLatexNDC(0.41,0.38, "NLO pQCD");
+      latex->DrawLatexNDC(0.41,0.33, "(by Vogelsang)");
+      latex->DrawLatexNDC(0.41,0.28, "NNPDF3.0 PDF");
+      latex->DrawLatexNDC(0.41,0.23, "GRV FF");
     } // werner ratio
 
     else
@@ -132,9 +137,10 @@ void draw_Iso2Inc()
       for(int i=0; i<gr_pythia->GetN(); i++)
         gr_pythia->SetPointError(i, 0., gr_pythia->GetErrorY(i));
 
-      style(gr_pythia, imu+2, imu<4?imu+1:imu+3);
+      style(gr_pythia, imu+2, imu<4?imu+1:imu+2);
       gr_pythia->Draw("LE");
-      leg0->AddEntry(gr_pythia, Form("#scale[0.8]{#splitline{PYTHIA8}{%s}}",leg_name[imu]), "L");
+      leg1->AddEntry(gr_pythia, leg_name[imu], "L");
+      latex->DrawLatexNDC(0.25,0.83, "POWHEG + PYTHIA8");
     } // powheg ratio
   } // imu
 
