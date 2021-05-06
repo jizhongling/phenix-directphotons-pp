@@ -20,7 +20,7 @@ void draw_PhotonBG()
   mcd();
 
   TGraphErrors *gr_hadron = DivideHisto(h_hadron, h_pi0);
-  aset(gr_hadron, "p_{T} [GeV/c]","#gamma_{BG}/#pi^{0}", 5.,30., 0.,5e-3);
+  aset(gr_hadron, "p_{T} (GeV/c)","#gamma_{BG}/#pi^{0}", 5.,30., 0.,5e-3);
   style(gr_hadron, 20, 1);
   gr_hadron->Draw("AP");
 

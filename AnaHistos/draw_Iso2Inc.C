@@ -62,7 +62,7 @@ void draw_Iso2Inc()
 
   mc();
   mcd();
-  legi(0, 0.67,0.22,1.00,0.43);
+  legi(0, 0.70,0.22,1.00,0.43);
   legi(1, 0.25,0.67,0.55,0.82);
   leg0->SetTextSize(0.035);
   leg1->SetTextSize(0.035);
@@ -72,7 +72,7 @@ void draw_Iso2Inc()
   for(int iph=0; iph<1; iph++)
   {
     gr[iph]->Set(igp[iph]);
-    aset(gr[iph], "p_{T} [GeV/c]", "#frac{Isolated}{Inclusive}", 4.9,30.1, 0.,1.6);
+    aset(gr[iph], "p_{T} (GeV/c)", "Isolated/Inclusive", 4.9,30.1, 0.,1.6);
     style(gr[iph], iph+20, iph+1);
     if(iph==0)
     {
@@ -111,11 +111,11 @@ void draw_Iso2Inc()
       }
 
       gr_werner->Set(igr_nlo);
-      style(gr_werner, imu<2?2-imu:imu+1, imu<2?2-imu:imu+1);
+      style(gr_werner, imu<2?2-imu:imu+1, 1);
       gr_werner->Draw("C");
       leg0->AddEntry(gr_werner, leg_name[imu], "L");
       latex->DrawLatexNDC(0.43,0.38, "NLO pQCD");
-      latex->DrawLatexNDC(0.43,0.33, "(by Vogelsang)");
+      latex->DrawLatexNDC(0.43,0.33, "(by W. Vogelsang)");
       latex->DrawLatexNDC(0.43,0.28, "NNPDF3.0 PDF");
       latex->DrawLatexNDC(0.43,0.23, "GRV FF");
     } // werner ratio
@@ -137,7 +137,7 @@ void draw_Iso2Inc()
       for(int i=0; i<gr_pythia->GetN(); i++)
         gr_pythia->SetPointError(i, 0., gr_pythia->GetErrorY(i));
 
-      style(gr_pythia, imu+2, imu<4?imu+1:imu+2);
+      style(gr_pythia, imu+2, 2);
       gr_pythia->Draw("LE");
       leg1->AddEntry(gr_pythia, leg_name[imu], "L");
       latex->DrawLatexNDC(0.25,0.83, "POWHEG + PYTHIA8");

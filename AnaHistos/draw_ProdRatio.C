@@ -94,7 +94,7 @@ void draw_ProdRatio()
     mcd(0, 1);
     // set axis and line stype
     gr_ratio1[0][id]->SetTitle("Prod. ratio for 200 GeV");
-    aset(gr_ratio1[0][id], "p_{T} [GeV/c]","r_{200gev}", 2.,20., 0.,2.);
+    aset(gr_ratio1[0][id], "p_{T} (GeV/c)","r_{200gev}", 2.,20., 0.,2.);
     style(gr_ratio1[0][id], id+20, id+1);
     gr_ratio1[0][id]->SetFillColor( gr_ratio1[0][id]->GetMarkerColor() );
     gr_ratio1[0][id]->SetFillStyle(3002);
@@ -123,7 +123,7 @@ void draw_ProdRatio()
 
     mcd(0, 2);
     gr_ratio2[id]->SetTitle("Ratio of prod. ratio for 510 to 200 GeV");
-    aset(gr_ratio2[id], "p_{T} [GeV/c]","#frac{r_{510gev}}{r_{200gev}}", 2.,20., 0.5,2.);
+    aset(gr_ratio2[id], "p_{T} (GeV/c)","#frac{r_{510gev}}{r_{200gev}}", 2.,20., 0.5,2.);
     style(gr_ratio2[id], id+20, id+1);
     if(id==0)
       gr_ratio2[id]->Draw("AP");

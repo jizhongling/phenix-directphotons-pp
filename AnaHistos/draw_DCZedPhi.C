@@ -28,7 +28,7 @@ void draw_DCZedPhi()
   //  hn_dclive_sim->GetAxis(4)->SetRange(2,2);  // ERT
   //  TH1 *h_passed = hn_dclive_sim->Projection(2);
   //  TGraphAsymmErrors *gr = new TGraphAsymmErrors(h_passed, h_total, "n");
-  //  aset(gr, "p_{T} [GeV/c]","", 3.1,15., 0.,0.2);
+  //  aset(gr, "p_{T} (GeV/c)","", 3.1,15., 0.,0.2);
   //  style(gr, part+20, part+1);
   //  if(part==0)
   //    gr->Draw("APE");

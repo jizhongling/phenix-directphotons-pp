@@ -55,8 +55,8 @@ void draw_MergeAsym()
       gr_sim[part][ias]->SetTitle(name);
       gr_data[part][ias]->SetTitle(name);
 
-      aset(gr_sim[part][ias], "p_{T} [GeV/c]", "ratio", 0.,30., 0.,1.);
-      aset(gr_data[part][ias], "p_{T} [GeV/c]", "ratio", 0.,30., 0.,1.);
+      aset(gr_sim[part][ias], "p_{T} (GeV/c)", "ratio", 0.,30., 0.,1.);
+      aset(gr_data[part][ias], "p_{T} (GeV/c)", "ratio", 0.,30., 0.,1.);
 
       style(gr_sim[part][ias], 20, 1);
       style(gr_data[part][ias], 21, 2);

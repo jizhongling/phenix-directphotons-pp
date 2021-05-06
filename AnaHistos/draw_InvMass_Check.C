@@ -54,16 +54,16 @@ void draw_InvMass_Check()
     gr[part][2] = new TGraphErrors(30, pTbins, (double*)Theta[part], 0, (double*)eTheta[part]);
     gr[part][3] = new TGraphErrors(30, pTbins, (double*)M[part], 0, (double*)eM[part]);
 
-    gr[part][0]->SetTitle("#bar{E_{1}} [GeV]");
-    gr[part][1]->SetTitle("#bar{E_{2}} [GeV]");
+    gr[part][0]->SetTitle("#bar{E_{1}} (GeV)");
+    gr[part][1]->SetTitle("#bar{E_{2}} (GeV)");
     gr[part][2]->SetTitle("#bar{#sqrt{1-cos(#theta)}}");
-    gr[part][3]->SetTitle("#sqrt{2#bar{E_{1}}#bar{E_{2}}}#bar{#sqrt{1-cos#theta}} [GeV]");
+    gr[part][3]->SetTitle("#sqrt{2#bar{E_{1}}#bar{E_{2}}}#bar{#sqrt{1-cos#theta}} (GeV)");
 
     int ipad = 1;
     for(int igr=0; igr<3; igr++)
     {
       c->cd(ipad++);
-      gr[part][igr]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+      gr[part][igr]->GetXaxis()->SetTitle("p_{T} (GeV/c)");
       gr[part][igr]->SetMarkerStyle(20);
       gr[part][igr]->SetMarkerColor(1);
       gr[part][igr]->SetMarkerSize(2);

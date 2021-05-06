@@ -23,7 +23,7 @@ void draw_ConversionRate()
       delete h_passed;
 
       mcd(0, ic+1);
-      aset(gr[ic][arm], "p_{T} [GeV/c]","rate", 0.,30., 0.,0.2*(1+ic/2));
+      aset(gr[ic][arm], "p_{T} (GeV/c)","rate", 0.,30., 0.,0.2*(1+ic/2));
       style(gr[ic][arm], arm+20, arm+1);
       if(arm == 0)
         gr[ic][arm]->Draw("AP");

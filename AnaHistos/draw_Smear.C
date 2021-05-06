@@ -73,7 +73,7 @@ void GenerateSmear(TFile *f, TObjArray *Glist, int ispion)
     gr[icr]->SetName(Form("gr_%d",24*ispion+icr));
     sprintf(buf, "Smearing factor for merge %d part %d", merge, part);
     gr[icr]->SetTitle(buf);
-    gr[icr]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    gr[icr]->GetXaxis()->SetTitle("p_{T} (GeV/c)");
     gr[icr]->GetYaxis()->SetTitle("#epsilon_{smear}");
     gr[icr]->GetXaxis()->SetRangeUser(0., 30.);
     gr[icr]->GetYaxis()->SetRangeUser(0.5, 1.5);

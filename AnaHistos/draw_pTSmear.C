@@ -43,7 +43,7 @@ void draw_pTSmear()
 
     TGraphErrors *gr_pi0 = DivideHisto(h_pi0_reco, h_pi0_truth);
     gr_pi0->SetTitle(Form("pT smearing for %s",pname[part]));
-    gr_pi0->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    gr_pi0->GetXaxis()->SetTitle("p_{T} (GeV/c)");
     gr_pi0->GetYaxis()->SetTitle("Smearing");
     gr_pi0->GetXaxis()->SetRangeUser(0., 30.);
     gr_pi0->GetYaxis()->SetRangeUser(0.8, 1.5);

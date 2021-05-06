@@ -84,7 +84,7 @@ void draw_ToFEff_Photon()
   {
     mcd(0, part+1);
     gr[part]->SetTitle( Form("ToF efficeincy for %s", name[part]) );
-    aset(gr[part], "p_{T} [GeV/c]", "Eff", 2.,30., 0.,1.1);
+    aset(gr[part], "p_{T} (GeV/c)", "Eff", 2.,30., 0.,1.1);
     style(gr[part], 24, kRed);
     gr[part]->Draw("APE");
     //gr[part]->Fit("pol0", "Q","", 9.,30.);

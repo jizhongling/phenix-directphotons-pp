@@ -83,7 +83,7 @@ void draw_ERTEff_Pion()
   {
     TGraphAsymmErrors *gr = qt_ert->GraphAsymm(part);
     gr->SetTitle("ERT_4x4c trigger efficeincy for #pi^{0}");
-    aset(gr, "p_{T} [GeV/c]","Eff", 1.,30., 0.,1.1);
+    aset(gr, "p_{T} (GeV/c)","Eff", 1.,30., 0.,1.1);
     style(gr, part+20, part+1);
     if(part==0)
       gr->Draw("APE");

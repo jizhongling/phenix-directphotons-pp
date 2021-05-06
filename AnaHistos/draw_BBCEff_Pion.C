@@ -72,7 +72,7 @@ void draw_BBCEff_Pion()
     mcd(2, part+1);
     gr[part]->Set(igp[part]);
     gr[part]->SetTitle( Form("BBC trigger efficeincy for %s",pname[part]) );
-    aset(gr[part], "p_{T} [GeV/c]","Eff", 0.,20., 0.,1.);
+    aset(gr[part], "p_{T} (GeV/c)","Eff", 0.,20., 0.,1.);
     style(gr[part], part+20, part+1);
     gr[part]->Draw("APE");
     gr[part]->Fit("pol0", "Q","", 2.,20.);

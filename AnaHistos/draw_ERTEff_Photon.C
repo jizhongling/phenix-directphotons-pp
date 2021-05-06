@@ -63,7 +63,7 @@ void draw_ERTEff_Photon(const int iso = 0)
   {
     TGraphAsymmErrors *gr = qt_ert->GraphAsymm(part);
     gr->SetTitle("ERT_4x4c trigger efficeincy for photon");
-    aset(gr, "p_{T} [GeV/c]","Eff", 1.,30., 0.,1.1);
+    aset(gr, "p_{T} (GeV/c)","Eff", 1.,30., 0.,1.1);
     style(gr, part+20, part+1);
     if(part==0)
       gr->Draw("APE");

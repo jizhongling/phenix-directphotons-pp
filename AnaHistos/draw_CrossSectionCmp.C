@@ -83,7 +83,7 @@ void draw_CrossSectionCmp(const int nameid)
     if(part < 3)
     {
       mcd(0);
-      gr_parts[part]->SetTitle("Diff in parts;p_{T} [GeV/c];Diff;");
+      gr_parts[part]->SetTitle("Diff in parts;p_{T} (GeV/c);Diff;");
       aset(gr_parts[part], "","", 4.9,30.1, -0.5,0.5);
       leg0->AddEntry(gr_parts[part], Form("%s",pname[part]), "P");
     }
@@ -92,12 +92,12 @@ void draw_CrossSectionCmp(const int nameid)
       mcd(1);
       if( name.EqualTo("pion") )
       {
-        gr_parts[part]->SetTitle("Diff with PRD 93, 011501;p_{T} [GeV/c];Diff;");
+        gr_parts[part]->SetTitle("Diff with PRD 93, 011501;p_{T} (GeV/c);Diff;");
         aset(gr_parts[part], "","", 4.9,30.1, -0.05,0.05);
       }
       else
       {
-        gr_parts[part]->SetTitle("#gamma/#pi^{0};p_{T} [GeV/c];#gamma/#pi^{0};");
+        gr_parts[part]->SetTitle("#gamma/#pi^{0};p_{T} (GeV/c);#gamma/#pi^{0};");
         aset(gr_parts[part], "","", 4.9,30.1, 0.,0.5);
       }
     }

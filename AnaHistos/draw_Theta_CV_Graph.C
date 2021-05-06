@@ -20,7 +20,7 @@ void draw_Theta_CV_Graph()
 
   gr1->GetXaxis()->SetLabelSize(0.02);
   gr1->GetXaxis()->SetTitleSize(0.02);
-  gr1->GetXaxis()->SetTitle("E_{cluster} [GeV]");
+  gr1->GetXaxis()->SetTitle("E_{cluster} (GeV)");
   gr1->GetYaxis()->SetLabelSize(0.02);
   gr1->GetYaxis()->SetTitleSize(0.02);
   gr1->GetYaxis()->SetTitle("#theta_{CV} [rad]");

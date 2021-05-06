@@ -88,8 +88,8 @@ void draw_ToF_Calib_pT()
     for(int i=0; i<2; i++)
     {
       mcd(0, 2*i+part+1);
-      aset(gr_raw[part][0], "p_{T} [GeV/c]","ToF [ns]", 0.,30., -20.,20.);
-      aset(gr_raw[part][1], "p_{T} [GeV/c]","#sigma_{ToF} [ns]", 0.,30., 0.,10.);
+      aset(gr_raw[part][0], "p_{T} (GeV/c)","ToF [ns]", 0.,30., -20.,20.);
+      aset(gr_raw[part][1], "p_{T} (GeV/c)","#sigma_{ToF} [ns]", 0.,30., 0.,10.);
       style(gr_raw[part][i], 4, kBlue);
       style(gr_calib[part][i], 4, kRed);
       gr_raw[part][i]->Draw("AP");

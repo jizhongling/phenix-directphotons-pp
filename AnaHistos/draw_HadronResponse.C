@@ -39,7 +39,7 @@ void draw_HadronResponse()
 
         const double max = h_mc->GetMaximum();
         h_mc->SetTitle( Form("p_{T}: %.1f-%.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
-        aset(h_mc, "Energy [GeV]","", 0.,2.*pTbin[ipt], 0.,1.1*max);
+        aset(h_mc, "Energy (GeV)","", 0.,2.*pTbin[ipt], 0.,1.1*max);
         style(h_mc, 20, 1);
         style(h_reco, 21, 2);
         h_mc->DrawCopy("HISTO");
@@ -84,7 +84,7 @@ void draw_HadronResponse()
       mcd(4+part, ipad);
       gPad->SetLogy();
       h_mc->SetTitle( Form("p_{T}: %.1f-%.1f GeV, reco/mc=%.2f",pTbin[ilow],pTbin[ihigh],rsum) );
-      aset(h_mc, "Energy [GeV]","", 0.,40., 1e-8,2.*max);
+      aset(h_mc, "Energy (GeV)","", 0.,40., 1e-8,2.*max);
       style(h_mc, 20, 1);
       style(h_reco, 21, 2);
       h_mc->DrawCopy();
@@ -97,7 +97,7 @@ void draw_HadronResponse()
     mcd(6, 1+part);
     TGraphErrors *gr = qt_res->Graph(part);
     gr->SetTitle(pname[part]);
-    aset(gr, "p_{T} [GeV/c]","sum_reco/sum_mc", 0.,30., 0.,2.);
+    aset(gr, "p_{T} (GeV/c)","sum_reco/sum_mc", 0.,30., 0.,2.);
     style(gr, 20, 1);
     gr->Draw();
     gr->Fit("pol0", "","", 3.,30.);
@@ -124,7 +124,7 @@ void draw_HadronResponse()
 
         const double max = h_reco->GetMaximum();
         h_mc->SetTitle( Form("p_{T}: %.1f-%.1f GeV",pTbin[ipt],pTbin[ipt+1]) );
-        aset(h_mc, "Energy [GeV]","", 0.,2.*pTbin[ipt], 0.,1.1*max);
+        aset(h_mc, "Energy (GeV)","", 0.,2.*pTbin[ipt], 0.,1.1*max);
         style(h_mc, 20, 1);
         style(h_reco, 21, 2);
         h_mc->DrawCopy("HISTO");

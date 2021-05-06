@@ -15,8 +15,8 @@ void draw_SysErrALL()
   box->SetLineColor(2);
   box->SetFillStyle(0);
 
-  legi(0, 0.22,0.25,0.50,0.30);
-  leg0->SetTextSize(0.035);
+  legi(0, 0.23,0.40,0.50,0.45);
+  leg0->SetTextSize(0.030);
 
   const int nge = 25;
   Double_t xge[nge], yge[nge], eyge[nge];
@@ -67,26 +67,25 @@ void draw_SysErrALL()
       gr_all->RemovePoint(0);
     }
     gr_all->SetTitle("");
-    aset(gr_all, "p_{T} [GeV/c]",beam_list[beam], 4.9,20.1, -0.06,0.05);
-    style(gr_all, 20, 1);
-    style(gr_sys, 1, 1);
+    aset(gr_all, "p_{T} (GeV/c)",beam_list[beam], 4.9,20.1, -0.045,0.05);
+    style(gr_all, 24, 2);
+    style(gr_sys, 1, 2);
     gr_all->SetMarkerSize(0.8);
     gr_all->GetXaxis()->SetNdivisions(505);
-    gr_all->GetYaxis()->SetNdivisions(510);
+    gr_all->GetYaxis()->SetNdivisions(505);
     gr_sys->SetLineWidth(2);
     gr_all->Draw("AP");
     if(beam==2)
     {
-      style(gr_dssv, 1, 2);
+      style(gr_dssv, 1, 1);
       gr_dssv->SetFillColor(kCyan-7);
       //gr_dssv->SetFillStyle(3001);
       gr_dssv->Draw("3");
       gr_dssv->Draw("CX");
       gr_all->Draw("P");
-      latex->DrawLatexNDC(0.23,0.86, "Isolated direct photon A_{LL}");
-      latex->DrawLatexNDC(0.23,0.79, "#vec{p}+#vec{p} #sqrt{s} = 510 GeV, |#eta| < 0.25");
-      latex->DrawLatexNDC(0.23,0.49, "#scale[0.8]{#splitline{3.9e-4 shift uncertainty from}{relative luminosity not included}}");
-      latex->DrawLatexNDC(0.23,0.38, "#scale[0.8]{#splitline{6.6% scale uncertainty from}{polarization not included}}");
+      latex->DrawLatexNDC(0.23,0.85, "#vec{p} + #vec{p} #rightarrow #gamma^{iso} + X");
+      latex->DrawLatexNDC(0.23,0.79, "#scale[0.6]{3.9e-4 shift uncertainty from relative luminosity not shown}");
+      latex->DrawLatexNDC(0.23,0.74, "#scale[0.6]{6.6% scale uncertainty from polarization not shown}");
       leg0->AddEntry(gr_dssv, "DSSV14 with DSSV_{MC} uncertainty", "LF");
       leg0->Draw();
     }
@@ -97,7 +96,7 @@ void draw_SysErrALL()
       double xx, yy;
       gr_sys->GetPoint(i, xx, yy);
       double eyy = gr_sys->GetErrorY(i);
-      box->DrawBox(xx-0.2,yy-eyy,xx+0.2,yy+eyy);
+      box->DrawBox(xx-0.4,yy-eyy,xx+0.4,yy+eyy);
     }
     const char *outfile = Form("plots/IsoPhotonALL-beam%d", beam);
     c0->Print(Form("%s.pdf", outfile));

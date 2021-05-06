@@ -176,15 +176,18 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       gr_ratio->Set(igp);
       gr_ratio_sys->Set(igp);
 
-      style(gr_nlo, imu+1, imu+1, 2);
-      style(gr_ratio, imu==0?20:imu+1, imu+1, 2);
+      style(gr_nlo, imu+1, 1, 2);
+      style(gr_ratio, imu==0?20:imu+1, 1, 2);
       gr_ratio->SetMarkerSize(0.8);
-      if(imu == 0)
-        gr_central == gr_nlo;
-      else
-        leg0->AddEntry(gr_nlo, pwhg==0?mu_name[iso][imu]:mu_name[imu], "L");
-      if(imu == 1)
-        leg0->AddEntry(gr_central, pwhg==0?mu_name[iso][0]:mu_name[0], "L");
+      if(pwhg < 2)
+      {
+        if(imu == 0)
+          gr_central == gr_nlo;
+        else
+          leg0->AddEntry(gr_nlo, pwhg==0?mu_name[iso][imu]:mu_name[imu], "L");
+        if(imu == 1)
+          leg0->AddEntry(gr_central, pwhg==0?mu_name[iso][0]:mu_name[0], "L");
+      }
 
       if(imu == 0)
       {
@@ -192,7 +195,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         gr_cross[iso] = qt_cross->Graph(3);
         gr_cross_sys[iso] = qt_sys->Graph(iso);
         gr_cross[iso]->SetTitle("");
-        aset(gr_cross[iso], "p_{T} [GeV/c]", "Ed^{3}#sigma/dp^{3} [pb GeV^{-2} c^{3}]", 4.9,30.1, 0.5e-1, iso?2e3:5e3);
+        aset(gr_cross[iso], "p_{T} (GeV/c)", "Ed^{3}#sigma/dp^{3} (pb GeV^{-2} c^{3})", 4.9,30.1, 0.5e-1, iso?2e3:5e3);
         style(gr_cross[iso], 20, 1, 2);
         style(gr_cross_sys[iso], 1, 1, 2);
         gr_cross[iso]->SetMarkerSize(0.8);
@@ -201,25 +204,28 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         gr_nlo->Draw("LX");
         leg0->Draw();
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
-        latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not included}");
-        latex->DrawLatexNDC(0.25,0.37, "NLO pQCD");
+        latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not shown}");
         if(pwhg == 0)
         {
+          latex->DrawLatexNDC(0.25,0.37, "NLO pQCD");
           latex->DrawLatexNDC(0.25,0.32, "(by JETPHOX)");
           latex->DrawLatexNDC(0.25,0.27, "CT14 PDF");
           latex->DrawLatexNDC(0.25,0.22, "BFG II FF");
         }
         else if(pwhg == 1)
         {
+          latex->DrawLatexNDC(0.25,0.37, "NLO pQCD");
           latex->DrawLatexNDC(0.25,0.32, "(by POWHEG");
           latex->DrawLatexNDC(0.25,0.27, Form("%s)",pwhg_type[ipwhg]));
           latex->DrawLatexNDC(0.25,0.22, "CT14 PDF");
         }
         else if(pwhg == 2)
         {
-          latex->DrawLatexNDC(0.25,0.32, "(by Vogelsang)");
-          latex->DrawLatexNDC(0.25,0.27, "NNPDF3.0 PDF");
-          latex->DrawLatexNDC(0.25,0.22, "GRV FF");
+          latex->DrawLatexNDC(0.25,0.27, "NLO pQCD");
+          latex->DrawLatexNDC(0.25,0.22, "(by W. Vogelsang)");
+          latex->DrawLatexNDC(0.25,0.17, "NNPDF3.0 PDF");
+          latex->DrawLatexNDC(0.25,0.12, "GRV FF");
+          latex->DrawLatexNDC(0.25,0.07, "#mu = p_{T}/2, p_{T}, 2p_{T}");
         }
         if(iso)
         {
@@ -228,12 +234,12 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         }
 
         pad2->cd();
-        gr_ratio->SetTitle(";p_{T} [GeV/c];#frac{Data-Theory}{Theory}");
+        gr_ratio->SetTitle(";p_{T} (GeV/c);#scale[0.9]{(Data-Th)/Th}");
         aset(gr_ratio, "","", 4.9,30.1, iso?-0.25:-0.45,(iso&&pwhg!=1)?0.45+0.125*pwhg:2.15-iso, 1.,0.6,0.1,0.12);
         style(gr_ratio_sys, 1, imu+1, 2);
         gr_ratio->GetXaxis()->SetLabelSize(0.09);
         gr_ratio->GetYaxis()->SetLabelSize(0.09);
-        gr_ratio->GetYaxis()->SetLabelOffset(0.01);
+        gr_ratio->GetYaxis()->SetLabelOffset(0.008);
         gr_ratio->GetXaxis()->SetTickSize(0.08);
         gr_ratio->Draw("APE");
         gr_ratio_sys->Draw("[]");
@@ -290,7 +296,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     }
     leg1->Draw();
     latex->DrawLatexNDC(0.35,0.88, "#splitline{Direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}");
-    latex->DrawLatexNDC(0.35,0.80, "#scale[0.8]{#splitline{10% absolute luminosity}{uncertainty not included}}");
+    latex->DrawLatexNDC(0.35,0.80, "#scale[0.8]{#splitline{10% absolute luminosity}{uncertainty not shown}}");
     latex->DrawLatexNDC(0.45,0.70, "Isolation cut condition");
     latex->DrawLatexNDC(0.45,0.62, "#splitline{r_{cone} = #sqrt{(#delta#eta)^{2} + (#delta#phi)^{2}} = 0.5}{E_{cone} < 0.1E_{#gamma}}");
 

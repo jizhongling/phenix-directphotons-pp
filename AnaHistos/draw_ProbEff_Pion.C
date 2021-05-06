@@ -94,7 +94,7 @@ void draw_ProbEff_Pion()
       gr->SetTitle("Prob Eff for PbSc");
     else if(part == 1)
       gr->SetTitle("Prob Eff for PbGl");
-    aset(gr, "p_{T} [GeV/c]","Prob Eff", 0.,30., 0.8,1.1);
+    aset(gr, "p_{T} (GeV/c)","Prob Eff", 0.,30., 0.8,1.1);
     style(gr, part+20, part+1);
     gr->Draw("AP");
     TGraphErrors *gr_sasha = (TGraphErrors*)f_sasha->Get( Form("gr_%d",part) );

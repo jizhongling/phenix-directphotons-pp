@@ -30,7 +30,7 @@ void draw_SelfVeto()
     TGraphErrors *gr = qt_veto->Graph(part);
     gr->SetName(Form("gr_%d",part));
 
-    aset(gr, "p_{T} [GeV/c]","#frac{isoboth}{isopair}", 0.,30., 0.,0.6);
+    aset(gr, "p_{T} (GeV/c)","#frac{isoboth}{isopair}", 0.,30., 0.,0.6);
     style(gr, 20+part, 1+part);
     if(part==0)
       gr->Draw("AP");

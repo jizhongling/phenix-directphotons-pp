@@ -21,7 +21,7 @@ void draw_IsoAccCorr()
 
     gr[part] = new TGraphAsymmErrors(h_isoall, h_isoacc);
     gr[part]->SetNameTitle(Form("gr_%d",part), "IsoAll/IsoAcc");
-    aset(gr[part], "p_{T} [GeV/c]","IsoAll/IsoAcc", 5.,30., 0.8,1.);
+    aset(gr[part], "p_{T} (GeV/c)","IsoAll/IsoAcc", 5.,30., 0.8,1.);
     style(gr[part], 20+part, 1+part);
     if(part==0)
       gr[part]->Draw("AP");

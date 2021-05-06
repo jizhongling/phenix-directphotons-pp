@@ -23,7 +23,7 @@ void draw_MergeAsym_photon()
       hn_photon->GetAxis(0)->SetRange(pTCut[ipt], pTCut[ipt]);
       double pTLow = hn_photon->GetAxis(0)->GetBinLowEdge(pTCut[ipt]);
       double pTUp = hn_photon->GetAxis(0)->GetBinUpEdge(pTCut[ipt]);
-      sprintf(name, "%s p_{T}^{#pi^{0}}: %.1f-%.1f [GeV]", sec_name[part], pTLow, pTUp);
+      sprintf(name, "%s p_{T}^{#pi^{0}}: %.1f-%.1f (GeV)", sec_name[part], pTLow, pTUp);
 
       TH1 *h_pt = hn_photon->Projection(1);
       for(int i=20; i<30; i++)
@@ -33,7 +33,7 @@ void draw_MergeAsym_photon()
       }
 
       h_pt->SetTitle(name);
-      aset(h_pt, "Photon p_{T} [GeV/c]");
+      aset(h_pt, "Photon p_{T} (GeV/c)");
       h_pt->DrawCopy("HIST E");
       
       delete h_pt;

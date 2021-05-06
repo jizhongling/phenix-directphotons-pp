@@ -93,16 +93,16 @@ void draw_InvMass_Calib()
     {
       mcd(0, 2*i+part+1);
       aset(gr_sim[part][i]);
-      gr_sim[part][i]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+      gr_sim[part][i]->GetXaxis()->SetTitle("p_{T} (GeV/c)");
       gr_sim[part][i]->GetXaxis()->SetRangeUser(0., 20.);
       if(i == 0)
       {
-        gr_sim[part][i]->GetYaxis()->SetTitle("m_{#gamma#gamma} [GeV]");
+        gr_sim[part][i]->GetYaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
         gr_sim[part][i]->GetYaxis()->SetRangeUser(0.13, 0.145);
       }
       else if(i == 1)
       {
-        gr_sim[part][i]->GetYaxis()->SetTitle("#sigma_{#gamma#gamma} [GeV]");
+        gr_sim[part][i]->GetYaxis()->SetTitle("#sigma_{#gamma#gamma} (GeV)");
         gr_sim[part][i]->GetYaxis()->SetRangeUser(0., 0.015);
       }
       gr_sim[part][i]->GetYaxis()->SetTitleOffset(1.5);

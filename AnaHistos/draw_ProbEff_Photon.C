@@ -43,7 +43,7 @@ void draw_ProbEff_Photon()
   for(int part=0; part<2; part++)
   {
     mcd(0, part+1);
-    aset(gr[part], "p_{T} [GeV/c]","Prob Eff", 2.,30., 0.,1.1);
+    aset(gr[part], "p_{T} (GeV/c)","Prob Eff", 2.,30., 0.,1.1);
     style(gr[part], part+20, part+1);
     gr[part]->Draw("AP");
   }

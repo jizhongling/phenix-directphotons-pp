@@ -66,7 +66,7 @@ void draw_YieldCmpByPt()
   for(int part=0; part<3; part++)
   {
     gr[part]->Set(igp[part]);
-    aset(gr[part], "p_{T} [GeV/c]","#frac{Mine}{Sasha}", 0.,20., 0.499,0.501);
+    aset(gr[part], "p_{T} (GeV/c)","#frac{Mine}{Sasha}", 0.,20., 0.499,0.501);
     style(gr[part], part+24, part+1);
     if(part == 0)
       gr[part]->Draw("AP");
