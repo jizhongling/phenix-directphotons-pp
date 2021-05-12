@@ -63,7 +63,7 @@ void draw_Iso2Inc()
   mc();
   mcd();
   legi(0, 0.70,0.22,1.00,0.43);
-  legi(1, 0.25,0.67,0.55,0.82);
+  legi(1, 0.23,0.67,0.70,0.82);
   leg0->SetTextSize(0.035);
   leg1->SetTextSize(0.035);
   TLatex *latex = new TLatex();
@@ -72,13 +72,13 @@ void draw_Iso2Inc()
   for(int iph=0; iph<1; iph++)
   {
     gr[iph]->Set(igp[iph]);
-    aset(gr[iph], "p_{T} (GeV/c)", "Isolated/Inclusive", 4.9,30.1, 0.,1.6);
-    style(gr[iph], iph+20, iph+1);
+    aset(gr[iph], "p_{T} (GeV/c)", "#gamma_{dir}^{iso}/#gamma_{dir}^{inc}", 4.9,30.1, 0.,1.6);
+    style(gr[iph], iph+20, 2);
     if(iph==0)
     {
       gr[iph]->SetTitle("");
       gr[iph]->Draw("AP");
-      style(gr_sys, 1, iph+1);
+      style(gr_sys, 1, 2);
       gr_sys->SetLineWidth(2);
       gr_sys->Draw("[]");
     } // draw photon ratio
@@ -137,7 +137,7 @@ void draw_Iso2Inc()
       for(int i=0; i<gr_pythia->GetN(); i++)
         gr_pythia->SetPointError(i, 0., gr_pythia->GetErrorY(i));
 
-      style(gr_pythia, imu+2, 2);
+      style(gr_pythia, imu==3?imu+2:imu+5, 4);
       gr_pythia->Draw("LE");
       leg1->AddEntry(gr_pythia, leg_name[imu], "L");
       latex->DrawLatexNDC(0.25,0.83, "POWHEG + PYTHIA8");

@@ -177,7 +177,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       gr_ratio_sys->Set(igp);
 
       style(gr_nlo, imu+1, 1, 2);
-      style(gr_ratio, imu==0?20:imu+1, 1, 2);
+      style(gr_ratio, imu==0?20:imu+1, imu==0?2:1, 2);
       gr_ratio->SetMarkerSize(0.8);
       if(pwhg < 2)
       {
@@ -196,8 +196,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         gr_cross_sys[iso] = qt_sys->Graph(iso);
         gr_cross[iso]->SetTitle("");
         aset(gr_cross[iso], "p_{T} (GeV/c)", "Ed^{3}#sigma/dp^{3} (pb GeV^{-2} c^{3})", 4.9,30.1, 0.5e-1, iso?2e3:5e3);
-        style(gr_cross[iso], 20, 1, 2);
-        style(gr_cross_sys[iso], 1, 1, 2);
+        style(gr_cross[iso], 20, 2, 2);
+        style(gr_cross_sys[iso], 1, 2, 2);
         gr_cross[iso]->SetMarkerSize(0.8);
         gr_cross[iso]->Draw("AP");
         gr_cross_sys[iso]->Draw("[]");
@@ -234,12 +234,12 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         }
 
         pad2->cd();
-        gr_ratio->SetTitle(";p_{T} (GeV/c);#scale[0.9]{(Data-Th)/Th}");
+        gr_ratio->SetTitle(";p_{T} (GeV/c);#scale[0.9]{#frac{Data-Theory}{Theory}}");
         aset(gr_ratio, "","", 4.9,30.1, iso?-0.25:-0.45,(iso&&pwhg!=1)?0.45+0.125*pwhg:2.15-iso, 1.,0.6,0.1,0.12);
-        style(gr_ratio_sys, 1, imu+1, 2);
+        style(gr_ratio_sys, 1, 2, 2);
         gr_ratio->GetXaxis()->SetLabelSize(0.09);
         gr_ratio->GetYaxis()->SetLabelSize(0.09);
-        gr_ratio->GetYaxis()->SetLabelOffset(0.008);
+        gr_ratio->GetYaxis()->SetLabelOffset(0.005);
         gr_ratio->GetXaxis()->SetTickSize(0.08);
         gr_ratio->Draw("APE");
         gr_ratio_sys->Draw("[]");
