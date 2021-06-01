@@ -8,15 +8,15 @@ void draw_Werner()
   const double DeltaEta = 0.5;
   const double jetphox_scale = 1./2000.;  // combined 2000 histograms
 
-  const int nmu[2] = {5, 9};
-  const int nana[2] = {4, 8};
+  const int nmu[2] = {5, 6};
+  const int nana[2] = {4, 6};
   const char *scale_name[2][nmu[1]] = {
     {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt", "ct14-bfg2-onept", "onept"},
-    {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt", /*"ct14-grv-onept",*/ "ct14-bfg2-onept", "ct14-bfg2-scR056-scF1", "ct14-grv-scR05-scF05", "ct14-grv-scR05-scF1", "ct14-grv-scR05-scF2", "MMM"}
+    {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt", /*"ct14-grv-onept", "ct14-bfg2-onept", "ct14-bfg2-scR056-scF1",*/ "ct14-grv-scR05-scF05", "ct14-grv-scR05-scF1", "ct14-grv-scR05-scF2"/*, "MMM"*/}
   };
   const char *leg_name[2][nmu[1]] = {
     {"NNPDF GRV p_{T}", "NNPDF GRV p_{T}/2", "NNPDF GRV 2p_{T}", "CT14 BFGII p_{T}", "JETPHOX p_{T}"},
-    {"NNPDF GRV p_{T}", "NNPDF GRV p_{T}/2", "NNPDF GRV 2p_{T}", /*"CT14 GRV p_{T}",*/ "CT14 BFGII p_{T}", "CT14 BFGII #mu_{R}=#mu_{PMC}, #mu_{F}=p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}/2", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=2p_{T}", "JETPHOX #mu_{R}=#mu_{PMC}, #mu_{F}=p_{T}"}
+    {"NNPDF GRV p_{T}", "NNPDF GRV p_{T}/2", "NNPDF GRV 2p_{T}", /*"CT14 GRV p_{T}", "CT14 BFGII p_{T}", "CT14 BFGII #mu_{R}=#mu_{PMC}, #mu_{F}=p_{T}",*/ "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}/2", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=p_{T}", "CT14 GRV #mu_{R}#approx#mu_{PMC}, #mu_{F}=2p_{T}"/*, "JETPHOX #mu_{R}=#mu_{PMC}, #mu_{F}=p_{T}"*/}
   };
 
   for(int iso=0; iso<2; iso++)
@@ -146,7 +146,7 @@ void draw_Werner()
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not included}");
         latex->DrawLatexNDC(0.25-0.02*iso,0.40+0.07*iso, "NLO pQCD");
-        latex->DrawLatexNDC(0.24-0.02*iso,0.35+0.07*iso, "(by W. Vogelsang)");
+        latex->DrawLatexNDC(0.24-0.02*iso,0.35+0.07*iso, "(by Vogelsang)");
         if(iso)
         {
           latex->DrawLatexNDC(0.45,0.70, "Isolation cut condition");
