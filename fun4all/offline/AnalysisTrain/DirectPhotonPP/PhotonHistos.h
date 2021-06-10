@@ -103,6 +103,7 @@ class PhotonHistos: public SubsysReco
     /* Check event type, BBC and photon cuts */
     bool IsEventType(int evtype, const TrigLvl1 *data_triggerlvl1);
     bool BBC10cm(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
+    bool BBC30cm(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1);
     bool TestPhoton(const emcClusterContent *cluster, double bbc_t0);
     bool PassChargeVeto(const emcClusterContent *cluster);
 

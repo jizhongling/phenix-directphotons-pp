@@ -341,8 +341,12 @@ int PhotonHistos::FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *d
   {
     for(int iert=0; iert<3; iert++)
       if( lvl1_scaled & bit_ert4x4[iert] )
+      {
         if( BBC10cm(data_global, data_triggerlvl1) )
           h_events->Fill(Form("ert_%c_10cm", 97+iert), 1.);
+        if( BBC30cm(data_global, data_triggerlvl1) )
+          h_events->Fill(Form("ert_%c_30cm", 97+iert), 1.);
+      }
   }
 
   /* Fill BBC trigger counts */
@@ -357,6 +361,16 @@ int PhotonHistos::FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *d
         if( lvl1_live & bit_ert4x4[2] )
           h_events->Fill("bbc_narrow_10cm_ert_c", 1.);
       }
+    if( lvl1_scaled & bit_bbcnovtx )
+    {
+      h_events->Fill("bbc_novtx", 1.);
+      if( fabs(bbc_z) < 30. )
+      {
+        h_events->Fill("bbc_novtx_30cm", 1.);
+        if( lvl1_live & bit_ert4x4[2] )
+          h_events->Fill("bbc_novtx_30cm_ert_c", 1.);
+      }
+    }
     }
   }
 
@@ -1121,17 +1135,23 @@ void PhotonHistos::BookHistograms()
   /* Events counter */
   if( datatype == ERT )
   {
-    h_events = new TH1F("h_events", "Events counter", 3,-0.5,2.5);
+    h_events = new TH1F("h_events", "Events counter", 6,-0.5,5.5);
     h_events->GetXaxis()->SetBinLabel(1, "ert_a_10cm");
     h_events->GetXaxis()->SetBinLabel(2, "ert_b_10cm");
     h_events->GetXaxis()->SetBinLabel(3, "ert_c_10cm");
+    h_events->GetXaxis()->SetBinLabel(4, "ert_a_30cm");
+    h_events->GetXaxis()->SetBinLabel(5, "ert_b_30cm");
+    h_events->GetXaxis()->SetBinLabel(6, "ert_c_30cm");
   }
   else if( datatype == MB )
   {
-    h_events = new TH1F("h_events", "Events counter", 3,-0.5,2.5);
+    h_events = new TH1F("h_events", "Events counter", 6,-0.5,5.5);
     h_events->GetXaxis()->SetBinLabel(1, "bbc_narrow");
     h_events->GetXaxis()->SetBinLabel(2, "bbc_narrow_10cm");
     h_events->GetXaxis()->SetBinLabel(3, "bbc_narrow_10cm_ert_c");
+    h_events->GetXaxis()->SetBinLabel(4, "bbc_novtx");
+    h_events->GetXaxis()->SetBinLabel(5, "bbc_novtx_30cm");
+    h_events->GetXaxis()->SetBinLabel(6, "bbc_novtx_30cm_ert_c");
   }
   hm->registerHisto(h_events);
 
@@ -1549,6 +1569,23 @@ bool PhotonHistos::BBC10cm(const PHGlobal *data_global, const TrigLvl1 *data_tri
 
   if( datatype == MB &&
       fabs(bbc_z) < 10. )
+    return true;
+
+  return false;
+}
+
+bool PhotonHistos::BBC30cm(const PHGlobal *data_global, const TrigLvl1 *data_triggerlvl1)
+{
+  const unsigned lvl1_live = data_triggerlvl1->get_lvl1_triglive();
+  double bbc_z = data_global->getBbcZVertex();
+
+  if( datatype == ERT &&
+      (lvl1_live & bit_bbcnovtx) &&
+      fabs(bbc_z) < 30. )
+    return true;
+
+  if( datatype == MB &&
+      fabs(bbc_z) < 30. )
     return true;
 
   return false;
