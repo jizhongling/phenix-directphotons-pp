@@ -1,4 +1,4 @@
-AC_INIT(odbcexample.C)
+AC_INIT(Makefile.am)
 
 AM_INIT_AUTOMAKE(QA,1.0)
 
