@@ -346,8 +346,8 @@ int PhotonHistos::FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *d
           h_events->Fill(Form("ert_%c_10cm", 97+iert), 1.);
         if( BBC30cm(data_global, data_triggerlvl1) )
           h_events->Fill(Form("ert_%c_30cm", 97+iert), 1.);
-      }
-  }
+      } // ert4x4
+  } // ERT dataset
 
   /* Fill BBC trigger counts */
   else if( datatype == MB )
@@ -360,7 +360,8 @@ int PhotonHistos::FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *d
         h_events->Fill("bbc_narrow_10cm", 1.);
         if( lvl1_live & bit_ert4x4[2] )
           h_events->Fill("bbc_narrow_10cm_ert_c", 1.);
-      }
+      } // bbc_narrow_10cm
+    } // bbc_narrow
     if( lvl1_scaled & bit_bbcnovtx )
     {
       h_events->Fill("bbc_novtx", 1.);
@@ -369,10 +370,9 @@ int PhotonHistos::FillEventCounts(const PHGlobal *data_global, const TrigLvl1 *d
         h_events->Fill("bbc_novtx_30cm", 1.);
         if( lvl1_live & bit_ert4x4[2] )
           h_events->Fill("bbc_novtx_30cm_ert_c", 1.);
-      }
-    }
-    }
-  }
+      } // bbc_novtx_30cm
+    } // bbc_novtx
+  } // MB dataset
 
   return EVENT_OK;
 }

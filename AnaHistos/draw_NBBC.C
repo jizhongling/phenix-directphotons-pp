@@ -2,26 +2,62 @@
 
 const char *dname[2] = {"NarrowVTX", "NoVTX"};
 
-void draw_BBCCounts()
+void draw_NBBC(const int calc_r = 0)
 {
-  const char *fname[2] = {"runlist-Sasha", "runlist-DC3sigma"};
+  const char *fname[3] = {"MinBias/runlist-Sasha", "MinBias/runlist-DC3sigma", "ERT/runlist-Inseok"};
   DataBase *db = new DataBase();
 
-  for(int id=0; id<2; id++)
+  for(int id=0; id<3; id++)
   {
-    unsigned long long sum_db = 0;
-
+    int thread = -1;
     int runnumber;
-    ifstream fin( Form("/phenix/plhf/zji/taxi/Run13pp510MinBias/%s.txt",fname[id]) );
+    ifstream fin( Form("/phenix/plhf/zji/taxi/Run13pp510%s.txt",fname[id]) );
 
-    while( fin >> runnumber )
+    if(calc_r && id<2)
     {
-      unsigned long long N_bbc_live = db->GetBBCNarrowLive(runnumber) / ( db->GetERT4x4cScaledown(runnumber) + 1 );
-      sum_db += N_bbc_live;
-    }
+      unsigned long long N_narrow = 0, N_narrow_10cm = 0, N_novtx = 0, N_novtx_30cm = 0;
+      while( fin >> runnumber )
+      {
+        thread++;
+        if( thread%100 == 0 ) cout << "Nfiles = " << thread << endl;
 
-    cout << "BBCCounts for " << fname[id] << ": " << sum_db << endl;
-  }
+        TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510MinBias/17420/data/PhotonHistos-%d.root",runnumber));
+        if( f->IsZombie() )
+        {
+          cout << "Error: file cannot open!" << endl;
+          return;
+        }
+
+        TH1 *h_events= (TH1*)f->Get("h_events");
+        N_narrow += h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_narrow") );
+        N_narrow_10cm += h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_narrow_10cm") );
+        N_novtx += h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx") );
+        N_novtx_30cm += h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_novtx_30cm") );
+
+        delete f;
+      }
+      cout << "r_narrow_10cm for " << fname[id] << ": " << (double)N_narrow_10cm/N_narrow << endl
+        << "r_novtx_30cm for " << fname[id] << ": " << (double)N_novtx_30cm/N_novtx << endl;
+    } // calc_r
+
+    if(!calc_r)
+    {
+      const double XBBC = 32.51e9;
+      const double r_narrow_10cm = 0.538, r_novtx_30cm = 0.935;
+      unsigned long long N_narrow_10cm_live = 0, N_narrow_10cm_scaled = 0, N_novtx_30cm_live = 0, N_novtx_30cm_scaled = 0;
+      while( fin >> runnumber )
+      {
+        N_narrow_10cm_live += db->GetBBCNarrowLive(runnumber);
+        N_narrow_10cm_scaled += db->GetBBCNarrowLive(runnumber) / ( db->GetERT4x4cScaledown(runnumber) + 1 );
+        N_novtx_30cm_live += db->GetBBCNovtxLive(runnumber);
+        N_novtx_30cm_scaled += db->GetBBCNovtxLive(runnumber) / ( db->GetERT4x4bScaledown(runnumber) + 1 );
+      }
+      cout << "L_narrow_10cm_live for " << fname[id] << ": " << (double)N_narrow_10cm_live*r_narrow_10cm/XBBC << " pb^{-1}" << endl
+        << "L_narrow_10cm_scaled for " << fname[id] << ": " << (double)N_narrow_10cm_scaled*r_narrow_10cm/XBBC << " pb^{-1}" << endl
+        << "L_novtx_30cm_live for " << fname[id] << ": " << (double)N_novtx_30cm_live*r_novtx_30cm/XBBC << " pb^{-1}" << endl
+        << "L_novtx_30cm_scaled for " << fname[id] << ": " << (double)N_novtx_30cm_scaled*r_novtx_30cm/XBBC << " pb^{-1}" << endl;
+    } // !calc_r
+  } // id
 }
 
 void draw_Ratio()
@@ -138,7 +174,7 @@ void draw_Ratio()
   f_out->Close();
 }
 
-void draw_NBBC()
+void draw_BBCCounts()
 {
   double sum_db = 0.;
   double sum_rej = 0.;
