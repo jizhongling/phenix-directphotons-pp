@@ -118,7 +118,7 @@ void draw_IsoPhotonALL()
             if(isys==2)
               for(int ibg=0; ibg<3; ibg++)
                 rbg[ibg] *= (1 + (xpt<10?-0.01:0.05));
-            sig[isys][ipat] = (mean - rbg[0]*allpion[0] - rbg[1]*allpion[1] - rbg[2]*(beam==2&&isys==1?Get_sys_eta(xpt):0)) / (1 - rbg[0] - rbg[1] - rbg[2]);
+            sig[isys][ipat] = (mean - rbg[0]*allpion[0] - rbg[1]*allpion[1] - rbg[2]*(beam==2&&isys==1?(Get_all_eta(xpt)+Get_sys_eta(xpt)):Get_all_eta(xpt))) / (1 - rbg[0] - rbg[1] - rbg[2]);
             esig[isys][ipat] = sqrt( emean*emean + pow(rbg[0]*eallpion[0],2) + pow(rbg[1]*eallpion[1],2) ) / (1 - rbg[0] - rbg[1] - rbg[2]);
 
             int igr = beam + 3*icr + 3*2*pattern + ngr_photon + ngr_photon*3*isys;

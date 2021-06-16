@@ -7,7 +7,12 @@ const double all_eta[6] = {-27, 1, 2, 100, 80, 130};
 const double stat_eta[6] = {37, 44, 77, 140, 230, 410};
 const double syst_eta[6] = {4.6, 4.7, 4.8, 5.5, 5.0, 11};
 
-double Get_sys_eta(double xpt)
+double pow2(double x)
+{
+  return x*x;
+}
+
+int Get_ipt_eta(double xpt)
 {
   const double scale = 510./200.;
   int iptmin = 0;
@@ -21,7 +26,19 @@ double Get_sys_eta(double xpt)
       diffmin = diff;
     }
   }
+  return iptmin;
+}
 
-  double sys = 1e-4*sqrt(stat_eta[iptmin]*stat_eta[iptmin] + syst_eta[iptmin]*syst_eta[iptmin]);
+double Get_all_eta(double xpt)
+{
+  int ipt = Get_ipt_eta(xpt);
+  double all = 1e-4*all_eta[ipt];
+  return all;
+}
+
+double Get_sys_eta(double xpt)
+{
+  int ipt = Get_ipt_eta(xpt);
+  double sys = 1e-4*sqrt(pow2(stat_eta[ipt]) + pow2(syst_eta[ipt]) + pow2(0.048*all_eta[ipt]) + pow2(4.2));
   return sys;
 }
