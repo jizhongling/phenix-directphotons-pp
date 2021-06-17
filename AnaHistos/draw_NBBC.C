@@ -21,12 +21,8 @@ void draw_NBBC(const int calc_r = 0)
         thread++;
         if( thread%100 == 0 ) cout << "Nfiles = " << thread << endl;
 
-        TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510MinBias/17420/data/PhotonHistos-%d.root",runnumber));
-        if( f->IsZombie() )
-        {
-          cout << "Error: file cannot open!" << endl;
-          return;
-        }
+        TFile *f = new TFile(Form("/phenix/spin/phnxsp01/zji/taxi/Run13pp510MinBias/17447/data/PhotonHistos-%d.root",runnumber));
+        if( f->IsZombie() ) continue;
 
         TH1 *h_events= (TH1*)f->Get("h_events");
         N_narrow += h_events->GetBinContent( h_events->GetXaxis()->FindBin("bbc_narrow") );
@@ -43,19 +39,17 @@ void draw_NBBC(const int calc_r = 0)
     if(!calc_r)
     {
       const double XBBC = 32.51e9;
-      const double r_narrow_10cm = 0.538, r_novtx_30cm = 0.935;
-      unsigned long long N_narrow_10cm_live = 0, N_narrow_10cm_scaled = 0, N_novtx_30cm_live = 0, N_novtx_30cm_scaled = 0;
+      const double r_narrow_10cm = 0.538198, r_novtx_30cm = 0.53061;
+      unsigned long long N_narrow_10cm_live = 0, N_narrow_10cm_scaled = 0, N_novtx_30cm_live = 0;
       while( fin >> runnumber )
       {
         N_narrow_10cm_live += db->GetBBCNarrowLive(runnumber);
         N_narrow_10cm_scaled += db->GetBBCNarrowLive(runnumber) / ( db->GetERT4x4cScaledown(runnumber) + 1 );
         N_novtx_30cm_live += db->GetBBCNovtxLive(runnumber);
-        N_novtx_30cm_scaled += db->GetBBCNovtxLive(runnumber) / ( db->GetERT4x4bScaledown(runnumber) + 1 );
       }
       cout << "L_narrow_10cm_live for " << fname[id] << ": " << (double)N_narrow_10cm_live*r_narrow_10cm/XBBC << " pb^{-1}" << endl
         << "L_narrow_10cm_scaled for " << fname[id] << ": " << (double)N_narrow_10cm_scaled*r_narrow_10cm/XBBC << " pb^{-1}" << endl
-        << "L_novtx_30cm_live for " << fname[id] << ": " << (double)N_novtx_30cm_live*r_novtx_30cm/XBBC << " pb^{-1}" << endl
-        << "L_novtx_30cm_scaled for " << fname[id] << ": " << (double)N_novtx_30cm_scaled*r_novtx_30cm/XBBC << " pb^{-1}" << endl;
+        << "L_novtx_30cm_live for " << fname[id] << ": " << (double)N_novtx_30cm_live*r_novtx_30cm/XBBC << " pb^{-1}" << endl;
     } // !calc_r
   } // id
 }
