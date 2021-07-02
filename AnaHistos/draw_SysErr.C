@@ -6,7 +6,6 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
 {
   const double PI = TMath::Pi();
   const double DeltaEta = 0.5;
-  const int nmu_pwhg = 7;
 
   if(pwhg == 0)
   {
@@ -26,10 +25,10 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
   {
     const char *pwhg_type[4] = {"with MPI", "QED-QCD veto", "without MPI", "pure hard"};
     const char *suffix[4] = {"-pwhg", "-qedqcd", "-nompi", "-purehard"};
-    const int nmu[2] = {7, 7};
     TFile *f_pythia = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo%s.root",ipwhg?suffix[ipwhg]:""));
     TH1 *h_events = (TH1*)f_pythia->Get("h_events");
     const double nEvents = h_events->GetBinContent(1);
+    const int nmu[2] = {7, 7};
     const char *mu_name[3] = {"#mu_{R} = p_{T}, #mu_{F} = p_{T}", "#mu_{R} = p_{T}/2, #mu_{F} = p_{T}/2 or p_{T}", "#mu_{R} = 2p_{T}, #mu_{F} = p_{T} or 2p_{T}"};
   }
   else if(pwhg == 2)
@@ -37,11 +36,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     const char *suffix = "-werner";
     const int nmu[2] = {3, 3};
     const char *scale_name[3] = {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt"};
+    const char *mu_name[3] = {"#mu = p_{T}", "#mu = p_{T}/2", "#mu = 2p_{T}"};
     TGraph *gr_werner[3];
-    TFile *f_pythia = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo.root");
-    TH1 *h_events = (TH1*)f_pythia->Get("h_events");
-    const double nEvents = h_events->GetBinContent(1);
-    const char *mu_name[3] = {"#mu_{R} = p_{T}, #mu_{F} = p_{T}", "#mu_{R} = p_{T}/2, #mu_{F} = p_{T}/2 or p_{T}", "#mu_{R} = 2p_{T}, #mu_{F} = p_{T} or 2p_{T}"};
   }
   else
   {
@@ -93,37 +89,27 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     TLine *line = new TLine();
     line->SetLineWidth(2);
 
-    double nlo[npT][10];
-    for(int imu=0; imu<nmu[iso]+(pwhg==2?nmu_pwhg:0); imu++)
+    double nlo[npT][nmu[1]];
+    for(int imu=0; imu<nmu[iso]; imu++)
     {
-      TH1 *h_nlo = NULL;
       if(pwhg == 0)
       {
         TFile *f_nlo = new TFile( Form("data/%sprompt-x2000-ct14-%s.root",iso?"iso":"inc",jetphox_fname[iso][imu]) );
-        h_nlo = (TH1*)f_nlo->Get("hp41");
+        TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
         h_nlo->Scale(jetphox_scale);
       }
       else if(pwhg == 1)
       {
-        h_nlo = (TH1*)f_pythia->Get(Form("hard0_iso%d_rap0_id%d",iso,imu));
+        TH1 *h_nlo = (TH1*)f_pythia->Get(Form("hard0_iso%d_rap0_id%d",iso,imu));
         h_nlo->Scale(1./nEvents, "width");
       }
       else if(pwhg == 2)
       {
-        if(imu < 3)
-        {
-          gr_werner[imu] = new TGraph(Form("data/werner-cross-%s-%s.txt",iso?"iso":"inc",scale_name[imu]));
-        }
-        else
-        {
-          h_nlo = (TH1*)f_pythia->Get(Form("hard0_iso%d_rap0_id%d",iso,imu-3));
-          h_nlo->Scale(1./nEvents, "width");
-        }
+        gr_werner[imu] = new TGraph(Form("data/werner-cross-%s-%s.txt",iso?"iso":"inc",scale_name[imu]));
       }
-
       for(int ipt=12; ipt<npT; ipt++)
       {
-        if(h_nlo)
+        if(pwhg < 2)
         {
           double xpt = (pTbin[ipt] + pTbin[ipt+1]) / 2.;
           int bin_th = h_nlo->GetXaxis()->FindBin(xpt);
@@ -140,7 +126,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     } // imu
 
     TGraphErrors *gr_central;
-    for(int imu=0; imu<(pwhg==2?6:3); imu++)
+    for(int imu=0; imu<3; imu++)
     {
       TGraph *gr_nlo = new TGraph(npT);
       TGraphErrors *gr_ratio = new TGraphErrors(npT);
@@ -154,17 +140,17 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
             !qt_sys->Query(ipt, iso, xpt, Combine, sysCombine) )
           continue;
 
-        if(imu == 0)
-          for(int i=(pwhg==2?3:0); i<(pwhg==2?3+nmu_pwhg:nmu[iso]); i++)
+        if(pwhg < 2 && imu == 0)
+          for(int i=0; i<nmu[iso]; i++)
             nlo[ipt][i] /= (2*PI*xpt*DeltaEta);
 
         double sigma_nlo;
-        if(imu%3 == 0)
+        if(imu == 0)
           sigma_nlo = nlo[ipt][imu];
-        else if(imu%3 == 1)
-          sigma_nlo = TMath::MaxElement(imu<3?nmu[iso]:nmu_pwhg, &nlo[ipt][imu/3*3]);
-        else if(imu%3 == 2)
-          sigma_nlo = TMath::MinElement(imu<3?nmu[iso]:nmu_pwhg, &nlo[ipt][imu/3*3]);
+        else if(imu == 1)
+          sigma_nlo = TMath::MaxElement(nmu[iso], nlo[ipt]);
+        else if(imu == 2)
+          sigma_nlo = TMath::MinElement(nmu[iso], nlo[ipt]);
         gr_nlo->SetPoint(igp, xpt, sigma_nlo);
 
         double ratio, eratio, sysratio;
