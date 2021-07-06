@@ -84,7 +84,7 @@ void draw_SysErrALL()
       gr_dssv->Draw("CX");
       gr_all->Draw("P");
       latex->DrawLatexNDC(0.23,0.85, "#scale[0.9]{#vec{p} + #vec{p} #rightarrow #gamma^{iso} + X, #sqrt{s} = 510 GeV, |#eta| < 0.25}");
-      latex->DrawLatexNDC(0.23,0.79, "#scale[0.6]{3.9e-4 shift uncertainty from relative luminosity not shown}");
+      latex->DrawLatexNDC(0.23,0.79, "#scale[0.6]{3.9#times10^{-4} shift uncertainty from relative luminosity not shown}");
       latex->DrawLatexNDC(0.23,0.74, "#scale[0.6]{6.6% scale uncertainty from polarization not shown}");
       leg0->AddEntry(gr_dssv, "DSSV14 with DSSV_{MC} uncertainty", "LF");
       leg0->Draw();
