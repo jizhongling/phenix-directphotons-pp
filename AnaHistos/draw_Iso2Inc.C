@@ -64,8 +64,10 @@ void draw_Iso2Inc()
   mcd();
   legi(0, 0.70,0.22,1.00,0.43);
   legi(1, 0.23,0.67,0.70,0.82);
+  legi(2, 0.23,0.20,0.40,0.35);
   leg0->SetTextSize(0.035);
   leg1->SetTextSize(0.035);
+  leg2->SetTextSize(0.035);
   TLatex *latex = new TLatex();
   latex->SetTextSize(0.035);
 
@@ -81,10 +83,12 @@ void draw_Iso2Inc()
       style(gr_sys, 1, 2);
       gr_sys->SetLineWidth(2);
       gr_sys->Draw("[]");
+      leg2->AddEntry(gr[iph], "Data", "P");
     } // draw photon ratio
     else
     {
       gr[iph]->Draw("P");
+      leg2->AddEntry(gr[iph], "Data #pi^{0}", "P");
     } // draw pion ratio
   } // iph
 
@@ -146,6 +150,7 @@ void draw_Iso2Inc()
 
   leg0->Draw();
   leg1->Draw();
+  leg2->Draw();
 
   const char *outfile = "plots/Iso2Inc";
   c0->Print(Form("%s.pdf", outfile));

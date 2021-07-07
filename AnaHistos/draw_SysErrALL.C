@@ -15,7 +15,7 @@ void draw_SysErrALL()
   box->SetLineColor(2);
   box->SetFillStyle(0);
 
-  legi(0, 0.23,0.40,0.50,0.45);
+  legi(0, 0.23,0.30,0.50,0.45);
   leg0->SetTextSize(0.030);
 
   const int nge = 25;
@@ -68,7 +68,7 @@ void draw_SysErrALL()
     }
     gr_all->SetTitle("");
     aset(gr_all, "p_{T} (GeV/c)",beam_list[beam], 4.9,20.1, -0.045,0.05);
-    style(gr_all, 24, 2);
+    style(gr_all, 20, 2);
     style(gr_sys, 1, 2);
     gr_all->SetMarkerSize(0.8);
     gr_all->GetXaxis()->SetNdivisions(505);
@@ -86,6 +86,7 @@ void draw_SysErrALL()
       latex->DrawLatexNDC(0.23,0.85, "#scale[0.9]{#vec{p} + #vec{p} #rightarrow #gamma^{iso} + X, #sqrt{s} = 510 GeV, |#eta| < 0.25}");
       latex->DrawLatexNDC(0.23,0.79, "#scale[0.6]{3.9#times10^{-4} shift uncertainty from relative luminosity not shown}");
       latex->DrawLatexNDC(0.23,0.74, "#scale[0.6]{6.6% scale uncertainty from polarization not shown}");
+      leg0->AddEntry(gr_all, "Data", "P");
       leg0->AddEntry(gr_dssv, "DSSV14 with DSSV_{MC} uncertainty", "LF");
       leg0->Draw();
     }
