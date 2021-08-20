@@ -23,7 +23,7 @@ void draw_Pi0Peak()
   SetWeight();
 
   TFile *f_data = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/PhotonNode-macros/PhotonHistos-Sasha.root");
-  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-PH-histo-syserr.root");
+  TFile *f_sim = new TFile("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaFastMC-Fast-histo.root");
 
   TH2 *h2_pion_data[2][3];
 
@@ -75,8 +75,8 @@ void draw_Pi0Peak()
   //h2_pion_data[1][1] = h2_pion_data[1][2];
 
   THnSparse *hn_sim = (THnSparse*)f_sim->Get("hn_pion");
-  hn_sim->GetAxis(7)->SetRange(1,1); // isys
-  hn_sim->GetAxis(6)->SetRange(3,3); // econe_trk[ival]: EMCal, nomap, withmap
+  //hn_sim->GetAxis(7)->SetRange(1,1); // isys
+  //hn_sim->GetAxis(6)->SetRange(3,3); // econe_trk[ival]: EMCal, nomap, withmap
 
   mc(4, 2,2);
 
@@ -125,8 +125,8 @@ void draw_Pi0Peak()
     gr_sim_mass[part]->Set(igp_sim[part]);
     gr_sim_width[part]->Set(igp_sim[part]);
 
-    aset(gr_data_mass[part], "p_{T} (GeV/c)","mass (GeV)", 0.,20., 0.13,0.145);
-    aset(gr_data_width[part], "p_{T} (GeV/c)","width (GeV)", 0.,20., 0.007,0.015);
+    aset(gr_data_mass[part], "p_{T} (GeV/c)","m_{#gamma#gamma} (GeV)", 0.,20., 0.13,0.145);
+    aset(gr_data_width[part], "p_{T} (GeV/c)","#sigma_{#gamma#gamma} (GeV)", 0.,20., 0.007,0.015);
     style(gr_data_mass[part], 24, kRed);
     style(gr_data_width[part], 24, kRed);
     style(gr_sim_mass[part], 24, kBlue);
