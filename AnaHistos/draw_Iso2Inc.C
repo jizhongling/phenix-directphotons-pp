@@ -118,12 +118,12 @@ void draw_Iso2Inc()
             style(gr_sys, 1, 2);
             gr_sys->SetLineWidth(2);
             gr_sys->Draw("[]");
-            leg2->AddEntry(gr[iph], "Data", "P");
+            leg2->AddEntry(gr[iph], "#splitline{PHENIX}{Data}", "P");
           } // draw photon ratio
           else
           {
             gr[iph]->Draw("P");
-            leg2->AddEntry(gr[iph], "Data #pi^{0}", "P");
+            leg2->AddEntry(gr[iph], "#splitline{PHENIX}{Data #pi^{0}}", "P");
           } // draw pion ratio
         } // iph
       } // imu==nana-1

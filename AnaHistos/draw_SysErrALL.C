@@ -52,7 +52,7 @@ void draw_SysErrALL()
       double esys = sqrt(pow(comb[1]-comb[0],2) + pow(comb[2]-comb[0],2));
       qt_sys->Fill(ipt, beam, xpt, comb[0], esys);
       if( beam==2 && TMath::Finite(comb[0]+ecomb[0]+esys) )
-        cout << fixed << xpt << " & " << scientific << comb[0] << " & " << ecomb[0] << " (" << fixed << 100.*ecomb[0]/fabs(comb[0]) << "\\%) & "
+        cout << fixed << xpt << " & " << scientific << comb[0] << " & " << ecomb[0] << " (" << fixed << setfill('0') << setw(8) << 100.*ecomb[0]/fabs(comb[0]) << "\\%) & "
           << scientific << esys << " (" << fixed << 100.*esys/fabs(ecomb[0]) << "\\%) \\\\" << endl;
     } // ipt
 
@@ -86,7 +86,7 @@ void draw_SysErrALL()
       latex->DrawLatexNDC(0.23,0.85, "#scale[0.9]{#vec{p} + #vec{p} #rightarrow #gamma^{iso} + X, #sqrt{s} = 510 GeV, |#eta| < 0.25}");
       latex->DrawLatexNDC(0.23,0.79, "#scale[0.6]{3.9#times10^{-4} shift uncertainty from relative luminosity not shown}");
       latex->DrawLatexNDC(0.23,0.74, "#scale[0.6]{6.6% scale uncertainty from polarization not shown}");
-      leg0->AddEntry(gr_all, "Data", "P");
+      leg0->AddEntry(gr_all, "PHENIX Data", "P");
       leg0->AddEntry(gr_dssv, "DSSV14 with DSSV_{MC} uncertainty", "LF");
       leg0->Draw();
     }

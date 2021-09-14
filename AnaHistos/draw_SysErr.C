@@ -61,8 +61,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       double sys = xsec*rsys;
       qt_sys->Fill(ipt, iso, xpt, xsec, sys);
       if( pwhg == 0 && TMath::Finite(xsec+exsec+sys) && xsec > 0. )
-        cout << xpt << " & " << xsec << " & " << exsec << " (" << 100.*exsec/xsec << "\\%) & "
-          << sys << " (" << 100.*sys/xsec << "\\%) \\\\" << endl;
+        cout << fixed << xpt << " & " << xsec << " & " << exsec << " (" << setfill('0') << setw(7) << 100.*exsec/xsec << "\\%) & "
+          << sys << " (" << setfill('0') << setw(7) << 100.*sys/xsec << "\\%) \\\\" << endl;
     }
 
     TCanvas *c0 = new TCanvas("c0", "c0", 600,800);
@@ -205,6 +205,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         leg0->Draw();
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not shown}");
+        latex->DrawLatexNDC(0.60,0.45, "PHENIX Data");
         if(pwhg == 0)
         {
           latex->DrawLatexNDC(0.25,0.37, "NLO pQCD");

@@ -74,8 +74,8 @@ void draw_ERTEff_Photon(const int iso = 0)
     gr->Fit("pol0", "Q","", 10.,30.);
     gPad->Update();
     TPaveStats *st = (TPaveStats*)gr->FindObject("stats");
-    st->SetY1NDC(0.5-part*0.2);
-    st->SetY2NDC(0.7-part*0.2);
+    st->SetY1NDC(0.4-part*0.1);
+    st->SetY2NDC(0.5-part*0.1);
 
     TGraphAsymmErrors *gr_sim = qt_ert->GraphAsymm(part+3);
     style(gr_sim, part+24, part+1);
