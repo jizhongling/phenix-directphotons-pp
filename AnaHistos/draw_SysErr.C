@@ -21,25 +21,32 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       {"#mu_{R} = 0.56p_{T}, #mu_{F} = p_{T}", "#mu_{R} = 0.54p_{T}, #mu_{F} = p_{T}/2 or 2p_{T}", "#mu_{R} = 0.58p_{T}, #mu_{F} = p_{T}/2 or 2p_{T}"}
     };
   }
-  else if(pwhg == 1)
+  if(pwhg == 1 || pwhg == 3)
   {
     const char *pwhg_type[4] = {"with MPI", "QED-QCD veto", "without MPI", "pure hard"};
-    const char *suffix[4] = {"-pwhg", "-qedqcd", "-nompi", "-purehard"};
-    TFile *f_pythia = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo%s.root",ipwhg?suffix[ipwhg]:""));
+    const char *pwhg_suffix[4] = {"-pwhg", "-qedqcd", "-nompi", "-purehard"};
+    TFile *f_pythia = new TFile(Form("/phenix/plhf/zji/github/phenix-directphotons-pp/fun4all/offline/analysis/Run13ppDirectPhoton/AnaFastMC-macros/AnaPowheg-histo%s.root",ipwhg?pwhg_suffix[ipwhg]:""));
     TH1 *h_events = (TH1*)f_pythia->Get("h_events");
     const double nEvents = h_events->GetBinContent(1);
     const int nmu[2] = {7, 7};
     const char *mu_name[3] = {"#mu_{R} = p_{T}, #mu_{F} = p_{T}", "#mu_{R} = p_{T}/2, #mu_{F} = p_{T}/2 or p_{T}", "#mu_{R} = 2p_{T}, #mu_{F} = p_{T} or 2p_{T}"};
   }
-  else if(pwhg == 2)
+  if(pwhg == 2 || pwhg == 3)
   {
     const char *suffix = "-werner";
     const int nmu[2] = {3, 3};
     const char *scale_name[3] = {"nnpdf-grv-onept", "nnpdf-grv-halfpt", "nnpdf-grv-twopt"};
-    const char *mu_name[3] = {"#mu = p_{T}", "#mu = p_{T}/2", "#mu = 2p_{T}"};
+    const char *pwhg_mu_name[3] = {"#mu = p_{T}", "#mu = p_{T}/2", "#mu = 2p_{T}"};
     TGraph *gr_werner[3];
   }
-  else
+  if(pwhg == 3)
+  {
+    const char *suffix = "-werner-pwhg";
+    TGraphAsymmErrors *gr_band = new TGraphAsymmErrors(npT);
+    TGraphAsymmErrors *gr_band_ratio = new TGraphAsymmErrors(npT);
+    TGraph *gr_central_ratio = new TGraph(npT);
+  }
+  if(pwhg < 0 || pwhg > 3)
   {
     cout << "Wrong input" << endl;
     return;
@@ -78,6 +85,11 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     gPad->SetLogy();
     legi(0, 0.25,0.03,0.47,0.20);
     leg0->SetTextSize(0.030);
+    if(pwhg == 3)
+    {
+      legi(1, 0.65,0.30,0.90,0.35);
+      leg1->SetTextSize(0.030);
+    }
     TLatex *latex = new TLatex();
     latex->SetTextSize(0.04);
 
@@ -89,7 +101,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     TLine *line = new TLine();
     line->SetLineWidth(2);
 
-    double nlo[npT][nmu[1]];
+    int igr_band = 0;
+    double nlo[npT][nmu[1]], band[npT][nmu[1]];
     for(int imu=0; imu<nmu[iso]; imu++)
     {
       if(pwhg == 0)
@@ -98,32 +111,45 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         TH1 *h_nlo = (TH1*)f_nlo->Get("hp41");
         h_nlo->Scale(jetphox_scale);
       }
-      else if(pwhg == 1)
+      if(pwhg == 1 || pwhg == 3)
       {
         TH1 *h_nlo = (TH1*)f_pythia->Get(Form("hard0_iso%d_rap0_id%d",iso,imu));
         h_nlo->Scale(1./nEvents, "width");
       }
-      else if(pwhg == 2)
+      if(pwhg == 2 || pwhg == 3)
       {
         gr_werner[imu] = new TGraph(Form("data/werner-cross-%s-%s.txt",iso?"iso":"inc",scale_name[imu]));
       }
       for(int ipt=12; ipt<npT; ipt++)
       {
-        if(pwhg < 2)
+        if(pwhg != 2)
         {
           double xpt = (pTbin[ipt] + pTbin[ipt+1]) / 2.;
           int bin_th = h_nlo->GetXaxis()->FindBin(xpt);
           nlo[ipt][imu] = h_nlo->GetBinContent(bin_th);
         }
-        else if(pwhg == 2)
+        if(pwhg == 2 || pwhg == 3)
         {
           double xpt;
-          gr_werner[imu]->GetPoint(ipt-4, xpt, nlo[ipt][imu]);
+          gr_werner[imu]->GetPoint(ipt-4, xpt, band[ipt][imu]);
+          if(pwhg == 3 && imu == 2)
+          {
+            gr_band->SetPoint(igr_band, xpt, band[ipt][0]);
+            gr_band->SetPointError(igr_band, 0, 0, band[ipt][0]-band[ipt][2], band[ipt][1]-band[ipt][0]);
+            gr_band_ratio->SetPoint(igr_band, xpt, 0);
+            gr_band_ratio->SetPointError(igr_band, 0, 0, 1-band[ipt][2]/band[ipt][0], band[ipt][1]/band[ipt][0]-1);
+            igr_band++;
+          }
         }
       }
       if(pwhg == 0)
         delete f_nlo;
     } // imu
+    if(pwhg == 3)
+    {
+      gr_band->Set(igr_band);
+      gr_band_ratio->Set(igr_band);
+    }
 
     TGraphErrors *gr_central;
     for(int imu=0; imu<3; imu++)
@@ -140,31 +166,34 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
             !qt_sys->Query(ipt, iso, xpt, Combine, sysCombine) )
           continue;
 
-        if(pwhg < 2 && imu == 0)
+        if(pwhg != 2 && imu == 0)
           for(int i=0; i<nmu[iso]; i++)
             nlo[ipt][i] /= (2*PI*xpt*DeltaEta);
 
         double sigma_nlo;
         if(imu == 0)
-          sigma_nlo = nlo[ipt][imu];
+          sigma_nlo = pwhg!=2?nlo[ipt][imu]:band[ipt][imu];
         else if(imu == 1)
-          sigma_nlo = TMath::MaxElement(nmu[iso], nlo[ipt]);
+          sigma_nlo = TMath::MaxElement(nmu[iso], pwhg!=2?nlo[ipt]:band[ipt]);
         else if(imu == 2)
-          sigma_nlo = TMath::MinElement(nmu[iso], nlo[ipt]);
+          sigma_nlo = TMath::MinElement(nmu[iso], pwhg!=2?nlo[ipt]:band[ipt]);
         gr_nlo->SetPoint(igp, xpt, sigma_nlo);
 
+        double den = pwhg<2?nlo[ipt][0]:band[ipt][0];
         double ratio, eratio, sysratio;
         if(imu == 0)
         {
-          ratio = Combine/sigma_nlo;
-          eratio = eCombine/sigma_nlo;
-          sysratio = sysCombine/sigma_nlo; 
+          ratio = Combine/den;
+          eratio = eCombine/den;
+          sysratio = sysCombine/den;
           gr_ratio_sys->SetPoint(igp, xpt, ratio-1);
           gr_ratio_sys->SetPointError(igp, 0., sysratio);
+          if(pwhg == 3)
+            gr_central_ratio->SetPoint(igp, xpt, nlo[ipt][0]/band[ipt][0]-1);
         }
         else
         {
-          ratio = sigma_nlo/nlo[ipt][0];
+          ratio = sigma_nlo/den;
           eratio = 1e-9;
         }
         gr_ratio->SetPoint(igp, xpt, ratio-1);
@@ -175,11 +204,16 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       gr_nlo->Set(igp);
       gr_ratio->Set(igp);
       gr_ratio_sys->Set(igp);
+      if(pwhg == 3 && imu == 0)
+      {
+        gr_central_ratio->Set(igp);
+        style(gr_central_ratio, 1, 1, 2);
+      }
 
       style(gr_nlo, imu+1, 1, 2);
       style(gr_ratio, imu==0?20:imu+1, imu==0?2:1, 2);
       gr_ratio->SetMarkerSize(0.8);
-      if(pwhg < 2)
+      if(pwhg != 2)
       {
         if(imu == 0)
           gr_central == gr_nlo;
@@ -192,6 +226,18 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       if(imu == 0)
       {
         pad1->cd();
+        if(pwhg == 3)
+        {
+          aset(gr_band, "p_{T} (GeV/c)", "Ed^{3}#sigma/dp^{3} (pb GeV^{-2} c^{3})", 4.9,30.1, 0.5e-1, iso?2e3:5e3);
+          style(gr_band, 1, 1);
+          gr_band->SetTitle("");
+          gr_band->SetFillColor(kCyan-7);
+          //gr_band->SetFillStyle(3001);
+          gr_band->Draw("A3");
+          gr_band->Draw("X");
+          leg1->AddEntry(gr_band, "#mu = p_{T}/2, p_{T}, 2p_{T}", "F");
+          leg1->Draw();
+        }
         gr_cross[iso] = qt_cross->Graph(3);
         gr_cross_sys[iso] = qt_sys->Graph(iso);
         gr_cross[iso]->SetTitle("");
@@ -199,13 +245,13 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         style(gr_cross[iso], 20, 2, 2);
         style(gr_cross_sys[iso], 1, 2, 2);
         gr_cross[iso]->SetMarkerSize(0.8);
-        gr_cross[iso]->Draw("AP");
+        gr_cross[iso]->Draw(pwhg==3?"P":"AP");
         gr_cross_sys[iso]->Draw("[]");
         gr_nlo->Draw("LX");
         leg0->Draw();
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not shown}");
-        latex->DrawLatexNDC(0.60,0.45, "PHENIX Data");
+        latex->DrawLatexNDC(0.23,0.50, "#splitline{PHENIX}{Data}");
         if(pwhg == 0)
         {
           latex->DrawLatexNDC(0.25,0.37, "NLO pQCD");
@@ -213,20 +259,27 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
           latex->DrawLatexNDC(0.25,0.27, "CT14 PDF");
           latex->DrawLatexNDC(0.25,0.22, "BFG II FF");
         }
-        else if(pwhg == 1)
+        if(pwhg == 1 || pwhg == 3)
         {
           latex->DrawLatexNDC(0.25,0.37, "NLO pQCD");
           latex->DrawLatexNDC(0.25,0.32, "(by POWHEG");
           latex->DrawLatexNDC(0.25,0.27, Form("%s)",pwhg_type[ipwhg]));
           latex->DrawLatexNDC(0.25,0.22, "CT14 PDF");
         }
-        else if(pwhg == 2)
+        if(pwhg == 2)
         {
           latex->DrawLatexNDC(0.25,0.27, "NLO pQCD");
           latex->DrawLatexNDC(0.25,0.22, "(by W. Vogelsang)");
           latex->DrawLatexNDC(0.25,0.17, "NNPDF3.0 PDF");
           latex->DrawLatexNDC(0.25,0.12, "GRV FF");
           latex->DrawLatexNDC(0.25,0.07, "#mu = p_{T}/2, p_{T}, 2p_{T}");
+        }
+        if(pwhg == 3)
+        {
+          latex->DrawLatexNDC(0.60,0.50, "NLO pQCD");
+          latex->DrawLatexNDC(0.60,0.45, "(by W. Vogelsang)");
+          latex->DrawLatexNDC(0.60,0.40, "NNPDF3.0 PDF");
+          latex->DrawLatexNDC(0.60,0.35, "GRV FF");
         }
         if(iso)
         {
@@ -235,6 +288,20 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         }
 
         pad2->cd();
+        if(pwhg == 3)
+        {
+          gr_band_ratio->SetTitle(";p_{T} (GeV/c);#scale[0.9]{#frac{Data-Theory}{Theory}}");
+          aset(gr_band_ratio, "","", 4.9,30.1, iso?-0.25:-0.45,(iso&&pwhg!=1)?0.45+0.125*pwhg:2.15-iso, 1.,0.6,0.1,0.12);
+          gr_band_ratio->GetXaxis()->SetLabelSize(0.09);
+          gr_band_ratio->GetYaxis()->SetLabelSize(0.09);
+          gr_band_ratio->GetYaxis()->SetLabelOffset(0.005);
+          gr_band_ratio->GetXaxis()->SetTickSize(0.08);
+          gr_band_ratio->SetFillColor(kCyan-7);
+          //gr_band_ratio->SetFillStyle(3001);
+          gr_band_ratio->Draw("A3");
+          gr_band_ratio->Draw("X");
+          gr_central_ratio->Draw("LX");
+        }
         gr_ratio->SetTitle(";p_{T} (GeV/c);#scale[0.9]{#frac{Data-Theory}{Theory}}");
         aset(gr_ratio, "","", 4.9,30.1, iso?-0.25:-0.45,(iso&&pwhg!=1)?0.45+0.125*pwhg:2.15-iso, 1.,0.6,0.1,0.12);
         style(gr_ratio_sys, 1, 2, 2);
@@ -242,9 +309,9 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         gr_ratio->GetYaxis()->SetLabelSize(0.09);
         gr_ratio->GetYaxis()->SetLabelOffset(0.005);
         gr_ratio->GetXaxis()->SetTickSize(0.08);
-        gr_ratio->Draw("APE");
+        gr_ratio->Draw(pwhg==3?"PE":"APE");
         gr_ratio_sys->Draw("[]");
-        line->DrawLine(6., 0., 30., 0.);
+        line->DrawLine(pwhg==3?5.:6., 0., 30., 0.);
       }
       else
       {
@@ -256,7 +323,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       }
     } // imu
 
-    const char *outfile = Form("plots/CrossSection-%sphoton%s", iso?"iso":"",pwhg==1?suffix[ipwhg]:suffix);
+    const char *outfile = Form("plots/CrossSection-%sphoton%s", iso?"iso":"",pwhg==1?pwhg_suffix[ipwhg]:suffix);
     c0->Print(Form("%s.pdf", outfile));
     if(false)
     {
@@ -281,7 +348,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
     gPad->SetTopMargin(0.05);
     gPad->SetBottomMargin(0.15);
     gPad->SetLogy();
-    legi(1, 0.22,0.18,0.45,0.28);
+    legi(2, 0.22,0.18,0.45,0.28);
     leg0->SetTextSize(0.035);
     TLatex *latex = new TLatex();
     latex->SetTextSize(0.04);
@@ -293,9 +360,9 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
       gr_cross[iso]->SetMarkerSize(0.8);
       gr_cross[iso]->Draw(iso?"P":"AP");
       gr_cross_sys[iso]->Draw("[]");
-      leg1->AddEntry(gr_cross[iso], Form("%s direct photon",iso?"Isolated":"Inclusive"), "P");
+      leg2->AddEntry(gr_cross[iso], Form("%s direct photon",iso?"Isolated":"Inclusive"), "P");
     }
-    leg1->Draw();
+    leg2->Draw();
     latex->DrawLatexNDC(0.35,0.88, "#splitline{Direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}");
     latex->DrawLatexNDC(0.35,0.80, "#scale[0.8]{#splitline{10% absolute luminosity}{uncertainty not shown}}");
     latex->DrawLatexNDC(0.45,0.70, "Isolation cut condition");
