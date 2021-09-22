@@ -251,7 +251,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         leg0->Draw();
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not shown}");
-        latex->DrawLatexNDC(0.23,0.50, "#splitline{PHENIX}{Data}");
+        if(pwhg != 3)
+          latex->DrawLatexNDC(0.60,0.45, "PHENIX Data");
         if(pwhg == 0)
         {
           latex->DrawLatexNDC(0.25,0.37, "NLO pQCD");
@@ -280,6 +281,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
           latex->DrawLatexNDC(0.60,0.45, "(by W. Vogelsang)");
           latex->DrawLatexNDC(0.60,0.40, "NNPDF3.0 PDF");
           latex->DrawLatexNDC(0.60,0.35, "GRV FF");
+          latex->DrawLatexNDC(0.23,0.50, "#splitline{PHENIX}{Data}");
         }
         if(iso)
         {
