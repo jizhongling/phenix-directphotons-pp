@@ -74,7 +74,7 @@ void draw_MissingRatio()
     {
       TGraphErrors *gr_miss_eta = qt_miss_eta->Graph(part);
       gr_miss_eta->SetNameTitle(Form("gr_%d",part), "Missing Ratio for #eta");
-      aset(gr_miss_eta, "p_{T}^{1#gamma} (GeV/c)","R", 5.,30., 0.,1.5);
+      aset(gr_miss_eta, "p_{T}^{1#gamma} (GeV/c)","Missing ratio R", 5.,30., 0.,1.5);
       style(gr_miss_eta, 20+part, 1+part);
       if(part == 0)
         gr_miss_eta->Draw("AP");
