@@ -44,7 +44,7 @@ void draw_MissingRatio()
     {
       TGraphErrors *gr_miss = qt_miss->Graph(part);
       gr_miss->SetNameTitle(Form("gr_%d",part), "Missing Ratio for #pi^{0}");
-      aset(gr_miss, "p_{T}^{1#gamma} (GeV/c)","R", 5.,30., 0.,1.5);
+      aset(gr_miss, "p_{T}^{1#gamma} (GeV/c)","Missing ratio R", 5.,30., 0.,1.5);
       style(gr_miss, 20+part, 1+part);
       if(part == 0)
         gr_miss->Draw("AP");
