@@ -2,7 +2,7 @@
 #include "QueryTree.h"
 #include "IsoPhotonALL.h"
 
-void draw_SysErrALL()
+void draw_SysErrALL(const int prelim = 0)
 {
   const char *beam_list[3] = {"A_{L}^{Blue}", "A_{L}^{Yellow}", "A_{LL}"};
 
@@ -102,9 +102,9 @@ void draw_SysErrALL()
     const char *outfile = Form("plots/IsoPhotonALL-beam%d", beam);
     c0->Print(Form("%s.pdf", outfile));
     c0->Clear("D");
-    if(false && beam == 2)
+    if(prelim == 1 && beam == 2)
     {
-      char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=150 --y=130 --scale=0.8", outfile,outfile);
+      char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=370 --y=340 --scale=0.8", outfile,outfile);
       system(cmd);
     }
   } // beam

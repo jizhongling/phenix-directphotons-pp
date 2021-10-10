@@ -2,7 +2,7 @@
 #include "QueryTree.h"
 #include "Chi2Fit.h"
 
-void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
+void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
 {
   const double PI = TMath::Pi();
   const double DeltaEta = 0.5;
@@ -251,7 +251,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
         leg0->Draw();
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not shown}");
-        if(pwhg != 3)
+        if(prelim == 0 && pwhg != 3)
           latex->DrawLatexNDC(0.60,0.45, "PHENIX Data");
         if(pwhg == 0)
         {
@@ -281,7 +281,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
           latex->DrawLatexNDC(0.60,0.45, "(by W. Vogelsang)");
           latex->DrawLatexNDC(0.60,0.40, "NNPDF3.0 PDF");
           latex->DrawLatexNDC(0.60,0.35, "GRV FF");
-          latex->DrawLatexNDC(0.23,0.50, "#splitline{PHENIX}{Data}");
+          if(prelim == 0)
+            latex->DrawLatexNDC(0.23,0.50, "#splitline{PHENIX}{Data}");
         }
         if(iso)
         {
@@ -327,7 +328,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0)
 
     const char *outfile = Form("plots/CrossSection-%sphoton%s", iso?"iso":"",pwhg==1?pwhg_suffix[ipwhg]:suffix);
     c0->Print(Form("%s.pdf", outfile));
-    if(false)
+    if(prelim == 1)
     {
       char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=360 --y=420 --scale=0.8", outfile,outfile);
       system(cmd);

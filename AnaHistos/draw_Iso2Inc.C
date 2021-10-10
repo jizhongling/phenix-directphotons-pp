@@ -2,7 +2,7 @@
 #include "QueryTree.h"
 #include "DivideFunctions.h"
 
-void draw_Iso2Inc()
+void draw_Iso2Inc(const int prelim = 0)
 {
   const int sector = 3;  // PbSc west: 0; PbSc east: 1; PbGl: 2; Combined: 3
   const int nmu = 5;
@@ -159,11 +159,9 @@ void draw_Iso2Inc()
 
   const char *outfile = "plots/Iso2Inc";
   c0->Print(Form("%s.pdf", outfile));
-  if(false)
+  if(prelim == 1)
   {
-    char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=320 --y=200 --scale=0.8", outfile,outfile);
-    system(cmd);
-    cmd = Form("rm %s.pdf", outfile);
+    char *cmd = Form("preliminary.pl --input=%s.pdf --output=%s-prelim.pdf --x=350 --y=425 --scale=0.8", outfile,outfile);
     system(cmd);
   }
 }
