@@ -85,10 +85,12 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
     gPad->SetLogy();
     legi(0, 0.25,0.03,0.47,0.20);
     leg0->SetTextSize(0.030);
+    legi(1, 0.60,0.35,0.80,0.55);
+    leg1->SetTextSize(0.045);
     if(pwhg == 3)
     {
-      legi(1, 0.65,0.30,0.90,0.35);
-      leg1->SetTextSize(0.030);
+      legi(2, 0.65,0.30,0.90,0.35);
+      leg2->SetTextSize(0.030);
     }
     TLatex *latex = new TLatex();
     latex->SetTextSize(0.04);
@@ -235,8 +237,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
           //gr_band->SetFillStyle(3001);
           gr_band->Draw("A3");
           gr_band->Draw("X");
-          leg1->AddEntry(gr_band, "#mu = p_{T}/2, p_{T}, 2p_{T}", "F");
-          leg1->Draw();
+          leg2->AddEntry(gr_band, "#mu = p_{T}/2, p_{T}, 2p_{T}", "F");
+          leg2->Draw();
         }
         gr_cross[iso] = qt_cross->Graph(3);
         gr_cross_sys[iso] = qt_sys->Graph(iso);
@@ -252,7 +254,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
         latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not shown}");
         if(prelim == 0 && pwhg != 3)
-          latex->DrawLatexNDC(0.60,0.45, "PHENIX Data");
+          leg1->AddEntry(gr_cross[iso], "PHENIX Data", "P");
+        leg1->Draw();
         if(pwhg == 0)
         {
           latex->DrawLatexNDC(0.25,0.37, "NLO pQCD");
