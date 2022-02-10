@@ -252,7 +252,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
         gr_nlo->Draw("LX");
         leg0->Draw();
         latex->DrawLatexNDC(0.29,0.87, Form("#splitline{%s direct photon cross section}{p+p #sqrt{s} = 510 GeV, |#eta| < 0.25}",iso?"Isolated":"Inclusive"));
-        latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not shown}");
+        if(pwhg != 2)
+          latex->DrawLatexNDC(0.29,0.79, "#scale[0.8]{10% absolute luminosity uncertainty not shown}");
         if(prelim == 0 && pwhg != 3)
           leg1->AddEntry(gr_cross[iso], "PHENIX Data", "P");
         leg1->Draw();
@@ -272,6 +273,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
         }
         if(pwhg == 2)
         {
+          latex->DrawLatexNDC(0.86,0.91, Form("(%s)",iso?"c":"a"));
           latex->DrawLatexNDC(0.25,0.27, "NLO pQCD");
           latex->DrawLatexNDC(0.25,0.22, "(by W. Vogelsang)");
           latex->DrawLatexNDC(0.25,0.17, "NNPDF3.0 PDF");
@@ -327,6 +329,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
         pad2->cd();
         gr_ratio->Draw("LX");
       }
+      if(pwhg == 2)
+        latex->DrawLatexNDC(0.86,0.93, Form("#scale[1.8]{(%s)}",iso?"d":"b"));
     } // imu
 
     const char *outfile = Form("plots/CrossSection-%sphoton%s", iso?"iso":"",pwhg==1?pwhg_suffix[ipwhg]:suffix);
