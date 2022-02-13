@@ -1,7 +1,7 @@
 $p_T$ (GeV/c)
 1
 $A_{LL}$
-$A_{LL}$, $\vec{p}+\vec{p}\rightarrow\gamma^{iso}+X$ $\sqrt{s} = 510$ GeV, $|\eta|<0.25$
+$A_{LL}$, $\vec{p}+\vec{p}\rightarrow\gamma^{iso}+X$, $\sqrt{s} = 510$ GeV, $|\eta|<0.25$
 yes
 none
 none

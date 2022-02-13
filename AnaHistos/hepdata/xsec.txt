@@ -2,8 +2,8 @@ $p_T$ (GeV/c)
 2
 $Ed^{3}\sigma^{inc}/dp^{3}$ (pb GeV$^{-2}$ c$^{3}$)
 $Ed^{3}\sigma^{iso}/dp^{3}$ (pb GeV$^{-2}$ c$^{3}$)
-$Ed^{3}\sigma^{inc}/dp^{3}$, $p+p\rightarrow\gamma^{inc}+X$ $\sqrt{s} = 510$ GeV, $|\eta|<0.25$
-$Ed^{3}\sigma^{iso}/dp^{3}$, $p+p\rightarrow\gamma^{iso}+X$ $\sqrt{s} = 510$ GeV, $|\eta|<0.25$
+$Ed^{3}\sigma^{inc}/dp^{3}$, $p+p\rightarrow\gamma^{inc}+X$, $\sqrt{s} = 510$ GeV, $|\eta|<0.25$
+$Ed^{3}\sigma^{iso}/dp^{3}$, $p+p\rightarrow\gamma^{iso}+X$, $\sqrt{s} = 510$ GeV, $|\eta|<0.25$
 yes
 none
 none

@@ -22,7 +22,7 @@ independent_variables:
 dependent_variables:
 - header: {name: '$Ed^{3}\sigma^{inc}/dp^{3}$ (pb GeV$^{-2}$ c$^{3}$)'}
   qualifiers:
-  - {name: '$p_T$ (GeV/c)', value: '$Ed^{3}\sigma^{inc}/dp^{3}$, $p+p\rightarrow\gamma^{inc}+X$ $\sqrt{s} = 510$ GeV, $|\eta|<0.25$'}
+  - {name: '$p_T$ (GeV/c)', value: '$Ed^{3}\sigma^{inc}/dp^{3}$, $p+p\rightarrow\gamma^{inc}+X$, $\sqrt{s} = 510$ GeV, $|\eta|<0.25$'}
   values:
   - value: 2.3218e+03
     errors:
@@ -98,7 +98,7 @@ dependent_variables:
     - {symerror: 2.0745e-02, label: 'sys'}
 - header: {name: '$Ed^{3}\sigma^{iso}/dp^{3}$ (pb GeV$^{-2}$ c$^{3}$)'}
   qualifiers:
-  - {name: '$p_T$ (GeV/c)', value: '$Ed^{3}\sigma^{iso}/dp^{3}$, $p+p\rightarrow\gamma^{iso}+X$ $\sqrt{s} = 510$ GeV, $|\eta|<0.25$'}
+  - {name: '$p_T$ (GeV/c)', value: '$Ed^{3}\sigma^{iso}/dp^{3}$, $p+p\rightarrow\gamma^{iso}+X$, $\sqrt{s} = 510$ GeV, $|\eta|<0.25$'}
   values:
   - value: 1.0877e+03
     errors:
