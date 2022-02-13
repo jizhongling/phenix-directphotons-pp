@@ -52,9 +52,14 @@ void draw_SysErrALL(const int prelim = 0)
       double esys = sqrt(pow(comb[1]-comb[0],2) + pow(comb[2]-comb[0],2));
       qt_sys->Fill(ipt, beam, xpt, comb[0], esys);
       if( beam==2 && TMath::Finite(comb[0]+ecomb[0]+esys) )
-        cout << fixed << xpt << " & " << scientific << comb[0] << " & " << ecomb[0] << " (" << fixed << setfill('0') << setw(8) << 100.*ecomb[0]/fabs(comb[0]) << "\\%) & "
-          << scientific << esys << " (" << fixed << 100.*esys/fabs(ecomb[0]) << "\\%) \\\\" << endl;
+      {
+        //cout << fixed << xpt << " & " << scientific << comb[0] << " & " << ecomb[0] << " (" << fixed << setfill('0') << setw(8) << 100.*ecomb[0]/fabs(comb[0]) << "\\%) & "
+        //  << scientific << esys << " (" << fixed << 100.*esys/fabs(ecomb[0]) << "\\%) \\\\" << endl;
+        cout << pTbin_pol[ipt] << "\t" << pTbin_pol[ipt+1] << "\t" << comb[0] << "\t" << ecomb[0] << "\t" << esys << endl;
+      }
     } // ipt
+    if(beam == 2)
+      cout << "***" << endl;
 
     int igr = beam + ngr_photon*2;
     TGraphErrors *gr_all = qt_all->Graph(igr);

@@ -68,9 +68,13 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
       double sys = xsec*rsys;
       qt_sys->Fill(ipt, iso, xpt, xsec, sys);
       if( pwhg == 0 && TMath::Finite(xsec+exsec+sys) && xsec > 0. )
-        cout << fixed << xpt << " & " << xsec << " & " << exsec << " (" << setfill('0') << setw(7) << 100.*exsec/xsec << "\\%) & "
-          << sys << " (" << setfill('0') << setw(7) << 100.*sys/xsec << "\\%) \\\\" << endl;
+      {
+        //cout << fixed << xpt << " & " << xsec << " & " << exsec << " (" << setfill('0') << setw(7) << 100.*exsec/xsec << "\\%) & "
+        //  << sys << " (" << setfill('0') << setw(7) << 100.*sys/xsec << "\\%) \\\\" << endl;
+        cout << pTbin[ipt] << "\t" << pTbin[ipt+1] << "\t" << xsec << "\t" << exsec << "\t" << sys << endl;
+      }
     }
+    cout << "***" << endl;
 
     TCanvas *c0 = new TCanvas("c0", "c0", 600,800);
     TPad *pad1 = new TPad("pad1", "pad1", 0.,0.35,1.,1., -1,0);
