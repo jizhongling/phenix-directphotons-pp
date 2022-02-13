@@ -71,7 +71,8 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
       {
         //cout << fixed << xpt << " & " << xsec << " & " << exsec << " (" << setfill('0') << setw(7) << 100.*exsec/xsec << "\\%) & "
         //  << sys << " (" << setfill('0') << setw(7) << 100.*sys/xsec << "\\%) \\\\" << endl;
-        cout << pTbin[ipt] << "\t" << pTbin[ipt+1] << "\t" << xsec << "\t" << exsec << "\t" << sys << endl;
+        cout << fixed << setprecision(1) << pTbin[ipt] << "\t" << pTbin[ipt+1] << "\t"
+          << scientific << setprecision(4) << xsec << "\t" << exsec << "\t" << sys << endl;
       }
     }
     cout << "***" << endl;
