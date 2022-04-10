@@ -56,7 +56,7 @@ void draw_SysErrALL(const int prelim = 0)
         //cout << fixed << xpt << " & " << scientific << comb[0] << " & " << ecomb[0] << " (" << fixed << setfill('0') << setw(8) << 100.*ecomb[0]/fabs(comb[0]) << "\\%) & "
         //  << scientific << esys << " (" << fixed << 100.*esys/fabs(ecomb[0]) << "\\%) \\\\" << endl;
         cout << fixed << setprecision(1) << pTbin_pol[ipt] << "\t" << pTbin_pol[ipt+1] << "\t"
-          << scientific << setprecision(4) << comb[0] << "\t" << ecomb[0] << "\t" << esys << endl;
+          << scientific << setprecision(3) << comb[0] << "\t" << setprecision(1) << ecomb[0] << "\t" << esys << endl;
       }
     } // ipt
     if(beam == 2)
