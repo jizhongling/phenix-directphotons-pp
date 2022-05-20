@@ -24,12 +24,12 @@ void read_xsec(const char *fname, double xsec[][npt])
 {
   ifstream fin(fname);
   char line[1024];
+  int irep, ipt;
 
   while(fin.getline(line, 1024))
   {
     stringstream ss;
     string word;
-    int irep, ipt;
 
     ss << line;
     ss >> word;
