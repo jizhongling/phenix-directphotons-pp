@@ -1,5 +1,5 @@
 // mysrc64 new
-// g++ -std=c++11 -Wall -I$MYINSTALL/include -I$OFFLINE_MAIN/include -L$MYINSTALL/lib -L$OFFLINE_MAIN/lib `root-config --cflags --glibs` -lLHAPDF -o anaPDF anaPDF.cc
+// g++ -std=c++11 -Wall -I$MYINSTALL/include -L$MYINSTALL/lib -lLHAPDF -o anaPDF anaPDF.cc
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -10,10 +10,7 @@
 
 using namespace std;
 
-const int nrep = 1000;
 const int npt = 7;
-const int nx = 101;
-
 const double pt[npt] = {6.423, 7.434, 8.443, 9.450, 10.83, 13.21, 16.89};
 const double data[npt] = {-0.002265, 0.002301, 0.004449, 0.003846, 0.01479, 0.01111, -0.02071};
 const double err[npt] = {0.003100, 0.004800, 0.006900, 0.009500, 0.009901, 0.01400, 0.02200};
@@ -52,14 +49,15 @@ void read_xsec(const char *fname, double xsec[][npt])
 
 int main()
 {
-  double weight[nrep+1];
-  double sumw = 0.;
+  const int nrep = 1000;
 
   double unpol[1][npt];
   double pol[nrep+1][npt];
   read_xsec("data/dssv-unpol.txt", unpol);
   read_xsec("data/dssv-pol.txt", pol);
 
+  double weight[nrep+1];
+  double sumw = 0.;
   for(int irep=1; irep<=nrep; irep++)
   {
     double chi2 = 0.;
@@ -76,10 +74,9 @@ int main()
 
   ofstream fout_old("data/reweighting-old.txt");
   ofstream fout_new("data/reweighting-new.txt");
-
   vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("DSSV_REP_LHAPDF6");
 
-  for(int ix=0; ix<nx; ix++)
+  for(int ix=0; ix<101; ix++)
   {
     double log10x = -5. + 0.05 * (double)ix;
     double x = pow(10., log10x);
@@ -95,7 +92,7 @@ int main()
       xg2_old += square(xg) / (double)nrep;
       xg_new += xg * weight[irep];
       xg2_new += square(xg) * weight[irep];
-    } // irep
+    }
 
     double exg_old = sqrt(xg2_old - square(xg_old));
     double exg_new = sqrt(xg2_new - square(xg_new));
