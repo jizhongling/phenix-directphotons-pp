@@ -12,10 +12,10 @@ using namespace std;
 
 const int nrep = 1000;
 const int npt = 7;
-const int nx = 100;
+const int nx = 101;
 
 const double pt[npt] = {6.423, 7.434, 8.443, 9.450, 10.83, 13.21, 16.89};
-const double data[npt] = {0.002265, 0.002301, 0.004449, 0.003846, 0.01479, 0.01111, -0.02071};
+const double data[npt] = {-0.002265, 0.002301, 0.004449, 0.003846, 0.01479, 0.01111, -0.02071};
 const double err[npt] = {0.003100, 0.004800, 0.006900, 0.009500, 0.009901, 0.01400, 0.02200};
 
 template<class T> inline constexpr T square(const T &x) { return x*x; }
@@ -81,33 +81,26 @@ int main()
 
   for(int ix=0; ix<nx; ix++)
   {
-    double x = 0.02 + 0.0006 * ix;
-    double xg_center = 0.;
+    double log10x = -5. + 0.05 * (double)ix;
+    double x = pow(10., log10x);
     double xg_old = 0.;
     double xg2_old = 0.;
     double xg_new = 0.;
     double xg2_new = 0.;
 
-    for(int irep=0; irep<=nrep; irep++)
+    for(int irep=1; irep<=nrep; irep++)
     {
       double xg = v_pdf.at(irep)->xfxQ2(21, x, 10.);
-      if(irep == 0)
-      {
-        xg_center = xg;
-      }
-      else
-      {
-        xg_old += xg / (double)nrep;
-        xg2_old += square(xg) / (double)nrep;
-        xg_new += xg * weight[irep];
-        xg2_new += square(xg) * weight[irep];
-      }
+      xg_old += xg / (double)nrep;
+      xg2_old += square(xg) / (double)nrep;
+      xg_new += xg * weight[irep];
+      xg2_new += square(xg) * weight[irep];
     } // irep
 
     double exg_old = sqrt(xg2_old - square(xg_old));
     double exg_new = sqrt(xg2_new - square(xg_new));
 
-    fout_old << x << "\t" << xg_center << "\t" << exg_old << endl;
+    fout_old << x << "\t" << xg_old << "\t" << exg_old << endl;
     fout_new << x << "\t" << xg_new << "\t" << exg_new << endl;
   }
 
