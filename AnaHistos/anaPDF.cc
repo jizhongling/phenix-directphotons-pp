@@ -66,7 +66,8 @@ int main()
       double all = pol[irep][ipt] / unpol[0][ipt];
       chi2 += square((all - data[ipt]) / err[ipt]);
     }
-    weight[irep] = pow(chi2, (double)npt/2.-1.) * exp(-chi2/2.);
+    // See Erratum of Nucl. Phys. B 849 (2011) 112-143
+    weight[irep] = pow(chi2, (npt-1)/2.) * exp(-chi2/2.);
     sumw += weight[irep];
   }
   for(int irep=1; irep<=nrep; irep++)
