@@ -10,12 +10,14 @@ void draw_SysErrALL(const int prelim = 0)
   QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root");
 
   TGraphErrors *gr_dssv = new TGraphErrors("data/werner-all-dssv14-nnpdf-grv.txt", "%lg %lg %lg");
+  TGraph *gr_jam_pos = new TGraphErrors("data/jam-all-dgpos.txt", "%lg %lg");
+  TGraph *gr_jam_neg = new TGraphErrors("data/jam-all-dgneg.txt", "%lg %lg");
 
   TBox *box = new TBox();
   box->SetLineColor(2);
   box->SetFillStyle(0);
 
-  legi(0, 0.23,0.30,0.50,0.45);
+  legi(0, 0.23,0.25,0.50,0.45);
   leg0->SetTextSize(0.030);
 
   const int nge = 25;
@@ -40,6 +42,8 @@ void draw_SysErrALL(const int prelim = 0)
   cout.precision(4);
   for(int beam=0; beam<3; beam++)
   {
+    double chi2_pos = 0.;
+    double chi2_neg = 0.;
     for(int ipt=7; ipt<npT_pol-1; ipt++)
     {
       double xpt, comb[3], ecomb[3];
@@ -57,10 +61,12 @@ void draw_SysErrALL(const int prelim = 0)
         //  << scientific << esys << " (" << fixed << 100.*esys/fabs(ecomb[0]) << "\\%) \\\\" << endl;
         cout << fixed << setprecision(1) << pTbin_pol[ipt] << "\t" << pTbin_pol[ipt+1] << "\t"
           << scientific << setprecision(3) << comb[0] << "\t" << setprecision(1) << ecomb[0] << "\t" << esys << endl;
+        chi2_pos += pow(comb[0] - gr_jam_pos->Eval(xpt, 0, "S"), 2) / (ecomb[0]*ecomb[0] + esys*esys);
+        chi2_neg += pow(comb[0] - gr_jam_neg->Eval(xpt, 0, "S"), 2) / (ecomb[0]*ecomb[0] + esys*esys);
       }
     } // ipt
     if(beam == 2)
-      cout << "***" << endl;
+      cout << fixed << setprecision(4) << "***\nchi2_pos = " << chi2_pos << "\nchi2_neg = " << chi2_neg << endl;
 
     int igr = beam + ngr_photon*2;
     TGraphErrors *gr_all = qt_all->Graph(igr);
@@ -84,16 +90,22 @@ void draw_SysErrALL(const int prelim = 0)
     if(beam==2)
     {
       style(gr_dssv, 1, 1);
+      style(gr_jam_pos, 2, kBlue, 3.);
+      style(gr_jam_neg, 4, kGreen, 3.);
       gr_dssv->SetFillColor(kCyan-7);
       //gr_dssv->SetFillStyle(3001);
       gr_dssv->Draw("3");
       gr_dssv->Draw("CX");
+      gr_jam_pos->Draw("C");
+      gr_jam_neg->Draw("C");
       gr_all->Draw("P");
       latex->DrawLatexNDC(0.23,0.85, "#scale[0.9]{#vec{p} + #vec{p} #rightarrow #gamma^{iso} + X, #sqrt{s} = 510 GeV, |#eta| < 0.25}");
       //latex->DrawLatexNDC(0.23,0.79, "#scale[0.6]{3.9#times10^{-4} shift uncertainty from relative luminosity not shown}");
       //latex->DrawLatexNDC(0.23,0.74, "#scale[0.6]{6.6% scale uncertainty from polarization not shown}");
       leg0->AddEntry(gr_all, "PHENIX Data", "P");
       leg0->AddEntry(gr_dssv, "DSSV14 with DSSV_{MC} uncertainty", "LF");
+      leg0->AddEntry(gr_jam_pos, "JAM #Deltag > 0", "L");
+      leg0->AddEntry(gr_jam_neg, "JAM #Deltag < 0", "L");
       leg0->Draw();
     }
     //gr_lum->Draw("3");
