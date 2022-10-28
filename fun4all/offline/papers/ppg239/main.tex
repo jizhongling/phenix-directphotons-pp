@@ -1,198 +1,996 @@
-% "Plain" Template for PHENIX Physics Paper submission to PRL or PRC or PRD
-%
-% The /phenix/WWW/p/info/dp/000/template/template4.tex file has embedded hints.
-%
-%      [Modified by Brant to uncomment line numbers on Feb. 15, 2009]
-%      [Modified by Brant to change to revtex4-1 and longbibliography,
-%               to include titles in reference lists, June, 2015]
-%      [Modified by Brant to remove "showpacs" on April 9, 2018]
+%%%% PPG239 [dir. photon xsect and A_LL; 510 GeV; $p$$+$$p$;Z.Ji]
+%%%% U.A. Acharya (PHENIX Collaboration)
+%%%%
 
-% Please see help files in  /phenix/WWW/p/info/dp/000/template/
-% and then ask Brant <brant@bnl.gov>, if you have any questions about the
-% preparation of your draft.
-%
-%   Copyright (c) 2001 The American Physical Society.
-%
-% This is a template for producing manuscripts for use with REVTEX 4.0
-% Copy this file to another name and then work on that file.
-
-%%%%%%%%%%%%%%%%%%%   **** NEW PHENIX custom *****  %%%%%%%%%%%%%%%%%%%%
-% Use linenumbers for PPG drafting and internal releases.  Brant
-% will commment out these lines before submission to arXiv and journal.
-%\RequirePackage{lineno}
-%\setlength{\linenumbersep}{6pt}
-%\linenumbers
-% [NOTE: you also need access to this file:
-% /phenix/WWW/p/info/dp/000/template/lineno.sty
-
-%%%%%%%%%%%%%%%%%%% figures in subdirectories  %%%%%%%%%%%%%%%%%%%%%%%
-%% The arXiv and journals require a flat file structure with all
-%% figure files in the same directory as the single .tex file
-%% However, some authors (especially for long PRC or PRD) find it useful
-%% to use subdirectories for the figures either below the working
-%% directory (./fig1/) or at the same directory level (../fig2/).
-%% If so, then edit and uncomment:
-%\graphicspath{{./}{./figs1/}{../figs2/}}
-
-% Before starting the draft, please carefully review the template files:
-%    https://www.phenix.bnl.gov/phenix/WWW/p/info/dp/000/template
-% This is Template4_plain.tex (without all the embedded hints).
-% You may also choose to use Template4.tex (with all the embedded hints).
-
-% Please select the "twocolumn" option below for your intended journal.
-% Brant will later select the "onecolumn" option for APS journal submission 
-% format or will transform everything to be appropriate for PLB, NPA, etc. 
+\RequirePackage{lineno}
+%\usepackage[mathlines]{lineno}
+\setlength{\linenumbersep}{6pt}
+%\linenumbers\relax
+\linenumbers
 
 % For Phys. Rev. Lett. choose (uncomment) one of:
 \documentclass[twocolumn,letterpaper,aps,prl,longbibliography,superscriptaddress,floatfix]{revtex4-2}
-%\documentclass[onecolumn,letterpaper,aps,prl,longbibliography,superscriptaddress,floatfix]{revtex4-1}
+%\documentclass[onecolumn,letterpaper,aps,prl,longbibliography,superscriptaddress,floatfix]{revtex4-2}
 
-% For Phys. Rev. C choose (uncomment) one of:
-%\documentclass[twocolumn,letterpaper,aps,prc,longbibliography,superscriptaddress,nofootinbib,floatfix]{revtex4-1}
-%\documentclass[onecolumn,letterpaper,aps,prc,longbibliography,superscriptaddress,nofootinbib,floatfix]{revtex4-1}
-
-% For Phys. Rev. D choose (uncomment) one of:
-%\documentclass[twocolumn,letterpaper,aps,prd,longbibliography,superscriptaddress,nofootinbib,floatfix]{revtex4-1}
-%\documentclass[onecolumn,letterpaper,aps,prd,longbibliography,superscriptaddress,nofootinbib,floatfix]{revtex4-1}
-
+% Normally, we use the \includegraphics package:
+\usepackage{graphicx}   % Include figure files
+\usepackage{ltxtable}
 \usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{amssymb}
-\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{xspace}     % Include xspace
 \usepackage{float}
-\usepackage[colorlinks,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
-\usepackage[mathlines]{lineno}
-\setlength{\linenumbersep}{6pt}
-\linenumbers\relax
 
-\newcommand{\pT}{\ensuremath{p_T}}
-\newcommand{\pizero}{\ensuremath{\pi^0}}
-\newcommand{\ALL}{\ensuremath{A_{LL}}}
+%\usepackage{amsmath}
+%\usepackage{verbatim}
+%\usepackage{amsfonts}
+%\usepackage{amssymb}
+%\usepackage{graphicx}
+%% % % % % % \usepackage[colorlinks,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+%\usepackage{placeins}
+
+\usepackage{xspace}     % Include xspace
+\usepackage{enumitem}
+%\setlist{leftmargin=25pt,labelindent=\parindent,itemsep=1pt}
+\setlist[enumerate]{align=left}
+
+\newcommand{\pT}{\mbox{$p_T$}\xspace}
+\newcommand{\pizero}{\mbox{$\pi^0$}\xspace}
+\newcommand{\ALL}{\mbox{$A_{LL}$}\xspace}
 
 \begin{document}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Title of paper
+\title{Measurement of Direct-Photon Cross Section and Double-Helicity 
+Asymmetry at $\sqrt{s}=510$ GeV in $\vec{p}+\vec{p}$ Collisions}
 
-%%%%% NOTE:  Use the above macros in text and captions, but not in 
-%%%%%        the title or abstract.  Those two elements must stand
-%%%%%        alone and not be dependent on the macros defined here.
+%\author{PHENIX Collaboration Author List (Brant will insert later)}
 
-\title{Measurement of Direct Photon Cross Section and Double Helicity Asymmetry at $\sqrt{s}$ = 510 GeV in $\vec{p}+\vec{p}$ Collisions at PHENIX}
-
-\author{PHENIX Collaboration Author List (Brant will insert later)}
+\newcommand{\abilene}{Abilene Christian University, Abilene, Texas 79699, USA}
+\newcommand{\augie}{Department of Physics, Augustana University, Sioux Falls, South Dakota 57197, USA}
+\newcommand{\banaras}{Department of Physics, Banaras Hindu University, Varanasi 221005, India}
+\newcommand{\barc}{Bhabha Atomic Research Centre, Bombay 400 085, India}
+\newcommand{\baruch}{Baruch College, City University of New York, New York, New York, 10010 USA}
+\newcommand{\bnlcoll}{Collider-Accelerator Department, Brookhaven National Laboratory, Upton, New York 11973-5000, USA}
+\newcommand{\bnlphys}{Physics Department, Brookhaven National Laboratory, Upton, New York 11973-5000, USA}
+\newcommand{\caucr}{University of California-Riverside, Riverside, California 92521, USA}
+\newcommand{\charlesczech}{Charles University, Ovocn\'{y} trh 5, Praha 1, 116 36, Prague, Czech Republic}
+\newcommand{\cns}{Center for Nuclear Study, Graduate School of Science, University of Tokyo, 7-3-1 Hongo, Bunkyo, Tokyo 113-0033, Japan}
+\newcommand{\colorado}{University of Colorado, Boulder, Colorado 80309, USA}
+\newcommand{\columbia}{Columbia University, New York, New York 10027 and Nevis Laboratories, Irvington, New York 10533, USA}
+\newcommand{\czechtech}{Czech Technical University, Zikova 4, 166 36 Prague 6, Czech Republic}
+\newcommand{\debrecen}{Debrecen University, H-4010 Debrecen, Egyetem t{\'e}r 1, Hungary}
+\newcommand{\elte}{ELTE, E{\"o}tv{\"o}s Lor{\'a}nd University, H-1117 Budapest, P{\'a}zm{\'a}ny P.~s.~1/A, Hungary}
+\newcommand{\ewha}{Ewha Womans University, Seoul 120-750, Korea}
+\newcommand{\famu}{Florida A\&M University, Tallahassee, FL 32307, USA}
+\newcommand{\fsu}{Florida State University, Tallahassee, Florida 32306, USA}
+\newcommand{\gsu}{Georgia State University, Atlanta, Georgia 30303, USA}
+\newcommand{\hanyang}{Hanyang University, Seoul 133-792, Korea}
+\newcommand{\hiroshima}{Hiroshima University, Kagamiyama, Higashi-Hiroshima 739-8526, Japan}
+\newcommand{\howard}{Department of Physics and Astronomy, Howard University, Washington, DC 20059, USA}
+\newcommand{\ihepprot}{IHEP Protvino, State Research Center of Russian Federation, Institute for High Energy Physics, Protvino, 142281, Russia}
+\newcommand{\illuiuc}{University of Illinois at Urbana-Champaign, Urbana, Illinois 61801, USA}
+\newcommand{\inrras}{Institute for Nuclear Research of the Russian Academy of Sciences, prospekt 60-letiya Oktyabrya 7a, Moscow 117312, Russia}
+\newcommand{\instpasczech}{Institute of Physics, Academy of Sciences of the Czech Republic, Na Slovance 2, 182 21 Prague 8, Czech Republic}
+\newcommand{\isu}{Iowa State University, Ames, Iowa 50011, USA}
+\newcommand{\jaea}{Advanced Science Research Center, Japan Atomic Energy Agency, 2-4 Shirakata Shirane, Tokai-mura, Naka-gun, Ibaraki-ken 319-1195, Japan}
+\newcommand{\jeonbuk}{Jeonbuk National University, Jeonju, 54896, Korea}
+\newcommand{\jyvaskyla}{Helsinki Institute of Physics and University of Jyv{\"a}skyl{\"a}, P.O.Box 35, FI-40014 Jyv{\"a}skyl{\"a}, Finland}
+\newcommand{\kek}{KEK, High Energy Accelerator Research Organization, Tsukuba, Ibaraki 305-0801, Japan}
+\newcommand{\korea}{Korea University, Seoul 02841, Korea}
+\newcommand{\kurchatov}{National Research Center ``Kurchatov Institute", Moscow, 123098 Russia}
+\newcommand{\kyoto}{Kyoto University, Kyoto 606-8502, Japan}
+\newcommand{\lahorelums}{Physics Department, Lahore University of Management Sciences, Lahore 54792, Pakistan}
+\newcommand{\lawllnl}{Lawrence Livermore National Laboratory, Livermore, California 94550, USA}
+\newcommand{\losalamos}{Los Alamos National Laboratory, Los Alamos, New Mexico 87545, USA}
+\newcommand{\lund}{Department of Physics, Lund University, Box 118, SE-221 00 Lund, Sweden}
+\newcommand{\maryland}{University of Maryland, College Park, Maryland 20742, USA}
+\newcommand{\mass}{Department of Physics, University of Massachusetts, Amherst, Massachusetts 01003-9337, USA}
+\newcommand{\michigan}{Department of Physics, University of Michigan, Ann Arbor, Michigan 48109-1040, USA}
+\newcommand{\muhlenberg}{Muhlenberg College, Allentown, Pennsylvania 18104-5586, USA}
+\newcommand{\myongji}{Myongji University, Yongin, Kyonggido 449-728, Korea}
+\newcommand{\nara}{Nara Women's University, Kita-uoya Nishi-machi Nara 630-8506, Japan}
+\newcommand{\natmephi}{National Research Nuclear University, MEPhI, Moscow Engineering Physics Institute, Moscow, 115409, Russia}
+\newcommand{\newmex}{University of New Mexico, Albuquerque, New Mexico 87131, USA}
+\newcommand{\nmsu}{New Mexico State University, Las Cruces, New Mexico 88003, USA}
+\newcommand{\northcg}{Physics and Astronomy Department, University of North Carolina at Greensboro, Greensboro, North Carolina 27412, USA}
+\newcommand{\ohio}{Department of Physics and Astronomy, Ohio University, Athens, Ohio 45701, USA}
+\newcommand{\ornl}{Oak Ridge National Laboratory, Oak Ridge, Tennessee 37831, USA}
+\newcommand{\orsay}{IPN-Orsay, Univ.~Paris-Sud, CNRS/IN2P3, Universit\'e Paris-Saclay, BP1, F-91406, Orsay, France}
+\newcommand{\pnpi}{PNPI, Petersburg Nuclear Physics Institute, Gatchina, Leningrad region, 188300, Russia}
+\newcommand{\pusan}{Pusan National University, Pusan 46241, Korea}
+\newcommand{\riken}{RIKEN Nishina Center for Accelerator-Based Science, Wako, Saitama 351-0198, Japan}
+\newcommand{\rikjrbrc}{RIKEN BNL Research Center, Brookhaven National Laboratory, Upton, New York 11973-5000, USA}
+\newcommand{\rikkyo}{Physics Department, Rikkyo University, 3-34-1 Nishi-Ikebukuro, Toshima, Tokyo 171-8501, Japan}
+\newcommand{\saispbstu}{Saint Petersburg State Polytechnic University, St.~Petersburg, 195251 Russia}
+\newcommand{\seoulnat}{Department of Physics and Astronomy, Seoul National University, Seoul 151-742, Korea}
+\newcommand{\stonybrkc}{Chemistry Department, Stony Brook University, SUNY, Stony Brook, New York 11794-3400, USA}
+\newcommand{\stonycrkp}{Department of Physics and Astronomy, Stony Brook University, SUNY, Stony Brook, New York 11794-3800, USA}
+\newcommand{\tenn}{University of Tennessee, Knoxville, Tennessee 37996, USA}
+\newcommand{\texsu}{Texas Southern University, Houston, TX 77004, USA}
+\newcommand{\titech}{Department of Physics, Tokyo Institute of Technology, Oh-okayama, Meguro, Tokyo 152-8551, Japan}
+\newcommand{\tsukuba}{Tomonaga Center for the History of the Universe, University of Tsukuba, Tsukuba, Ibaraki 305, Japan}
+\newcommand{\vandy}{Vanderbilt University, Nashville, Tennessee 37235, USA}
+\newcommand{\weizmann}{Weizmann Institute, Rehovot 76100, Israel}
+\newcommand{\wigner}{Institute for Particle and Nuclear Physics, Wigner Research Centre for Physics, Hungarian Academy of Sciences (Wigner RCP, RMKI) H-1525 Budapest 114, POBox 49, Budapest, Hungary}
+\newcommand{\yonsei}{Yonsei University, IPAP, Seoul 120-749, Korea}
+\newcommand{\zagreb}{Department of Physics, Faculty of Science, University of Zagreb, Bijeni\v{c}ka c.~32 HR-10002 Zagreb, Croatia}
+\newcommand{\zambia}{Department of Physics, School of Natural Sciences, University of Zambia, Great East Road Campus, Box 32379, Lusaka, Zambia}
+\affiliation{\abilene}
+\affiliation{\augie}
+\affiliation{\banaras}
+\affiliation{\barc}
+\affiliation{\baruch}
+\affiliation{\bnlcoll}
+\affiliation{\bnlphys}
+\affiliation{\caucr}
+\affiliation{\charlesczech}
+\affiliation{\cns}
+\affiliation{\colorado}
+\affiliation{\columbia}
+\affiliation{\czechtech}
+\affiliation{\debrecen}
+\affiliation{\elte}
+\affiliation{\ewha}
+\affiliation{\famu}
+\affiliation{\fsu}
+\affiliation{\gsu}
+\affiliation{\hanyang}
+\affiliation{\hiroshima}
+\affiliation{\howard}
+\affiliation{\ihepprot}
+\affiliation{\illuiuc}
+\affiliation{\inrras}
+\affiliation{\instpasczech}
+\affiliation{\isu}
+\affiliation{\jaea}
+\affiliation{\jeonbuk}
+\affiliation{\jyvaskyla}
+\affiliation{\kek}
+\affiliation{\korea}
+\affiliation{\kurchatov}
+\affiliation{\kyoto}
+\affiliation{\lahorelums}
+\affiliation{\lawllnl}
+\affiliation{\losalamos}
+\affiliation{\lund}
+\affiliation{\maryland}
+\affiliation{\mass}
+\affiliation{\michigan}
+\affiliation{\muhlenberg}
+\affiliation{\myongji}
+\affiliation{\nara}
+\affiliation{\natmephi}
+\affiliation{\newmex}
+\affiliation{\nmsu}
+\affiliation{\northcg}
+\affiliation{\ohio}
+\affiliation{\ornl}
+\affiliation{\orsay}
+\affiliation{\pnpi}
+\affiliation{\pusan}
+\affiliation{\riken}
+\affiliation{\rikjrbrc}
+\affiliation{\rikkyo}
+\affiliation{\saispbstu}
+\affiliation{\seoulnat}
+\affiliation{\stonybrkc}
+\affiliation{\stonycrkp}
+\affiliation{\tenn}
+\affiliation{\texsu}
+\affiliation{\titech}
+\affiliation{\tsukuba}
+\affiliation{\vandy}
+\affiliation{\weizmann}
+\affiliation{\wigner}
+\affiliation{\yonsei}
+\affiliation{\zagreb}
+\affiliation{\zambia}
+\author{U.A.~Acharya} \affiliation{\gsu} 
+\author{A.~Adare} \affiliation{\colorado} 
+\author{C.~Aidala} \affiliation{\michigan} 
+\author{N.N.~Ajitanand} \altaffiliation{Deceased} \affiliation{\stonybrkc} 
+\author{Y.~Akiba} \email[PHENIX Spokesperson: ]{akiba@rcf.rhic.bnl.gov} \affiliation{\riken} \affiliation{\rikjrbrc} 
+\author{R.~Akimoto} \affiliation{\cns} 
+\author{M.~Alfred} \affiliation{\howard} 
+\author{N.~Apadula} \affiliation{\isu} \affiliation{\stonycrkp} 
+\author{Y.~Aramaki} \affiliation{\riken} 
+\author{H.~Asano} \affiliation{\kyoto} \affiliation{\riken} 
+\author{E.T.~Atomssa} \affiliation{\stonycrkp} 
+\author{T.C.~Awes} \affiliation{\ornl} 
+\author{B.~Azmoun} \affiliation{\bnlphys} 
+\author{V.~Babintsev} \affiliation{\ihepprot} 
+\author{M.~Bai} \affiliation{\bnlcoll} 
+\author{N.S.~Bandara} \affiliation{\mass} 
+\author{B.~Bannier} \affiliation{\stonycrkp} 
+\author{K.N.~Barish} \affiliation{\caucr} 
+\author{S.~Bathe} \affiliation{\baruch} \affiliation{\rikjrbrc} 
+\author{A.~Bazilevsky} \affiliation{\bnlphys} 
+\author{M.~Beaumier} \affiliation{\caucr} 
+\author{S.~Beckman} \affiliation{\colorado} 
+\author{R.~Belmont} \affiliation{\colorado} \affiliation{\michigan} \affiliation{\northcg} 
+\author{A.~Berdnikov} \affiliation{\saispbstu} 
+\author{Y.~Berdnikov} \affiliation{\saispbstu} 
+\author{L.~Bichon} \affiliation{\vandy}
+\author{D.~Black} \affiliation{\caucr} 
+\author{B.~Blankenship} \affiliation{\vandy} 
+\author{J.S.~Bok} \affiliation{\nmsu} 
+\author{V.~Borisov} \affiliation{\saispbstu}
+\author{K.~Boyle} \affiliation{\rikjrbrc} 
+\author{M.L.~Brooks} \affiliation{\losalamos} 
+\author{J.~Bryslawskyj} \affiliation{\baruch} \affiliation{\caucr} 
+\author{H.~Buesching} \affiliation{\bnlphys} 
+\author{V.~Bumazhnov} \affiliation{\ihepprot} 
+\author{S.~Campbell} \affiliation{\columbia} \affiliation{\isu} 
+\author{V.~Canoa~Roman} \affiliation{\stonycrkp} 
+\author{C.-H.~Chen} \affiliation{\rikjrbrc} 
+\author{M.~Chiu} \affiliation{\bnlphys} 
+\author{C.Y.~Chi} \affiliation{\columbia} 
+\author{I.J.~Choi} \affiliation{\illuiuc} 
+\author{J.B.~Choi} \altaffiliation{Deceased} \affiliation{\jeonbuk} 
+\author{T.~Chujo} \affiliation{\tsukuba} 
+\author{Z.~Citron} \affiliation{\weizmann} 
+\author{M.~Connors} \affiliation{\gsu} 
+\author{R.~Corliss} \affiliation{\stonycrkp} 
+\author{T.~Cs\"org\H{o}} \affiliation{\wigner} 
+\author{M.~Csan\'ad} \affiliation{\elte} 
+\author{A.~Datta} \affiliation{\newmex} 
+\author{M.S.~Daugherity} \affiliation{\abilene} 
+\author{G.~David} \affiliation{\bnlphys} \affiliation{\stonycrkp} 
+\author{K.~DeBlasio} \affiliation{\newmex} 
+\author{K.~Dehmelt} \affiliation{\stonycrkp} 
+\author{A.~Denisov} \affiliation{\ihepprot} 
+\author{A.~Deshpande} \affiliation{\rikjrbrc} \affiliation{\stonycrkp} 
+\author{E.J.~Desmond} \affiliation{\bnlphys} 
+\author{L.~Ding} \affiliation{\isu} 
+\author{A.~Dion} \affiliation{\stonycrkp} 
+\author{J.H.~Do} \affiliation{\yonsei} 
+\author{A.~Drees} \affiliation{\stonycrkp} 
+\author{K.A.~Drees} \affiliation{\bnlcoll} 
+\author{J.M.~Durham} \affiliation{\losalamos} 
+\author{A.~Durum} \affiliation{\ihepprot} 
+\author{H.~En'yo} \affiliation{\riken} 
+\author{A.~Enokizono} \affiliation{\riken} \affiliation{\rikkyo} 
+\author{R.~Esha} \affiliation{\stonycrkp} 
+\author{B.~Fadem} \affiliation{\muhlenberg} 
+\author{W.~Fan} \affiliation{\stonycrkp} 
+\author{N.~Feege} \affiliation{\stonycrkp} 
+\author{D.E.~Fields} \affiliation{\newmex} 
+\author{M.~Finger,\,Jr.} \affiliation{\charlesczech} 
+\author{M.~Finger} \affiliation{\charlesczech} 
+\author{D.~Fitzgerald} \affiliation{\michigan} 
+\author{S.L.~Fokin} \affiliation{\kurchatov} 
+\author{J.E.~Frantz} \affiliation{\ohio} 
+\author{A.~Franz} \affiliation{\bnlphys} 
+\author{A.D.~Frawley} \affiliation{\fsu} 
+\author{P.~Gallus} \affiliation{\czechtech} 
+\author{C.~Gal} \affiliation{\stonycrkp} 
+\author{P.~Garg} \affiliation{\banaras} \affiliation{\stonycrkp} 
+\author{H.~Ge} \affiliation{\stonycrkp} 
+\author{M.~Giles} \affiliation{\stonycrkp} 
+\author{F.~Giordano} \affiliation{\illuiuc} 
+\author{A.~Glenn} \affiliation{\lawllnl} 
+\author{Y.~Goto} \affiliation{\riken} \affiliation{\rikjrbrc} 
+\author{N.~Grau} \affiliation{\augie} 
+\author{S.V.~Greene} \affiliation{\vandy} 
+\author{M.~Grosse~Perdekamp} \affiliation{\illuiuc} 
+\author{T.~Gunji} \affiliation{\cns} 
+\author{H.~Guragain} \affiliation{\gsu} 
+\author{Y.~Gu} \affiliation{\stonybrkc} 
+\author{T.~Hachiya} \affiliation{\nara} \affiliation{\riken} \affiliation{\rikjrbrc} 
+\author{J.S.~Haggerty} \affiliation{\bnlphys} 
+\author{K.I.~Hahn} \affiliation{\ewha} 
+\author{H.~Hamagaki} \affiliation{\cns} 
+\author{J.~Hanks} \affiliation{\stonycrkp} 
+\author{S.Y.~Han} \affiliation{\ewha} \affiliation{\korea} 
+\author{M.~Harvey}  \affiliation{\texsu}
+\author{S.~Hasegawa} \affiliation{\jaea} 
+\author{T.K.~Hemmick} \affiliation{\stonycrkp} 
+\author{X.~He} \affiliation{\gsu} 
+\author{J.C.~Hill} \affiliation{\isu} 
+\author{A.~Hodges} \affiliation{\gsu} 
+\author{R.S.~Hollis} \affiliation{\caucr} 
+\author{K.~Homma} \affiliation{\hiroshima} 
+\author{B.~Hong} \affiliation{\korea} 
+\author{T.~Hoshino} \affiliation{\hiroshima} 
+\author{J.~Huang} \affiliation{\bnlphys} \affiliation{\losalamos} 
+\author{Y.~Ikeda} \affiliation{\riken} 
+\author{K.~Imai} \affiliation{\jaea} 
+\author{Y.~Imazu} \affiliation{\riken} 
+\author{M.~Inaba} \affiliation{\tsukuba} 
+\author{A.~Iordanova} \affiliation{\caucr} 
+\author{D.~Isenhower} \affiliation{\abilene} 
+\author{D.~Ivanishchev} \affiliation{\pnpi} 
+\author{B.V.~Jacak} \affiliation{\stonycrkp} 
+\author{S.J.~Jeon} \affiliation{\myongji} 
+\author{M.~Jezghani} \affiliation{\gsu} 
+\author{X.~Jiang} \affiliation{\losalamos} 
+\author{Z.~Ji} \affiliation{\stonycrkp} 
+\author{B.M.~Johnson} \affiliation{\bnlphys} \affiliation{\gsu} 
+\author{E.~Joo} \affiliation{\korea} 
+\author{K.S.~Joo} \affiliation{\myongji} 
+\author{D.~Jouan} \affiliation{\orsay} 
+\author{D.S.~Jumper} \affiliation{\illuiuc} 
+\author{J.H.~Kang} \affiliation{\yonsei} 
+\author{J.S.~Kang} \affiliation{\hanyang} 
+\author{D.~Kawall} \affiliation{\mass} 
+\author{A.V.~Kazantsev} \affiliation{\kurchatov} 
+\author{J.A.~Key} \affiliation{\newmex} 
+\author{V.~Khachatryan} \affiliation{\stonycrkp} 
+\author{A.~Khanzadeev} \affiliation{\pnpi} 
+\author{A.~Khatiwada} \affiliation{\losalamos} 
+\author{K.~Kihara} \affiliation{\tsukuba} 
+\author{C.~Kim} \affiliation{\korea} 
+\author{D.H.~Kim} \affiliation{\ewha} 
+\author{D.J.~Kim} \affiliation{\jyvaskyla} 
+\author{E.-J.~Kim} \affiliation{\jeonbuk} 
+\author{H.-J.~Kim} \affiliation{\yonsei} 
+\author{M.~Kim} \affiliation{\seoulnat} 
+\author{T.~Kim} \affiliation{\ewha}
+\author{Y.K.~Kim} \affiliation{\hanyang} 
+\author{D.~Kincses} \affiliation{\elte} 
+\author{A.~Kingan} \affiliation{\stonycrkp} 
+\author{E.~Kistenev} \affiliation{\bnlphys} 
+\author{J.~Klatsky} \affiliation{\fsu} 
+\author{D.~Kleinjan} \affiliation{\caucr} 
+\author{P.~Kline} \affiliation{\stonycrkp} 
+\author{T.~Koblesky} \affiliation{\colorado} 
+\author{M.~Kofarago} \affiliation{\elte} \affiliation{\wigner} 
+\author{J.~Koster} \affiliation{\rikjrbrc} 
+\author{D.~Kotov} \affiliation{\pnpi} \affiliation{\saispbstu} 
+\author{L.~Kovacs} \affiliation{\elte}
+\author{K.~Kurita} \affiliation{\rikkyo} 
+\author{M.~Kurosawa} \affiliation{\riken} \affiliation{\rikjrbrc} 
+\author{Y.~Kwon} \affiliation{\yonsei} 
+\author{J.G.~Lajoie} \affiliation{\isu} 
+\author{D.~Larionova} \affiliation{\saispbstu} 
+\author{A.~Lebedev} \affiliation{\isu} 
+\author{K.B.~Lee} \affiliation{\losalamos} 
+\author{S.H.~Lee} \affiliation{\isu} \affiliation{\michigan} \affiliation{\stonycrkp} 
+\author{M.J.~Leitch} \affiliation{\losalamos} 
+\author{M.~Leitgab} \affiliation{\illuiuc} 
+\author{N.A.~Lewis} \affiliation{\michigan} 
+\author{S.H.~Lim} \affiliation{\pusan} \affiliation{\yonsei} 
+\author{M.X.~Liu} \affiliation{\losalamos} 
+\author{X.~Li} \affiliation{\losalamos} 
+\author{D.A.~Loomis} \affiliation{\michigan}
+\author{D.~Lynch} \affiliation{\bnlphys} 
+\author{S.~L{\"o}k{\"o}s} \affiliation{\elte} 
+\author{T.~Majoros} \affiliation{\debrecen} 
+\author{Y.I.~Makdisi} \affiliation{\bnlcoll} 
+\author{M.~Makek} \affiliation{\weizmann} \affiliation{\zagreb} 
+\author{A.~Manion} \affiliation{\stonycrkp} 
+\author{V.I.~Manko} \affiliation{\kurchatov} 
+\author{E.~Mannel} \affiliation{\bnlphys} 
+\author{M.~McCumber} \affiliation{\losalamos} 
+\author{P.L.~McGaughey} \affiliation{\losalamos} 
+\author{D.~McGlinchey} \affiliation{\colorado} \affiliation{\losalamos} 
+\author{C.~McKinney} \affiliation{\illuiuc} 
+\author{A.~Meles} \affiliation{\nmsu} 
+\author{M.~Mendoza} \affiliation{\caucr} 
+\author{B.~Meredith} \affiliation{\columbia} 
+\author{Y.~Miake} \affiliation{\tsukuba} 
+\author{A.C.~Mignerey} \affiliation{\maryland} 
+\author{A.J.~Miller} \affiliation{\abilene} 
+\author{A.~Milov} \affiliation{\weizmann} 
+\author{D.K.~Mishra} \affiliation{\barc} 
+\author{J.T.~Mitchell} \affiliation{\bnlphys} 
+\author{M.~Mitrankova} \affiliation{\saispbstu}
+\author{Iu.~Mitrankov} \affiliation{\saispbstu}
+\author{S.~Miyasaka} \affiliation{\riken} \affiliation{\titech} 
+\author{S.~Mizuno} \affiliation{\riken} \affiliation{\tsukuba} 
+\author{M.M.~Mondal} \affiliation{\stonycrkp} 
+\author{P.~Montuenga} \affiliation{\illuiuc} 
+\author{T.~Moon} \affiliation{\korea} \affiliation{\yonsei} 
+\author{D.P.~Morrison} \affiliation{\bnlphys} 
+\author{T.V.~Moukhanova} \affiliation{\kurchatov} 
+\author{B.~Mulilo} \affiliation{\korea} \affiliation{\riken} \affiliation{\zambia}
+\author{T.~Murakami} \affiliation{\kyoto} \affiliation{\riken} 
+\author{J.~Murata} \affiliation{\riken} \affiliation{\rikkyo} 
+\author{A.~Mwai} \affiliation{\stonybrkc} 
+\author{S.~Nagamiya} \affiliation{\kek} \affiliation{\riken} 
+\author{J.L.~Nagle} \affiliation{\colorado} 
+\author{M.I.~Nagy} \affiliation{\elte} 
+\author{I.~Nakagawa} \affiliation{\riken} \affiliation{\rikjrbrc} 
+\author{H.~Nakagomi} \affiliation{\riken} \affiliation{\tsukuba} 
+\author{K.~Nakano} \affiliation{\riken} \affiliation{\titech} 
+\author{C.~Nattrass} \affiliation{\tenn} 
+\author{S.~Nelson} \affiliation{\famu} 
+\author{P.K.~Netrakanti} \affiliation{\barc} 
+\author{M.~Nihashi} \affiliation{\hiroshima} \affiliation{\riken} 
+\author{T.~Niida} \affiliation{\tsukuba} 
+\author{R.~Nouicer} \affiliation{\bnlphys} \affiliation{\rikjrbrc} 
+\author{N.~Novitzky} \affiliation{\jyvaskyla} \affiliation{\stonycrkp} \affiliation{\tsukuba} 
+\author{G.~Nukazuka} \affiliation{\riken} \affiliation{\rikjrbrc}
+\author{A.S.~Nyanin} \affiliation{\kurchatov} 
+\author{E.~O'Brien} \affiliation{\bnlphys} 
+\author{C.A.~Ogilvie} \affiliation{\isu} 
+\author{J.D.~Orjuela~Koop} \affiliation{\colorado} 
+\author{J.D.~Osborn} \affiliation{\michigan} \affiliation{\ornl} 
+\author{A.~Oskarsson} \affiliation{\lund} 
+\author{K.~Ozawa} \affiliation{\kek} \affiliation{\tsukuba} 
+\author{R.~Pak} \affiliation{\bnlphys} 
+\author{V.~Pantuev} \affiliation{\inrras} 
+\author{V.~Papavassiliou} \affiliation{\nmsu} 
+\author{S.~Park} \affiliation{\seoulnat} \affiliation{\stonycrkp} 
+\author{L.~Patel} \affiliation{\gsu} 
+\author{M.~Patel} \affiliation{\isu} 
+\author{S.F.~Pate} \affiliation{\nmsu} 
+\author{J.-C.~Peng} \affiliation{\illuiuc} 
+\author{W.~Peng} \affiliation{\vandy} 
+\author{D.V.~Perepelitsa} \affiliation{\bnlphys} \affiliation{\colorado} \affiliation{\columbia} 
+\author{G.D.N.~Perera} \affiliation{\nmsu} 
+\author{D.Yu.~Peressounko} \affiliation{\kurchatov} 
+\author{C.E.~PerezLara} \affiliation{\stonycrkp} 
+\author{J.~Perry} \affiliation{\isu} 
+\author{R.~Petti} \affiliation{\bnlphys} \affiliation{\stonycrkp} 
+\author{C.~Pinkenburg} \affiliation{\bnlphys} 
+\author{R.~Pinson} \affiliation{\abilene} 
+\author{R.P.~Pisani} \affiliation{\bnlphys} 
+\author{M.~Potekhin} \affiliation{\bnlphys} 
+\author{A.~Pun} \affiliation{\ohio} 
+\author{M.L.~Purschke} \affiliation{\bnlphys} 
+\author{P.V.~Radzevich} \affiliation{\saispbstu} 
+\author{J.~Rak} \affiliation{\jyvaskyla} 
+\author{N.~Ramasubramanian} \affiliation{\stonycrkp} 
+\author{I.~Ravinovich} \affiliation{\weizmann} 
+\author{K.F.~Read} \affiliation{\ornl} \affiliation{\tenn} 
+\author{D.~Reynolds} \affiliation{\stonybrkc} 
+\author{V.~Riabov} \affiliation{\natmephi} \affiliation{\pnpi} 
+\author{Y.~Riabov} \affiliation{\pnpi} \affiliation{\saispbstu} 
+\author{D.~Richford} \affiliation{\baruch}
+\author{N.~Riveli} \affiliation{\ohio} 
+\author{D.~Roach} \affiliation{\vandy} 
+\author{S.D.~Rolnick} \affiliation{\caucr} 
+\author{M.~Rosati} \affiliation{\isu} 
+\author{Z.~Rowan} \affiliation{\baruch} 
+\author{J.G.~Rubin} \affiliation{\michigan} 
+\author{J.~Runchey} \affiliation{\isu} 
+\author{N.~Saito} \affiliation{\kek} 
+\author{T.~Sakaguchi} \affiliation{\bnlphys} 
+\author{H.~Sako} \affiliation{\jaea} 
+\author{V.~Samsonov} \affiliation{\natmephi} \affiliation{\pnpi} 
+\author{M.~Sarsour} \affiliation{\gsu} 
+\author{S.~Sato} \affiliation{\jaea} 
+\author{S.~Sawada} \affiliation{\kek} 
+\author{B.~Schaefer} \affiliation{\vandy} 
+\author{B.K.~Schmoll} \affiliation{\tenn} 
+\author{K.~Sedgwick} \affiliation{\caucr} 
+\author{J.~Seele} \affiliation{\rikjrbrc} 
+\author{R.~Seidl} \affiliation{\riken} \affiliation{\rikjrbrc} 
+\author{A.~Sen} \affiliation{\isu} \affiliation{\tenn} 
+\author{R.~Seto} \affiliation{\caucr} 
+\author{P.~Sett} \affiliation{\barc} 
+\author{A.~Sexton} \affiliation{\maryland} 
+\author{D.~Sharma} \affiliation{\stonycrkp} 
+\author{I.~Shein} \affiliation{\ihepprot} 
+\author{T.-A.~Shibata} \affiliation{\riken} \affiliation{\titech} 
+\author{K.~Shigaki} \affiliation{\hiroshima} 
+\author{M.~Shimomura} \affiliation{\isu} \affiliation{\nara} 
+\author{P.~Shukla} \affiliation{\barc} 
+\author{A.~Sickles} \affiliation{\bnlphys} \affiliation{\illuiuc} 
+\author{C.L.~Silva} \affiliation{\losalamos} 
+\author{D.~Silvermyr} \affiliation{\lund} \affiliation{\ornl} 
+\author{B.K.~Singh} \affiliation{\banaras} 
+\author{C.P.~Singh} \affiliation{\banaras} 
+\author{V.~Singh} \affiliation{\banaras} 
+\author{M.~Slune\v{c}ka} \affiliation{\charlesczech} 
+\author{K.L.~Smith} \affiliation{\fsu} 
+\author{R.A.~Soltz} \affiliation{\lawllnl} 
+\author{W.E.~Sondheim} \affiliation{\losalamos} 
+\author{S.P.~Sorensen} \affiliation{\tenn} 
+\author{I.V.~Sourikova} \affiliation{\bnlphys} 
+\author{P.W.~Stankus} \affiliation{\ornl} 
+\author{M.~Stepanov} \altaffiliation{Deceased} \affiliation{\mass} 
+\author{S.P.~Stoll} \affiliation{\bnlphys} 
+\author{T.~Sugitate} \affiliation{\hiroshima} 
+\author{A.~Sukhanov} \affiliation{\bnlphys} 
+\author{T.~Sumita} \affiliation{\riken} 
+\author{J.~Sun} \affiliation{\stonycrkp} 
+\author{Z.~Sun} \affiliation{\debrecen}
+\author{J.~Sziklai} \affiliation{\wigner} 
+\author{A.~Takahara} \affiliation{\cns} 
+\author{A.~Taketani} \affiliation{\riken} \affiliation{\rikjrbrc} 
+\author{K.~Tanida} \affiliation{\jaea} \affiliation{\rikjrbrc} \affiliation{\seoulnat} 
+\author{M.J.~Tannenbaum} \affiliation{\bnlphys} 
+\author{S.~Tarafdar} \affiliation{\vandy} \affiliation{\weizmann} 
+\author{A.~Taranenko} \affiliation{\natmephi} \affiliation{\stonybrkc} 
+\author{A.~Timilsina} \affiliation{\isu} 
+\author{T.~Todoroki} \affiliation{\riken} \affiliation{\rikjrbrc} \affiliation{\tsukuba}
+\author{M.~Tom\'a\v{s}ek} \affiliation{\czechtech} 
+\author{H.~Torii} \affiliation{\cns} 
+\author{M.~Towell} \affiliation{\abilene} 
+\author{R.~Towell} \affiliation{\abilene} 
+\author{R.S.~Towell} \affiliation{\abilene} 
+\author{I.~Tserruya} \affiliation{\weizmann} 
+\author{Y.~Ueda} \affiliation{\hiroshima} 
+\author{B.~Ujvari} \affiliation{\debrecen} 
+\author{H.W.~van~Hecke} \affiliation{\losalamos} 
+\author{M.~Vargyas} \affiliation{\elte} \affiliation{\wigner} 
+\author{J.~Velkovska} \affiliation{\vandy} 
+\author{M.~Virius} \affiliation{\czechtech} 
+\author{V.~Vrba} \affiliation{\czechtech} \affiliation{\instpasczech} 
+\author{E.~Vznuzdaev} \affiliation{\pnpi} 
+\author{X.R.~Wang} \affiliation{\nmsu} \affiliation{\rikjrbrc} 
+\author{D.~Watanabe} \affiliation{\hiroshima} 
+\author{Y.~Watanabe} \affiliation{\riken} \affiliation{\rikjrbrc} 
+\author{Y.S.~Watanabe} \affiliation{\cns} \affiliation{\kek} 
+\author{F.~Wei} \affiliation{\nmsu} 
+\author{S.~Whitaker} \affiliation{\isu} 
+\author{S.~Wolin} \affiliation{\illuiuc} 
+\author{C.P.~Wong} \affiliation{\gsu} \affiliation{\losalamos} 
+\author{C.L.~Woody} \affiliation{\bnlphys} 
+\author{M.~Wysocki} \affiliation{\ornl} 
+\author{B.~Xia} \affiliation{\ohio} 
+\author{L.~Xue} \affiliation{\gsu} 
+\author{S.~Yalcin} \affiliation{\stonycrkp} 
+\author{Y.L.~Yamaguchi} \affiliation{\cns} \affiliation{\stonycrkp} 
+\author{A.~Yanovich} \affiliation{\ihepprot} 
+\author{I.~Yoon} \affiliation{\seoulnat} 
+\author{I.~Younus} \affiliation{\lahorelums} 
+\author{I.E.~Yushmanov} \affiliation{\kurchatov} 
+\author{W.A.~Zajc} \affiliation{\columbia} 
+\author{A.~Zelenski} \affiliation{\bnlcoll} 
+\author{S.~Zharko} \affiliation{\saispbstu} 
+\author{L.~Zou} \affiliation{\caucr} 
+\collaboration{PHENIX Collaboration}  \noaffiliation
 
 \date{\today}
 
+%------------------------------------------------------------------------------|
+
 \begin{abstract}
-We present the measurement of the cross section and double helicity asymmetry \ALL\ of direct photon production in $\vec{p}+\vec{p}$ collisions at $\sqrt{s}$ = 510 GeV. The measurement has been performed at midrapidity ($|\eta| <$ 0.25 in pseudorapidity) with the PHENIX detector at RHIC. Direct photons are dominantly produced by the quark-gluon scattering at RHIC energies. Since they are produced from the initial partonic hard scattering and do not interact via the strong force, this measurement provides a clean and direct access to the gluons in the polarized proton in the gluon momentum fraction range 0.02 $< x <$ 0.08.
+
+\linenumbers
+
+We present the measurement of the cross section and double-helicity 
+asymmetry $A_{LL}$ of direct-photon production in $\vec{p}+\vec{p}$ 
+collisions at $\sqrt{s}=510$ GeV. The measurement has been performed at 
+midrapidity ($|\eta|<0.25$) with the PHENIX detector at the Relativistic 
+Heavy Ion Collider.  Direct photons are dominantly produced by the 
+quark-gluon scattering at relativistic energies. Direct photons are 
+produced from the initial partonic hard scattering and do not interact 
+via the strong force.  Therefore, this measurement provides a clean and 
+direct access to the gluons in the polarized proton in the 
+gluon-momentum-fraction range $0.02<x<0.08$.
+
 \end{abstract}
 
-% insert suggested PACS numbers in braces on next line
-\pacs{14.20.Dh, 13.60.Hb, 21.10.Hw, 24.85.+p}
-	
-%\maketitle must follow title, authors, abstract, \pacs, and \keywords
 \maketitle
 
+\linenumbers
+
 %%% To check PRL length insert this (uncommented) line after \\maketitle:
-\textbf{*** page break for PRL word count ***}  \clearpage
+%\textbf{*** page break for PRL word count ***}  \clearpage
 %%% and see below.
 
-In polarized proton collisions, spin asymmetry measurements are sensitive to the polarized partonic structure of the proton and allow the investigation of its spin decomposition. Determining how fundamental properties of a particle such as spin are composed of its constituents is of great importance in understanding Quantum Chromodynamics (QCD). Perturbative QCD (pQCD) has been successful in describing unpolarized cross sections while spin-dependent observables have historically offered additional insights. Polarized deep-inelastic scattering (DIS) has shown that only part of the proton spin is carried by quarks, and a large fraction of it was suggested to be carried by gluons \cite{1988364, ASHMAN19891, PhysRevD.58.112001, ALEXAKHIN20078, PhysRevD.75.012007}. DIS is sensitive to gluons only through high order interactions and the polarized gluon distribution is significantly less constrained compared to the unpolarized gluon due to the limited kinematic coverage of polarized data so far. At the Relativistic Heavy Ion Collider (RHIC), gluons are accessible at leading order in the hard scattering. Measurements of the double helicity asymmetry (\ALL) are directly sensitive to the polarized gluon distribution via longitudinally polarized $p+p$ collisions. Recent RHIC measurements of \pizero\ and jets at  $\sqrt{s}$ = 62.4 and 200 GeV \cite{PhysRevD.90.012007, PhysRevLett.103.012003, PhysRevD.79.012003, PhysRevD.86.032006, PhysRevLett.115.092002} that were included in global analyses have shown the first direct evidence of nonzero gluon spin contributions to the spin of the proton \cite{PhysRevLett.113.012001, 2014276} in the gluon momentum fraction ($x$) range larger than 0.05. Measurements at the higher energy of $\sqrt{s}$ = 510 GeV \cite{PhysRevD.93.011501, PhysRevD.100.052005} have confirmed the nonzero gluon polarization and extended the minimum $x$ reach to $\sim$0.01.
+%\section{Introduction}
 
-Direct photons are all those photons that are not coming from decays of final state hadrons. The quark-gluon Compton process $qg \rightarrow q\gamma$ in proton-proton collisions at RHIC is the dominant contributor to the direct photons with transverse momentum larger than 5 GeV/c. Unlike hadrons and jets, direct photons do not involve color interactions in the final state. Therefore, they provide a direct probe to the initial state of colliding protons. The double helicity asymmetry of direct photon production in longitudinally polarized proton collisions is sensitive to both the sign and magnitude of the gluon spin contribution to the proton spin. For this reason, this process was thought to be a \textit{golden} channel to access the gluon spin in the RHIC-spin proposal \cite{Bunce:1992vca, doi:10.1146/annurev.nucl.50.1.525}. In this Letter, we report the first measurement of this observable since it was proposed about three decades ago.
+In polarized-proton collisions, spin-asymmetry measurements are 
+sensitive to the polarized partonic structure of the proton and allow 
+the investigation of its spin decomposition. Determining how fundamental 
+properties of a particle such as spin comprise its constituents 
+is of great importance in understanding quantum chromodynamics (QCD). 
+Perturbative QCD (pQCD) has been successful in describing unpolarized 
+cross sections while spin-dependent observables have historically 
+offered additional insights. Polarized deep-inelastic scattering (DIS) 
+has shown that only part of the proton spin is carried by quarks.
+A large fraction of the proton spin was suggested to be carried by 
+gluons~\cite{1988364,ASHMAN19891,PhysRevD.58.112001,ALEXAKHIN20078, 
+PhysRevD.75.012007}. DIS is sensitive to gluons only through high-order 
+interactions and the polarized gluon distribution is significantly less 
+constrained compared to the unpolarized gluon due to the (so far) limited 
+kinematic coverage of polarized data. At the Relativistic Heavy 
+Ion Collider (RHIC), gluons are accessible at leading order in the hard 
+scattering.  Measurements of the double-helicity asymmetry (\ALL) are 
+directly sensitive to the polarized gluon distribution via 
+longitudinally polarized $\vec{p}+\vec{p}$ collisions. Recent RHIC measurements 
+of \pizero and jets at $\sqrt{s}$ = 62.4 and 200 
+GeV~\cite{PhysRevD.90.012007,PhysRevLett.103.012003,PhysRevD.79.012003, 
+PhysRevD.86.032006,PhysRevLett.115.092002} that 
+were included in global analyses have shown the first direct evidence of 
+nonzero gluon-spin contributions to the spin of the 
+proton~\cite{PhysRevLett.113.012001, 2014276} in the gluon momentum 
+fraction ($x$) range larger than 0.05. Measurements at the higher energy 
+of $\sqrt{s}$ = 510 GeV~\cite{PhysRevD.93.011501,PhysRevD.100.052005} 
+have confirmed the nonzero gluon polarization and extended the minimum 
+$x$ reach to $\approx$0.01. Recent analysis by Jefferson Lab Angular Momentum (JAM)
+Collaboration showed that the two scenarios of positive and negative gluon-spin contribution,
+are indistinguishable from each other based on the existing data \cite{PhysRevD.105.074022}.
+This can be resolved with a new observable such as direct photon production
+in $\vec{p}+\vec{p}$ scattering which is linearly sensitive to gluon helicity.
 
-The data were collected with the PHENIX detector \cite{ADCOX2003469} at $\sqrt{s}$ = 510 GeV within pseudorapidity $|\eta| <$ 0.25 from the 2013 RHIC running period. We have extracted the inclusive and isolated direct photon cross sections and \ALL\ of isolated photons. The primary detector for this measurement is an electromagnetic calorimeter (EMCal) \cite{APHECETCHE2003521} consisting of two subsystems, a six-sector lead-scintillator (PbSc) detector, of which four on the West Arm and two on the East Arm, and a two-sector lead glass (PbGl) detector on the East Arm, each located 5 m radially from the beam line. Each sector covers a range of  $|\eta| <$ 0.35 in pseudorapidity and 22.5\textdegree\ in azimuth $\phi$. The EMCal has fine granularity with each tower covering $\Delta\eta \times \Delta\phi \sim$ 0.011 $\times$ 0.011 (0.008 $\times$ 0.008) for PbSc (PbGl). Two photons from $\pi^0 \rightarrow \gamma\gamma$ decays are fully resolved up to a \pizero\ \pT\ of 12 (16) GeV/c in the PbSc (PbGl), and a shower profile analysis extends the $\gamma/\pi^0$ discrimination up to 30 GeV/c in these measurements. The energy calibration of each tower is obtained from the reconstructed \pizero\ mass.
+Direct photons are all those photons that are not coming from decays of 
+final-state hadrons. The quark-gluon Compton process $qg \rightarrow 
+q\gamma$ in proton-proton collisions at RHIC is the dominant contributor 
+to the direct photons with transverse momentum larger than 5 GeV/$c$. 
+Unlike hadrons and jets, direct photons do not involve color 
+interactions in the final state. Therefore, they provide a direct probe 
+to the initial state of colliding protons. The double-helicity asymmetry 
+of direct-photon production in longitudinally polarized $\vec{p}+\vec{p}$ 
+collisions is sensitive to both the sign and magnitude of the gluon-spin 
+contribution to the proton spin. For this reason, \ALL was thought 
+to be a \textit{golden} channel to access the gluon spin in the 1992 
+RHIC-spin proposal~\cite{Bunce:1992vca,doi:10.1146/annurev.nucl.50.1.525}. 
+In this Letter, we report the first measurements of this observable.
 
-The Beam-Beam Counters (BBC) \cite{ALLEN2003549} cover \mbox{3.1 $< |\eta| <$ 3.9} and are located at $\pm$144 cm from the interaction point along the beam line. The BBCs measure the collision vertex in the beam direction and provide a minimum-bias (MB) trigger. The BBCs are also used as a luminosity monitor. Events with high \pT\ photons are selected by an EMCal-based trigger requiring a minimum energy deposit of 3.7 GeV in an overlapping tile of 4 $\times$ 4 towers of the EMCal in coincidence with the MB trigger. An integrated luminosity ($\mathcal{L}$) of 11 (108) pb$^{-1}$ with a z-vertex requirement of 10 (30) cm around the nominal interaction point is used in the cross section (\ALL) analysis.
- 
-The photon reconstruction and analysis method used here is similar to the previous PHENIX measurement at $\sqrt{s}$ =  200 GeV \cite{PhysRevLett.98.012002, PhysRevD.86.072008}. Photons are identified by a shower profile requirement that was calibrated using test beam data, identified electrons, and decay photons from identified \pizero. It rejects $\sim$50\% of hadrons depositing \mbox{$E >$ 3 GeV} in the EMCal and accepts $\sim$98\% of real photons. A time-of-flight (ToF) requirement $|\text{ToF}| <$ 10 ns (where ToF of particles is measured in the EMCal relative to the photon signal) is used to reduce pile-up events due to high collision rate (the average number of BBC triggered events per beam crossing varied in the range 0.04--0.17) and a minimum energy requirement $E_{\text{min}} >$ 0.3 GeV is applied for the EMCal clusters to reduce the background noise in the EMCal. The charged particle veto of the photon sample is based on tracks in drift chambers (DC) \cite{ADCOX2003489}. 
+%\section{Experimental setup}
 
-The experimental challenge in this measurement is the large photon background from hadron decays, primarily from $\pi^0 \rightarrow \gamma\gamma$ ($\sim$80\% of the decays) and $\eta \rightarrow \gamma\gamma$ ($\sim$15\%). Photon candidates that form a pair with another photon in the mass range 110 $< M_{\gamma\gamma} <$ 160 MeV/c$^2$ ($M_{\pi^0} \pm 3\sigma$) with $E_{\gamma} >$ 300 MeV are tagged as \pizero\ decay photons. A fiducial region for direct photon candidates excludes 10 (12) towers (0.1 rad) from the edges of the EMCal Arm for the PbSc (PbGl), while partner photons are accepted over the entire detector to improve the probability of observing both decay photons from the \pizero. This method overestimates $\sim$8\% more yield of photons from \pizero\ decays, $\gamma_{\pi^0}^{\text{inc}}$, due to combinatorial background. A \pT\ dependent correction is estimated from the fit of the background under the \pizero\ peak in the two-photon invariant mass distribution. The inclusive direct photon yield is then determined as
+The data were collected in 2013 with the PHENIX 
+detector at RHIC~\cite{ADCOX2003469} at $\sqrt{s}=510$ GeV within 
+pseudorapidity $|\eta|<0.25$. We have extracted the inclusive and 
+isolated direct-photon cross sections and \ALL of isolated photons. The 
+primary detector for this measurement is an electromagnetic calorimeter 
+(EMCal)~\cite{APHECETCHE2003521} comprising two subsystems, a 
+six-sector lead-scintillator (PbSc) detector, of which four are on the 
+west arm and two on the east arm, and a two-sector lead glass (PbGl) 
+detector on the east arm, each located 5 m radially from the beam line. 
+Each sector covers a range of $|\eta| <$ 0.35 and $22.5^{\rm o}$ in 
+azimuth $\phi$. The EMCal has fine granularity with each tower covering 
+$\Delta\eta \times \Delta\phi \approx$ 0.011 $\times$ 0.011 (0.008 
+$\times$ 0.008) for PbSc (PbGl). Two photons from $\pi^0 \rightarrow 
+\gamma\gamma$ decays are fully resolved up to a \pizero \pT of 12 (16) 
+GeV/$c$ in the PbSc (PbGl), and a shower profile analysis extends the 
+$\gamma/\pi^0$ discrimination up to 30 GeV/$c$ in these measurements. 
+The energy calibration of each tower is obtained from the reconstructed 
+\pizero mass.
+
+The beam-beam counters (BBC)~\cite{ALLEN2003549} cover \mbox{3.1 $<
+|\eta| <$ 3.9} and are located at $\pm$144 cm from the interaction point 
+along the beam line. The BBCs measure the longitudinal collision vertex 
+and provide a minimum-bias trigger. The BBCs are also used as 
+a luminosity ($\mathcal{L}$) monitor. Events with high-\pT photons are selected by an 
+EMCal-based trigger requiring a minimum energy deposit of 3.7 GeV in an 
+overlapping tile of $4{\times}4$ towers of the EMCal in coincidence with 
+the minimum-bias trigger. The cross-section (\ALL) analysis uses an 
+integrated luminosity of 11 (108) pb$^{-1}$ with a 
+z-vertex requirement of 10 (30) cm around the nominal interaction point. 
+The photon-reconstruction and analysis method used here is 
+similar to the previous PHENIX measurement at 
+$\sqrt{s}=200$~GeV~\cite{PhysRevLett.98.012002,PhysRevD.86.072008}. 
+Photons are identified by a shower-profile requirement that was 
+calibrated using test-beam data, identified electrons, and decay photons 
+from identified \pizero. The method rejects $\approx$50\% of hadrons 
+depositing \mbox{$E>$ 3 GeV} in the EMCal and accepts $\approx$98\% of 
+real photons. The time-of-flight (ToF) of particles is measured relative 
+to the photon signal in the EMCal.  A ToF requirement 
+$|{\rm ToF}|<10$~ns is used to reduce pileup events due to high 
+collision rate (the average number of BBC triggered events per beam 
+crossing varied in the range 0.04--0.17). A minimum-energy requirement 
+$E_{\rm min}>0.3$ GeV is applied for the EMCal clusters to reduce the 
+background noise.  The charged-particle veto of the photon sample is 
+based on tracks in the drift chambers~\cite{ADCOX2003489}.
+
+%\section{Analysis}
+
+The experimental challenge in this measurement is the large photon 
+background from hadron decays, primarily from 
+$\pi^0 \rightarrow \gamma\gamma$ ($\approx$80\% of the decays) 
+and $\eta \rightarrow 
+\gamma\gamma$ ($\approx$15\%). Photon candidates that form a pair with 
+another photon in the mass range 
+$110<M_{\gamma\gamma}<160$~MeV/c$^2$ ($M_{\pi^0}{\pm}3\sigma$) 
+with $E_{\gamma}>300$~MeV are 
+tagged as \pizero decay photons. A fiducial region for direct-photon 
+candidates excludes 10 (12) towers (0.1 rad) from the edges of the PbSc 
+(PbGl). Partner photons are accepted over the entire detector to 
+improve the probability of observing both decay photons from the 
+\pizero.  This method overestimates $\approx$8\% more yield of photons 
+from \pizero decays, $\gamma_{\pi^0}^{{\rm inc}}$, due to combinatorial 
+background. A \pT-dependent correction is estimated from the fit of the 
+background under the \pizero peak in the two-photon invariant-mass 
+distribution. The inclusive direct-photon yield is then determined as
+
 \begin{equation} \label{eq:inc}
-\gamma_{\text{dir}}^{\text{inc}} = \gamma_{\text{total}}^{\text{inc}} - \left( 1 + R_{\pi^0}^{\text{miss}} + \delta_{h/\pi^0}^{\gamma} \right) \gamma_{\pi^0}^{\text{inc}},
+\gamma_{{\rm dir}}^{{\rm inc}} = \gamma_{{\rm total}}^{{\rm inc}} - \left( 1 + R_{\pi^0}^{{\rm miss}} + \delta_{h/\pi^0}^{\gamma} \right) \gamma_{\pi^0}^{{\rm inc}},
 \end{equation}
-where we subtract the reconstructed inclusive \pizero's decay photons ($\gamma_{\pi^0}^{\text{inc}}$), those missing their partner photons ($R_{\pi^0}^{\text{miss}}\gamma_{\pi^0}^{\text{inc}}$) and photons from other hadron decays ($\delta_{h/\pi^0}^{\gamma}\gamma_{\pi^0}^{\text{inc}}$) from the total inclusive photon sample ($\gamma_{\text{total}}^{\text{inc}}$). If a partner photon of a \pizero\ decay is missed, it will not be reconstructed in the \pizero\ mass peak window. The ratio of \pizero\ decay photons that missed their partner photons to those that were reconstructed, $R_{\pi^0}^{\text{miss}}$, is estimated using a single \pizero\ simulation with photon shower and detector geometry. $\delta_{h/\pi^0}^{\gamma}$ is calculated by $\eta$, $\omega$, $\eta'$ over \pizero\ ratios based on the previous $\sqrt{s}$ = 200 GeV measurement \cite{PhysRevD.83.052004}: $\delta_{h/\pi^0}^{\gamma} \approx$ 0.28, with $\delta_{\eta/\pi^0}^{\gamma} \approx$ 0.21 and $\delta_{\omega/\pi^0}^{\gamma} \approx \delta_{\eta'/\pi^0}^{\gamma}  \approx$ 0.035. A PYTHIA \cite{Sjostrand:2006za} simulation showed that the variation of these ratios is less than 10\% between 200 GeV and 510 GeV within 6 $< p_T <$ 30 GeV/c. The difference is accounted for by assigning a systematic uncertainty.
 
-In addition, we also measured the isolated direct photon cross section with isolation criteria on the photon candidates, which can largely reduce the contributions from parton fragmentation and hadron decays. For any other particles within a cone of radius $r_{\text{cone}} = \sqrt{(\delta\eta)^2 + (\delta\phi)^2} = 0.5$ of the signal photon, the sum of their energies is required to be less than 10\% of the energy of the signal photon: $E_{\text{cone}} < 0.1 E_{\gamma}$. The energies of the neutral particles that pass charge veto criteria were measured by the EMCal with a minimal threshold of 300 MeV. The momenta of the charged particles were measured by the DC with a minimal threshold of 200 MeV/c. The efficiency of isolation criteria due to limited detector acceptance was corrected by using PYTHIA simulated direct photon events with the same isolation criteria as in data. Similar to Eq.~(\ref{eq:inc}), the isolated direct photon yield can be expressed as
+where we subtract the reconstructed inclusive photons from \pizero decay 
+($\gamma_{\pi^0}^{{\rm inc}}$), those missing their partner photons 
+($R_{\pi^0}^{{\rm miss}}\gamma_{\pi^0}^{{\rm inc}}$) and photons from 
+other hadron decays 
+($\delta_{h/\pi^0}^{\gamma}\gamma_{\pi^0}^{{\rm inc}}$) from the total 
+inclusive photon sample ($\gamma_{{\rm total}}^{{\rm inc}}$). If a 
+partner photon of a \pizero decay is missed, it will not be 
+reconstructed in the \pizero mass peak window. The ratio of \pizero 
+decay photons that missed their partner photons to those that were 
+reconstructed, $R_{\pi^0}^{{\rm miss}}$, is estimated using a single 
+\pizero simulation with photon shower and detector geometry. 
+The $\delta_{h/\pi^0}^{\gamma}$ is calculated by $\eta$, $\omega$, $\eta'$ 
+over \pizero ratios based on the previous $\sqrt{s}$ = 200 GeV 
+measurement~\cite{PhysRevD.83.052004}: 
+$\delta_{h/\pi^0}^{\gamma}{\approx}0.28$, with 
+$\delta_{\eta/\pi^0}^{\gamma}{\approx}0.21$ and 
+$\delta_{\omega/\pi^0}^{\gamma}{\approx}\delta_{\eta'/\pi^0}^{\gamma}{\approx}0.035$. 
+A {\sc pythia}~\cite{Sjostrand:2006za} simulation showed that 
+the variation of these ratios is less than 10\% between 200 GeV and 510 
+GeV within 6 $< p_T <$ 30 GeV/$c$. The difference is accounted for by 
+assigning a systematic uncertainty.
+
+%-------------------------------------------- Fig_1 (was 1 and 2)
+\begin{figure*}[hbt!]
+\includegraphics[width=0.48\linewidth]{CrossSection-photon-werner.pdf}
+\includegraphics[width=0.48\linewidth]{CrossSection-isophoton-werner.pdf}
+\caption{Cross sections for (a) inclusive and (c) isolated direct 
+photons as a function of \pT compared with next-to-leading-order (NLO) 
+pQCD calculations~\protect\cite{PhysRevD.48.3136,PhysRevD.50.1901} for different 
+renormalization and factorization scales $\mu$ = \pT/2 (dashed line), 
+\pT (solid line), 2\pT (dotted line). The vertical bars show statistical
+uncertainties and square brackets are for systematic uncertainties.
+Not shown are 10\% absolute luminosity uncertainties.
+Panels (b) and (d) show comparisons of data and calculations.}
+\label{fig:xsect}
+\end{figure*}
+
+
+In addition, we also measured the isolated direct-photon cross section 
+with isolation criteria on the photon candidates, which can largely 
+reduce the contributions from parton fragmentation and hadron decays. 
+For any other particles within a cone of radius $r_{{\rm cone}} = 
+\sqrt{(\delta\eta)^2 + (\delta\phi)^2} = 0.5$ of the signal photon, the 
+sum of their energies is required to be less than 10\% of the energy of 
+the signal photon: $E_{{\rm cone}} < 0.1 E_{\gamma}$. The energies of 
+the neutral particles that pass charge-veto criteria were measured by 
+the EMCal with a minimal threshold of 300 MeV. The momenta of the 
+charged particles were measured by the drift chambers with a minimal 
+threshold of 200 MeV/c. The efficiency of isolation criteria due to 
+limited detector acceptance was corrected by using {\sc pythia}-simulated 
+direct-photon events with the same isolation criteria as in the data. 
+Similar to Eq.~(\ref{eq:inc}), the isolated direct-photon yield can be 
+expressed as
+
 \begin{equation} \label{eq:iso}
-\gamma_{\text{dir}}^{\text{iso}} = \gamma_{\text{total}}^{\text{iso}} - \gamma_{\pi^0}^{\text{iso}} - \left( R_{\pi^0}^{\text{miss}} + V\delta_{h/\pi^0}^{\gamma} \right) \gamma_{\pi^0}^{\text{isopair}},
+\gamma_{{\rm dir}}^{{\rm iso}} = \gamma_{{\rm total}}^{{\rm iso}} - \gamma_{\pi^0}^{{\rm iso}} - \left( R_{\pi^0}^{{\rm miss}} + V\delta_{h/\pi^0}^{\gamma} \right) \gamma_{\pi^0}^{{\rm isopair}},
 \end{equation}
-where $\gamma_{\pi^0}^{\text{iso}}$ is the \pizero \ tagged photon yield when each of the \pizero\ decay photons passes the isolation requirement. $\gamma_{\pi^0}^{\text{isopair}}$ is the yield when a photon from a \pizero\ decay passes the isolation requirement while its partner photon energy is not included in the isolation cone energy sum. Therefore, $R_{\pi^0}^{\text{miss}}\gamma_{\pi^0}^{\text{isopair}}$ represents the yield of \pizero\ decay photons that are missing their partner photons. Similarly, $\delta_{h/\pi^0}^{\gamma}\gamma_{\pi^0}^{\text{isopair}}$ is the photons from other hadron decays that pass the isolation requirement while their partner photons energy is not included in the isolation cone energy sum. To include the effect that one of the decay photons is vetoed by its partner decay photon due to isolation criteria, we use single $\eta$ and detector simulations to calculate the ratio of $\eta$ decay photons with and without isolation criteria, $V = \gamma^{\text{iso}}_{\eta}/\gamma^{\text{inc}}_{\eta}$, which varies from 0.01 to 0.1 depending on \pT.
 
-The direct photon cross section is calculated as
+where $\gamma_{\pi^0}^{{\rm iso}}$ is the \pizero \ tagged-photon yield 
+when each of the \pizero decay photons passes the isolation 
+requirement. $\gamma_{\pi^0}^{{\rm isopair}}$ is the yield when a 
+photon from a \pizero decay passes the isolation requirement while its 
+partner photon energy is not included in the isolation-cone energy sum. 
+Therefore, $R_{\pi^0}^{{\rm miss}}\gamma_{\pi^0}^{{\rm isopair}}$ 
+represents the yield of \pizero decay photons that are missing the energy
+of their partner photons. 
+Similarly, the term $\delta_{h/\pi^0}^{\gamma}\gamma_{\pi^0}^{{\rm isopair}}$ corrects the 
+photons from other hadron decays that pass the isolation requirement 
+while the energy of the partner photon is not included in the isolation cone 
+energy sum.  To include the effect that one of the decay photons is 
+vetoed by its partner decay photon due to isolation criteria, we use 
+single $\eta$ and detector simulations to calculate the ratio of $\eta$ 
+decay photons with and without isolation criteria, 
+$V=\gamma^{{\rm iso}}_{\eta}/\gamma^{{\rm inc}}_{\eta}$, which varies 
+from 0.01 to 0.1 depending on \pT.
+
+%\section{Results}
+
+%\subsection{Cross sections}
+
+The direct-photon cross section is calculated as
+
 \begin{equation} \label{eq:xsecex}
-E\frac{d^3\sigma}{dp^3} = \frac{1}{\mathcal{L}} \cdot \frac{1}{2\pi p_T} \cdot \frac{1}{\Delta p_T \Delta y} \cdot \frac{r_{\text{pile-up}} \cdot \gamma_{\text{dir}}}{\epsilon},
+E\frac{d^3\sigma}{dp^3} = \frac{1}{\mathcal{L}} \cdot \frac{1}{2\pi p_T} \cdot \frac{1}{\Delta p_T \Delta y} \cdot \frac{r_{{\rm pileup}} \cdot \gamma_{{\rm dir}}}{\epsilon},
 \end{equation}
-where $\epsilon$ includes corrections for the detector acceptance, photon reconstruction efficiency, trigger efficiency, and detector smearing effects. $r_{\text{pile-up}}$ is the correction for the pile-up effects due to the large signal integration time of the EMCal coupled with the high collision rate. It is approximately 0.8 (0.9) for inclusive (isolated) direct photons. The correction is obtained by a logarithmic extrapolation of the number of photons per event to zero event rate. $\mathcal{L}$ is the integrated luminosity used for the analyzed data, and $\Delta y$ is the rapidity range.
 
-The main systematic uncertainty sources are from the global energy scale of tuning the \pizero\ mass peak position and energy nonlinearity of the EMCal response at high \pT. These are calculated by a single \pizero\ or photon generator with a fast detector simulation and were determined to be 14--19\% (7--13\%) depending on \pT\ for the inclusive (isolated) direct photon cross section. The systematic uncertainties due to \pizero\ yield extraction and relative fractions of other hadron decays over \pizero\ are 2--12\% (0.5--2.5\%) and 5--14\% (0.4--6.0\%) for the inclusive (isolated) direct photon cross section, respectively. These contributions for the isolated direct photon cross section are relatively small compared to the inclusive case as the isolation requirement largely reduces these backgrounds. The loss of photons from conversions in the material before the EMCal is estimated using a single photon generator plus full GEANT detector simulation \cite{Brun:1994aa}. The material of the vertex tracker \cite{SONDHEIM2012993} leads to a (12.8 $\pm$ 1.9)\% probability for a photon to convert. Since only the West Arm had a vertex tracker installed, this systematic uncertainty only contributes to that Arm. Conversions in other materials lead to (3 $\pm$ 1)\% in the PbSc and (4.5 $\pm$ 1.3)\% in the PbGl for photon loss. When calculating the direct photon yield in Eq.~(\ref{eq:inc}) and Eq.~(\ref{eq:iso}), we vary the photon conversion rate by its systematic uncertainty to get 1--8\% relative uncertainties of the direct photon yield. The uncertainties from the EMCal detector resolution (2--8\%) and trigger (2--4.5\%) are also taken into account. Other uncertainties, including geometrical acceptance, trigger efficiencies, and pile-up effect, are in total less than 7\%.
+where $\epsilon$ includes corrections for the detector acceptance, 
+photon reconstruction efficiency, trigger efficiency, and detector 
+smearing effects and $r_{{\rm pileup}}$ is the correction for the pileup 
+effects due to the large signal-integration time of the EMCal coupled 
+with the high collision rate. It is approximately 0.8 (0.9) for 
+inclusive (isolated) direct photons. The correction is obtained by a 
+logarithmic extrapolation of the number of photons per event to zero 
+event rate. The $\mathcal{L}$ is the integrated luminosity used for the 
+analyzed data, and $\Delta y$ is the rapidity range.
 
-Figure~\ref{fig:inc} shows the measured inclusive direct photon cross section at midrapidity in proton collisions at $\sqrt{s}$ = 510 GeV compared with NLO pQCD calculations \cite{PhysRevD.48.3136, PhysRevD.50.1901} using NNPDF3.0 parton distribution functions \cite{Ball2015, Bonvini2015} and GRV fragmentation functions (FF) \cite{PhysRevD.45.3986}. The pseudorapidity range for this measurement is $|\eta| <$ 0.25 after the fiducial requirement that removes edge towers of the EMCal. The calculation is in good agreement with the data within the uncertainties for $p_T >$ 12 GeV/c, but underestimates the yield by up to a factor of $\sim$3 for \mbox{$p_T <$ 12 GeV/c}. This discrepancy is possibly due to multiparton interactions and parton showers \cite{Nason_2004, Frixione_2007, Alioli2010, Jezo2016, Klasen2018}. The isolated direct photon cross section is shown in Figure~\ref{fig:iso} as a function of \pT\ and compared with the NLO pQCD calculation \cite{PhysRevD.48.3136, PhysRevD.50.1901} using NNPDF3.0 \cite{Ball2015, Bonvini2015} and GRV FF \cite{PhysRevD.45.3986}. The calculation is in good agreement with our data within the uncertainties, with slight overestimation in the lowest \pT\ bins.
+The main systematic uncertainty sources are from the global energy scale 
+of tuning the \pizero mass-peak position and energy nonlinearity of the 
+EMCal response at high \pT. These are calculated by a single \pizero or 
+photon generator with a fast detector simulation and depending on \pT 
+were determined to be 14\%--19\% (7\%--13\%) for the inclusive (isolated) 
+direct-photon cross section. The systematic uncertainties due to \pizero 
+yield extraction and relative fractions of other hadron decays over 
+\pizero are 2\%--12\% (0.5\%--2.5\%) and 5\%--14\% (0.4\%--6.0\%) for 
+the inclusive (isolated) direct-photon cross section. These 
+contributions for the isolated direct-photon cross section are 
+relatively small compared to the inclusive case as the isolation 
+requirement largely reduces these backgrounds. The loss of photons from 
+conversions in the material before the EMCal is estimated using a 
+single-photon generator plus full {\sc geant} detector 
+simulation~\cite{Brun:1994aa}. The material of the vertex 
+tracker~\cite{SONDHEIM2012993} leads to a (12.8 $\pm$ 1.9)\% probability 
+for a photon to convert. This systematic uncertainty only contributes to 
+the west arm, because in 2013 the east arm did not have a vertex-tracker 
+installed.  Conversions in other materials lead to photon losses of 
+$(3{\pm}1)$\% in the PbSc and $(4.5{\pm}1.3)$\% in the PbGl.  When 
+calculating the direct-photon yield in Eq.~(\ref{eq:inc}) and 
+Eq.~(\ref{eq:iso}), we vary the photon-conversion rate by its systematic 
+uncertainty to get 1\%--8\% relative uncertainties of the direct-photon 
+yield. The uncertainties from the EMCal detector resolution of 2\%--8\% 
+and trigger of 2\%--4.5\% are also taken into account. Other 
+uncertainties, including geometrical acceptance, trigger efficiencies, 
+and pileup effect, are in total less than 7\%.
 
-\begin{figure}
-\includegraphics[width=0.5\textwidth]{CrossSection-photon-werner}
-\caption{Inclusive direct photon cross section as a function of \pT\ compared with NLO pQCD calculations \cite{PhysRevD.48.3136, PhysRevD.50.1901} for different renormalization and factorization scales $\mu$ = \pT/2 (dashed line), \pT\ (solid line), 2\pT\ (dotted line). The bars represent statistical uncertainties and square brackets are for systematic uncertainties. The bottom plot shows the comparison of data and calculations.}
-\label{fig:inc}
-\end{figure}
+Figure~\ref{fig:xsect}(a) shows the measured inclusive direct-photon 
+cross section at midrapidity in $\vec{p}+\vec{p}$ collisions at 
+$\sqrt{s}=510$ GeV compared with NLO pQCD 
+calculations~\cite{PhysRevD.48.3136,PhysRevD.50.1901} using NNPDF3.0 
+parton-distribution functions~\cite{Ball2015,Bonvini2015} and 
+Gl{\"u}ck-Reya-Vogt (GRV) fragmentation functions 
+(FF)~\cite{PhysRevD.45.3986}. The pseudorapidity range for this 
+measurement is $|\eta|<0.25$ after the fiducial requirement that removes 
+edge towers of the EMCal. The calculation is in good agreement with the 
+data within the uncertainties for $p_T>12$~GeV/$c$, but underestimates 
+the yield by up to a factor of $\approx$3 for \mbox{$p_T<12$ GeV/$c$}. 
+This discrepancy is possibly due to multiparton interactions and parton 
+showers~\cite{Nason_2004,Frixione_2007,Alioli2010,Jezo2016,Klasen2018}. 
+The isolated direct-photon cross section is shown in 
+Fig.~\ref{fig:xsect}(c) as a function of \pT and compared with the NLO 
+pQCD calculation~\cite{PhysRevD.48.3136,PhysRevD.50.1901} using 
+NNPDF3.0~\cite{Ball2015,Bonvini2015} and 
+GRV~FF~\cite{PhysRevD.45.3986}. The calculation is in good agreement with 
+the data within the uncertainties, with slight overestimation in the 
+lowest \pT bins.
 
-\begin{figure} 
-\centering
-\includegraphics[width=0.5\textwidth]{CrossSection-isophoton-werner}
-\caption{Similar to Figure~\ref{fig:inc} but for the isolated direct photon cross section.}
-\label{fig:iso}
-\end{figure}
+%\clearpage
 
-%In Figure~\ref{fig:iso2inc}, the ratio of isolated over inclusive direct photons is shown together with theoretical calculations. The MC simulations are from POWHEG + PYTHIA8 \cite{Nason_2004, Frixione_2007, Alioli2010, Jezo2016, Klasen2018}. POWHEG is an NLO partonic level generator, the output of which can be used as the input for PYTHIA8. The PYTHIA8 includes multiparton interactions (MPI), parton showers (PS), and fragmentation processes. There is some phase space overlapping between POWHEG and PYTHIA8, which is solved by a proper veto algorithm. POWHEG uses CT14 parton distribution functions (PDF) \cite{PhysRevD.93.033006}. There is no final-state factorization scale in PYTHIA8 as it uses PS and string fragmentation instead. In the POWHEG + PYTHIA8 simulations, the uncertainties from renormalization and factorization scales are canceled between the numerator and denominator of the fraction. The MC simulations were produced with and without MPI. When MPI is not included it overestimates the ratio similar to the NLO pQCD calculations while including MPI shows better agreement with this measurement.
-%
-%\begin{figure}
-%\centering
-%\includegraphics[width=0.5\textwidth]{Iso2Inc}
-%\caption{Isolated over inclusive direct photon ratio: bars are statistical uncertainties and square brackets are systematic uncertainties. POWHEG + PYTHIA8 with/without MPI and NLO pQCD calculations with different renormalization and factorization scales are also shown.}
-%\label{fig:iso2inc}
-%\end{figure}
+%\subsection{Double-helicity asymmetry}
 
-The double helicity asymmetry is defined as
+The double-helicity asymmetry is defined as
+
 \begin{equation} \label{eq:all}
 A_{LL} = \frac{\Delta\sigma}{\sigma} = \frac{\sigma_{++}-\sigma_{+-}}{\sigma_{++}+\sigma_{+-}},
 \end{equation}
-where $\sigma_{++}$ ($\sigma_{+-}$) is the cross section for the same (opposite) helicity proton collisions. This can be rewritten in terms of particle yield and beam polarizations:
+
+where $\sigma_{++}$ ($\sigma_{+-}$) is the cross section for the same 
+(opposite) helicity proton-proton collisions. This can be rewritten in 
+terms of particle yield and beam polarizations:
+
 \begin{equation}
 A_{LL} = \frac{1}{P_BP_Y} \frac{N_{++}-RN_{+-}}{N_{++}+RN_{+-}}
 \end{equation}
-where $N_{++}$ ($N_{+-}$) is the number of isolated direct photons from the collisions with the same (opposite) helicities. $P_{B}$ and $P_{Y}$ are the polarizations for the two proton beams, and the average values in 2013 were 0.55 and 0.57, respectively \cite{POBLAGUEV2020164261}. $R = (\mathcal{L_{++}}/\mathcal{L_{+-}})$ is the relative luminosity that is measured by the BBC. The systematic contribution of $R$ to $A_{LL}$ was found to be 3.8 $\times$ $10^{-4}$ \cite{PhysRevD.93.011501}.
 
-The asymmetry was calculated for photon candidates that passed the same time-of-flight, minimum energy, and isolation requirements as in the cross section analysis. The z-vertex requirement of 30 cm is used for the asymmetry measurement. The asymmetry contribution for background photons from \pizero's decay was calculated from the sideband region (47--97 MeV/c$^2$ and 177--227 MeV/c$^2$) around the \pizero\ mass peak (112--162 MeV/c$^2$) using the inclusive photon sample due to the limited statistics in the isolated photon sample. The asymmetry for other hadron decays (mostly $\eta$ decays) was taken as $A_{LL}^{\eta}$ from previous PHENIX measurement at $\sqrt{s}$ = 200 GeV \cite{PhysRevD.90.012007} by assuming $x_T$ scaling. The difference in $A^{\eta}_{LL}$ between 200 GeV and 510 GeV for a given $x_{_{T}}$ is expected to be much smaller than the experimental uncertainty of the 200 GeV result which was used to assign a systematic uncertainty \cite{PhysRevLett.113.012001, 2014276}. The background-corrected asymmetry can be calculated as
+where $N_{++}$ ($N_{+-}$) is the number of isolated direct photons from 
+the collisions with the same (opposite) helicities. $P_{B}$ ($P_{Y}$) 
+are the polarizations for the blue (yellow) proton beams, and the 
+average values in 2013 were 0.55 (0.57)~\cite{POBLAGUEV2020164261}. $R 
+=(\mathcal{L_{++}}/\mathcal{L_{+-}})$ is the relative luminosity that is 
+measured by the BBC. The systematic contribution of $R$ to $A_{LL}$ was 
+found to be $3.8{\times}10^{-4}$~\cite{PhysRevD.93.011501}.
+
+The asymmetry was calculated for photon candidates that passed the same 
+time-of-flight, minimum-energy, and isolation requirements as in the 
+cross-section analysis. The z-vertex requirement of 30 cm is used for 
+the asymmetry measurement. The asymmetry contribution for background 
+photons from \pizero's decay was calculated from the sideband regions 
+(47--97 MeV/c$^2$ and 177--227 MeV/c$^2$) below and above the \pizero 
+mass peak (112--162 MeV/c$^2$) using the inclusive photon sample due to 
+the limited statistics in the isolated photon sample. The asymmetry for 
+other hadron decays (mostly $\eta$ decays) was taken as $A_{LL}^{\eta}$ 
+from previous PHENIX measurements at 
+$\sqrt{s}=200$~GeV~\cite{PhysRevD.90.012007} by assuming $x_T$ scaling. 
+The difference in $A^{\eta}_{LL}$ between 200 GeV and 510 GeV for a 
+given $x_{_{T}}$ is expected to be much smaller than the experimental 
+uncertainty of the 200 GeV result which was used to assign a systematic 
+uncertainty~\cite{PhysRevLett.113.012001, 2014276}. The 
+background-corrected asymmetry can be calculated as
+
 \begin{equation} \label{eq:all-dir}
-A_{LL}^{\text{dir}} = \frac{A_{LL}^{\text{total}} - r_{\pi^0}A_{LL}^{\pi^0} -r_h A_{LL}^{\eta}}{1 - r_{\pi^0} - r_h},
+A_{LL}^{{\rm dir}} = \frac{A_{LL}^{{\rm total}} - r_{\pi^0}A_{LL}^{\pi^0} -r_h A_{LL}^{\eta}}{1 - r_{\pi^0} - r_h},
 \end{equation}
-where $r_{\pi^0}$ (10--14\%) and $r_h$ (0.6--1.4\%) are background fractions of \pizero\ and other hadron decay photons, respectively. We used the bunch shuffling technique by assigning a random spin polarization to each bunch crossing to make sure there is no hidden systematic effect. The data were divided into subgroups according to the bunch spin patterns that were used to fill the RHIC rings, and calculated asymmetries were found to be consistent.
 
-The double helicity asymmetry of isolated direct photon production in longitudinally polarized proton collisions at $\sqrt{s}$ = 510 GeV is shown in Figure~\ref{fig:all} for 6 $< p_{T} <$ 20 GeV/c. The NLO pQCD calculation was obtained using DSSV14 polarized PDF, NNPDF3.0 unpolarized PDF and GRV FF for the renormalization and factorization scales $\mu = p_T$ with $1\sigma$ uncertainty band via MC replicas (a sampling variant of the DSSV14 set of helicity parton densities) \cite{PhysRevLett.101.072001, PhysRevLett.113.012001, PhysRevD.100.114027}. The calculation is in good agreement with our results within the experimental uncertainties. In the asymmetry measurement, systematic effects are largely canceled. The systematic uncertainties in Figure~\ref{fig:all} include point-to-point uncertainties from background estimation and false asymmetry in the background due to pile-up effects at low \pT.
+where $r_{\pi^0}$ (10\%--14\%) and $r_h$ (0.6\%--1.4\%) are background 
+fractions of \pizero and other hadron-decay photons, respectively. We 
+used the bunch-shuffling technique by assigning a random spin 
+polarization to each bunch crossing to make sure there is no hidden 
+systematic effect. The data were divided into subgroups according to the 
+bunch spin patterns that were used to fill the RHIC rings, and 
+calculated asymmetries were found to be consistent.
 
-\begin{figure}
-\centering
-\includegraphics[width=0.5\textwidth]{IsoPhotonALL-beam2}
-\caption{Double helicity asymmetry $A_{LL}$ $vs$ $p_{T}$ for isolated direct photon production in polarized p+p collisions at $\sqrt{s}$ = 510 GeV at midrapidity. Vertical error bars (boxes) represent the statistical (systematic) uncertainties. The NLO pQCD calculation is plotted as the solid curve with $1\sigma$ uncertainty band via MC replicas \cite{PhysRevLett.101.072001, PhysRevLett.113.012001, PhysRevD.100.114027}.}
+Figure~\ref{fig:all} shows the double-helicity asymmetry of isolated 
+direct-photon production in longitudinally polarized proton-proton 
+collisions at $\sqrt{s}=510$~GeV for $6<p_T<20$~GeV/$c$.
+The corresponding gluon momentum fraction is $x \approx 2p_T/\sqrt{s}$.
+In the asymmetry  measurement, systematic effects are largely canceled.
+The systematic uncertainties in Fig.~\ref{fig:all} include point-to-point
+uncertainties from background estimation and false asymmetry in the
+background due to pileup effects at low \pT.
+The NLO pQCD calculation was obtained using DSSV14 polarized PDF, NNPDF3.0 
+unpolarized PDF and GRV~FF for the renormalization and factorization 
+scales $\mu=p_T$ with $1\sigma$ uncertainty band via MC replicas (a 
+sampling variant of the DSSV14 set of helicity parton 
+densities)~\cite{PhysRevLett.101.072001,PhysRevLett.113.012001, 
+PhysRevD.100.114027}. The calculation is in good agreement with the 
+results within experimental uncertainties.
+The two dashed curves in Figure~\ref{fig:all} come from the global analysis
+of JAM Collaboration \cite{PhysRevD.105.074022}.
+They found there are two distinct sets of solutions for the polarized gluon
+PDF, $\Delta g$, which differ in sign.
+Even though the solutions with $\Delta g <$ 0 violate the positivity assumption,
+$|\Delta g| < g$, all previous data cannot exclude those solutions,
+due to the mixed contributions from quark-gluon and gluon-gluon interactions.
+The direct photon \ALL, on the other hand, mainly comes from the quark-gluon
+interactions and has $\chi_{reduced}^2 =$ 4.8/7 (9.5/7) with the $\Delta g >$ 0
+($\Delta g <$ 0) solutions, which shows that our measurement favors the
+$\Delta g >$ 0 solutions.
+
+%--------------------------------------------------- Fig_2 (was 3)
+\begin{figure}[htb]
+\includegraphics[width=1.0\linewidth]{IsoPhotonALL-beam2.pdf}
+\caption{Double-helicity asymmetry $A_{LL}$ $vs$ $p_{T}$ for isolated 
+direct-photon production in polarized $p$$+$$p$ collisions at 
+$\sqrt{s}=510$ GeV at midrapidity. Vertical error bars (boxes) represent 
+the statistical (systematic) uncertainties. The systematic uncertainties
+for $p_T < 10$ GeV/c are smaller than the marker size. Not shown are
+a $3.9{\times}10^{-4}$ shift uncertainty from relative luminosity and 
+a 6.6\% scale uncertainty from polarization. The DSSV14 calculation is 
+plotted as the solid curve with $1\sigma$ uncertainty band via MC 
+replicas~\protect\cite{PhysRevLett.101.072001,PhysRevLett.113.012001,PhysRevD.100.114027}.
+The curves for JAM $\Delta g >$ 0 and $\Delta g <$ 0 solutions \cite{PhysRevD.105.074022}
+were calculated by W. Vogelsang.
+}
 \label{fig:all}
 \end{figure}
 
-In summary, PHENIX has measured the cross section and \ALL\ of direct photons at midrapidity in proton collisions at $\sqrt{s}$ = 510 GeV. The NLO pQCD calculations are consistent with our results except at lower \pT\ where the calculations underestimate the inclusive direct photon cross section. With isolation criteria, the partonic level calculation agrees well with our measurement. It is the first time that the \ALL\ of direct photons is measured. It is sensitive to the polarized gluon distribution inside the proton and will provide an independent constraint on the gluon’s contribution to the proton spin in future global analyses.
-%%% For help see /phenix/WWW/p/info/dp/000/template/template4.tex
+%\section{Conclusions}
+
+In summary, PHENIX has measured the cross section and \ALL of direct 
+photons at midrapidity in $\vec{p}+\vec{p}$ collisions at 
+$\sqrt{s}=510$~GeV. The NLO pQCD calculations are consistent with the 
+results except at lower \pT where the calculations underestimate the 
+inclusive direct-photon cross section. With isolation criteria, the 
+partonic level calculation is in better agreement with the measurement. 
+This is the first measurement of the \ALL of direct photons, which is 
+sensitive to the polarized-gluon distribution inside the proton.
+Our data favor positive gluon contribution which the existing
+(past) data were unable to resolve.
 
 %%% To check PRL length insert these (uncommented) lines here:
-\clearpage \textbf{*** page break for PRL word count $<$3.5 pages $<$7 columns ***}
+%\clearpage \textbf{*** page break for PRL word count $<$3.5 pages $<$7 columns ***}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%  Acknowledgements 
-% for PRC or PRD only, uncomment this line:
-%\section*{ACKNOWLEDGMENTS}  
+%%%%%%%%%%%%%%%%%%%%%%  ACKNOWLEDGMENTS}  %%%%% MGS22a2013 version
+%% 2018 change in Korea
+%%% 2021 change in dropping Brazil, Germany, and Pakistan, because
+%%%      they no longer have active MGS and left PHENIX before 2015
+%%% for 2013 data, add back in Pakistan.
 
-%% Acknowledgments are determined by runs for which new results are
-%% being released.  As with the author lists, Brant will add later
-%% by using the most current acknowledgments, plus any additions
-%% from relevant runs.  For example, new Run-6 releases include:
-%% "a sponsored research grant from Renaissance Technologies LLC,"
+We thank the staff of the Collider-Accelerator and Physics
+Departments at Brookhaven National Laboratory and the staff of
+the other PHENIX participating institutions for their vital
+contributions.  
+We acknowledge support from the Office of Nuclear Physics in the
+Office of Science of the Department of Energy,
+the National Science Foundation,
+Abilene Christian University Research Council,
+Research Foundation of SUNY, and
+Dean of the College of Arts and Sciences, Vanderbilt University
+(U.S.A),
+Ministry of Education, Culture, Sports, Science, and Technology
+and the Japan Society for the Promotion of Science (Japan),
+Natural Science Foundation of China (People's Republic of China),
+Croatian Science Foundation and
+Ministry of Science and Education (Croatia),
+Ministry of Education, Youth and Sports (Czech Republic),
+Centre National de la Recherche Scientifique, Commissariat
+{\`a} l'{\'E}nergie Atomique, and Institut National de Physique
+Nucl{\'e}aire et de Physique des Particules (France),
+J. Bolyai Research Scholarship, EFOP, the New National Excellence
+Program ({\'U}NKP), NKFIH, and OTKA (Hungary),
+Department of Atomic Energy and Department of Science and Technology
+(India),
+Israel Science Foundation (Israel),
+Basic Science Research and SRC(CENuM) Programs through NRF
+funded by the Ministry of Education and the Ministry of
+Science and ICT (Korea),
+Physics Department, Lahore University of Management Sciences (Pakistan),
+Ministry of Education and Science, Russian Academy of Sciences,
+Federal Agency of Atomic Energy (Russia),
+VR and Wallenberg Foundation (Sweden),
+University of Zambia, the Government of the Republic of Zambia (Zambia),
+the U.S. Civilian Research and Development Foundation for the
+Independent States of the Former Soviet Union,
+the Hungarian American Enterprise Scholarship Fund,
+the US-Hungarian Fulbright Foundation,
+and the US-Israel Binational Science Foundation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%  References 
+%\clearpage
 
 \bibliography{references}   % Use of BibTeX required.
 
