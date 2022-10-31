@@ -235,7 +235,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
         pad1->cd();
         if(pwhg == 3)
         {
-          aset(gr_band, "p_{T} (GeV/c)", "Ed^{3}#sigma/dp^{3} (pb GeV^{-2} c^{3})", 4.9,30.1, 0.5e-1, iso?2e3:5e3);
+          aset(gr_band, "p_{T} [GeV/c]", "(Ed^{3}#sigma/dp^{3}) [pb GeV^{-2} c^{3}]", 4.9,30.1, 0.5e-1, iso?2e3:5e3);
           style(gr_band, 1, 1);
           gr_band->SetTitle("");
           gr_band->SetFillColor(kCyan-7);
@@ -248,7 +248,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
         gr_cross[iso] = qt_cross->Graph(3);
         gr_cross_sys[iso] = qt_sys->Graph(iso);
         gr_cross[iso]->SetTitle("");
-        aset(gr_cross[iso], "p_{T} (GeV/c)", "Ed^{3}#sigma/dp^{3} (pb GeV^{-2} c^{3})", 4.9,30.1, 0.5e-1, iso?2e3:5e3);
+        aset(gr_cross[iso], "p_{T} [GeV/c]", "(Ed^{3}#sigma/dp^{3}) [pb GeV^{-2} c^{3}]", 4.9,30.1, 0.5e-1, iso?2e3:5e3);
         style(gr_cross[iso], 20, 2, 2);
         style(gr_cross_sys[iso], 1, 2, 2);
         gr_cross[iso]->SetMarkerSize(0.8);
@@ -303,7 +303,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
         pad2->cd();
         if(pwhg == 3)
         {
-          gr_band_ratio->SetTitle(";p_{T} (GeV/c);#scale[0.9]{#frac{Data-Theory}{Theory}}");
+          gr_band_ratio->SetTitle(";p_{T} [GeV/c];#scale[0.9]{#frac{Data-Theory}{Theory}}");
           aset(gr_band_ratio, "","", 4.9,30.1, iso?-0.25:-0.45,(iso&&pwhg!=1)?0.45+0.125*pwhg:2.15-iso, 1.,0.6,0.1,0.12);
           gr_band_ratio->GetXaxis()->SetLabelSize(0.09);
           gr_band_ratio->GetYaxis()->SetLabelSize(0.09);
@@ -315,7 +315,7 @@ void draw_SysErr(const int pwhg = 0, const int ipwhg = 0, const int prelim = 0)
           gr_band_ratio->Draw("X");
           gr_central_ratio->Draw("LX");
         }
-        gr_ratio->SetTitle(";p_{T} (GeV/c);#scale[0.9]{#frac{Data-Theory}{Theory}}");
+        gr_ratio->SetTitle(";p_{T} [GeV/c];#scale[0.9]{#frac{Data-Theory}{Theory}}");
         aset(gr_ratio, "","", 4.9,30.1, iso?-0.25:-0.45,(iso&&pwhg!=1)?0.45+0.125*pwhg:2.15-iso, 1.,0.6,0.1,0.12);
         style(gr_ratio_sys, 1, 2, 2);
         gr_ratio->GetXaxis()->SetLabelSize(0.09);

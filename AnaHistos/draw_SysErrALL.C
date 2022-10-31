@@ -79,7 +79,7 @@ void draw_SysErrALL(const int prelim = 0)
       gr_all->RemovePoint(0);
     }
     gr_all->SetTitle("");
-    aset(gr_all, "p_{T} (GeV/c)",beam_list[beam], 4.9,20.1, -0.045,0.05);
+    aset(gr_all, "p_{T} [GeV/c]",beam_list[beam], 4.9,20.1, -0.045,0.05);
     style(gr_all, 20, 2);
     style(gr_sys, 1, 2);
     gr_all->SetMarkerSize(0.8);
