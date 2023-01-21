@@ -1,5 +1,5 @@
 // mysrc64 new
-// g++ -std=c++11 -Wall -I$MYINSTALL/include -L$MYINSTALL/lib -lLHAPDF -o anaPDF anaPDF.cc
+// g++ -std=c++11 -Wall -I$MYINSTALL/include -L$MYINSTALL/lib -lLHAPDF -o anaPDF_JAM anaPDF_JAM.cc
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -49,15 +49,15 @@ void read_xsec(const char *fname, double xsec[][npt])
 
 int main()
 {
-  const int nrep = 1000;
+  const int nrep = 1056;
 
   double unpol[1][npt];
   double pol[nrep+1][npt];
   read_xsec("data/nnpdf-unpol.txt", unpol);
-  read_xsec("data/dssv-pol.txt", pol);
+  read_xsec("data/jam-pol.txt", pol);
 
-  double weight[nrep+1];
-  double sumw = 0.;
+  int irep_min = 9999;
+  double chi2_min = 9999.;
   for(int irep=1; irep<=nrep; irep++)
   {
     double chi2 = 0.;
@@ -66,44 +66,47 @@ int main()
       double all = pol[irep][ipt] / unpol[0][ipt];
       chi2 += square((all - data[ipt]) / err[ipt]);
     }
-    // See Erratum of Nucl. Phys. B 849 (2011) 112-143
-    weight[irep] = pow(chi2, (npt-2-1)/2.) * exp(-chi2/2.);
-    sumw += weight[irep];
+    if(chi2 < chi2_min)
+    {
+      irep_min = irep;
+      chi2_min = chi2;
+    }
   }
-  for(int irep=1; irep<=nrep; irep++)
-    weight[irep] /= sumw;
 
-  ofstream fout_old("data/reweighting-old.txt");
-  ofstream fout_new("data/reweighting-new.txt");
-  vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("DSSV_REP_LHAPDF6");
+  ofstream fout_dir("data/JAM22ppdf-all-dgdir.txt");
+  ofstream fout_jam[2];
+  fout_jam[0].open("data/JAM22ppdf-all-dgpos.txt");
+  fout_jam[1].open("data/JAM22ppdf-all-dgneg.txt");
+  vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("JAM22ppdf");
 
-  for(int ix=0; ix<101; ix++)
+  for(int ipt=0; ipt<npt; ipt++)
   {
-    double log10x = -3. + 0.03 * (double)ix;
-    double x = pow(10., log10x);
-    double xg_old = 0.;
-    double xg2_old = 0.;
-    double xg_new = 0.;
-    double xg2_new = 0.;
+    double sum_all[2] = {};
+    double sum_all2[2] = {};
+    int n_all[2] = {};
 
     for(int irep=1; irep<=nrep; irep++)
     {
-      double xg = v_pdf.at(irep)->xfxQ2(21, x, 10.);
-      xg_old += xg / (double)nrep;
-      xg2_old += square(xg) / (double)nrep;
-      xg_new += xg * weight[irep];
-      xg2_new += square(xg) * weight[irep];
+      int ixg = v_pdf.at(irep)->xfxQ2(21, 0.5, 10.) < 0 ? 1 : 0;
+      double all = pol[irep][ipt] / unpol[0][ipt];
+      sum_all[ixg] += all;
+      sum_all2[ixg] += square(all);
+      n_all[ixg]++;
+      if(irep == irep_min)
+        fout_dir << pt[ipt]  << "\t" << all << endl;
     }
 
-    double exg_old = sqrt(xg2_old - square(xg_old));
-    double exg_new = sqrt(xg2_new - square(xg_new));
-
-    fout_old << x << "\t" << xg_old << "\t" << exg_old << endl;
-    fout_new << x << "\t" << xg_new << "\t" << exg_new << endl;
+    for(int ixg=0; ixg<2; ixg++)
+    {
+      double mean_all = sum_all[ixg] / n_all[ixg];
+      double sigma_all = sqrt(sum_all2[ixg] / n_all[ixg] - square(mean_all));
+      fout_jam[ixg] << pt[ipt]  << "\t" << mean_all << "\t" << sigma_all << endl;
+    }
   }
 
-  fout_old.close();
-  fout_new.close();
+  fout_dir.close();
+  fout_jam[0].close();
+  fout_jam[1].close();
 
   return 0;
 }

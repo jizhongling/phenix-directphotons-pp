@@ -40,7 +40,7 @@ void draw_PDF()
   leg0->SetTextSize(0.030);
 
   gr_old->SetTitle("x#Deltag(x)");
-  aset(gr_old, "x","x#Deltag(x)", 1e-5,1., -0.3,0.3);
+  aset(gr_old, "x","x#Deltag(x)", 1e-3,1., -0.3,0.3);
   gr_old->GetXaxis()->SetNdivisions(505);
   gr_old->GetYaxis()->SetNdivisions(505);
   style(gr_old, 1, kBlack);
@@ -61,7 +61,7 @@ void draw_PDF()
   gPad->SetLogx();
 
   gr_ratio->SetTitle("Rel err");
-  aset(gr_ratio, "x","Rel err", 1e-5,1.);
+  aset(gr_ratio, "x","Rel err", 1e-3,1.);
   style(gr_ratio, 1, kBlack);
   gr_ratio->Draw("AC");
 
