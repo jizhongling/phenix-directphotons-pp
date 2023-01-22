@@ -1,5 +1,5 @@
 // mysrc64 new
-// g++ -std=c++11 -Wall -I$MYINSTALL/include -L$MYINSTALL/lib -lLHAPDF -o anaPDF_JAM anaPDF_JAM.cc
+// g++ -std=c++11 -Wall -I$MYINSTALL/include -L$MYINSTALL/lib -lLHAPDF -o anaPDF_dgsgn anaPDF_dgsgn.cc
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -53,8 +53,8 @@ int main()
 
   double unpol[1][npt];
   double pol[nrep+1][npt];
-  read_xsec("data/nnpdf-unpol.txt", unpol);
-  read_xsec("data/jam-pol.txt", pol);
+  read_xsec("data/cross-unpol-NNPDF30_nlo_as_0118.txt", unpol);
+  read_xsec("data/cross-pol-JAM22ppdf.txt", pol);
 
   int irep_min = 9999;
   double chi2_min = 9999.;
@@ -73,10 +73,10 @@ int main()
     }
   }
 
-  ofstream fout_dir("data/JAM22ppdf-all-dgdir.txt");
+  ofstream fout_dir("data/all-JAM22ppdf-dgdir.txt");
   ofstream fout_jam[2];
-  fout_jam[0].open("data/JAM22ppdf-all-dgpos.txt");
-  fout_jam[1].open("data/JAM22ppdf-all-dgneg.txt");
+  fout_jam[0].open("data/all-JAM22ppdf-dgpos.txt");
+  fout_jam[1].open("data/all-JAM22ppdf-dgneg.txt");
   vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("JAM22ppdf");
 
   for(int ipt=0; ipt<npt; ipt++)

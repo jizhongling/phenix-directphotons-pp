@@ -26,10 +26,10 @@ TGraph *RelErr(TGraphErrors *gr1, TGraphErrors *gr2)
   return graph;
 }
 
-void draw_PDF()
+void draw_PDF_reweight()
 {
-  TGraphErrors *gr_old = new TGraphErrors("data/reweighting-old.txt", "%lg %lg %lg");
-  TGraphErrors *gr_new = new TGraphErrors("data/reweighting-new.txt", "%lg %lg %lg");
+  TGraphErrors *gr_old = new TGraphErrors("data/reweighting-JAM22ppdf-old.txt", "%lg %lg %lg");
+  TGraphErrors *gr_new = new TGraphErrors("data/reweighting-JAM22ppdf-new.txt", "%lg %lg %lg");
   TGraph *gr_ratio = RelErr(gr_new, gr_old);
 
   mc(0, 2,1);
@@ -53,7 +53,7 @@ void draw_PDF()
   gr_old->Draw("CX");
   gr_new->Draw("3 SAME");
   gr_new->Draw("CX SAME");
-  leg0->AddEntry(gr_old, "DSSV14", "LF");
+  leg0->AddEntry(gr_old, "JAM22", "LF");
   leg0->AddEntry(gr_new, "Reweighting", "LF");
   leg0->Draw();
 
@@ -65,5 +65,5 @@ void draw_PDF()
   style(gr_ratio, 1, kBlack);
   gr_ratio->Draw("AC");
 
-  c0->Print("plots/PDFReweighting.pdf");
+  c0->Print("plots/PDFReweighting-JAM22ppdf.pdf");
 }

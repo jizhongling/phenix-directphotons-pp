@@ -12,7 +12,7 @@ using namespace std;
 
 int main()
 {
-  const char *pdfname[3] = {"DSSV", "JAM with W", "JAM without W"};
+  const char *pdfname[3] = {"DSSV14", "JAM22 with W", "JAM22 without W"};
   const char *pdfset[4] = {"DSSV_REP_LHAPDF6", "JAM22ppdf", "JAM22_pol_SU23_pos_g", "JAM22_pol_SU23_neg_g"};
 
   auto c0 = new TCanvas("c0", "c0", 3*600, 600);

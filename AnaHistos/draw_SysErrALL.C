@@ -10,9 +10,9 @@ void draw_SysErrALL(const int prelim = 0)
   QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root");
 
   TGraphErrors *gr_dssv = new TGraphErrors("data/werner-all-dssv14-nnpdf-grv.txt", "%lg %lg %lg");
-  TGraphErrors *gr_jam_pos = new TGraphErrors("data/JAM22ppdf-all-dgpos.txt", "%lg %lg %lg");
-  TGraphErrors *gr_jam_neg = new TGraphErrors("data/JAM22ppdf-all-dgneg.txt", "%lg %lg %lg");
-  TGraph *gr_jam_dir = new TGraph("data/JAM22ppdf-all-dgdir.txt", "%lg %lg");
+  TGraphErrors *gr_jam_pos = new TGraphErrors("data/all-JAM22ppdf-dgpos.txt", "%lg %lg %lg");
+  TGraphErrors *gr_jam_neg = new TGraphErrors("data/all-JAM22ppdf-dgneg.txt", "%lg %lg %lg");
+  TGraph *gr_jam_dir = new TGraph("data/all-JAM22ppdf-dgdir.txt", "%lg %lg");
 
   TBox *box = new TBox();
   box->SetLineColor(2);

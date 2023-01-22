@@ -1,5 +1,5 @@
 // mysrc64 new
-// g++ -std=c++11 -Wall -I$MYINSTALL/include -L$MYINSTALL/lib -lLHAPDF -o anaPDF anaPDF.cc
+// g++ -std=c++11 -Wall -I$MYINSTALL/include -L$MYINSTALL/lib -lLHAPDF -o anaPDF_reweight anaPDF_reweight.cc
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -49,12 +49,12 @@ void read_xsec(const char *fname, double xsec[][npt])
 
 int main()
 {
-  const int nrep = 1000;
+  const int nrep = 1056;
 
   double unpol[1][npt];
   double pol[nrep+1][npt];
-  read_xsec("data/nnpdf-unpol.txt", unpol);
-  read_xsec("data/dssv-pol.txt", pol);
+  read_xsec("data/cross-unpol-NNPDF30_nlo_as_0118.txt", unpol);
+  read_xsec("data/cross-pol-JAM22ppdf.txt", pol);
 
   double weight[nrep+1];
   double sumw = 0.;
@@ -73,9 +73,9 @@ int main()
   for(int irep=1; irep<=nrep; irep++)
     weight[irep] /= sumw;
 
-  ofstream fout_old("data/reweighting-old.txt");
-  ofstream fout_new("data/reweighting-new.txt");
-  vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("DSSV_REP_LHAPDF6");
+  ofstream fout_old("data/reweighting-JAM22ppdf-old.txt");
+  ofstream fout_new("data/reweighting-JAM22ppdf-new.txt");
+  vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("JAM22ppdf");
 
   for(int ix=0; ix<101; ix++)
   {
