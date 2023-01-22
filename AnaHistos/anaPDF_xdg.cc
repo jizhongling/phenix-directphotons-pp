@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <TCanvas.h>
+#include <TPad.h>
 #include <TGraph.h>
 #include <TAxis.h>
 #include "LHAPDF/LHAPDF.h"
@@ -21,6 +22,7 @@ int main()
   for(int iset=0; iset<4; iset++)
   {
     c0->cd(iset<3?iset+1:3);
+    gPad->SetLogx();
     vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs(pdfset[iset]);
     const int nrep = stoi(v_pdf.at(0)->info().get_entry("NumMembers")) - 1;
     for(int irep=1; irep<=nrep; irep++)
@@ -31,12 +33,12 @@ int main()
         double log10x = -3. + 0.03 * (double)ix;
         double x = pow(10., log10x);
         double xg = v_pdf.at(irep)->xfxQ2(21, x, 10.);
-        gr_xg->SetPoint(ix, log10x, xg);
+        gr_xg->SetPoint(ix, x, xg);
       } // ix
       gr_xg->SetTitle(pdfname[iset]);
-      gr_xg->GetXaxis()->SetTitle("log10(x)");
+      gr_xg->GetXaxis()->SetTitle("x");
       gr_xg->GetYaxis()->SetTitle("x#Deltag");
-      gr_xg->GetXaxis()->SetRangeUser(-3., 0.);
+      gr_xg->GetXaxis()->SetRangeUser(1e-3, 1.);
       gr_xg->GetYaxis()->SetRangeUser(-0.5, 0.5);
       gr_xg->Draw(iset<3&&irep==1?"AC":"C");
     } // irep

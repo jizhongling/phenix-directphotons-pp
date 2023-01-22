@@ -73,8 +73,8 @@ int main()
   for(int irep=1; irep<=nrep; irep++)
     weight[irep] /= sumw;
 
-  ofstream fout_old("data/reweighting-JAM22ppdf-old.txt");
-  ofstream fout_new("data/reweighting-JAM22ppdf-new.txt");
+  ofstream fout_old("data/reweight-JAM22ppdf-old.txt");
+  ofstream fout_new("data/reweight-JAM22ppdf-new.txt");
   vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("JAM22ppdf");
 
   for(int ix=0; ix<101; ix++)

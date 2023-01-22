@@ -28,8 +28,8 @@ TGraph *RelErr(TGraphErrors *gr1, TGraphErrors *gr2)
 
 void draw_PDF_reweight()
 {
-  TGraphErrors *gr_old = new TGraphErrors("data/reweighting-JAM22ppdf-old.txt", "%lg %lg %lg");
-  TGraphErrors *gr_new = new TGraphErrors("data/reweighting-JAM22ppdf-new.txt", "%lg %lg %lg");
+  TGraphErrors *gr_old = new TGraphErrors("data/reweight-JAM22ppdf-old.txt", "%lg %lg %lg");
+  TGraphErrors *gr_new = new TGraphErrors("data/reweight-JAM22ppdf-new.txt", "%lg %lg %lg");
   TGraph *gr_ratio = RelErr(gr_new, gr_old);
 
   mc(0, 2,1);
@@ -65,5 +65,5 @@ void draw_PDF_reweight()
   style(gr_ratio, 1, kBlack);
   gr_ratio->Draw("AC");
 
-  c0->Print("plots/PDFReweighting-JAM22ppdf.pdf");
+  c0->Print("plots/PDFReweight-JAM22ppdf.pdf");
 }
