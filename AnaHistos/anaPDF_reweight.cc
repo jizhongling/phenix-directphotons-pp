@@ -17,7 +17,7 @@ const double err[npt] = {0., 0.003100, 0.004800, 0.006900, 0.009500, 0.009901, 0
 
 template<class T> inline constexpr T square(const T &x) { return x*x; }
 
-void read_xsec(const char *fname, double xsec[][npt])
+void read_xsec(const char *fname, double xsec[][npt], const int iadd = 0)
 {
   ifstream fin(fname);
   char line[1024];
@@ -38,7 +38,7 @@ void read_xsec(const char *fname, double xsec[][npt])
     else if(!word.empty())
     {
       double xsec_dir, xsec_frag;
-      ss >> xsec_dir >> xsec_frag >> xsec[irep][ipt];
+      ss >> xsec_dir >> xsec_frag >> xsec[irep+iadd][ipt];
       ipt++;
     }
   }

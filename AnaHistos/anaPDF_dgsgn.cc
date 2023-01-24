@@ -17,7 +17,7 @@ const double err[npt] = {0., 0.003100, 0.004800, 0.006900, 0.009500, 0.009901, 0
 
 template<class T> inline constexpr T square(const T &x) { return x*x; }
 
-void read_xsec(const char *fname, double xsec[][npt])
+void read_xsec(const char *fname, double xsec[][npt], const int iadd = 0)
 {
   ifstream fin(fname);
   char line[1024];
@@ -38,7 +38,7 @@ void read_xsec(const char *fname, double xsec[][npt])
     else if(!word.empty())
     {
       double xsec_dir, xsec_frag;
-      ss >> xsec_dir >> xsec_frag >> xsec[irep][ipt];
+      ss >> xsec_dir >> xsec_frag >> xsec[irep+iadd][ipt];
       ipt++;
     }
   }
@@ -49,12 +49,15 @@ void read_xsec(const char *fname, double xsec[][npt])
 
 int main()
 {
-  const int nrep = 1056;
+  const int nrep_pos = 461;
+  const int nrep_neg = 72;
+  const int nrep = nrep_pos + nrep_neg;
 
   double unpol[1][npt];
   double pol[nrep+1][npt];
   read_xsec("data/cross-unpol-NNPDF30_nlo_as_0118.txt", unpol);
-  read_xsec("data/cross-pol-JAM22ppdf.txt", pol);
+  read_xsec("data/cross-pol-JAM22_pol_SU23_pos_g.txt", pol);
+  read_xsec("data/cross-pol-JAM22_pol_SU23_neg_g.txt", pol, nrep_pos);
 
   int irep_min = 9999;
   double chi2_min = 9999.;
@@ -73,11 +76,11 @@ int main()
     }
   }
 
-  ofstream fout_dir("data/all-JAM22ppdf-dgdir.txt");
+  ofstream fout_dir("data/all-JAM22_pol_SU23-dgdir.txt");
   ofstream fout_jam[2];
-  fout_jam[0].open("data/all-JAM22ppdf-dgpos.txt");
-  fout_jam[1].open("data/all-JAM22ppdf-dgneg.txt");
-  vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("JAM22ppdf");
+  fout_jam[0].open("data/all-JAM22_pol_SU23-dgpos.txt");
+  fout_jam[1].open("data/all-JAM22_pol_SU23-dgneg.txt");
+  //vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("JAM22ppdf");
 
   for(int ipt=0; ipt<npt; ipt++)
   {
@@ -87,7 +90,8 @@ int main()
 
     for(int irep=1; irep<=nrep; irep++)
     {
-      int ixg = v_pdf.at(irep)->xfxQ2(21, 0.5, 10.) < 0 ? 1 : 0;
+      //int ixg = v_pdf.at(irep)->xfxQ2(21, 0.5, 10.) < 0 ? 1 : 0;
+      int ixg = irep > nrep_pos ? 1 : 0;
       double all = pol[irep][ipt] / unpol[0][ipt];
       sum_all[ixg] += all;
       sum_all2[ixg] += square(all);
