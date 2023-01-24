@@ -89,18 +89,18 @@ int main()
     weight[irep] = pow(chi2, (npt-2-1)/2.) * exp(-chi2/2.);
   }
 
-  ofstream fout_dir("data/all-JAM22_pol_SU23-chi2min.txt");
-  ofstream fout_jam[3];
-  fout_jam[0].open("data/all-JAM22_pol_SU23-dgpos.txt");
-  fout_jam[1].open("data/all-JAM22_pol_SU23-dgneg.txt");
-  fout_jam[2].open("data/all-JAM22_pol_SU23-reweight.txt");
+  const int ntype = 4;
+  const string type[ntype] = {"dgpos", "dgneg", "reweight", "chi2min"};
+  ofstream fout[ntype];
+  for(int it=0; it<ntype; it++)
+    fout[it].open(("data/all-JAM22_pol_SU23-"+type[it]+".txt").c_str());
   //vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("JAM22ppdf");
 
   for(int ipt=0; ipt<npt; ipt++)
   {
-    double sum_all[3] = {};
-    double sum_all2[3] = {};
-    double n_all[3] = {};
+    double sum_all[ntype] = {};
+    double sum_all2[ntype] = {};
+    double n_all[ntype] = {};
 
     for(int irep=1; irep<=nrep; irep++)
     {
@@ -114,21 +114,23 @@ int main()
       sum_all2[2] += square(all) * weight[irep];
       n_all[2] += weight[irep];
       if(irep == irep_min)
-        fout_dir << pt[ipt] << "\t" << all << endl;
+      {
+        sum_all[3] += all;
+        sum_all2[3] += square(all);
+        n_all[3]++;
+      }
     }
 
-    for(int ixg=0; ixg<3; ixg++)
+    for(int it=0; it<ntype; it++)
     {
-      double mean_all = sum_all[ixg] / n_all[ixg];
-      double sigma_all = sqrt(sum_all2[ixg] / n_all[ixg] - square(mean_all));
-      fout_jam[ixg] << pt[ipt] << "\t" << mean_all << "\t" << sigma_all << endl;
+      double mean_all = sum_all[it] / n_all[it];
+      double sigma_all = sqrt(sum_all2[it] / n_all[it] - square(mean_all));
+      fout[it] << pt[ipt] << "\t" << mean_all << "\t" << sigma_all << endl;
     }
   }
 
-  fout_dir.close();
-  fout_jam[0].close();
-  fout_jam[1].close();
-  fout_jam[2].close();
+  for(int it=0; it<ntype; it++)
+    fout[it].close();
 
   return 0;
 }
