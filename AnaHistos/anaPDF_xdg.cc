@@ -13,15 +13,15 @@ using namespace std;
 
 int main()
 {
-  const char *pdfname[3] = {"DSSV14", "JAM22 with W", "JAM22 without W"};
-  const char *pdfset[4] = {"DSSV_REP_LHAPDF6", "JAM22ppdf", "JAM22_pol_SU23_pos_g", "JAM22_pol_SU23_neg_g"};
+  const char *pdfname[4] = {"DSSV14", "JAM22 with W", "JAM22 positivity without W", "JAM22 without W"};
+  const char *pdfset[5] = {"DSSV_REP_LHAPDF6", "JAM22ppdf", "JAM22_pol_positivity", "JAM22_pol_SU23_pos_g", "JAM22_pol_SU23_neg_g"};
 
-  auto c0 = new TCanvas("c0", "c0", 3*600, 600);
-  c0->Divide(3, 1);
+  auto c0 = new TCanvas("c0", "c0", 2*600, 2*600);
+  c0->Divide(2, 2);
 
-  for(int iset=0; iset<4; iset++)
+  for(int iset=0; iset<5; iset++)
   {
-    c0->cd(iset<3?iset+1:3);
+    c0->cd(iset<4?iset+1:4);
     gPad->SetLogx();
     vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs(pdfset[iset]);
     const int nrep = stoi(v_pdf.at(0)->info().get_entry("NumMembers")) - 1;
@@ -40,7 +40,7 @@ int main()
       gr_xg->GetYaxis()->SetTitle("x#Deltag");
       gr_xg->GetXaxis()->SetRangeUser(1e-3, 1.);
       gr_xg->GetYaxis()->SetRangeUser(-0.5, 0.5);
-      gr_xg->Draw(iset<3&&irep==1?"AC":"C");
+      gr_xg->Draw(iset<4&&irep==1?"AC":"C");
     } // irep
   } // iset
 

@@ -12,7 +12,7 @@ void draw_SysErrALL(const int prelim = 0)
   TGraphErrors *gr_dssv = new TGraphErrors("data/werner-all-dssv14-nnpdf-grv.txt", "%lg %lg %lg");
   TGraphErrors *gr_jam_pos = new TGraphErrors("data/all-JAM22_pol_SU23-dgpos.txt", "%lg %lg %lg");
   TGraphErrors *gr_jam_neg = new TGraphErrors("data/all-JAM22_pol_SU23-dgneg.txt", "%lg %lg %lg");
-  TGraph *gr_jam_dir = new TGraph("data/all-JAM22_pol_SU23-dgdir.txt", "%lg %lg");
+  TGraphErrors *gr_jam_dir = new TGraphErrors("data/all-JAM22_pol_SU23-reweight.txt", "%lg %lg %lg");
 
   TBox *box = new TBox();
   box->SetLineColor(2);
@@ -108,7 +108,7 @@ void draw_SysErrALL(const int prelim = 0)
       gr_jam_neg->SetFillColor(kGreen);
       gr_jam_neg->Draw("3");
       gr_jam_neg->Draw("CX");
-      gr_jam_dir->Draw("C");
+      gr_jam_dir->Draw("CX");
       gr_all->Draw("P");
       latex->DrawLatexNDC(0.23,0.85, "#scale[0.9]{#vec{p} + #vec{p} #rightarrow #gamma^{iso} + X, #sqrt{s} = 510 GeV, |#eta| < 0.25}");
       //latex->DrawLatexNDC(0.23,0.79, "#scale[0.6]{3.9#times10^{-4} shift uncertainty from relative luminosity not shown}");

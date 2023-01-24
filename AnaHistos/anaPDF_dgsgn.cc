@@ -76,17 +76,31 @@ int main()
     }
   }
 
-  ofstream fout_dir("data/all-JAM22_pol_SU23-dgdir.txt");
-  ofstream fout_jam[2];
+  double weight[nrep+1];
+  for(int irep=1; irep<=nrep; irep++)
+  {
+    double chi2 = 0.;
+    for(int ipt=1; ipt<npt-1; ipt++)
+    {
+      double all = pol[irep][ipt] / unpol[0][ipt];
+      chi2 += square((all - data[ipt]) / err[ipt]);
+    }
+    // See Erratum of Nucl. Phys. B 849 (2011) 112-143
+    weight[irep] = pow(chi2, (npt-2-1)/2.) * exp(-chi2/2.);
+  }
+
+  ofstream fout_dir("data/all-JAM22_pol_SU23-chi2min.txt");
+  ofstream fout_jam[3];
   fout_jam[0].open("data/all-JAM22_pol_SU23-dgpos.txt");
   fout_jam[1].open("data/all-JAM22_pol_SU23-dgneg.txt");
+  fout_jam[2].open("data/all-JAM22_pol_SU23-reweight.txt");
   //vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("JAM22ppdf");
 
   for(int ipt=0; ipt<npt; ipt++)
   {
-    double sum_all[2] = {};
-    double sum_all2[2] = {};
-    int n_all[2] = {};
+    double sum_all[3] = {};
+    double sum_all2[3] = {};
+    double n_all[3] = {};
 
     for(int irep=1; irep<=nrep; irep++)
     {
@@ -96,21 +110,25 @@ int main()
       sum_all[ixg] += all;
       sum_all2[ixg] += square(all);
       n_all[ixg]++;
+      sum_all[2] += all * weight[irep];
+      sum_all2[2] += square(all) * weight[irep];
+      n_all[2] += weight[irep];
       if(irep == irep_min)
-        fout_dir << pt[ipt]  << "\t" << all << endl;
+        fout_dir << pt[ipt] << "\t" << all << endl;
     }
 
-    for(int ixg=0; ixg<2; ixg++)
+    for(int ixg=0; ixg<3; ixg++)
     {
       double mean_all = sum_all[ixg] / n_all[ixg];
       double sigma_all = sqrt(sum_all2[ixg] / n_all[ixg] - square(mean_all));
-      fout_jam[ixg] << pt[ipt]  << "\t" << mean_all << "\t" << sigma_all << endl;
+      fout_jam[ixg] << pt[ipt] << "\t" << mean_all << "\t" << sigma_all << endl;
     }
   }
 
   fout_dir.close();
   fout_jam[0].close();
   fout_jam[1].close();
+  fout_jam[2].close();
 
   return 0;
 }
