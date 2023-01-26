@@ -49,16 +49,18 @@ void read_xsec(const char *fname, double xsec[][npt], const int iadd = 0)
 
 int main()
 {
-  const int nrep = 1056;
+  const int irep_start = 0;
+  const int nrep = 1057;
+  const int irep_end = irep_start + nrep - 1;
 
   double unpol[1][npt];
-  double pol[nrep+1][npt];
+  double pol[irep_end+1][npt];
   read_xsec("data/cross-unpol-NNPDF30_nlo_as_0118.txt", unpol);
   read_xsec("data/cross-pol-JAM22ppdf.txt", pol);
 
-  double weight[nrep+1];
+  double weight[irep_end+1];
   double sumw = 0.;
-  for(int irep=1; irep<=nrep; irep++)
+  for(int irep=irep_start; irep<=irep_end; irep++)
   {
     double chi2 = 0.;
     for(int ipt=1; ipt<npt-1; ipt++)
@@ -70,7 +72,7 @@ int main()
     weight[irep] = pow(chi2, (npt-2-1)/2.) * exp(-chi2/2.);
     sumw += weight[irep];
   }
-  for(int irep=1; irep<=nrep; irep++)
+  for(int irep=irep_start; irep<=irep_end; irep++)
     weight[irep] /= sumw;
 
   ofstream fout_old("data/reweight-JAM22ppdf-old.txt");
@@ -86,7 +88,7 @@ int main()
     double xg_new = 0.;
     double xg2_new = 0.;
 
-    for(int irep=1; irep<=nrep; irep++)
+    for(int irep=irep_start; irep<=irep_end; irep++)
     {
       double xg = v_pdf.at(irep)->xfxQ2(21, x, 10.);
       xg_old += xg / (double)nrep;

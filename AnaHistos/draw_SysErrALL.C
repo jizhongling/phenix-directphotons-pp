@@ -117,7 +117,7 @@ void draw_SysErrALL(const int prelim = 0)
       leg0->AddEntry(gr_dssv, "DSSV14 with DSSV_{MC} uncertainty", "LF");
       leg0->AddEntry(gr_jam_pos, "JAM #Deltag > 0", "LF");
       leg0->AddEntry(gr_jam_neg, "JAM #Deltag < 0", "LF");
-      leg0->AddEntry(gr_jam_dir, "JAM best fit with PHENIX data", "L");
+      leg0->AddEntry(gr_jam_dir, "JAM reweighted by PHENIX data", "L");
       leg0->Draw();
     }
     //gr_lum->Draw("3");

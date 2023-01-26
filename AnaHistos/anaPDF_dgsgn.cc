@@ -49,35 +49,21 @@ void read_xsec(const char *fname, double xsec[][npt], const int iadd = 0)
 
 int main()
 {
-  const int nrep_pos = 461;
-  const int nrep_neg = 72;
+  const int irep_start = 0;
+  const int nrep_pos = 462;
+  const int nrep_neg = 73;
   const int nrep = nrep_pos + nrep_neg;
+  const int irep_end = irep_start + nrep - 1;
 
   double unpol[1][npt];
-  double pol[nrep+1][npt];
+  double pol[irep_end+1][npt];
   read_xsec("data/cross-unpol-NNPDF30_nlo_as_0118.txt", unpol);
   read_xsec("data/cross-pol-JAM22_pol_SU23_pos_g.txt", pol);
   read_xsec("data/cross-pol-JAM22_pol_SU23_neg_g.txt", pol, nrep_pos);
 
-  int irep_min = 9999;
-  double chi2_min = 9999.;
-  for(int irep=1; irep<=nrep; irep++)
-  {
-    double chi2 = 0.;
-    for(int ipt=1; ipt<npt-1; ipt++)
-    {
-      double all = pol[irep][ipt] / unpol[0][ipt];
-      chi2 += square((all - data[ipt]) / err[ipt]);
-    }
-    if(chi2 < chi2_min)
-    {
-      irep_min = irep;
-      chi2_min = chi2;
-    }
-  }
-
-  double weight[nrep+1];
-  for(int irep=1; irep<=nrep; irep++)
+  double weight[irep_end+1];
+  double sumw = 0.;
+  for(int irep=irep_start; irep<=irep_end; irep++)
   {
     double chi2 = 0.;
     for(int ipt=1; ipt<npt-1; ipt++)
@@ -87,10 +73,11 @@ int main()
     }
     // See Erratum of Nucl. Phys. B 849 (2011) 112-143
     weight[irep] = pow(chi2, (npt-2-1)/2.) * exp(-chi2/2.);
+    sumw += weight[irep];
   }
 
-  const int ntype = 4;
-  const string type[ntype] = {"dgpos", "dgneg", "reweight", "chi2min"};
+  const int ntype = 3;
+  const string type[ntype] = {"dgpos", "dgneg", "reweight"};
   ofstream fout[ntype];
   for(int it=0; it<ntype; it++)
     fout[it].open(("data/all-JAM22_pol_SU23-"+type[it]+".txt").c_str());
@@ -101,11 +88,12 @@ int main()
     double sum_all[ntype] = {};
     double sum_all2[ntype] = {};
     double n_all[ntype] = {};
+    double sumw_pos_neg[2] = {};
 
-    for(int irep=1; irep<=nrep; irep++)
+    for(int irep=irep_start; irep<=irep_end; irep++)
     {
       //int ixg = v_pdf.at(irep)->xfxQ2(21, 0.5, 10.) < 0 ? 1 : 0;
-      int ixg = irep > nrep_pos ? 1 : 0;
+      int ixg = irep >= irep_start + nrep_pos ? 1 : 0;
       double all = pol[irep][ipt] / unpol[0][ipt];
       sum_all[ixg] += all;
       sum_all2[ixg] += square(all);
@@ -113,13 +101,13 @@ int main()
       sum_all[2] += all * weight[irep];
       sum_all2[2] += square(all) * weight[irep];
       n_all[2] += weight[irep];
-      if(irep == irep_min)
-      {
-        sum_all[3] += all;
-        sum_all2[3] += square(all);
-        n_all[3]++;
-      }
+      sumw_pos_neg[ixg] += weight[irep];
     }
+
+    if(ipt == 0)
+      cout << "n_pos = " << n_all[0] << ", n_neg = " << n_all[1] << endl
+        << "rw_pos = " << fixed << sumw_pos_neg[0]/sumw*100. << "%, "
+        << "rw_neg = " << fixed << sumw_pos_neg[1]/sumw*100. << "%" << endl;
 
     for(int it=0; it<ntype; it++)
     {
