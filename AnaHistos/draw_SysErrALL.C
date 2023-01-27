@@ -18,7 +18,7 @@ void draw_SysErrALL(const int prelim = 0)
   box->SetLineColor(2);
   box->SetFillStyle(0);
 
-  legi(0, 0.23,0.25,0.50,0.45);
+  legi(0, 0.22,0.25,0.50,0.45);
   leg0->SetTextSize(0.030);
 
   const int nge = 25;
@@ -95,8 +95,6 @@ void draw_SysErrALL(const int prelim = 0)
       style(gr_dssv, 1, 1);
       style(gr_jam_pos, 1, 1);
       style(gr_jam_neg, 1, 1);
-      //style(gr_jam_pos, 2, kBlue, 3.);
-      //style(gr_jam_neg, 4, kGreen, 3.);
       style(gr_jam_dir, 2, kRed, 3.);
       gr_dssv->SetFillColor(kCyan-7);
       //gr_dssv->SetFillStyle(3001);
@@ -108,16 +106,16 @@ void draw_SysErrALL(const int prelim = 0)
       gr_jam_neg->SetFillColor(kGreen);
       gr_jam_neg->Draw("3");
       gr_jam_neg->Draw("CX");
-      gr_jam_dir->Draw("CX");
+      //gr_jam_dir->Draw("CX");
       gr_all->Draw("P");
       latex->DrawLatexNDC(0.23,0.85, "#scale[0.9]{#vec{p} + #vec{p} #rightarrow #gamma^{iso} + X, #sqrt{s} = 510 GeV, |#eta| < 0.25}");
       //latex->DrawLatexNDC(0.23,0.79, "#scale[0.6]{3.9#times10^{-4} shift uncertainty from relative luminosity not shown}");
       //latex->DrawLatexNDC(0.23,0.74, "#scale[0.6]{6.6% scale uncertainty from polarization not shown}");
       leg0->AddEntry(gr_all, "PHENIX Data", "P");
       leg0->AddEntry(gr_dssv, "DSSV14 with DSSV_{MC} uncertainty", "LF");
-      leg0->AddEntry(gr_jam_pos, "JAM #Deltag > 0", "LF");
-      leg0->AddEntry(gr_jam_neg, "JAM #Deltag < 0", "LF");
-      leg0->AddEntry(gr_jam_dir, "JAM reweighted by PHENIX data", "L");
+      leg0->AddEntry(gr_jam_pos, "JAM22 #Deltag > 0 with JAM_{MC} uncertainty", "LF");
+      leg0->AddEntry(gr_jam_neg, "JAM22 #Deltag < 0 with JAM_{MC} uncertainty", "LF");
+      //leg0->AddEntry(gr_jam_dir, "JAM22 reweighted by PHENIX data", "L");
       leg0->Draw();
     }
     //gr_lum->Draw("3");
