@@ -93,8 +93,8 @@ void draw_SysErrALL(const int prelim = 0)
     if(beam==2)
     {
       style(gr_dssv, 1, 1);
-      style(gr_jam_pos, 1, 1);
-      style(gr_jam_neg, 1, 1);
+      style(gr_jam_pos, 2, 1);
+      style(gr_jam_neg, 4, 1);
       style(gr_jam_dir, 2, kRed, 3.);
       gr_dssv->SetFillColor(kCyan-7);
       //gr_dssv->SetFillStyle(3001);
