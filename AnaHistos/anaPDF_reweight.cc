@@ -49,14 +49,14 @@ void read_xsec(const char *fname, double xsec[][npt], const int iadd = 0)
 
 int main()
 {
-  const int irep_start = 0;
-  const int nrep = 1057;
+  const int irep_start = 1;
+  const int nrep = 1000;
   const int irep_end = irep_start + nrep - 1;
 
   double unpol[1][npt];
   double pol[irep_end+1][npt];
   read_xsec("data/cross-unpol-NNPDF30_nlo_as_0118.txt", unpol);
-  read_xsec("data/cross-pol-JAM22ppdf.txt", pol);
+  read_xsec("data/cross-pol-DSSV_REP_LHAPDF6.txt", pol);
 
   double weight[irep_end+1];
   double sumw = 0.;
@@ -69,15 +69,17 @@ int main()
       chi2 += square((all - data[ipt]) / err[ipt]);
     }
     // See Erratum of Nucl. Phys. B 849 (2011) 112-143
-    weight[irep] = pow(chi2, (npt-2-1)/2.) * exp(-chi2/2.);
+    // weight[irep] = pow(chi2, (npt-2-1)/2.) * exp(-chi2/2.);
+    // Should weight without the prefactor
+    weight[irep] = exp(-chi2/2.);
     sumw += weight[irep];
   }
   for(int irep=irep_start; irep<=irep_end; irep++)
     weight[irep] /= sumw;
 
-  ofstream fout_old("data/reweight-JAM22ppdf-old.txt");
-  ofstream fout_new("data/reweight-JAM22ppdf-new.txt");
-  vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("JAM22ppdf");
+  ofstream fout_old("data/reweight-DSSV_REP_LHAPDF6-old.txt");
+  ofstream fout_new("data/reweight-DSSV_REP_LHAPDF6-new.txt");
+  vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("DSSV_REP_LHAPDF6");
 
   for(int ix=0; ix<101; ix++)
   {

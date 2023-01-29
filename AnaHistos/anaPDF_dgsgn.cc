@@ -72,7 +72,9 @@ int main()
       chi2 += square((all - data[ipt]) / err[ipt]);
     }
     // See Erratum of Nucl. Phys. B 849 (2011) 112-143
-    weight[irep] = pow(chi2, (npt-2-1)/2.) * exp(-chi2/2.);
+    // weight[irep] = pow(chi2, (npt-2-1)/2.) * exp(-chi2/2.);
+    // Should weight without the prefactor
+    weight[irep] = exp(-chi2/2.);
     sumw += weight[irep];
   }
 
