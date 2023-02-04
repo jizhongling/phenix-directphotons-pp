@@ -10,15 +10,15 @@ void draw_SysErrALL(const int prelim = 0)
   QueryTree *qt_all = new QueryTree("data/IsoPhotonALL.root");
 
   TGraphErrors *gr_dssv = new TGraphErrors("data/werner-all-dssv14-nnpdf-grv.txt", "%lg %lg %lg");
-  TGraphErrors *gr_jam_pos = new TGraphErrors("data/all-JAM22_pol_SU23-dgpos.txt", "%lg %lg %lg");
-  TGraphErrors *gr_jam_neg = new TGraphErrors("data/all-JAM22_pol_SU23-dgneg.txt", "%lg %lg %lg");
-  TGraphErrors *gr_jam_dir = new TGraphErrors("data/all-JAM22_pol_SU23-reweight.txt", "%lg %lg %lg");
+  TGraphErrors *gr_jam_pos = new TGraphErrors("data/all-JAM22ppdf-dgpos.txt", "%lg %lg %lg");
+  TGraphErrors *gr_jam_neg = new TGraphErrors("data/all-JAM22ppdf-dgneg.txt", "%lg %lg %lg");
+  TGraphErrors *gr_jam_dir = new TGraphErrors("data/all-JAM22ppdf-reweight.txt", "%lg %lg %lg");
 
   TBox *box = new TBox();
   box->SetLineColor(2);
   box->SetFillStyle(0);
 
-  legi(0, 0.22,0.25,0.50,0.45);
+  legi(0, 0.23,0.24,0.46,0.43);
   leg0->SetTextSize(0.030);
 
   const int nge = 25;
@@ -100,7 +100,7 @@ void draw_SysErrALL(const int prelim = 0)
       //gr_dssv->SetFillStyle(3001);
       gr_dssv->Draw("3");
       gr_dssv->Draw("CX");
-      gr_jam_pos->SetFillColor(kOrange);
+      gr_jam_pos->SetFillColorAlpha(kOrange, 0.5);
       gr_jam_pos->Draw("3");
       gr_jam_pos->Draw("CX");
       gr_jam_neg->SetFillColor(kGreen);

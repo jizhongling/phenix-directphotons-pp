@@ -50,16 +50,17 @@ void read_xsec(const char *fname, double xsec[][npt], const int iadd = 0)
 int main()
 {
   const int irep_start = 0;
-  const int nrep_pos = 462;
-  const int nrep_neg = 73;
+  const int nrep_pos = 1057;
+  const int nrep_neg = 0;
   const int nrep = nrep_pos + nrep_neg;
   const int irep_end = irep_start + nrep - 1;
 
   double unpol[1][npt];
   double pol[irep_end+1][npt];
   read_xsec("data/cross-unpol-NNPDF30_nlo_as_0118.txt", unpol);
-  read_xsec("data/cross-pol-JAM22_pol_SU23_pos_g.txt", pol);
-  read_xsec("data/cross-pol-JAM22_pol_SU23_neg_g.txt", pol, nrep_pos);
+  read_xsec("data/cross-pol-JAM22ppdf.txt", pol);
+  //read_xsec("data/cross-pol-JAM22_pol_SU23_pos_g.txt", pol);
+  //read_xsec("data/cross-pol-JAM22_pol_SU23_neg_g.txt", pol, nrep_pos);
 
   double weight[irep_end+1];
   double sumw = 0.;
@@ -82,8 +83,8 @@ int main()
   const string type[ntype] = {"dgpos", "dgneg", "reweight"};
   ofstream fout[ntype];
   for(int it=0; it<ntype; it++)
-    fout[it].open(("data/all-JAM22_pol_SU23-"+type[it]+".txt").c_str());
-  //vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("JAM22ppdf");
+    fout[it].open(("data/all-JAM22ppdf-"+type[it]+".txt").c_str());
+  vector<LHAPDF::PDF*> v_pdf = LHAPDF::mkPDFs("JAM22ppdf");
 
   for(int ipt=0; ipt<npt; ipt++)
   {
@@ -94,8 +95,8 @@ int main()
 
     for(int irep=irep_start; irep<=irep_end; irep++)
     {
-      //int ixg = v_pdf.at(irep)->xfxQ2(21, 0.5, 10.) < 0 ? 1 : 0;
-      int ixg = irep >= irep_start + nrep_pos ? 1 : 0;
+      int ixg = v_pdf.at(irep)->xfxQ2(21, 0.5, 10.) < 0 ? 1 : 0;
+      //int ixg = irep >= irep_start + nrep_pos ? 1 : 0;
       double all = pol[irep][ipt] / unpol[0][ipt];
       sum_all[ixg] += all;
       sum_all2[ixg] += square(all);
