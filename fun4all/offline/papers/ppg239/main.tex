@@ -558,10 +558,11 @@ We present measurements of the cross section and double-helicity
 asymmetry $A_{LL}$ of direct-photon production in $\vec{p}+\vec{p}$ 
 collisions at $\sqrt{s}=510$ GeV. The measurements have been performed at 
 midrapidity ($|\eta|<0.25$) with the PHENIX detector at the Relativistic 
-Heavy Ion Collider.  Direct photons are dominantly produced by the 
+Heavy Ion Collider (RHIC).  Direct photons are dominantly produced by the 
 quark-gluon scattering at relativistic energies. Direct photons are 
 produced from the initial partonic hard scattering and do not interact 
-via the strong force.  Therefore, this measurement provides clean and 
+via the strong force at leading order. Therefore, at the RHIC energy where
+leading order effects dominate, this measurement provides clean and 
 direct access to the gluons in the polarized proton in the 
 gluon-momentum-fraction range $0.02<x<0.08$, which unlike previous 
 measurements, is directly sensitive to the sign of the gluon contribution.
@@ -609,7 +610,7 @@ have confirmed the nonzero gluon polarization and extended the minimum
 $x$ reach to $\approx$0.01. Recent analysis by the Jefferson Lab Angular 
 Momentum (JAM) Collaboration showed that the two scenarios of positive 
 and negative gluon-spin contributions are indistinguishable from each 
-other based on the existing data~\cite{PhysRevD.105.074022}.
+other based on the existing data~\cite{PhysRevD.105.074022,PhysRevD.106.L031502}.
 This can be resolved using direct-photon production in 
 $\vec{p}+\vec{p}$ scattering, which is linearly sensitive to gluon 
 helicity.
@@ -871,7 +872,7 @@ found to be $3.8{\times}10^{-4}$~\cite{PhysRevD.93.011501}.
 
 The asymmetry was calculated for photon candidates that passed the same 
 time-of-flight, minimum-energy, and isolation requirements as in the 
-cross-section analysis. The z-vertex requirement of 30 cm is used for 
+cross-section analysis. A z-vertex requirement of 30 cm is used for 
 the asymmetry measurement. The asymmetry contribution for background 
 photons from \pizero's decay was calculated from the sideband regions 
 (47--97 MeV/c$^2$ and 177--227 MeV/c$^2$) below and above the \pizero 
@@ -891,10 +892,13 @@ A_{LL}^{{\rm dir}} = \frac{A_{LL}^{{\rm total}} - r_{\pi^0}A_{LL}^{\pi^0} -r_h A
 \end{equation}
 
 \noindent where $r_{\pi^0}$ (10\%--14\%) and $r_h$ (0.6\%--1.4\%) are background 
-fractions of \pizero and other hadron-decay photons, respectively. We 
-used the bunch-shuffling technique by assigning a random spin 
-polarization to each bunch crossing to make sure there is no hidden 
-systematic effect. The data were divided into subgroups according to the 
+fractions of \pizero and other hadron-decay photons, respectively.
+We used a bunch-shuffling 
+technique which assigned a random spin polarization to 
+each bunch and examined the distribution of resulting asymmetries
+ensure there were no false asymmetries arising from 
+unknown systematic effects~\cite{PhysRevD.90.012007}.
+The data were divided into subgroups according to the 
 bunch spin patterns that were used to fill the RHIC rings, and 
 calculated asymmetries were found to be consistent.
 
@@ -904,27 +908,27 @@ collisions at $\sqrt{s}=510$~GeV for $6<p_T<20$~GeV/$c$.
 The corresponding gluon momentum fraction is $x \approx 2p_T/\sqrt{s}$.
 In the asymmetry  measurement, systematic effects are largely canceled.
 The systematic uncertainties in Fig.~\ref{fig:all} include point-to-point
-uncertainties from background estimation and false asymmetry in the
+uncertainties from background estimation and false asymmetries in the
 background due to pileup effects at low \pT.
-The NLO pQCD calculation was obtained using DSSV14 polarized PDF, NNPDF3.0 
-unpolarized PDF and GRV~FF for the renormalization and factorization 
-scales $\mu=p_T$ with $1\sigma$ uncertainty band via MC replicas (a 
+The NLO pQCD calculation was obtained using the DSSV14 polarized PDFs,
+the NNPDF3.0 unpolarized PDFs and the GRV~FF for the renormalization and factorization 
+scales $\mu=p_T$ with the $1\sigma$ uncertainty band determined via MC replicas (a 
 sampling variant of the DSSV14 set of helicity parton 
 densities)~\cite{PhysRevLett.101.072001,PhysRevLett.113.012001, 
 PhysRevD.100.114027}. The calculation is in good agreement with the 
-results within experimental uncertainties.
+results, within experimental uncertainties.
 
 The two dashed curves in Fig.~\ref{fig:all} come from the global
-analysis of the JAM Collaboration~\cite{PhysRevD.105.074022}. They found
-there are two distinct sets of solutions for the polarized gluon PDF,
+analysis of the JAM Collaboration~\cite{PhysRevD.105.074022,PhysRevD.106.L031502}.
+They found there are two distinct sets of solutions for the polarized gluon PDF,
 $\Delta g$, which differ in sign. Even though the solutions with
 $\Delta g<0$ violate the positivity assumption, $|\Delta g|<g$, all
 previous data cannot exclude those solutions due to the mixed
-contributions from quark-gluon and gluon-gluon interactions.  However,
+contributions from quark-gluon and gluon-gluon interactions. However,
 the direct-photon \ALL comes mainly from the quark-gluon interactions and
-has $\chi_{\rm reduced}^2 =$ 4.8/7 (9.5/7) with the $\Delta g>0$
-($\Delta g<0$) solutions, which shows that our measurement favors
-the $\Delta g>0$ solutions.
+has $\chi^2 =$ 4.7 and 12.6 for 7 data points for the $\Delta g>0$ and $\Delta g<0$
+solutions, respectively, with the difference of 7.9 between $\chi^2$ values implying that
+the negative solution is disfavored at more than 2.8$\sigma$ level.
 
 %--------------------------------------------------- Fig_2 (was 3)
 \begin{figure}[htb]
@@ -935,11 +939,12 @@ $\sqrt{s}=510$ GeV at midrapidity. Vertical error bars (boxes) represent
 the statistical (systematic) uncertainties. The systematic uncertainties
 for $p_T < 10$ GeV/c are smaller than the marker size. Not shown are
 a $3.9{\times}10^{-4}$ shift uncertainty from relative luminosity and 
-a 6.6\% scale uncertainty from polarization. The DSSV14 calculation is 
-plotted as the solid curve with $1\sigma$ uncertainty band via MC 
-replicas~\protect\cite{PhysRevLett.101.072001,PhysRevLett.113.012001,PhysRevD.100.114027}. 
-The curves for JAM $\Delta g>0$ and $\Delta g<0$ 
-solutions~\cite{PhysRevD.105.074022} were calculated by W. Vogelsang.
+a 6.6\% scale uncertainty from polarization. The DSSV14 and JAM22 calculations 
+are shown with $1\sigma$ uncertainty bands obtained from MC
+replicas~\protect\cite{PhysRevLett.101.072001,PhysRevLett.113.012001,PhysRevD.100.114027,PhysRevD.105.074022,PhysRevD.106.L031502}. 
+JAM22 calculations are based on PDF sets from the global analysis of the
+JAM Collaboration~\cite{PhysRevD.106.L031502}, and the code to calculate
+the asymmetries provided by W. Vogelsang.
 }
 \label{fig:all}
 \end{figure}
@@ -954,8 +959,9 @@ inclusive direct-photon cross section. With isolation criteria, the
 partonic level calculation is in better agreement with the measurement. 
 This is the first measurement of the \ALL of direct photons, which is 
 sensitive to the polarized-gluon distribution inside the proton.
-Our data favor positive gluon-spin contributions that the previously
-published data were unable to resolve.
+Our data are well consistent with the positive gluon-spin contributions
+and strongly disfavor the negative gluon-spin scenario, that the
+previously published data were unable to resolve.
 
 %%% To check PRL length insert these (uncommented) lines here:
 %%% \clearpage \textbf{*** page break for PRL word count $<$3.5 pages $<$7 columns ***}
@@ -969,10 +975,8 @@ published data were unable to resolve.
 We thank the staff of the Collider-Accelerator and Physics
 Departments at Brookhaven National Laboratory and the staff of
 the other PHENIX participating institutions for their vital
-contributions.    We also thank W. Vogelsang for calculating 
-asymmetries for the positive and negative gluon-spin 
-contributions to the proton based on the JAM 
-publication~\cite{PhysRevD.105.074022}.
+contributions. We also thank W. Vogelsang for providing
+the code for direct photon asymmetry calculations.
 We acknowledge support from the Office of Nuclear Physics in the
 Office of Science of the Department of Energy,
 the National Science Foundation,
